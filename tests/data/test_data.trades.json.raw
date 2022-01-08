@@ -1,0 +1,2 @@
+{"ts_recv": 1609110000040001672, "ts_event": 1609110000000000000, "ts_in_delta": 30275, "pub_id": 1, "product_id": 5482, "action": "T", "side": "N", "flags": 129, "price": 368200000000000, "size": 308, "sequence": 3701}
+{"ts_recv": 1609110000056014650, "ts_event": 1609110000016712115, "ts_in_delta": 19519, "pub_id": 1, "product_id": 5482, "action": "T", "side": "B", "flags": 129, "price": 368200000000000, "size": 1, "sequence": 3713}

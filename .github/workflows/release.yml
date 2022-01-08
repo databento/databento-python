@@ -1,0 +1,112 @@
+name: release
+
+# Release Python client library on successful completion of the `test` workflow
+
+on:
+  workflow_run:
+    workflows:
+      - test
+    branches: [ main ]
+    types:
+      - completed
+
+jobs:
+
+  tag-release:
+    name: tag-release - Python 3.9 (ubuntu-latest)
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create-release.outputs.upload_url }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      # Python setup
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt
+          pip install -r requirements_dev.txt
+
+      # Tag the commit with the library version
+      - name: Create git tag
+        uses: salsify/action-detect-and-tag-new-version@v2
+        with:
+          version-command: cat VERSION
+
+      # Set release output variables
+      - name: Set output
+        id: vars
+        run: |
+          echo "::set-output name=tag_name::v$(cat VERSION)"
+          echo "::set-output name=release_name::$(cat VERSION)"
+
+      # Create GitHub release
+      - name: Create release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.vars.outputs.tag_name }}
+          RELEASE_NAME: ${{ steps.vars.outputs.release_name }}
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          release_name: ${{ env.RELEASE_NAME }}
+          draft: false
+          prerelease: false
+
+  publish:
+    needs: [ tag-release ]
+    name: publish-sdist - Python 3.9 (ubuntu-latest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Python setup
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+
+      # Install release dependencies
+      - name: Install release dependencies
+        run: python -m pip install --upgrade pip setuptools wheel twine
+
+      # Set release output variables
+      - name: Set output
+        id: vars
+        run: |
+          echo "::set-output name=asset_path::$(find ./dist -mindepth 1 -print -quit)"
+          cd dist
+          echo "::set-output name=asset_name::$(printf '%s\0' * | awk 'BEGIN{RS="\0"} {print;  exit}')"
+
+      # Create distributions
+      - name: Package for release
+        run: python setup.py sdist bdist_wheel
+
+      # Upload release asset
+      - name: Upload release asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ASSET_PATH: ${{ steps.vars.outputs.asset_path }}
+          ASSET_NAME: ${{ steps.vars.outputs.asset_name }}
+        with:
+          upload_url: ${{ needs.tag-release.outputs.upload_url }}
+          asset_path: ${{ env.ASSET_PATH }}
+          asset_name: ${{ env.ASSET_NAME }}
+          asset_content_type: application/zip
+
+      # Publish to PyPI
+      - name: Publish to PyPI
+        run: python twine upload -r databento -u ${{ secrets.PYPI_USERNAME }} - p ${{ secrets.PYPI_TOKEN }}
