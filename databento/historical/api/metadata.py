@@ -111,7 +111,7 @@ class MetadataHttpAPI(BentoHttpAPI):
     def list_fields(
         self,
         dataset: Union[Dataset, str],
-        schema: Union[Schema, str] = "mbo",
+        schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "csv",
@@ -214,7 +214,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset ID for the request.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'mbo'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}
             The data feed mode for the request.
@@ -248,7 +248,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "mbo",
+        schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "bin",
@@ -267,7 +267,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'mbo'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range (UTC).
@@ -327,7 +327,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "mbo",
+        schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "bin",
@@ -346,7 +346,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'mbo'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range (UTC).
