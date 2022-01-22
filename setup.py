@@ -31,7 +31,6 @@ setup(
     keywords="databento financial data API",
     packages=find_packages(exclude=["tests"]),
     zip_safe=False,
-    # https://docs.anaconda.com/anaconda/packages/py3.6_linux-64/
     install_requires=install_requires,
     tests_require=tests_require,
     python_requires=">=3.6.*",
@@ -50,6 +49,9 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Office/Business :: Financial",
+        "Topic :: Office/Business :: Financial :: Investment",
     ],
 )

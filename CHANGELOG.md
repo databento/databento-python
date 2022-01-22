@@ -31,10 +31,8 @@ of the API.
 We recommend to pin your version requirements against `0.x.*` or `0.x.y`.
 Either one of the following is fine:
 
-```
-databento>=0.2,<1.0
-databento==0.3.0
-```
+- `databento>=0.2,<1.0`
+- `databento==0.3.0`
 
 Additionally note:
 - All undocumented APIs are considered internal. They are not part of this contract.
@@ -45,11 +43,11 @@ Additionally note:
 
 
 ## 0.2.0 - 2021-12-10
-    - Added backend endpoint APIs.
-    - Added async stream support.
-    - Added `BentoIOBase` convenience objects.
-    - Updated Changelog and versioning policy.
+ - Added backend endpoint APIs.
+ - Added async stream support.
+ - Added `BentoIOBase` convenience objects.
+ - Updated Changelog and versioning policy.
 
 ## 0.1.0 - 2021-08-30
-    - Added support for remote procedure call (RPC) streaming requests.
-    - Refactored legacy code.
+ - Added support for remote procedure call (RPC) streaming requests.
+ - Refactored legacy code.
