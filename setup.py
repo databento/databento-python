@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 import os
 
-import databento
 from setuptools import find_packages, setup
 
 
 here = os.path.abspath(os.path.dirname(__file__))
 os.chdir(here)
+
+
+with open("VERSION") as f:
+    version = f.read()
 
 with open("README.md") as f:
     readme = f.read()
@@ -20,8 +23,8 @@ with open("requirements_dev.txt", "r") as f:
 
 setup(
     name="databento",
-    version=databento.__version__,
-    description="Python client library for the Databento API",
+    version=version,
+    description="Official Python client library for Databento",
     long_description=readme,
     long_description_content_type="text/x-rst",
     author="Databento",
@@ -29,7 +32,7 @@ setup(
     url="https://github.com/databento/databento-python",
     license="MIT",
     keywords="databento financial data API",
-    packages=find_packages(exclude=["tests"]),
+    packages=find_packages(exclude=["tests", "examples"]),
     zip_safe=False,
     install_requires=install_requires,
     tests_require=tests_require,
