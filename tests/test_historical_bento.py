@@ -97,6 +97,24 @@ class TestBentoMemoryIO:
         assert bento_io.compression == expected_compression
         assert bento_io.getvalue() == stub_data  # Ensure stream position hasn't moved
 
+    def test_memory_io_nbytes(self) -> None:
+        # Arrange
+        stub_data = get_test_data("test_data.mbo.bin")
+
+        # Act
+        bento_io = BentoMemoryIO(schema=Schema.MBO, initial_bytes=stub_data)
+
+        # Assert
+        assert bento_io.nbytes == 112
+
+    def test_disk_io_nbytes(self) -> None:
+        # Arrange, Act
+        path = os.path.join(TESTS_ROOT, "data", "test_data.mbo.bin")
+        bento_io = BentoDiskIO(path=path)
+
+        # Assert
+        assert bento_io.nbytes == 112
+
     @pytest.mark.parametrize(
         "path, expected_schema, expected_encoding, expected_compression",
         [

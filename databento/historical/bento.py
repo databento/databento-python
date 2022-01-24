@@ -31,6 +31,10 @@ class BentoIOBase:
         self._struct_size = self._struct_fmt.itemsize
 
     @property
+    def nbytes(self) -> int:
+        raise NotImplementedError()  # pragma: no cover
+
+    @property
     def schema(self) -> Schema:
         """
         Return the output schema.
@@ -81,12 +85,11 @@ class BentoIOBase:
     @property
     def struct_size(self) -> int:
         """
-        Return the binary struct size for the schema.
+        Return the schemas binary struct size in bytes.
 
         Returns
         -------
         int
-            The size in bytes.
 
         """
         return self._struct_size
@@ -134,7 +137,7 @@ class BentoIOBase:
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def to_disk(self, path: str, overwrite: bool = False) -> "BentoDiskIO":
+    def to_disk(self, path: str, overwrite: bool = True) -> "BentoDiskIO":
         """
         Write the data to disk at the given path.
 
@@ -142,7 +145,7 @@ class BentoIOBase:
         ----------
         path : str
             The path to write to.
-        overwrite : bool, default False
+        overwrite : bool, default True
             If an existing file at the given path should be overwritten.
 
         Returns
@@ -221,8 +224,12 @@ class BentoIOBase:
             The callback to the data handler.
 
         """
-        for row in self.to_list():
-            callback(row)
+        if self._encoding == Encoding.BIN:
+            self._replay_bin(callback)
+        elif self._encoding in (Encoding.CSV, Encoding.JSON):
+            self._replay_csv_or_json(callback)
+        else:  # pragma: no cover (design-time error)
+            raise ValueError(f"invalid encoding, was {self._encoding.value}")
 
     def _should_decompress(self, decompress: bool) -> bool:
         if not decompress:
@@ -329,6 +336,28 @@ class BentoIOBase:
         df.set_index(self._get_index_column(), inplace=True)
         return df
 
+    def _replay_bin(self, callback: Callable[[Any], None]) -> None:
+        dtype = BIN_RECORD_MAP[self._schema]
+        reader: BinaryIO = self.reader(decompress=True)
+        while True:
+            raw: bytes = reader.read(self.struct_size)
+            record = np.frombuffer(raw, dtype=dtype)
+            if not record:
+                break
+            callback(record[0])
+
+    def _replay_csv_or_json(self, callback: Callable[[Any], None]) -> None:
+        if self._compression == Compression.NONE:
+            reader: BinaryIO = self.reader(decompress=True)
+            while True:
+                record: bytes = reader.readline()
+                if not record:
+                    break
+                callback(record.decode().rstrip("\n"))
+        else:
+            for record in self.to_list():
+                callback(record)
+
 
 class BentoMemoryIO(BentoIOBase):
     """
@@ -360,6 +389,19 @@ class BentoMemoryIO(BentoIOBase):
             compression=compression,
         )
 
+    @property
+    def nbytes(self) -> int:
+        """
+        Return the amount of space in bytes that the data array would use in a
+        contiguous representation.
+
+        Returns
+        -------
+        int
+
+        """
+        return self._raw.getbuffer().nbytes
+
     def reader(self, decompress: bool = False) -> BinaryIO:
         self._raw.seek(0)  # Ensure reader at start of stream
         if self._should_decompress(decompress):
@@ -385,7 +427,7 @@ class BentoDiskIO(BentoIOBase):
     Parameters
     ----------
     path : str
-        The path for the data file.
+        The path to the data file.
     schema : Schema, optional
         The data record schema. If ``None`` then will be inferred.
     encoding : Encoding, optional
@@ -410,7 +452,27 @@ class BentoDiskIO(BentoIOBase):
 
     @property
     def path(self) -> str:
+        """
+        Return the path to the backing data file.
+
+        Returns
+        -------
+        str
+
+        """
         return self._path
+
+    @property
+    def nbytes(self) -> int:
+        """
+        Return the amount of space occupied by the data on disk.
+
+        Returns
+        -------
+        int
+
+        """
+        return os.path.getsize(self._path)
 
     def reader(self, decompress: bool = False) -> BinaryIO:
         f = open(self._path, mode="rb")

@@ -42,7 +42,7 @@ class Historical:
 
         # Configure data access gateway
         gateway = enum_or_str_lowercase(gateway, "gateway")
-        if gateway == "nearest":
+        if gateway in ("nearest", "bo1"):
             gateway = "https://hist.databento.com"
 
         self._key = key

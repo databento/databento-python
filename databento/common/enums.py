@@ -7,7 +7,6 @@ class HistoricalGateway(Enum):
 
     NEAREST = "nearest"
     BO1 = "bo1"
-    SLC = "slc"
 
 
 @unique
