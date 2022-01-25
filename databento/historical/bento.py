@@ -121,7 +121,7 @@ class BentoIOBase:
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def getvalue(self, decompress: bool = False) -> bytes:
+    def raw(self, decompress: bool = False) -> bytes:
         """
         Return the data from the I/O stream.
 
@@ -137,7 +137,7 @@ class BentoIOBase:
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def to_disk(self, path: str, overwrite: bool = True) -> "BentoDiskIO":
+    def to_file(self, path: str) -> "BentoDiskIO":
         """
         Write the data to disk at the given path.
 
@@ -145,27 +145,14 @@ class BentoIOBase:
         ----------
         path : str
             The path to write to.
-        overwrite : bool, default True
-            If an existing file at the given path should be overwritten.
 
         Returns
         -------
         BentoDiskIO
 
-        Raises
-        ------
-        FileExistsError
-            If overwrite is False and a file already exists at the given path.
-
         """
-        if os.path.isfile(path):
-            if overwrite:
-                os.remove(path)
-            else:
-                raise FileExistsError(f"file already exists at '{path}'")
-
         with open(path, mode="wb") as f:
-            f.write(self.getvalue())
+            f.write(self.raw())
 
         return BentoDiskIO(
             path=path,
@@ -293,11 +280,11 @@ class BentoIOBase:
         )
 
     def _prepare_list_bin(self) -> List[np.void]:
-        data: bytes = self.getvalue(decompress=True)
+        data: bytes = self.raw(decompress=True)
         return np.frombuffer(data, dtype=BIN_RECORD_MAP[self._schema])
 
     def _prepare_list_csv(self) -> List[str]:
-        data: bytes = self.getvalue(decompress=True)
+        data: bytes = self.raw(decompress=True)
         return data.decode().splitlines(keepends=False)
 
     def _prepare_list_json(self) -> List[Dict]:
@@ -326,7 +313,7 @@ class BentoIOBase:
         return df
 
     def _prepare_df_csv(self) -> pd.DataFrame:
-        data: bytes = self.getvalue(decompress=True)
+        data: bytes = self.raw(decompress=True)
         df = pd.read_csv(io.BytesIO(data), index_col=self._get_index_column())
         return df
 
@@ -412,7 +399,7 @@ class BentoMemoryIO(BentoIOBase):
     def writer(self) -> BinaryIO:
         return self._raw
 
-    def getvalue(self, decompress: bool = False) -> bytes:
+    def raw(self, decompress: bool = False) -> bytes:
         self._raw.seek(0)  # Ensure reader at start of stream
         if self._should_decompress(decompress):
             return self.reader(decompress=decompress).read()
@@ -484,5 +471,5 @@ class BentoDiskIO(BentoIOBase):
     def writer(self) -> BinaryIO:
         return open(self._path, mode="wb")
 
-    def getvalue(self, decompress: bool = False) -> bytes:
+    def raw(self, decompress: bool = False) -> bytes:
         return self.reader(decompress=decompress).read()

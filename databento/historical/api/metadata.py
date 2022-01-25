@@ -238,13 +238,13 @@ class MetadataHttpAPI(BentoHttpAPI):
         ]
 
         response: Response = self._get(
-            url=self._base_url + ".unit_price",
+            url=self._base_url + ".get_unit_price",
             params=params,
             basic_auth=True,
         )
         return response.json()
 
-    def size(
+    def get_size(
         self,
         dataset: Union[Dataset, str],
         symbols: Optional[Union[List[str], str]] = None,
@@ -252,14 +252,13 @@ class MetadataHttpAPI(BentoHttpAPI):
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "bin",
-        compression: Optional[Union[Compression, str]] = "zstd",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> int:
         """
-        Request the expected size of the data stream.
+        Request the uncompressed binary size of the data stream (used for billing).
 
-        GET `/v1/metadata.size` HTTP API endpoint.
+        GET `/v1/metadata.get_size` HTTP API endpoint.
 
         Parameters
         ----------
@@ -277,8 +276,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             If using an integer then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'bin', 'csv', 'json'}, default 'bin'
             The data output encoding.
-        compression : Compression or str {'none', 'zstd'}, default 'zstd'
-            The compression mode for the request.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         limit : int, optional
@@ -290,17 +287,12 @@ class MetadataHttpAPI(BentoHttpAPI):
             The uncompressed size of the data in bytes.
 
         """
-        if compression is None:
-            compression = Compression.NONE
-
         validate_enum(schema, Schema, "schema")
         validate_enum(encoding, Encoding, "encoding")
-        validate_enum(compression, Compression, "compression")
         validate_enum(stype_in, SType, "stype_in")
 
         schema = Schema(schema)
         encoding = Encoding(encoding)
-        compression = Compression(compression)
         stype_in = SType(stype_in)
 
         params: List[Tuple[str, str]] = super()._timeseries_params(
@@ -310,20 +302,20 @@ class MetadataHttpAPI(BentoHttpAPI):
             start=start,
             end=end,
             encoding=Encoding(encoding),
-            compression=Compression(compression),
+            compression=Compression.NONE,
             stype_in=SType(stype_in),
             limit=limit,
         )
 
         response: Response = self._get(
-            url=self._base_url + ".size",
+            url=self._base_url + ".get_size",
             params=params,
             basic_auth=True,
         )
 
         return response.json()
 
-    def cost(
+    def get_cost(
         self,
         dataset: Union[Dataset, str],
         symbols: Optional[Union[List[str], str]] = None,
@@ -338,7 +330,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the expected total cost of the data stream.
 
-        `GET /v1/metadata.cost` HTTP API endpoint.
+        `GET /v1/metadata.get_cost` HTTP API endpoint.
 
         Parameters
         ----------
@@ -395,7 +387,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
 
         response: Response = self._get(
-            url=self._base_url + ".cost",
+            url=self._base_url + ".get_cost",
             params=params,
             basic_auth=True,
         )

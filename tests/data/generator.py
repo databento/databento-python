@@ -29,4 +29,4 @@ if __name__ == "__main__":
         )  # -> BentoDiskIO
 
         print(open(path, mode="rb").read())
-        print(data.getvalue(decompress=False))
+        print(data.raw(decompress=False))

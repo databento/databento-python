@@ -5,7 +5,7 @@ from databento.common.enums import Schema
 from databento.historical.bento import BentoDiskIO
 
 
-def from_disk(path: str, schema: Optional[Union[Schema, str]] = None) -> BentoDiskIO:
+def from_file(path: str, schema: Optional[Union[Schema, str]] = None) -> BentoDiskIO:
     """
     Load data from disk at the given path.
 

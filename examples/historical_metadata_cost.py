@@ -7,7 +7,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    cost1 = client.metadata.cost(
+    cost1 = client.metadata.get_cost(
         dataset="GLBX.MDP3",
         symbols="*",
         schema="mbo",
@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     print(cost1)
 
-    cost2 = client.metadata.cost(
+    cost2 = client.metadata.get_cost(
         dataset="XNAS.ITCH",
         symbols=["MSFT"],
         schema="trades",

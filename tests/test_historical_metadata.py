@@ -123,7 +123,7 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.unit_price"
+        assert call["url"] == "https://hist.databento.com/v1/metadata.get_unit_price"
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
@@ -139,20 +139,19 @@ class TestHistoricalMetadata:
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.size(
+        self.client.metadata.get_size(
             dataset="GLBX.MDP3",
             symbols=["ESH1"],
             schema="mbo",
             start="2020-12-28T12:00",
             end="2020-12-29",
             encoding="csv",
-            compression="zstd",
             limit=1000000,
         )
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.size"
+        assert call["url"] == "https://hist.databento.com/v1/metadata.get_size"
         assert call["headers"] == {"accept": "application/json"}
         assert ("dataset", "glbx.mdp3") in call["params"]
         assert ("symbols", "ESH1") in call["params"]
@@ -160,7 +159,7 @@ class TestHistoricalMetadata:
         assert ("start", "2020-12-28T12:00:00") in call["params"]
         assert ("end", "2020-12-29T00:00:00") in call["params"]
         assert ("encoding", "csv") in call["params"]
-        assert ("compression", "zstd") in call["params"]
+        assert ("compression", "none") in call["params"]
         assert ("stype_in", "native") in call["params"]
         assert ("stype_out", "product_id") in call["params"]
         assert ("limit", "1000000") in call["params"]
@@ -173,7 +172,7 @@ class TestHistoricalMetadata:
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.cost(
+        self.client.metadata.get_cost(
             dataset="GLBX.MDP3",
             symbols=["ESH1"],
             schema="mbo",
@@ -186,7 +185,7 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.cost"
+        assert call["url"] == "https://hist.databento.com/v1/metadata.get_cost"
         assert call["headers"] == {"accept": "application/json"}
         assert ("dataset", "glbx.mdp3") in call["params"]
         assert ("symbols", "ESH1") in call["params"]

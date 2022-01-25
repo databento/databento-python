@@ -20,9 +20,9 @@ if __name__ == "__main__":
     )  # -> BentoMemoryIO
 
     path = "my_data.csv"
-    data.to_disk(path=path)  # -> BentoDiskIO
+    data.to_file(path=path)  # -> BentoDiskIO
 
-    data = db.from_disk(path="my_data.csv", schema="mbo")  # -> BentoDiskIO
+    data = db.from_file(path="my_data.csv", schema="mbo")  # -> BentoDiskIO
 
     # Data now loaded into memory
-    print(data.getvalue(decompress=True))
+    print(data.raw(decompress=True))
