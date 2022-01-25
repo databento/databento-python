@@ -208,7 +208,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the data price per unit GB from the API server.
 
-        `GET /v1/metadata.unit_price` HTTP API endpoint.
+        `GET /v1/metadata.get_unit_price` HTTP API endpoint.
 
         Parameters
         ----------
