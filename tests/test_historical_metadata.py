@@ -58,8 +58,6 @@ class TestHistoricalMetadata:
         self.client.metadata.list_fields(
             dataset="GLBX.MDP3",
             schema="mbo",
-            start="2018-01-01",
-            end="2021-01-01",
             encoding="bin",
         )
 
@@ -67,8 +65,6 @@ class TestHistoricalMetadata:
         call = mocked_get.call_args.kwargs
         assert call["url"] == "https://hist.databento.com/v1/metadata.list_fields"
         assert ("schema", "mbo") in call["params"]
-        assert ("start", "2018-01-01T00:00:00") in call["params"]
-        assert ("end", "2021-01-01T00:00:00") in call["params"]
         assert ("encoding", "bin") in call["params"]
         assert call["headers"] == {"accept": "application/json"}
         assert call["timeout"] == (100, 100)
@@ -119,11 +115,15 @@ class TestHistoricalMetadata:
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.get_unit_price(dataset, schema, mode)
+        self.client.metadata.list_unit_prices(
+            dataset=dataset,
+            schema=schema,
+            mode=mode,
+        )
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.get_unit_price"
+        assert call["url"] == "https://hist.databento.com/v1/metadata.list_unit_prices"
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
@@ -134,12 +134,12 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_size_sends_expected_request(self, mocker) -> None:
+    def test_get_billable_size_sends_expected_request(self, mocker) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.get_size(
+        self.client.metadata.get_billable_size(
             dataset="GLBX.MDP3",
             symbols=["ESH1"],
             schema="mbo",
@@ -151,7 +151,7 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.get_size"
+        assert call["url"] == "https://hist.databento.com/v1/metadata.get_billable_size"
         assert call["headers"] == {"accept": "application/json"}
         assert ("dataset", "glbx.mdp3") in call["params"]
         assert ("symbols", "ESH1") in call["params"]

@@ -12,6 +12,3 @@ if __name__ == "__main__":
     print(client.metadata.list_fields(dataset="GLBX.MDP3"))
     print(client.metadata.list_encodings())
     print(client.metadata.list_compressions())
-    print(
-        client.metadata.get_unit_price(dataset="GLBX.MDP3", schema="mbo", mode="live"),
-    )

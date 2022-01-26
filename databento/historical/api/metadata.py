@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.enums import (
@@ -10,8 +10,12 @@ from databento.common.enums import (
     Schema,
     SType,
 )
-from databento.common.parsing import enum_or_str_lowercase, maybe_datetime_to_string
-from databento.common.validation import validate_enum
+from databento.common.parsing import (
+    enum_or_str_lowercase,
+    maybe_datetime_to_string,
+    maybe_enum_or_str_lowercase,
+)
+from databento.common.validation import validate_enum, validate_maybe_enum
 from databento.historical.http import BentoHttpAPI
 from requests import Response
 
@@ -112,8 +116,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "csv",
     ) -> Dict[str, Dict]:
         """
@@ -127,12 +129,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, optional  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range (UTC).
-            If using an integer then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range (UTC).
-            If using an integer then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'bin', 'csv', 'json'}, default 'csv'
             The data output encoding.
 
@@ -146,15 +142,11 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         dataset = enum_or_str_lowercase(dataset, "dataset")
         schema = enum_or_str_lowercase(schema, "schema")
-        start = maybe_datetime_to_string(start)
-        end = maybe_datetime_to_string(end)
         encoding = enum_or_str_lowercase(encoding, "encoding")
 
         params: List[Tuple[str, str]] = [
             ("dataset", dataset),
             ("schema", schema),
-            ("start", start),
-            ("end", end),
             ("encoding", encoding),
         ]
 
@@ -199,37 +191,38 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
-    def get_unit_price(
+    def list_unit_prices(
         self,
         dataset: Union[Dataset, str],
-        schema: Union[Schema, str],
-        mode: Union[FeedMode, str],
-    ) -> float:
+        schema: Optional[Union[Schema, str]] = None,
+        mode: Optional[Union[FeedMode, str]] = None,
+    ) -> Union[Dict[str, Any], float]:
         """
-        Request the data price per unit GB from the API server.
+        Request the data prices per unit GB from the API server.
 
-        `GET /v1/metadata.get_unit_price` HTTP API endpoint.
+        `GET /v1/metadata.list_unit_prices` HTTP API endpoint.
 
         Parameters
         ----------
         dataset : Dataset or str
             The dataset ID for the request.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, optional  # noqa
             The data record schema for the request.
-        mode : FeedMode or str {'live', 'historical-streaming', 'historical'}
+        mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, optional
             The data feed mode for the request.
 
         Returns
         -------
-        float
+        Dict[str, Any] or float
+            The map of unit prices filtered on the given optional parameters.
 
         """
-        validate_enum(schema, Schema, "schema")
-        validate_enum(mode, FeedMode, "mode")
+        validate_maybe_enum(schema, Schema, "schema")
+        validate_maybe_enum(mode, FeedMode, "mode")
 
         dataset = enum_or_str_lowercase(dataset, "dataset")
-        schema = enum_or_str_lowercase(schema, "schema")
-        mode = enum_or_str_lowercase(mode, "mode")
+        schema = maybe_enum_or_str_lowercase(schema, "schema")
+        mode = maybe_enum_or_str_lowercase(mode, "mode")
 
         params: List[Tuple[str, str]] = [
             ("dataset", dataset),
@@ -238,13 +231,13 @@ class MetadataHttpAPI(BentoHttpAPI):
         ]
 
         response: Response = self._get(
-            url=self._base_url + ".get_unit_price",
+            url=self._base_url + ".list_unit_prices",
             params=params,
             basic_auth=True,
         )
         return response.json()
 
-    def get_size(
+    def get_billable_size(
         self,
         dataset: Union[Dataset, str],
         symbols: Optional[Union[List[str], str]] = None,
@@ -258,7 +251,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the uncompressed binary size of the data stream (used for billing).
 
-        GET `/v1/metadata.get_size` HTTP API endpoint.
+        GET `/v1/metadata.get_billable_size` HTTP API endpoint.
 
         Parameters
         ----------
@@ -308,7 +301,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
 
         response: Response = self._get(
-            url=self._base_url + ".get_size",
+            url=self._base_url + ".get_billable_size",
             params=params,
             basic_auth=True,
         )

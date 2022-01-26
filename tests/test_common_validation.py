@@ -1,6 +1,6 @@
 import pytest
 from databento.common.enums import Compression, Encoding
-from databento.common.validation import validate_enum
+from databento.common.validation import validate_enum, validate_maybe_enum
 
 
 class TestValidation:
@@ -43,3 +43,7 @@ class TestValidation:
     ) -> None:
         # Arrange, Act, Assert
         assert validate_enum(value, enum, "param") == expected
+
+    def test_validate_maybe_enum_give_none_returns_none(self):
+        # Arrange, Act, Assert
+        assert validate_maybe_enum(None, Encoding, "encoding") is None
