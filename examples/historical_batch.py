@@ -7,7 +7,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    response = client.batch.submit(
+    response = client.batch.timeseries_submit(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
@@ -20,8 +20,5 @@ if __name__ == "__main__":
 
     print(response)
 
-    job = client.batch.query(response["id"])
-    print(job)
-
-    jobs = client.batch.query_all()
+    jobs = client.batch.query_jobs()
     print(jobs)

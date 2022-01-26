@@ -23,7 +23,7 @@ class BatchHttpAPI(BentoHttpAPI):
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + "/v1/batch"
 
-    def submit(
+    def timeseries_submit(
         self,
         dataset: Union[Dataset, str],
         symbols: Optional[Union[List[str], str]] = None,
@@ -40,7 +40,7 @@ class BatchHttpAPI(BentoHttpAPI):
         """
         Submit a batch data job to the Databento backend.
 
-        `POST /v1/batch.submit` HTTP API endpoint.
+        `POST /v1/batch.timeseries_submit` HTTP API endpoint.
 
         Parameters
         ----------
@@ -108,35 +108,12 @@ class BatchHttpAPI(BentoHttpAPI):
         params.append(("delivery", delivery.value))
 
         return self._post(
-            url=self._base_url + ".submit",
+            url=self._base_url + ".timeseries_submit",
             params=params,
             basic_auth=True,
         ).json()
 
-    def query(self, job_id: str) -> Dict[str, Any]:
-        """
-        Query for the Databento backend for a batch data job.
-
-        `GET /v1/batch.query_job` HTTP API endpoint.
-
-        Parameters
-        ----------
-        job_id : str
-            The ID for the batch data job to query.
-
-        Returns
-        -------
-        Dict[str, Any]
-            The job info for queried batch data job.
-
-        """
-        return self._get(
-            url=self._base_url + ".query_job",
-            params=[("job_id", job_id)],
-            basic_auth=True,
-        ).json()
-
-    def query_all(self) -> List[Dict[str, Any]]:
+    def query_jobs(self) -> List[Dict[str, Any]]:
         """
         Query the Databento backend for all batch data jobs associated with the
         client access key.

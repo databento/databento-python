@@ -10,10 +10,10 @@ class TestHistoricalBatch:
         key = "DUMMY_ACCESS_KEY"
         self.client = db.Historical(key=key)
 
-    def test_batch_submit_given_invalid_schema_raises_error(self) -> None:
+    def test_batch_timeseries_submit_given_invalid_schema_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.batch.submit(
+            self.client.batch.timeseries_submit(
                 dataset="GLBX.MDP3",
                 symbols=["ES"],
                 schema="ticks",  # <--- invalid
@@ -22,10 +22,10 @@ class TestHistoricalBatch:
                 encoding="csv",
             )
 
-    def test_batch_submit_given_invalid_encoding_raises_error(self) -> None:
+    def test_batch_timeseries_submit_given_invalid_encoding_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.batch.submit(
+            self.client.batch.timeseries_submit(
                 dataset="GLBX.MDP3",
                 symbols=["ES"],
                 schema="mbo",
@@ -34,10 +34,10 @@ class TestHistoricalBatch:
                 encoding="gzip",  # <--- invalid
             )
 
-    def test_batch_submit_given_invalid_stype_in_raises_error(self) -> None:
+    def test_batch_timeseries_submit_given_invalid_stype_in_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.batch.submit(
+            self.client.batch.timeseries_submit(
                 dataset="GLBX.MDP3",
                 symbols="ESH1",
                 schema="mbo",
@@ -49,12 +49,12 @@ class TestHistoricalBatch:
             )
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_batch_submit_sends_expected_request(self, mocker) -> None:
+    def test_batch_timeseries_submit_sends_expected_request(self, mocker) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.post")
 
         # Act
-        self.client.batch.submit(
+        self.client.batch.timeseries_submit(
             dataset="GLBX.MDP3",
             symbols="ESH1",
             schema="trades",
@@ -67,7 +67,7 @@ class TestHistoricalBatch:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/batch.submit"
+        assert call["url"] == "https://hist.databento.com/v1/batch.timeseries_submit"
         assert call["headers"] == {"accept": "application/json"}
         assert ("dataset", "glbx.mdp3") in call["params"]
         assert ("symbols", "ESH1") in call["params"]
@@ -79,22 +79,5 @@ class TestHistoricalBatch:
         assert ("compression", "zstd") in call["params"]
         assert ("stype_in", "native") in call["params"]
         assert ("stype_out", "product_id") in call["params"]
-        assert call["timeout"] == (100, 100)
-        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
-
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_batch_query_sends_expected_request(self, mocker) -> None:
-        # Arrange
-        mocked_get = mocker.patch("requests.get")
-        job_id = "some_job_id"
-
-        # Act
-        self.client.batch.query(job_id)
-
-        # Assert
-        call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/batch.query_job"
-        assert call["headers"] == {"accept": "application/json"}
-        assert ("job_id", job_id) in call["params"]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

@@ -31,10 +31,6 @@ class BentoIOBase:
         self._struct_size = self._struct_fmt.itemsize
 
     @property
-    def nbytes(self) -> int:
-        raise NotImplementedError()  # pragma: no cover
-
-    @property
     def schema(self) -> Schema:
         """
         Return the output schema.
@@ -94,6 +90,22 @@ class BentoIOBase:
         """
         return self._struct_size
 
+    @property
+    def nbytes(self) -> int:
+        raise NotImplementedError()  # pragma: no cover
+
+    @property
+    def raw(self) -> bytes:
+        """
+        Return the raw data from the I/O stream.
+
+        Returns
+        -------
+        bytes
+
+        """
+        raise NotImplementedError()  # pragma: no cover
+
     def reader(self, decompress: bool = False) -> BinaryIO:
         """
         Return an I/O reader for the data.
@@ -121,22 +133,6 @@ class BentoIOBase:
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def raw(self, decompress: bool = False) -> bytes:
-        """
-        Return the data from the I/O stream.
-
-        Parameters
-        ----------
-        decompress : bool
-            If data should be decompressed (if compressed).
-
-        Returns
-        -------
-        bytes
-
-        """
-        raise NotImplementedError()  # pragma: no cover
-
     def to_file(self, path: str) -> "BentoDiskIO":
         """
         Write the data to disk at the given path.
@@ -152,7 +148,7 @@ class BentoIOBase:
 
         """
         with open(path, mode="wb") as f:
-            f.write(self.raw())
+            f.write(self.raw)
 
         return BentoDiskIO(
             path=path,
@@ -280,11 +276,11 @@ class BentoIOBase:
         )
 
     def _prepare_list_bin(self) -> List[np.void]:
-        data: bytes = self.raw(decompress=True)
+        data: bytes = self.reader(decompress=True).read()
         return np.frombuffer(data, dtype=BIN_RECORD_MAP[self._schema])
 
     def _prepare_list_csv(self) -> List[str]:
-        data: bytes = self.raw(decompress=True)
+        data: bytes = self.reader(decompress=True).read()
         return data.decode().splitlines(keepends=False)
 
     def _prepare_list_json(self) -> List[Dict]:
@@ -313,7 +309,7 @@ class BentoIOBase:
         return df
 
     def _prepare_df_csv(self) -> pd.DataFrame:
-        data: bytes = self.raw(decompress=True)
+        data: bytes = self.reader(decompress=True).read()
         df = pd.read_csv(io.BytesIO(data), index_col=self._get_index_column())
         return df
 
@@ -389,6 +385,10 @@ class BentoMemoryIO(BentoIOBase):
         """
         return self._raw.getbuffer().nbytes
 
+    @property
+    def raw(self) -> bytes:
+        return self._raw.getvalue()
+
     def reader(self, decompress: bool = False) -> BinaryIO:
         self._raw.seek(0)  # Ensure reader at start of stream
         if self._should_decompress(decompress):
@@ -398,13 +398,6 @@ class BentoMemoryIO(BentoIOBase):
 
     def writer(self) -> BinaryIO:
         return self._raw
-
-    def raw(self, decompress: bool = False) -> bytes:
-        self._raw.seek(0)  # Ensure reader at start of stream
-        if self._should_decompress(decompress):
-            return self.reader(decompress=decompress).read()
-        else:
-            return self._raw.getvalue()
 
 
 class BentoDiskIO(BentoIOBase):
@@ -461,6 +454,10 @@ class BentoDiskIO(BentoIOBase):
         """
         return os.path.getsize(self._path)
 
+    @property
+    def raw(self) -> bytes:
+        return self.reader().read()
+
     def reader(self, decompress: bool = False) -> BinaryIO:
         f = open(self._path, mode="rb")
         if self._should_decompress(decompress):
@@ -470,6 +467,3 @@ class BentoDiskIO(BentoIOBase):
 
     def writer(self) -> BinaryIO:
         return open(self._path, mode="wb")
-
-    def raw(self, decompress: bool = False) -> bytes:
-        return self.reader(decompress=decompress).read()

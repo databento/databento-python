@@ -95,7 +95,7 @@ class TestBentoMemoryIO:
         # Assert
         assert bento_io.encoding == expected_encoding
         assert bento_io.compression == expected_compression
-        assert bento_io.raw() == stub_data  # Ensure stream position hasn't moved
+        assert bento_io.raw == stub_data  # Ensure stream position hasn't moved
 
     def test_memory_io_nbytes(self) -> None:
         # Arrange
@@ -257,7 +257,7 @@ class TestBentoMemoryIO:
         # Assert
         expected = get_test_data("test_data." + expected_path)
         assert os.path.isfile(path)
-        assert bento_io.raw(decompress=decompress) == expected
+        assert bento_io.reader(decompress=decompress).read() == expected
 
         # Cleanup
         os.remove(path)
@@ -438,7 +438,7 @@ class TestBentoDiskIO:
         # Assert
         assert bento_io.encoding == expected_encoding
         assert bento_io.compression == expected_compression
-        assert bento_io.raw() == stub_data  # Ensure stream position hasn't moved
+        assert bento_io.raw == stub_data  # Ensure stream position hasn't moved
 
     def test_disk_io_bin_without_compression(self) -> None:
         # Arrange
@@ -452,7 +452,7 @@ class TestBentoDiskIO:
         )
 
         # Act
-        data = bento_io.raw()
+        data = bento_io.raw
 
         # Assert
         assert data == stub_data
@@ -471,7 +471,7 @@ class TestBentoDiskIO:
         )
 
         # Act
-        data = bento_io.raw()
+        data = bento_io.raw
 
         # Assert
         assert data == stub_data
@@ -490,7 +490,7 @@ class TestBentoDiskIO:
         )
 
         # Act
-        data = bento_io.raw()
+        data = bento_io.raw
 
         # Assert
         assert data == stub_data
@@ -510,7 +510,7 @@ class TestBentoDiskIO:
         )
 
         # Act
-        data = bento_io.raw()
+        data = bento_io.raw
 
         # Assert
         assert data == stub_data
