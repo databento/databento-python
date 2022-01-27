@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import databento as db
 from databento.common.enums import FeedMode
 
@@ -10,7 +12,8 @@ if __name__ == "__main__":
 
     unit_prices = client.metadata.list_unit_prices(
         dataset="GLBX.MDP3",
-        mode=FeedMode.HISTORICAL_STREAMING,
+        mode=FeedMode.HISTORICAL,
+        schema="mbo",
     )
 
-    print(unit_prices)
+    pprint(unit_prices)

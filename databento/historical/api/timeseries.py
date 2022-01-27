@@ -121,7 +121,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             encoding=encoding,
             compression=compression_out,
-            overwrite=overwrite,
         )
 
         self._stream(
@@ -234,7 +233,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             encoding=encoding,
             compression=compression_out,
-            overwrite=overwrite,
         )
 
         await self._stream_async(

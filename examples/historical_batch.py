@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import databento as db
 
 
@@ -18,7 +20,7 @@ if __name__ == "__main__":
         compression="zstd",
     )
 
-    print(response)
+    pprint(response)
 
     jobs = client.batch.query_jobs()
-    print(jobs)
+    pprint(jobs)

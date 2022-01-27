@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import databento as db
 from databento.historical.bento import BentoIOBase
 
@@ -19,4 +21,4 @@ if __name__ == "__main__":
         limit=1000,  # <-- limiting response to 1000 records only
     )
 
-    print(data.to_list())
+    pprint(data.to_list())

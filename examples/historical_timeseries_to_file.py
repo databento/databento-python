@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import databento as db
 from databento.historical.bento import BentoIOBase
 
@@ -25,4 +27,4 @@ if __name__ == "__main__":
     data = db.from_file(path="my_data.csv", schema="mbo")  # -> BentoDiskIO
 
     # Data now loaded into memory
-    print(data.raw)
+    pprint(data.raw)

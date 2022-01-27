@@ -27,7 +27,6 @@ if __name__ == "__main__":
         end="2015-04-22T12:10",
         encoding="csv",
         compression="none",
-        limit=100000000,
     )
 
     print(cost2)

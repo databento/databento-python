@@ -1,4 +1,3 @@
-import os
 from datetime import date
 from json.decoder import JSONDecodeError
 from typing import BinaryIO, List, Optional, Tuple, Union
@@ -79,7 +78,6 @@ class BentoHttpAPI:
         schema: Schema,
         encoding: Encoding,
         compression: Compression,
-        overwrite: bool,
     ) -> Union[BentoMemoryIO, BentoDiskIO]:
         if path is None:
             return BentoMemoryIO(
@@ -88,12 +86,6 @@ class BentoHttpAPI:
                 compression=compression,
             )
         else:
-            # Check if file already exists and remove if overwriting
-            if os.path.isfile(path):
-                if overwrite:
-                    os.remove(path)
-                else:
-                    raise FileExistsError(f"file already exists at '{path}'")
             return BentoDiskIO(
                 path=path,
                 schema=schema,

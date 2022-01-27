@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import databento as db
 from databento.common.enums import SType
 
@@ -17,4 +19,4 @@ if __name__ == "__main__":
         end="2020-12-29",
     )
 
-    print(result)
+    pprint(result)

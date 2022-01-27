@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import databento as db
 from databento.historical.bento import BentoIOBase
 
@@ -23,4 +25,4 @@ if __name__ == "__main__":
         path=path,
     )  # -> BentoDiskIO
 
-    print(data.to_list())
+    pprint(data.to_list())
