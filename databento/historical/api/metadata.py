@@ -14,6 +14,7 @@ from databento.common.parsing import (
     enum_or_str_lowercase,
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
+    maybe_symbols_list_to_string,
 )
 from databento.common.validation import validate_enum, validate_maybe_enum
 from databento.historical.http import BentoHttpAPI
@@ -235,6 +236,75 @@ class MetadataHttpAPI(BentoHttpAPI):
             params=params,
             basic_auth=True,
         )
+        return response.json()
+
+    def get_shape(
+        self,
+        dataset: Union[Dataset, str],
+        symbols: Optional[Union[List[str], str]] = None,
+        schema: Union[Schema, str] = "trades",
+        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
+        stype_in: Optional[Union[SType, str]] = "native",
+        limit: Optional[int] = None,
+    ) -> int:
+        """
+        Request the shape of the timeseries data as a rows and columns tuple.
+
+        GET `/v1/metadata.get_shape` HTTP API endpoint.
+
+        Parameters
+        ----------
+        dataset : Dataset or str
+            The dataset ID for the request.
+        symbols : List[Union[str, int]] or str, optional
+            The symbols for the request. If ``None`` then will be for ALL symbols.
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
+            The data record schema for the request.
+        start : pd.Timestamp or date or str or int, optional
+            The start datetime for the request range (UTC).
+            If using an integer then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int, optional
+            The end datetime for the request range (UTC).
+            If using an integer then this represents nanoseconds since UNIX epoch.
+        stype_in : SType or str, default 'native'
+            The input symbol type to resolve from.
+        limit : int, optional
+            The maximum number of records for the request.
+
+        Returns
+        -------
+        Tuple[int, int]
+
+        """
+        validate_enum(schema, Schema, "schema")
+        validate_enum(stype_in, SType, "stype_in")
+
+        dataset = enum_or_str_lowercase(dataset, "dataset")
+        symbols = maybe_symbols_list_to_string(symbols)
+        schema = Schema(schema)
+        start = maybe_datetime_to_string(start)
+        end = maybe_datetime_to_string(end)
+        stype_in = SType(stype_in)
+
+        # Build params list
+        params: List[Tuple[str, str]] = [
+            ("dataset", dataset),
+            ("symbols", symbols),
+            ("schema", schema.value),
+            ("start", start),
+            ("end", end),
+            ("stype_in", stype_in.value),
+        ]
+        if limit is not None:
+            params.append(("limit", str(limit)))
+
+        response: Response = self._get(
+            url=self._base_url + ".get_shape",
+            params=params,
+            basic_auth=True,
+        )
+
         return response.json()
 
     def get_billable_size(
