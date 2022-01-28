@@ -247,7 +247,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
-    ) -> int:
+    ) -> Tuple[int, int]:
         """
         Request the shape of the timeseries data as a rows and columns tuple.
 
@@ -305,7 +305,8 @@ class MetadataHttpAPI(BentoHttpAPI):
             basic_auth=True,
         )
 
-        return response.json()
+        values = response.json()
+        return values[0], values[1]
 
     def get_billable_size(
         self,
