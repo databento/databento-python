@@ -81,3 +81,20 @@ class TestHistoricalBatch:
         assert ("stype_out", "product_id") in call["params"]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_batch_list_jobs_sends_expected_request(self, mocker) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+
+        # Act
+        self.client.batch.list_jobs(since="2022-01-01")
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert call["url"] == "https://hist.databento.com/v1/batch.list_jobs"
+        assert call["headers"] == {"accept": "application/json"}
+        assert ("states", "queued,processing,done") in call["params"]
+        assert ("since", "2022-01-01T00:00:00") in call["params"]
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

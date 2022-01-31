@@ -10,6 +10,7 @@ from databento.common.enums import (
     Schema,
     SType,
 )
+from databento.common.parsing import maybe_datetime_to_string
 from databento.common.validation import validate_enum
 from databento.historical.http import BentoHttpAPI
 
@@ -38,7 +39,7 @@ class BatchHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Submit a batch data job to the Databento backend.
+        Submit a timeseries batch data job to the Databento backend.
 
         `POST /v1/batch.timeseries_submit` HTTP API endpoint.
 
@@ -113,20 +114,38 @@ class BatchHttpAPI(BentoHttpAPI):
             basic_auth=True,
         ).json()
 
-    def query_jobs(self) -> List[Dict[str, Any]]:
+    def list_jobs(
+        self,
+        states: Optional[str] = "queued,processing,done",
+        since: Optional[Union[pd.Timestamp, date, str, int]] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Query the Databento backend for all batch data jobs associated with the
-        client access key.
+        Request all batch data jobs associated with the client access key with
+        the optional query filters.
 
-        `GET /v1/batch.query_jobs` HTTP API endpoint.
+        `GET /v1/batch.list_jobs` HTTP API endpoint.
+
+        Parameters
+        ----------
+        states : str, optional {'queued', 'processing', 'done', 'expired'}
+            The comma separated job states to include in the response. If ``None``
+            will default to 'queued,processing,done' (may contain whitespace).
+        since : pd.Timestamp or date or str or int, optional
+            The datetime to filter from.
 
         Returns
         -------
         List[Dict[str, Any]]
-            All jobs associated with the client access key.
+            The matching jobs sorted in order of timestamp received.
 
         """
+        params: List[Tuple[str, str]] = [
+            ("states", states),
+            ("since", maybe_datetime_to_string(since)),
+        ]
+
         return self._get(
-            url=self._base_url + ".query_jobs",
+            url=self._base_url + ".list_jobs",
+            params=params,
             basic_auth=True,
         ).json()

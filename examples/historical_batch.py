@@ -22,5 +22,5 @@ if __name__ == "__main__":
 
     pprint(response)
 
-    jobs = client.batch.query_jobs()
+    jobs = client.batch.list_jobs()
     pprint(jobs)
