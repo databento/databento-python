@@ -2,7 +2,7 @@ import asyncio
 from pprint import pprint
 
 import databento as db
-from databento.historical.bento import BentoIOBase
+from databento.historical.bento import Bento
 
 
 async def request_stream_async():
@@ -11,7 +11,7 @@ async def request_stream_async():
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    data: BentoIOBase = await client.timeseries.stream_async(
+    data: Bento = await client.timeseries.stream_async(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",

@@ -45,7 +45,7 @@ Additionally note:
 ## 0.2.0 - 2021-12-10
  - Added backend endpoint APIs.
  - Added async stream support.
- - Added `BentoIOBase` convenience objects.
+ - Added `Bento` convenience objects.
  - Updated Changelog and versioning policy.
 
 ## 0.1.0 - 2021-08-30

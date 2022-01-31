@@ -1,6 +1,6 @@
 import databento as db
 from databento.common.enums import Schema
-from databento.historical.bento import BentoIOBase
+from databento.historical.bento import Bento
 
 
 if __name__ == "__main__":
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         path = f"test_data.{schema.value}.{encoding}{compression_ext}"
 
         # Execute request through client
-        data: BentoIOBase = client.timeseries.stream(
+        data: Bento = client.timeseries.stream(
             dataset="GLBX.MDP3",
             symbols="ESH1",
             schema=schema,
@@ -25,8 +25,7 @@ if __name__ == "__main__":
             compression=compression,
             limit=2,  # <-- limiting response to 2 records only (for test cases)
             path=path,
-            overwrite=True,  # <-- will overwrite an existing file at the path
-        )  # -> BentoDiskIO
+        )  # -> FileBento
 
         print(open(path, mode="rb").read())
-        print(data.raw(decompress=False))
+        print(data.raw)

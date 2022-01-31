@@ -14,7 +14,7 @@ from databento.common.parsing import (
     maybe_datetime_to_string,
     maybe_symbols_list_to_string,
 )
-from databento.historical.bento import BentoDiskIO, BentoMemoryIO
+from databento.historical.bento import FileBento, MemoryBento
 from databento.historical.error import BentoClientError, BentoServerError
 from requests import Response
 from requests.auth import HTTPBasicAuth
@@ -78,15 +78,15 @@ class BentoHttpAPI:
         schema: Schema,
         encoding: Encoding,
         compression: Compression,
-    ) -> Union[BentoMemoryIO, BentoDiskIO]:
+    ) -> Union[MemoryBento, FileBento]:
         if path is None:
-            return BentoMemoryIO(
+            return MemoryBento(
                 schema=schema,
                 encoding=encoding,
                 compression=compression,
             )
         else:
-            return BentoDiskIO(
+            return FileBento(
                 path=path,
                 schema=schema,
                 encoding=encoding,

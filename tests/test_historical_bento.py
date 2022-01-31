@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from databento import from_file
 from databento.common.enums import Compression, Encoding, Schema
-from databento.historical.bento import BentoDiskIO, BentoIOBase, BentoMemoryIO
+from databento.historical.bento import Bento, FileBento, MemoryBento
 
 
 TESTS_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -16,7 +16,7 @@ def get_test_data(file_name):
         return f.read()
 
 
-class TestBentoIOBase:
+class TestBento:
     def test_from_file_when_not_exists_raises_expected_exception(self):
         # Arrange, Act, Assert
         with pytest.raises(FileNotFoundError):
@@ -36,7 +36,7 @@ class TestBentoIOBase:
 
     def test_properties_when_instantiated(self) -> None:
         # Arrange
-        bento_io = BentoIOBase(
+        bento_io = Bento(
             schema=Schema.MBO,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
@@ -67,7 +67,7 @@ class TestBentoIOBase:
         assert bento_io.struct_size == 56
 
 
-class TestBentoMemoryIO:
+class TestMemoryBento:
     @pytest.mark.parametrize(
         "schema, data_path, expected_encoding, expected_compression",
         [
@@ -90,7 +90,7 @@ class TestBentoMemoryIO:
         stub_data = get_test_data("test_data." + data_path)
 
         # Act
-        bento_io = BentoMemoryIO(schema=Schema.MBO, initial_bytes=stub_data)
+        bento_io = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
 
         # Assert
         assert bento_io.encoding == expected_encoding
@@ -102,7 +102,7 @@ class TestBentoMemoryIO:
         stub_data = get_test_data("test_data.mbo.bin")
 
         # Act
-        bento_io = BentoMemoryIO(schema=Schema.MBO, initial_bytes=stub_data)
+        bento_io = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
 
         # Assert
         assert bento_io.nbytes == 112
@@ -110,7 +110,7 @@ class TestBentoMemoryIO:
     def test_disk_io_nbytes(self) -> None:
         # Arrange, Act
         path = os.path.join(TESTS_ROOT, "data", "test_data.mbo.bin")
-        bento_io = BentoDiskIO(path=path)
+        bento_io = FileBento(path=path)
 
         # Assert
         assert bento_io.nbytes == 112
@@ -141,7 +141,7 @@ class TestBentoMemoryIO:
     ) -> None:
         # Arrange, Act
         path = os.path.join(TESTS_ROOT, "data", "test_data." + path)
-        bento_io = BentoDiskIO(path=path)
+        bento_io = FileBento(path=path)
 
         # Assert
         assert bento_io.schema == expected_schema
@@ -242,7 +242,7 @@ class TestBentoMemoryIO:
         # Arrange
         stub_data = get_test_data("test_data." + stub_data_path)
 
-        bento_io = BentoMemoryIO(
+        bento_io = MemoryBento(
             schema=schema,
             encoding=encoding,
             compression=compression,
@@ -266,7 +266,7 @@ class TestBentoMemoryIO:
         # Arrange
         stub_data = get_test_data("test_data.mbo.bin")
 
-        bento_io = BentoMemoryIO(
+        bento_io = MemoryBento(
             schema=Schema.MBO,
             encoding=Encoding.BIN,
             compression=Compression.NONE,
@@ -287,7 +287,7 @@ class TestBentoMemoryIO:
         stub_data = get_test_data("test_data.mbo.bin")
 
         handler = []
-        bento_io = BentoMemoryIO(
+        bento_io = MemoryBento(
             schema=Schema.MBO,
             encoding=Encoding.BIN,
             compression=Compression.NONE,
@@ -323,21 +323,21 @@ class TestBentoMemoryIO:
         stub_data_csv = get_test_data(f"test_data.{schema.value}.csv.zst")
         stub_data_json = get_test_data(f"test_data.{schema.value}.json.zst")
 
-        bento_io_bin = BentoMemoryIO(
+        bento_io_bin = MemoryBento(
             schema=schema,
             encoding=Encoding.BIN,
             compression=Compression.ZSTD,
             initial_bytes=stub_data_bin,
         )
 
-        bento_io_csv = BentoMemoryIO(
+        bento_io_csv = MemoryBento(
             schema=schema,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
             initial_bytes=stub_data_csv,
         )
 
-        bento_io_json = BentoMemoryIO(
+        bento_io_json = MemoryBento(
             schema=schema,
             encoding=Encoding.JSON,
             compression=Compression.ZSTD,
@@ -359,7 +359,7 @@ class TestBentoMemoryIO:
         # Arrange
         stub_data = get_test_data("test_data.mbo.csv.zst")
 
-        bento_io = BentoMemoryIO(
+        bento_io = MemoryBento(
             schema=Schema.MBO,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
@@ -387,7 +387,7 @@ class TestBentoMemoryIO:
         # Arrange
         data = get_test_data("test_data.ohlcv-1m.csv.zst")
 
-        bento_io = BentoMemoryIO(
+        bento_io = MemoryBento(
             schema=Schema.OHLCV_1H,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
@@ -409,7 +409,7 @@ class TestBentoMemoryIO:
         assert data.iloc[0].volume == 2312
 
 
-class TestBentoDiskIO:
+class TestFileBento:
     @pytest.mark.parametrize(
         "schema, data_path, expected_encoding, expected_compression",
         [
@@ -433,7 +433,7 @@ class TestBentoDiskIO:
         stub_data = get_test_data("test_data." + data_path)
 
         # Act
-        bento_io = BentoDiskIO(path=path, schema=Schema.MBO)
+        bento_io = FileBento(path=path, schema=Schema.MBO)
 
         # Assert
         assert bento_io.encoding == expected_encoding
@@ -444,7 +444,7 @@ class TestBentoDiskIO:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.bin")
         stub_data = get_test_data("test_data.mbo.bin")
-        bento_io = BentoDiskIO(
+        bento_io = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.BIN,
@@ -463,7 +463,7 @@ class TestBentoDiskIO:
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.bin.zst")
         stub_data = get_test_data("test_data.mbo.bin.zst")
 
-        bento_io = BentoDiskIO(
+        bento_io = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.BIN,
@@ -482,7 +482,7 @@ class TestBentoDiskIO:
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv.zst")
         stub_data = get_test_data("test_data.mbo.csv.zst")
 
-        bento_io = BentoDiskIO(
+        bento_io = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.CSV,
@@ -502,7 +502,7 @@ class TestBentoDiskIO:
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv")
         stub_data = get_test_data("test_data.mbo.csv")
 
-        bento_io = BentoDiskIO(
+        bento_io = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.CSV,

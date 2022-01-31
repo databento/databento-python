@@ -10,7 +10,7 @@ from databento.common.data import BIN_COLUMNS, BIN_RECORD_MAP, DERIV_SCHEMAS
 from databento.common.enums import Compression, Encoding, Schema
 
 
-class BentoIOBase:
+class Bento:
     """The abstract base class for all Bento I/O classes."""
 
     def __init__(
@@ -133,9 +133,9 @@ class BentoIOBase:
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def to_file(self, path: str) -> "BentoDiskIO":
+    def to_file(self, path: str) -> "FileBento":
         """
-        Write the data to disk at the given path.
+        Write the data to a file at the given path.
 
         Parameters
         ----------
@@ -144,13 +144,13 @@ class BentoIOBase:
 
         Returns
         -------
-        BentoDiskIO
+        FileBento
 
         """
         with open(path, mode="wb") as f:
             f.write(self.raw)
 
-        return BentoDiskIO(
+        return FileBento(
             path=path,
             schema=self._schema,
             encoding=self._encoding,
@@ -342,7 +342,7 @@ class BentoIOBase:
                 callback(record)
 
 
-class BentoMemoryIO(BentoIOBase):
+class MemoryBento(Bento):
     """
     Provides a data container backed by in-memory buffer streaming I/O.
 
@@ -400,9 +400,9 @@ class BentoMemoryIO(BentoIOBase):
         return self._raw
 
 
-class BentoDiskIO(BentoIOBase):
+class FileBento(Bento):
     """
-    Provides a data container backed by disk streaming I/O.
+    Provides a data container backed by file streaming I/O.
 
     Parameters
     ----------
@@ -445,7 +445,7 @@ class BentoDiskIO(BentoIOBase):
     @property
     def nbytes(self) -> int:
         """
-        Return the amount of space occupied by the data on disk.
+        Return the amount of space occupied by the data.
 
         Returns
         -------

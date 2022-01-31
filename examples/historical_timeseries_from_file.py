@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     # Can load from file path (if exists)
     ts_start = datetime.datetime.utcnow()
-    data = db.from_file(path="my_data.csv", schema=Schema.MBO)  # -> BentoDiskIO
+    data = db.from_file(path="my_data.csv", schema=Schema.MBO)  # -> FileBento
 
     print(data.to_df())
     print(datetime.datetime.utcnow() - ts_start)

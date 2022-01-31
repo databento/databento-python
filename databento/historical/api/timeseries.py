@@ -6,7 +6,7 @@ import pandas as pd
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.validation import validate_enum
-from databento.historical.bento import BentoIOBase
+from databento.historical.bento import Bento
 from databento.historical.http import BentoHttpAPI
 from requests import Response
 
@@ -37,7 +37,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
         path: str = None,
         overwrite: bool = False,
-    ) -> Optional[BentoIOBase]:
+    ) -> Optional[Bento]:
         """
         Request a historical time series stream from the Databento API servers.
 
@@ -74,8 +74,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        BentoIOBase
-            If `path` provided then BentoDiskIO, otherwise BentoMemoryIO.
+        Bento
+            If `path` provided then FileBento, otherwise MemoryBento.
 
         """
         if compression is None:
@@ -116,7 +116,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento_io: BentoIOBase = self._create_io(
+        bento_io: Bento = self._create_io(
             path=path,
             schema=schema,
             encoding=encoding,
@@ -148,7 +148,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
         path: str = None,
         overwrite: bool = False,
-    ) -> Optional[BentoIOBase]:
+    ) -> Optional[Bento]:
         """
         Request a historical time series stream from the Databento API servers
         asynchronously.
@@ -180,14 +180,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records for the request.
         path : str, optional
-            The path to the file to write to on disk (if provided).
+            The path to the file to write to (if provided).
         overwrite : bool, default False
             If an existing file at the given path should be overwritten.
 
         Returns
         -------
-        BentoIOBase
-            If `path` provided then BentoDiskIO, otherwise BentoMemoryIO.
+        Bento
+            If `path` provided then FileBento, otherwise MemoryBento.
 
         """
         if compression is None:
@@ -228,7 +228,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento_io: BentoIOBase = self._create_io(
+        bento_io: Bento = self._create_io(
             path=path,
             schema=schema,
             encoding=encoding,

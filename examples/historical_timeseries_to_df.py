@@ -1,7 +1,7 @@
 from pprint import pprint
 
 import databento as db
-from databento.historical.bento import BentoIOBase
+from databento.historical.bento import Bento
 
 
 if __name__ == "__main__":
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    data: BentoIOBase = client.timeseries.stream(
+    data: Bento = client.timeseries.stream(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
@@ -21,4 +21,4 @@ if __name__ == "__main__":
         limit=1000,  # <-- limiting response to 1000 records only
     )
 
-    pprint(data.raw)
+    pprint(data.to_df())

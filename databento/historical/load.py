@@ -2,12 +2,12 @@ import os
 from typing import Optional, Union
 
 from databento.common.enums import Schema
-from databento.historical.bento import BentoDiskIO
+from databento.historical.bento import FileBento
 
 
-def from_file(path: str, schema: Optional[Union[Schema, str]] = None) -> BentoDiskIO:
+def from_file(path: str, schema: Optional[Union[Schema, str]] = None) -> FileBento:
     """
-    Load data from disk at the given path.
+    Load data from a file at the given path.
 
     We recommend you organize your data with a file name extension which includes
     the schema value e.g. for data with MBO schema use 'my_data.mbo.bin'.
@@ -21,7 +21,7 @@ def from_file(path: str, schema: Optional[Union[Schema, str]] = None) -> BentoDi
 
     Returns
     -------
-    BentoDiskIO
+    FileBento
 
     Raises
     ------
@@ -45,4 +45,4 @@ def from_file(path: str, schema: Optional[Union[Schema, str]] = None) -> BentoDi
 
     if schema is not None:
         schema = Schema(schema)
-    return BentoDiskIO(path=path, schema=schema)
+    return FileBento(path=path, schema=schema)
