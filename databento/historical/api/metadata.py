@@ -195,8 +195,8 @@ class MetadataHttpAPI(BentoHttpAPI):
     def list_unit_prices(
         self,
         dataset: Union[Dataset, str],
-        schema: Optional[Union[Schema, str]] = None,
         mode: Optional[Union[FeedMode, str]] = None,
+        schema: Optional[Union[Schema, str]] = None,
     ) -> Union[Dict[str, Any], float]:
         """
         Request the data prices per unit GB from the API server.
@@ -207,10 +207,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset ID for the request.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, optional  # noqa
-            The data record schema for the request.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, optional
             The data feed mode for the request.
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, optional  # noqa
+            The data record schema for the request.
 
         Returns
         -------
@@ -222,13 +222,13 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_maybe_enum(mode, FeedMode, "mode")
 
         dataset = enum_or_str_lowercase(dataset, "dataset")
-        schema = maybe_enum_or_str_lowercase(schema, "schema")
         mode = maybe_enum_or_str_lowercase(mode, "mode")
+        schema = maybe_enum_or_str_lowercase(schema, "schema")
 
         params: List[Tuple[str, str]] = [
             ("dataset", dataset),
-            ("schema", schema),
             ("mode", mode),
+            ("schema", schema),
         ]
 
         response: Response = self._get(
@@ -382,6 +382,7 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_cost(
         self,
         dataset: Union[Dataset, str],
+        mode: Union[FeedMode, str] = "historical-streaming",
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
@@ -400,6 +401,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset ID for the request.
+        mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
+            The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
@@ -428,11 +431,13 @@ class MetadataHttpAPI(BentoHttpAPI):
         if compression is None:
             compression = Compression.NONE
 
+        validate_enum(mode, FeedMode, "mode")
         validate_enum(schema, Schema, "schema")
         validate_enum(encoding, Encoding, "encoding")
         validate_enum(compression, Compression, "compression")
         validate_enum(stype_in, SType, "stype_in")
 
+        mode = FeedMode(mode)
         schema = Schema(schema)
         encoding = Encoding(encoding)
         compression = Compression(compression)
@@ -449,6 +454,8 @@ class MetadataHttpAPI(BentoHttpAPI):
             stype_in=stype_in,
             limit=limit,
         )
+
+        params.append(("mode", mode.value))
 
         response: Response = self._get(
             url=self._base_url + ".get_cost",

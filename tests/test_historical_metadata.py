@@ -127,8 +127,8 @@ class TestHistoricalMetadata:
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("schema", "mbo"),
             ("mode", "live"),
+            ("schema", "mbo"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
