@@ -116,8 +116,8 @@ class MetadataHttpAPI(BentoHttpAPI):
     def list_fields(
         self,
         dataset: Union[Dataset, str],
-        schema: Union[Schema, str] = "trades",
-        encoding: Union[Encoding, str] = "csv",
+        schema: Optional[Union[Schema, str]] = None,
+        encoding: Optional[Union[Encoding, str]] = None,
     ) -> Dict[str, Dict]:
         """
         Request the data record fields from the API server.
@@ -130,20 +130,21 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, optional  # noqa
             The data record schema for the request.
-        encoding : Encoding or str {'bin', 'csv', 'json'}, default 'csv'
+        encoding : Encoding or str {'bin', 'csv', 'json'}, optional
             The data output encoding.
 
         Returns
         -------
-        Dict[str, Dict]
+        Dict[str, Any]
+            A map of field name-value pairs filtered on the given optional parameters.
 
         """
-        validate_enum(schema, Schema, "schema")
-        validate_enum(encoding, Encoding, "encoding")
+        validate_maybe_enum(schema, Schema, "schema")
+        validate_maybe_enum(encoding, Encoding, "encoding")
 
         dataset = enum_or_str_lowercase(dataset, "dataset")
-        schema = enum_or_str_lowercase(schema, "schema")
-        encoding = enum_or_str_lowercase(encoding, "encoding")
+        schema = maybe_enum_or_str_lowercase(schema, "schema")
+        encoding = maybe_enum_or_str_lowercase(encoding, "encoding")
 
         params: List[Tuple[str, str]] = [
             ("dataset", dataset),
@@ -215,7 +216,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Returns
         -------
         Dict[str, Any] or float
-            The map of unit prices filtered on the given optional parameters.
+            A map of unit prices filtered on the given optional parameters.
 
         """
         validate_maybe_enum(schema, Schema, "schema")
