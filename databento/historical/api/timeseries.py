@@ -11,7 +11,7 @@ from databento.historical.http import BentoHttpAPI
 from requests import Response
 
 
-_5GB = 1024 ** 3 * 5
+_5GB = 1024**3 * 5
 
 
 class TimeSeriesHttpAPI(BentoHttpAPI):
@@ -255,7 +255,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit: Optional[int],
         params: List[Tuple[str, str]],
     ):
-        if limit and limit < 10 ** 7:
+        if limit and limit < 10**7:
             return
 
         if (
