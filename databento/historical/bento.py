@@ -159,7 +159,7 @@ class Bento:
 
     def to_list(self) -> List[Any]:
         """
-        Return a list of data records.
+        Return the data as a list records.
 
         - BIN encoding will return a list of `np.void` mixed dtypes.
         - CSV encoding will return a list of `str`.
@@ -179,9 +179,18 @@ class Bento:
         else:  # pragma: no cover (design-time error)
             raise ValueError(f"invalid encoding, was {self._encoding.value}")
 
-    def to_df(self) -> pd.DataFrame:
+    def to_df(self, pretty_ts: bool = False, pretty_px: bool = False) -> pd.DataFrame:
         """
-        Return the data in a pd.DataFrame.
+        Return the data as a pd.DataFrame.
+
+        Parameters
+        ----------
+        pretty_ts : bool, default False
+            If the type of any timestamp columns should be converted from UNIX
+            nanosecond `int` to `pd.Timestamp` (UTC).
+        pretty_px : bool, default False
+            If the type of any price columns should be converted from `int` to
+            `float` at the correct scale (using the fixed precision scalar 1e-9).
 
         Returns
         -------
@@ -189,13 +198,30 @@ class Bento:
 
         """
         if self._encoding == Encoding.BIN:
-            return self._prepare_df_bin()
+            df: pd.DataFrame = self._prepare_df_bin()
         elif self._encoding == Encoding.CSV:
-            return self._prepare_df_csv()
+            df = self._prepare_df_csv()
         elif self._encoding == Encoding.JSON:
-            return self._prepare_df_json()
+            df = self._prepare_df_json()
         else:  # pragma: no cover (design-time error)
             raise ValueError(f"invalid encoding, was {self._encoding.value}")
+
+        if pretty_ts:
+            df.index = pd.to_datetime(df.index, utc=True)
+            for column in list(df.columns):
+                if column.startswith("ts_"):
+                    df[column] = pd.to_datetime(df[column], utc=True)
+
+        if pretty_px:
+            for column in list(df.columns):
+                if (
+                    column in ("price", "open", "high", "low", "close")
+                    or column.startswith("bid_px")  # MBP
+                    or column.startswith("ask_px")  # MBP
+                ):
+                    df[column] = df[column] * 1e-9
+
+        return df
 
     def replay(self, callback: Callable[[Any], None]) -> None:
         """

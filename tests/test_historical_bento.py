@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 from databento import from_file
 from databento.common.enums import Compression, Encoding, Schema
@@ -385,13 +386,13 @@ class TestMemoryBento:
 
     def test_to_df_with_stub_ohlcv_record_returns_expected(self) -> None:
         # Arrange
-        data = get_test_data("test_data.ohlcv-1m.csv.zst")
+        stub_data = get_test_data("test_data.ohlcv-1m.csv.zst")
 
         bento_io = MemoryBento(
             schema=Schema.OHLCV_1H,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
-            initial_bytes=data,
+            initial_bytes=stub_data,
         )
 
         # Act
@@ -407,6 +408,103 @@ class TestMemoryBento:
         assert data.iloc[0].low == 367600000000000
         assert data.iloc[0].close == 368650000000000
         assert data.iloc[0].volume == 2312
+
+    def test_to_df_with_pretty_ts_converts_timestamps_as_expected(self) -> None:
+        # Arrange
+        stub_data = get_test_data("test_data.mbo.bin.zst")
+
+        bento_io = MemoryBento(
+            schema=Schema.MBO,
+            encoding=Encoding.BIN,
+            compression=Compression.ZSTD,
+            initial_bytes=stub_data,
+        )
+
+        # Act
+        data = bento_io.to_df(pretty_ts=True)
+
+        # Assert
+        index0 = data.index[0]
+        event0 = data["ts_event"][0]
+        assert isinstance(index0, pd.Timestamp)
+        assert isinstance(event0, pd.Timestamp)
+        assert index0 == pd.Timestamp("2020-12-27 20:00:25.250461359+0000", tz="UTC")
+        assert event0 == pd.Timestamp("2020-12-27 20:00:25.061045683+0000", tz="UTC")
+        assert len(data) == 2
+
+    @pytest.mark.parametrize(
+        "schema,columns",
+        [
+            [Schema.MBO, ["price"]],
+            [Schema.TBBO, ["price", "bid_px_00", "ask_px_00"]],
+            [Schema.MBP_1, ["price", "bid_px_00", "ask_px_00"]],
+            [
+                Schema.MBP_5,
+                [
+                    "price",
+                    "bid_px_00",
+                    "bid_px_01",
+                    "bid_px_02",
+                    "bid_px_03",
+                    "bid_px_04",
+                    "ask_px_00",
+                    "ask_px_01",
+                    "ask_px_02",
+                    "ask_px_03",
+                    "ask_px_04",
+                ],
+            ],
+            [
+                Schema.MBP_10,
+                [
+                    "price",
+                    "bid_px_00",
+                    "bid_px_01",
+                    "bid_px_02",
+                    "bid_px_03",
+                    "bid_px_04",
+                    "bid_px_05",
+                    "bid_px_06",
+                    "bid_px_07",
+                    "bid_px_08",
+                    "bid_px_09",
+                    "ask_px_00",
+                    "ask_px_01",
+                    "ask_px_02",
+                    "ask_px_03",
+                    "ask_px_04",
+                    "ask_px_05",
+                    "ask_px_06",
+                    "ask_px_07",
+                    "ask_px_08",
+                    "ask_px_09",
+                ],
+            ],
+        ],
+    )
+    def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
+        self,
+        schema,
+        columns,
+    ) -> None:
+        # Arrange
+        stub_data = get_test_data(f"test_data.{schema.value}.bin.zst")
+
+        bento_io = MemoryBento(
+            schema=schema,
+            encoding=Encoding.BIN,
+            compression=Compression.ZSTD,
+            initial_bytes=stub_data,
+        )
+
+        # Act
+        data = bento_io.to_df(pretty_px=True)
+
+        # Assert
+        assert len(data) == 2
+        for column in columns:
+            assert isinstance(data[column].iloc(0)[1], float)
+        # TODO(cs): Check float values once display factor fixed
 
 
 class TestFileBento:
