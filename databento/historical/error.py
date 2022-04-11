@@ -39,17 +39,18 @@ class BentoHttpError(BentoError):
 
     def __str__(self):
         msg = self._message or "<empty message>"
+        msg = f"{self.http_status} {msg}"
         if self.request_id is not None:
             return f"Request {self.request_id}: {msg}"
         else:
-            return str(msg)
+            return msg
 
     def __repr__(self):
         return (
             f"{type(self).__name__}("
+            f"request_id={self.request_id}, "
             f"http_status={self.http_status}, "
-            f"message={self._message}, "
-            f"request_id={self.request_id})"
+            f"message={self._message})"
         )
 
 

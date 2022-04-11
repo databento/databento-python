@@ -36,7 +36,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: str = None,
-        overwrite: bool = False,
     ) -> Optional[Bento]:
         """
         Request a historical time series stream from the Databento API servers.
@@ -69,8 +68,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The maximum number of records for the request.
         path : str, optional
             The path to the file to write to on disk (if provided).
-        overwrite : bool, default False
-            If an existing file at the given path should be overwritten.
 
         Returns
         -------
@@ -147,7 +144,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: str = None,
-        overwrite: bool = False,
     ) -> Optional[Bento]:
         """
         Request a historical time series stream from the Databento API servers
@@ -181,8 +177,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The maximum number of records for the request.
         path : str, optional
             The path to the file to write to (if provided).
-        overwrite : bool, default False
-            If an existing file at the given path should be overwritten.
 
         Returns
         -------

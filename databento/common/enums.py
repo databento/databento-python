@@ -72,6 +72,26 @@ class Compression(Enum):
 
 
 @unique
+class Duration(Enum):
+    """Represents the duration interval for each batch data file."""
+
+    AUTO = "auto"
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
+    NONE = "none"
+
+
+@unique
+class Packaging(Enum):
+    """Represents the packaging method for batch data files."""
+
+    NONE = "none"
+    ZIP = "zip"
+    TAR = "tar"
+
+
+@unique
 class Delivery(Enum):
     """Represents the delivery mechanism for batch data."""
 

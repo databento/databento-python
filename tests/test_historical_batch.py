@@ -61,6 +61,9 @@ class TestHistoricalBatch:
             start="2020-12-28T12:00",
             end="2020-12-29",
             encoding="csv",
+            split_duration="day",
+            split_size=10000000000,
+            packaging="none",
             delivery="http",
             compression="zstd",
         )
@@ -75,6 +78,9 @@ class TestHistoricalBatch:
         assert ("start", "2020-12-28T12:00:00") in call["params"]
         assert ("end", "2020-12-29T00:00:00") in call["params"]
         assert ("encoding", "csv") in call["params"]
+        assert ("split_duration", "day") in call["params"]
+        assert ("split_size", "10000000000") in call["params"]
+        assert ("packaging", "none") in call["params"]
         assert ("delivery", "http") in call["params"]
         assert ("compression", "zstd") in call["params"]
         assert ("stype_in", "native") in call["params"]

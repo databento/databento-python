@@ -6,7 +6,9 @@ from databento.common.enums import (
     Compression,
     Dataset,
     Delivery,
+    Duration,
     Encoding,
+    Packaging,
     Schema,
     SType,
 )
@@ -32,8 +34,11 @@ class BatchHttpAPI(BentoHttpAPI):
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "bin",
-        delivery: Union[Delivery, str] = "http",
         compression: Optional[Union[Compression, str]] = "zstd",
+        split_duration: Union[Duration, str] = "day",
+        split_size: Optional[int] = None,
+        packaging: Union[Packaging, str] = "none",
+        delivery: Union[Delivery, str] = "http",
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -59,10 +64,16 @@ class BatchHttpAPI(BentoHttpAPI):
             If using an integer then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'bin', 'csv', 'json'}, default 'csv'
             The data output encoding.
-        delivery : Delivery or str {'http', 'ftps', 's3', 'disk'}, default 'http'
-            The batch data delivery mechanism.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
             The data output compression.
+        split_duration : Duration or str {'day', 'week', 'month', 'none'}, default 'day'
+            The time duration split per data file ('week' starts on Sunday UTC).
+        split_size : int, optional
+            The maximum size of each data file on disk before being split.
+        packaging : Packaging or str {'none', 'zip', 'tar'}, default 'none'
+            The packaging method for batch data files.
+        delivery : Delivery or str {'http', 'ftps', 's3', 'disk'}, default 'http'
+            The batch data delivery mechanism.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         stype_out : SType or str, default 'product_id'
@@ -81,15 +92,19 @@ class BatchHttpAPI(BentoHttpAPI):
 
         validate_enum(schema, Schema, "schema")
         validate_enum(encoding, Encoding, "encoding")
-        validate_enum(delivery, Delivery, "delivery")
         validate_enum(compression, Compression, "compression")
+        validate_enum(split_duration, Duration, "duration")
+        validate_enum(packaging, Packaging, "packaging")
+        validate_enum(delivery, Delivery, "delivery")
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
         schema = Schema(schema)
         encoding = Encoding(encoding)
-        delivery = Delivery(delivery)
         compression = Compression(compression)
+        split_duration = Duration(split_duration)
+        packaging = Packaging(packaging)
+        delivery = Delivery(delivery)
         stype_in = SType(stype_in)
         stype_out = SType(stype_out)
 
@@ -106,7 +121,11 @@ class BatchHttpAPI(BentoHttpAPI):
             stype_out=stype_out,
         )
 
+        params.append(("split_duration", split_duration.value))
+        params.append(("packaging", packaging.value))
         params.append(("delivery", delivery.value))
+        if split_size is not None:
+            params.append(("split_size", str(split_size)))
 
         return self._post(
             url=self._base_url + ".timeseries_submit",
