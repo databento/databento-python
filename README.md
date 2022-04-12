@@ -30,16 +30,7 @@ To install the latest stable version of the package from PyPI:
 ## API access setup
 You need an access key to request for data through Databento. Sign up and you
 will be automatically assigned your first pair of default access keys. Each
-access key is a 32 character string that can be found from the web platform.
-
-One of your default keys is a `test key`. Test keys have the prefix `db-test-`
-and let you access our test environment, which provides free, simulated data for
-validating your integration. All of our services can be tested with test keys.
-
-Your other default key is a production key. Production keys have the prefix
-`db-prod-` and are used to access real data. When you sign up, you are also
-automatically enrolled in our Free Tier, which lets you try some real data for
-free.
+access key is a 28 character string which can be found from the web dashboard.
 
 ## License
 The `databento` library is offered under the [MIT License](https://mit-license.org/).
