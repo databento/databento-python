@@ -75,7 +75,6 @@ class Compression(Enum):
 class Duration(Enum):
     """Represents the duration interval for each batch data file."""
 
-    AUTO = "auto"
     DAY = "day"
     WEEK = "week"
     MONTH = "month"
