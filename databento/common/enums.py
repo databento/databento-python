@@ -95,7 +95,7 @@ class Delivery(Enum):
     """Represents the delivery mechanism for batch data."""
 
     HTTP = "http"
-    FTPS = "ftps"
+    FTP = "ftp"
     S3 = "s3"
     DISK = "disk"
 

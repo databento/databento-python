@@ -72,7 +72,7 @@ class BatchHttpAPI(BentoHttpAPI):
             The maximum size of each data file on disk before being split.
         packaging : Packaging or str {'none', 'zip', 'tar'}, default 'none'
             The packaging method for batch data files.
-        delivery : Delivery or str {'http', 'ftps', 's3', 'disk'}, default 'http'
+        delivery : Delivery or str {'http', 'ftp', 's3', 'disk'}, default 'http'
             The batch data delivery mechanism.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
