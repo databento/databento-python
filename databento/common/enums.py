@@ -94,8 +94,7 @@ class Packaging(Enum):
 class Delivery(Enum):
     """Represents the delivery mechanism for batch data."""
 
-    HTTP = "http"
-    FTP = "ftp"
+    DOWNLOAD = "download"
     S3 = "s3"
     DISK = "disk"
 

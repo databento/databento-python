@@ -64,7 +64,7 @@ class TestHistoricalBatch:
             split_duration="day",
             split_size=10000000000,
             packaging="none",
-            delivery="http",
+            delivery="download",
             compression="zstd",
         )
 
@@ -81,7 +81,7 @@ class TestHistoricalBatch:
         assert ("split_duration", "day") in call["params"]
         assert ("split_size", "10000000000") in call["params"]
         assert ("packaging", "none") in call["params"]
-        assert ("delivery", "http") in call["params"]
+        assert ("delivery", "download") in call["params"]
         assert ("compression", "zstd") in call["params"]
         assert ("stype_in", "native") in call["params"]
         assert ("stype_out", "product_id") in call["params"]

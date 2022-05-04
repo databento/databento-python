@@ -38,7 +38,7 @@ class BatchHttpAPI(BentoHttpAPI):
         split_duration: Union[Duration, str] = "day",
         split_size: Optional[int] = None,
         packaging: Union[Packaging, str] = "none",
-        delivery: Union[Delivery, str] = "http",
+        delivery: Union[Delivery, str] = "download",
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -72,7 +72,7 @@ class BatchHttpAPI(BentoHttpAPI):
             The maximum size of each data file on disk before being split.
         packaging : Packaging or str {'none', 'zip', 'tar'}, default 'none'
             The packaging method for batch data files.
-        delivery : Delivery or str {'http', 'ftp', 's3', 'disk'}, default 'http'
+        delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
             The batch data delivery mechanism.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.

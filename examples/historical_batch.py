@@ -16,8 +16,8 @@ if __name__ == "__main__":
         start="2020-12-27T12:00",
         end="2020-12-29",
         encoding="csv",
-        delivery="http",
         compression="zstd",
+        delivery="download",
     )
 
     pprint(response)
