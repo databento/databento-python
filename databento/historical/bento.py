@@ -351,7 +351,7 @@ class Bento:
         while True:
             raw: bytes = reader.read(self.struct_size)
             record = np.frombuffer(raw, dtype=dtype)
-            if not record:
+            if record.size == 0:
                 break
             callback(record[0])
 
