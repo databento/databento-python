@@ -257,16 +257,19 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             or _is_greater_than_one_day(start, end)
             or _is_large_number_of_symbols(symbols)
         ):
+            params = params[:]  # copy
+            params.append(("mode", "historical-streaming"))
+            params.append(("instruments", str(len(symbols))))
             log_debug(
                 "Checking data size for potentially large streaming request...",
             )
             response: Response = self._get(
-                url=self._gateway + "/v1/metadata.size",
+                url=self._gateway + "/v1/metadata.get_size_estimation",
                 params=params,
                 basic_auth=True,
             )
 
-            size: int = response.json()
+            size: int = response.json()["size"]
             log_debug(
                 f"Requesting data stream for {size:,} bytes (binary uncompressed)...",
             )
