@@ -43,11 +43,11 @@ def validate_enum(
         if value not in valid:
             raise ValueError(
                 f"The `{param}` was not a valid value of {enum}, was '{value}'. "
-                f"Use any of {valid}",
+                f"Use any of {valid}.",
             )
     elif not isinstance(value, enum):
         raise TypeError(
-            f"The `{param}` value was not of type {enum}, was {type(value)}",
+            f"The `{param}` value was not of type {enum}, was {type(value)}.",
         )
 
     return value
