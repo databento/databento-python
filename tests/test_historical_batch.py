@@ -43,7 +43,7 @@ class TestHistoricalBatch:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="bin",
+                encoding="dbz",
                 compression="zstd",
                 stype_in="zzz",  # <--- invalid
             )

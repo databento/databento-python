@@ -29,9 +29,9 @@ class TestValidation:
     @pytest.mark.parametrize(
         "value, enum, param, expected",
         [
-            ["bin", Encoding, "encoding", "bin"],
-            ["BIN", Encoding, "encoding", "bin"],
-            [Encoding.BIN, Encoding, "encoding", Encoding.BIN],
+            ["dbz", Encoding, "encoding", "dbz"],
+            ["DBZ", Encoding, "encoding", "dbz"],
+            [Encoding.DBZ, Encoding, "encoding", Encoding.DBZ],
         ],
     )
     def test_validate_enum_given_valid_value_returns_expected_output(

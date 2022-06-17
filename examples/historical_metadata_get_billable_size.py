@@ -13,7 +13,7 @@ if __name__ == "__main__":
         schema="mbo",
         start="2020-12-28T12:00",
         end="2020-12-29",
-        encoding="bin",
+        encoding="dbz",
     )
 
     print(size)

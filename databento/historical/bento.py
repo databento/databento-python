@@ -170,7 +170,7 @@ class Bento:
         List[Any]
 
         """
-        if self._encoding == Encoding.BIN:
+        if self._encoding == Encoding.DBZ:
             return self._prepare_list_bin()
         elif self._encoding == Encoding.CSV:
             return self._prepare_list_csv()
@@ -197,7 +197,7 @@ class Bento:
         pd.DataFrame
 
         """
-        if self._encoding == Encoding.BIN:
+        if self._encoding == Encoding.DBZ:
             df: pd.DataFrame = self._prepare_df_bin()
         elif self._encoding == Encoding.CSV:
             df = self._prepare_df_csv()
@@ -233,7 +233,7 @@ class Bento:
             The callback to the data handler.
 
         """
-        if self._encoding == Encoding.BIN:
+        if self._encoding == Encoding.DBZ:
             self._replay_bin(callback)
         elif self._encoding in (Encoding.CSV, Encoding.JSON):
             self._replay_csv_or_json(callback)
@@ -267,7 +267,7 @@ class Bento:
         elif initial == b'{"t':
             return Encoding.JSON
         else:
-            return Encoding.BIN
+            return Encoding.DBZ
 
     def _infer_schema(self) -> Optional[Schema]:
         if hasattr(self, "path"):

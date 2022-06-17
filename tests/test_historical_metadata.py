@@ -58,14 +58,14 @@ class TestHistoricalMetadata:
         self.client.metadata.list_fields(
             dataset="GLBX.MDP3",
             schema="mbo",
-            encoding="bin",
+            encoding="dbz",
         )
 
         # Assert
         call = mocked_get.call_args.kwargs
         assert call["url"] == "https://hist.databento.com/v1/metadata.list_fields"
         assert ("schema", "mbo") in call["params"]
-        assert ("encoding", "bin") in call["params"]
+        assert ("encoding", "dbz") in call["params"]
         assert call["headers"] == {"accept": "application/json"}
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

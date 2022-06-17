@@ -43,7 +43,7 @@ class TestHistoricalTimeSeries:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="bin",
+                encoding="dbz",
                 compression="gzip",  # <--- invalid
             )
 
@@ -56,7 +56,7 @@ class TestHistoricalTimeSeries:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="bin",
+                encoding="dbz",
                 compression="zstd",
                 stype_in="zzz",  # <--- invalid
             )
@@ -70,7 +70,7 @@ class TestHistoricalTimeSeries:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="bin",
+                encoding="dbz",
                 compression="zstd",
                 stype_out="zzz",  # <--- invalid
             )

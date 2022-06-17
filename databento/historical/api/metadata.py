@@ -130,7 +130,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, optional  # noqa
             The data record schema for the request.
-        encoding : Encoding or str {'bin', 'csv', 'json'}, optional
+        encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
             The data output encoding.
 
         Returns
@@ -316,7 +316,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "bin",
+        encoding: Union[Encoding, str] = "dbz",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> int:
@@ -339,7 +339,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range (UTC).
             If using an integer then this represents nanoseconds since UNIX epoch.
-        encoding : Encoding or str {'bin', 'csv', 'json'}, default 'bin'
+        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'bin'
             The data output encoding.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
@@ -388,7 +388,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "bin",
+        encoding: Union[Encoding, str] = "dbz",
         compression: Optional[Union[Compression, str]] = "zstd",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
@@ -414,7 +414,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range (UTC).
             If using an integer then this represents nanoseconds since UNIX epoch.
-        encoding : Encoding or str {'bin', 'csv', 'json'}, default 'bin'
+        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
             The data output encoding.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
             The compression mode for the request.

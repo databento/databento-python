@@ -33,7 +33,7 @@ class BatchHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "bin",
+        encoding: Union[Encoding, str] = "dbz",
         compression: Optional[Union[Compression, str]] = "zstd",
         split_duration: Union[Duration, str] = "day",
         split_size: Optional[int] = None,
@@ -62,7 +62,7 @@ class BatchHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The UTC end of the time range (exclusive) for the request.
             If using an integer then this represents nanoseconds since UNIX epoch.
-        encoding : Encoding or str {'bin', 'csv', 'json'}, default 'csv'
+        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
             The data output encoding.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
             The data output compression.
