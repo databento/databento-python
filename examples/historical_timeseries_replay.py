@@ -1,5 +1,5 @@
 import databento as db
-from databento.historical.bento import Bento
+from databento import Bento
 
 
 if __name__ == "__main__":

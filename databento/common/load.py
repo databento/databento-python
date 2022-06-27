@@ -1,8 +1,8 @@
 import os
 from typing import Optional, Union
 
+from databento.common.bento import FileBento
 from databento.common.enums import Schema
-from databento.historical.bento import FileBento
 
 
 def from_file(path: str, schema: Optional[Union[Schema, str]] = None) -> FileBento:

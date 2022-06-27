@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 import zstandard
 from aiohttp import ClientResponse
+from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.logging import log_info
 from databento.common.parsing import (
@@ -14,14 +15,13 @@ from databento.common.parsing import (
     maybe_datetime_to_string,
     maybe_symbols_list_to_string,
 )
-from databento.historical.bento import FileBento, MemoryBento
 from databento.historical.error import BentoClientError, BentoServerError
 from requests import Response
 from requests.auth import HTTPBasicAuth
 
 
 _NO_DATA_FOUND = b"No data found for query."
-_16KB = 1024 * 16  # Backend standard streaming buffer size
+_4MB = 1024 * 1024 * 4  # Backend standard streaming buffer size
 
 
 class BentoHttpAPI:
@@ -166,8 +166,12 @@ class BentoHttpAPI:
         url: str,
         params: List[Tuple[str, str]],
         basic_auth: bool,
-        decompress: bool,
-        binary_io: BinaryIO,
+        schema: Schema,  # noqa
+        encoding_in: Encoding,  # noqa
+        encoding_out: Encoding,  # noqa
+        compression_in: Compression,
+        compression_out: Compression,
+        bento_io: Bento,
     ) -> None:
         self._check_access_key()
 
@@ -183,16 +187,29 @@ class BentoHttpAPI:
         ) as response:
             check_http_error(response)
 
-            # Setup bento I/O writer
-            writer = binary_io
-            if decompress:
-                # Wrap writer with zstd decompressor
-                writer = zstandard.ZstdDecompressor().stream_writer(binary_io)
+            # log_debug(str(encoding_in))
+            # log_debug(str(encoding_out))
+            # log_debug(str(compression_in))
+            # log_debug(str(compression_out))
 
-            for chunk in response.iter_content(chunk_size=_16KB):
+            # Setup bento I/O writer
+            writer = bento_io.writer()
+            if (
+                compression_in == Compression.ZSTD
+                and compression_out == Compression.NONE
+            ):
+                # Wrap writer with zstd decompressor
+                writer = zstandard.ZstdDecompressor().stream_writer(writer)
+
+            # record_map = BIN_RECORD_MAP[schema]
+            # record_size = np.dtype(record_map).itemsize
+            # log_debug(str(record_size))
+
+            for chunk in response.iter_content(chunk_size=_4MB):
                 if chunk == _NO_DATA_FOUND:
                     log_info("No data found for query.")
                     return
+
                 writer.write(chunk)
 
     async def _stream_async(

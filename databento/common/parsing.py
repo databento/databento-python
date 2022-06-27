@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Iterable, List, Optional, Union
 
 import pandas as pd
-from databento.common.enums import Flags
+from databento.common.enums import Compression, Encoding, Flags, Schema, SType
 
 
 def enum_or_str_lowercase(
@@ -152,3 +152,160 @@ def parse_flags(value: int, apply_bitmask: bool = False) -> List[str]:
     if apply_bitmask:
         value = value & 0xFF
     return [f.name for f in Flags if value & f.value != 0]
+
+
+# TODO(cs): We should probably change the enum values to ints so as to avoid
+#  all of these conversion functions. If this implementation remains then will
+#  add exhaustive unit tests (27/6/22)
+
+
+def schema_to_int(schema: Schema) -> int:
+    assert isinstance(schema, Schema)
+
+    if schema == Schema.MBO:
+        return 0
+    elif schema == Schema.MBP_1:
+        return 1
+    elif schema == Schema.MBP_5:
+        return 2
+    elif schema == Schema.MBP_10:
+        return 3
+    elif schema == Schema.TBBO:
+        return 4
+    elif schema == Schema.TRADES:
+        return 5
+    elif schema == Schema.OHLCV_1S:
+        return 6
+    elif schema == Schema.OHLCV_1M:
+        return 7
+    elif schema == Schema.OHLCV_1H:
+        return 8
+    elif schema == Schema.OHLCV_1D:
+        return 9
+    elif schema == Schema.DEFINITION:
+        return 10
+    elif schema == Schema.STATISTICS:
+        return 11
+    elif schema == Schema.STATUS:
+        return 12
+    else:
+        raise NotImplementedError(
+            f"The enum value '{schema.value}' "
+            f"has not been implemented for conversion",
+        )
+
+
+def int_to_schema(value: int) -> Schema:
+    if value == 0:
+        return Schema.MBO
+    elif value == 1:
+        return Schema.MBP_1
+    elif value == 2:
+        return Schema.MBP_5
+    elif value == 3:
+        return Schema.MBP_1
+    elif value == 4:
+        return Schema.TBBO
+    elif value == 5:
+        return Schema.TRADES
+    elif value == 6:
+        return Schema.OHLCV_1S
+    elif value == 7:
+        return Schema.OHLCV_1M
+    elif value == 8:
+        return Schema.OHLCV_1H
+    elif value == 9:
+        return Schema.OHLCV_1D
+    elif value == 10:
+        return Schema.DEFINITION
+    elif value == 11:
+        return Schema.STATISTICS
+    elif value == 12:
+        return Schema.STATUS
+    else:
+        raise NotImplementedError(
+            f"The int value '{value}' " f"cannot be represented with the enum",
+        )
+
+
+def stype_to_int(stype: SType) -> int:
+    assert isinstance(stype, SType)
+
+    if stype == SType.PRODUCT_ID:
+        return 0
+    elif stype == SType.NATIVE:
+        return 1
+    elif stype == SType.SMART:
+        return 2
+    else:
+        raise NotImplementedError(
+            f"The enum value '{stype.value}' "
+            f"has not been implemented for conversion",
+        )
+
+
+def int_to_stype(value: int) -> SType:
+    if value == 0:
+        return SType.PRODUCT_ID
+    elif value == 1:
+        return SType.NATIVE
+    elif value == 2:
+        return SType.SMART
+    else:
+        raise NotImplementedError(
+            f"The int value '{value}' " f"cannot be represented with the enum",
+        )
+
+
+def encoding_to_int(encoding: Encoding) -> int:
+    assert isinstance(encoding, Encoding)
+
+    if encoding == Encoding.DBZ:
+        return 0
+    elif encoding == Encoding.CSV:
+        return 1
+    elif encoding == Encoding.JSON:
+        return 2
+    else:
+        raise NotImplementedError(
+            f"The enum value '{encoding.value}' "
+            f"has not been implemented for conversion",
+        )
+
+
+def int_to_encoding(value: int) -> Encoding:
+    if value == 0:
+        return Encoding.DBZ
+    elif value == 1:
+        return Encoding.CSV
+    elif value == 2:
+        return Encoding.JSON
+    else:
+        raise NotImplementedError(
+            f"The int value '{value}' " f"cannot be represented with the enum",
+        )
+
+
+def compression_to_int(compression: Compression) -> int:
+    assert isinstance(compression, Compression)
+
+    if compression == Compression.NONE:
+        return 0
+    elif compression == Compression.ZSTD:
+        return 1
+    else:
+        raise NotImplementedError(
+            f"The enum value '{compression.value}' "
+            f"has not been implemented for conversion",
+        )
+
+
+def int_to_compression(value: int) -> Compression:
+    if value == 0:
+        return Compression.NONE
+    elif value == 1:
+        return Compression.ZSTD
+    else:
+        raise NotImplementedError(
+            f"The int value '{value}' " f"cannot be represented with the enum",
+        )

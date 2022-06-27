@@ -3,10 +3,10 @@ from datetime import date
 from typing import List, Optional, Tuple, Union
 
 import pandas as pd
+from databento.common.bento import Bento
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.validation import validate_enum
-from databento.historical.bento import Bento
 from databento.historical.http import BentoHttpAPI
 from requests import Response
 
@@ -85,8 +85,9 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         validate_enum(stype_out, SType, "stype_out")
 
         schema = Schema(schema)
-        encoding = Encoding(encoding)
-        compression_in = Compression.ZSTD  # Always requesting compressed
+        encoding_in = Encoding.DBZ  # noqa # Always request DBZ encoding
+        encoding_out = Encoding(encoding)
+        compression_in = Compression.ZSTD  # Always request ZSTD compression
         compression_out = Compression(compression)
         stype_in = SType(stype_in)
         stype_out = SType(stype_out)
@@ -97,7 +98,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=encoding,
+            encoding=encoding_out,  # TODO(cs): Use encoding OUT for now
             compression=compression_in,
             stype_in=stype_in,
             stype_out=stype_out,
@@ -116,7 +117,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         bento_io: Bento = self._create_io(
             path=path,
             schema=schema,
-            encoding=encoding,
+            encoding=encoding_out,
             compression=compression_out,
         )
 
@@ -124,9 +125,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             url=self._base_url + ".stream",
             params=params,
             basic_auth=True,
-            decompress=compression_in == Compression.ZSTD
-            and compression_out == Compression.NONE,
-            binary_io=bento_io.writer(),
+            schema=schema,
+            encoding_in=encoding_out,  # TODO(cs): Use encoding OUT for now
+            encoding_out=encoding_out,
+            compression_in=compression_in,
+            compression_out=compression_out,
+            bento_io=bento_io,
         )
 
         return bento_io
@@ -275,9 +279,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             )
             if size > _5GB:
                 warnings.warn(
-                    f"\nThe size of the current streaming request exceeds 5GB "
-                    f"({_5GB:,} bytes). We recommend smaller individual streaming "
-                    f"request sizes, or alternatively submit a batch data request."
+                    f"\nThe size of the current streaming request is estimated "
+                    f"to exceed 5GB ({_5GB:,} bytes). We recommend smaller "
+                    f"individual streaming request sizes, or alternatively "
+                    f"submit a batch data request."
                     f"\nYou can check the uncompressed binary size of a request "
                     f"through the metadata API (from the client library, or over "
                     f"HTTP). "

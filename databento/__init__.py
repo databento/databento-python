@@ -1,10 +1,17 @@
 from typing import Optional
 
+from databento.common.bento import Bento, FileBento, MemoryBento
+from databento.common.load import from_file
 from databento.historical.client import Historical
-from databento.historical.load import from_file
 
 
-__all__ = ["Historical", "from_file"]
+__all__ = [
+    "Bento",
+    "FileBento",
+    "MemoryBento",
+    "Historical",
+    "from_file",
+]
 
 
 # Set to either 'DEBUG' or 'INFO', controls console logging

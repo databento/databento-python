@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import pytest
 from databento import from_file
+from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Compression, Encoding, Schema
-from databento.historical.bento import Bento, FileBento, MemoryBento
 
 
 TESTS_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -296,6 +296,7 @@ class TestMemoryBento:
                 Schema.OHLCV_1H,
                 Schema.OHLCV_1D,
                 Schema.STATUS,
+                Schema.STATISTICS,
                 Schema.DEFINITION,
             )
         ],

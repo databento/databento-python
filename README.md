@@ -1,7 +1,7 @@
 # Databento Python Library #
 
 [![test](https://github.com/databento/databento-python/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/databento/databento-python/actions/workflows/test.yml)
-![python](https://img.shields.io/badge/python-3.6+-blue.svg)
+![python](https://img.shields.io/badge/python-3.7+-blue.svg)
 ![pypi-version](https://img.shields.io/pypi/v/databento)
 [![code-style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -15,12 +15,12 @@ See the [Python API docs](https://docs.databento.com/reference-historical?histor
 ## Requirements
 The library is fully compatible with the latest distribution of Anaconda 3.6 and above.
 The minimum dependencies as found in the `requirements.txt` are also listed below:
-- Python 3.6+
-- aiohttp>=3.6.2
-- numpy>=1.18.5
-- pandas>=1.0.5
+- Python 3.7+
+- aiohttp>=3.7.2
+- numpy>=1.17.0
+- pandas>=1.1.3
 - requests>=2.24.0
-- zstandard>=0.17.0
+- zstandard>=0.18.0
 
 ## Installation
 To install the latest stable version of the package from PyPI:

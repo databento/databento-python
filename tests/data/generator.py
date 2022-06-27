@@ -1,6 +1,6 @@
 import databento as db
+from databento import Bento
 from databento.common.enums import Schema
-from databento.historical.bento import Bento
 
 
 if __name__ == "__main__":
