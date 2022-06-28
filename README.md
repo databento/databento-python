@@ -13,7 +13,7 @@ The best place to start is with the [Getting started guide](https://docs.databen
 See the [Python API docs](https://docs.databento.com/reference-historical?historical=python&live=python) for further details.
 
 ## Requirements
-The library is fully compatible with the latest distribution of Anaconda 3.6 and above.
+The library is fully compatible with the latest distribution of Anaconda 3.7 and above.
 The minimum dependencies as found in the `requirements.txt` are also listed below:
 - Python 3.7+
 - aiohttp>=3.7.2

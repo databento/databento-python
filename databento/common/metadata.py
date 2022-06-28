@@ -1,8 +1,9 @@
 import json
 import struct
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import zstandard
+from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.parsing import (
     int_to_compression,
     int_to_encoding,
@@ -13,11 +14,7 @@ from databento.common.parsing import (
 
 class MetadataDecoder:
     """
-    Provides Databento metadata headers in a zstd skippable frame.
-
-    We create the skippable frames magic number by adding the bento schema
-    version to the first valid skippable frame identity value. This gives us
-    automatically incrementing schema versioning.
+    Provides a decoder for Databento metadata headers in a zstd skippable frame.
 
     Fixed query and shape metadata
     ------------------------------
@@ -33,6 +30,7 @@ class MetadataDecoder:
     compression   UInt8       1   39
     rows          UInt64      8   47
     cols          UInt16      2   49
+    padding       x          15   64
 
     References
     ----------
@@ -45,7 +43,8 @@ class MetadataDecoder:
     # skippable frame. This specification doesn't detail any specific tagging
     # for skippable frames.
     ZSTD_FIRST_MAGIC = 0x184D2A50  # 407710288
-    METADATA_STRUCT_FMT = "<B9sBBBQQQBBQH"
+    METADATA_STRUCT_FMT = "<B9sBBBQQQBBQH15x"
+    METADATA_STRUCT_SIZE = struct.calcsize(METADATA_STRUCT_FMT)
 
     @staticmethod
     def decode_to_json(metadata: bytes) -> Dict[str, Any]:
@@ -62,28 +61,31 @@ class MetadataDecoder:
         dict[str, Any]
 
         """
-        fixed_values = struct.unpack(MetadataDecoder.METADATA_STRUCT_FMT, metadata[:49])
+        fmt: str = MetadataDecoder.METADATA_STRUCT_FMT
+        buffer: bytes = metadata[: MetadataDecoder.METADATA_STRUCT_SIZE]
+        fixed_values = struct.unpack(fmt, buffer)
 
         # Decode fixed values
-        version = fixed_values[0]
-        dataset = fixed_values[1].decode("ascii")
-        schema = int_to_schema(fixed_values[2])
-        stype_in = int_to_stype(fixed_values[3])
-        stype_out = int_to_stype(fixed_values[4])
-        start = fixed_values[5]
-        end = fixed_values[6]
+        version: int = fixed_values[0]
+        dataset: str = fixed_values[1].decode("ascii")
+        schema: Schema = int_to_schema(fixed_values[2])
+        stype_in: SType = int_to_stype(fixed_values[3])
+        stype_out: SType = int_to_stype(fixed_values[4])
+        start: int = fixed_values[5]  # UNIX nanoseconds
+        end: int = fixed_values[6]  # UNIX nanoseconds
 
-        limit_int = fixed_values[7]
-        limit = None if limit_int == 0 else limit_int
+        limit_int: int = fixed_values[7]
+        limit: Optional[int] = None if limit_int == 0 else limit_int
 
-        encoding = int_to_encoding(fixed_values[8])
-        compression = int_to_compression(fixed_values[9])
+        encoding: Encoding = int_to_encoding(fixed_values[8])
+        compression: Compression = int_to_compression(fixed_values[9])
 
-        rows_int = fixed_values[10]
-        cols_int = fixed_values[11]
+        rows: int = fixed_values[10]
+        cols: int = fixed_values[11]
 
-        decompressed = zstandard.decompress(metadata[49:])
-        var_json = json.loads(decompressed)
+        var_buffer: bytes = metadata[MetadataDecoder.METADATA_STRUCT_SIZE :]
+        var_decompressed: bytes = zstandard.decompress(var_buffer)
+        var_json: dict[str, Any] = json.loads(var_decompressed)
 
         json_obj = {
             "version": version,
@@ -96,8 +98,8 @@ class MetadataDecoder:
             "limit": limit,
             "encoding": encoding.value,
             "compression": compression.value,
-            "rows": rows_int,
-            "cols": cols_int,
+            "rows": rows,
+            "cols": cols,
         }
 
         json_obj.update(var_json)
