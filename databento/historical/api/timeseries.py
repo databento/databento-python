@@ -48,7 +48,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The UTC start of the time range (inclusive) for the request.
@@ -114,7 +114,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento_io: Bento = self._create_io(
+        bento_io: Bento = self._create_bento(
             path=path,
             schema=schema,
             encoding=encoding_out,
@@ -161,7 +161,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The UTC start of the time range (inclusive) for the request.
@@ -226,7 +226,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento_io: Bento = self._create_io(
+        bento_io: Bento = self._create_bento(
             path=path,
             schema=schema,
             encoding=encoding,
@@ -265,7 +265,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params.append(("mode", "historical-streaming"))
             params.append(("instruments", str(len(symbols))))
             log_debug(
-                "Checking data size for potentially large streaming request...",
+                "Checking estimated data size for potentially large streaming "
+                "request...",
             )
             response: Response = self._get(
                 url=self._gateway + "/v1/metadata.get_size_estimation",

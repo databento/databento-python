@@ -73,7 +73,7 @@ class BentoHttpAPI:
         return params
 
     @staticmethod
-    def _create_io(
+    def _create_bento(
         path: str,
         schema: Schema,
         encoding: Encoding,

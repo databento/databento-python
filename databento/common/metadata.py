@@ -14,7 +14,7 @@ from databento.common.parsing import (
 
 class MetadataDecoder:
     """
-    Provides a decoder for Databento metadata headers in a zstd skippable frame.
+    Provides a decoder for Databento metadata headers.
 
     Fixed query and shape metadata
     ------------------------------
@@ -61,9 +61,9 @@ class MetadataDecoder:
         dict[str, Any]
 
         """
-        fmt: str = MetadataDecoder.METADATA_STRUCT_FMT
-        buffer: bytes = metadata[: MetadataDecoder.METADATA_STRUCT_SIZE]
-        fixed_values = struct.unpack(fmt, buffer)
+        fixed_fmt: str = MetadataDecoder.METADATA_STRUCT_FMT
+        fixed_buffer: bytes = metadata[: MetadataDecoder.METADATA_STRUCT_SIZE]
+        fixed_values = struct.unpack(fixed_fmt, fixed_buffer)
 
         # Decode fixed values
         version: int = fixed_values[0]
