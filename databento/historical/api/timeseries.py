@@ -48,7 +48,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The UTC start of the time range (inclusive) for the request.
@@ -161,7 +161,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The dataset ID for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-5', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The UTC start of the time range (inclusive) for the request.
@@ -305,7 +305,7 @@ def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]):
 
 
 def _is_large_data_size_schema(schema: Schema):
-    return schema in (Schema.MBO, Schema.MBP_5, Schema.MBP_10)
+    return schema in (Schema.MBO, Schema.MBP_10)
 
 
 def _is_greater_than_one_day(start, end):

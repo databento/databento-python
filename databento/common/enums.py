@@ -42,7 +42,6 @@ class Schema(Enum):
 
     MBO = "mbo"
     MBP_1 = "mbp-1"
-    MBP_5 = "mbp-5"
     MBP_10 = "mbp-10"
     TBBO = "tbbo"
     TRADES = "trades"

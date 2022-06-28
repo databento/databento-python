@@ -166,28 +166,26 @@ def schema_to_int(schema: Schema) -> int:
         return 0
     elif schema == Schema.MBP_1:
         return 1
-    elif schema == Schema.MBP_5:
-        return 2
     elif schema == Schema.MBP_10:
-        return 3
+        return 2
     elif schema == Schema.TBBO:
-        return 4
+        return 3
     elif schema == Schema.TRADES:
-        return 5
+        return 4
     elif schema == Schema.OHLCV_1S:
-        return 6
+        return 5
     elif schema == Schema.OHLCV_1M:
-        return 7
+        return 6
     elif schema == Schema.OHLCV_1H:
-        return 8
+        return 7
     elif schema == Schema.OHLCV_1D:
-        return 9
+        return 8
     elif schema == Schema.DEFINITION:
-        return 10
+        return 9
     elif schema == Schema.STATISTICS:
-        return 11
+        return 10
     elif schema == Schema.STATUS:
-        return 12
+        return 11
     else:
         raise NotImplementedError(
             f"The enum value '{schema.value}' "
@@ -201,26 +199,24 @@ def int_to_schema(value: int) -> Schema:
     elif value == 1:
         return Schema.MBP_1
     elif value == 2:
-        return Schema.MBP_5
+        return Schema.MBP_10
     elif value == 3:
-        return Schema.MBP_1
-    elif value == 4:
         return Schema.TBBO
-    elif value == 5:
+    elif value == 4:
         return Schema.TRADES
-    elif value == 6:
+    elif value == 5:
         return Schema.OHLCV_1S
-    elif value == 7:
+    elif value == 6:
         return Schema.OHLCV_1M
-    elif value == 8:
+    elif value == 7:
         return Schema.OHLCV_1H
-    elif value == 9:
+    elif value == 8:
         return Schema.OHLCV_1D
-    elif value == 10:
+    elif value == 9:
         return Schema.DEFINITION
-    elif value == 11:
+    elif value == 10:
         return Schema.STATISTICS
-    elif value == 12:
+    elif value == 11:
         return Schema.STATUS
     else:
         raise NotImplementedError(

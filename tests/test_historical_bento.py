@@ -124,7 +124,6 @@ class TestMemoryBento:
             ["mbo.json.raw", Schema.MBO, Encoding.JSON, Compression.NONE],
             ["mbo.json.zst", Schema.MBO, Encoding.JSON, Compression.ZSTD],
             ["mbp-1.dbz", Schema.MBP_1, Encoding.DBZ, Compression.ZSTD],
-            ["mbp-5.json.zst", Schema.MBP_5, Encoding.JSON, Compression.ZSTD],
             ["mbp-10.dbz", Schema.MBP_10, Encoding.DBZ, Compression.ZSTD],
             ["trades.csv", Schema.TRADES, Encoding.CSV, Compression.NONE],
             ["tbbo.csv.zst", Schema.TBBO, Encoding.CSV, Compression.ZSTD],
@@ -421,22 +420,6 @@ class TestMemoryBento:
             [Schema.MBO, ["price"]],
             [Schema.TBBO, ["price", "bid_px_00", "ask_px_00"]],
             [Schema.MBP_1, ["price", "bid_px_00", "ask_px_00"]],
-            [
-                Schema.MBP_5,
-                [
-                    "price",
-                    "bid_px_00",
-                    "bid_px_01",
-                    "bid_px_02",
-                    "bid_px_03",
-                    "bid_px_04",
-                    "ask_px_00",
-                    "ask_px_01",
-                    "ask_px_02",
-                    "ask_px_03",
-                    "ask_px_04",
-                ],
-            ],
             [
                 Schema.MBP_10,
                 [

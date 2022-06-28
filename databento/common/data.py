@@ -22,7 +22,6 @@ def get_deriv_ba_types(level: int) -> List[Tuple[str, Union[type, str]]]:
 
 DERIV_SCHEMAS = (
     Schema.MBP_1,
-    Schema.MBP_5,
     Schema.MBP_10,
     Schema.TBBO,
     Schema.TRADES,
@@ -86,13 +85,6 @@ BIN_RECORD_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("sequence", np.uint32),
     ],
     Schema.MBP_1: BIN_DERIV_HEADER + BIN_DERIV_TMUP + get_deriv_ba_types(0),  # 1
-    Schema.MBP_5: BIN_DERIV_HEADER
-    + BIN_DERIV_TMUP
-    + get_deriv_ba_types(0)  # 1
-    + get_deriv_ba_types(1)  # 2
-    + get_deriv_ba_types(2)  # 3
-    + get_deriv_ba_types(3)  # 4
-    + get_deriv_ba_types(4),  # 5
     Schema.MBP_10: BIN_DERIV_HEADER
     + BIN_DERIV_TMUP
     + get_deriv_ba_types(0)  # 1
@@ -230,12 +222,6 @@ BIN_COLUMNS = {
         "sequence",
     ],
     Schema.MBP_1: BIN_DERIV_HEADER_FIELDS + get_deriv_ba_fields(0),
-    Schema.MBP_5: BIN_DERIV_HEADER_FIELDS
-    + get_deriv_ba_fields(0)
-    + get_deriv_ba_fields(1)
-    + get_deriv_ba_fields(2)
-    + get_deriv_ba_fields(3)
-    + get_deriv_ba_fields(4),
     Schema.MBP_10: BIN_DERIV_HEADER_FIELDS
     + get_deriv_ba_fields(0)
     + get_deriv_ba_fields(1)
