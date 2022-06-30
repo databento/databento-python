@@ -10,15 +10,15 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    data: Bento = client.timeseries.stream(
+    bento: Bento = client.timeseries.stream(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
         start="2020-12-28T12:00",
-        end="2020-12-30",
+        end="2020-12-29",
         encoding="csv",
         compression="zstd",
         limit=1000,  # <-- limiting response to 1000 records only
     )
 
-    pprint(data.to_df())
+    pprint(bento.to_df())

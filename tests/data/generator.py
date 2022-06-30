@@ -15,7 +15,7 @@ if __name__ == "__main__":
         path = f"test_data.{schema.value}.{encoding}{compression_ext}"
 
         # Execute request through client
-        data: Bento = client.timeseries.stream(
+        bento: Bento = client.timeseries.stream(
             dataset="GLBX.MDP3",
             symbols="ESH1",
             schema=schema,
@@ -28,4 +28,4 @@ if __name__ == "__main__":
         )  # -> FileBento
 
         print(open(path, mode="rb").read())
-        print(data.raw)
+        print(bento.raw)

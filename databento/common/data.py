@@ -36,7 +36,7 @@ OHLCV_SCHEMAS = (
 )
 
 
-BIN_DERIV_HEADER: List[Tuple[str, Union[type, str]]] = [
+DBZ_COMMON_HEADER: List[Tuple[str, Union[type, str]]] = [
     ("nwords", np.uint8),
     ("type", np.uint8),
     ("pub_id", np.uint16),
@@ -45,7 +45,7 @@ BIN_DERIV_HEADER: List[Tuple[str, Union[type, str]]] = [
 ]
 
 
-BIN_DERIV_TMUP: List[Tuple[str, Union[type, str]]] = [
+DBZ_DERIV_TMUP: List[Tuple[str, Union[type, str]]] = [
     ("price", np.int64),
     ("size", np.uint32),
     ("side", "S1"),  # 1 byte chararray
@@ -58,7 +58,7 @@ BIN_DERIV_TMUP: List[Tuple[str, Union[type, str]]] = [
 ]
 
 
-BIN_DERIV_OHLCV: List[Tuple[str, Union[type, str]]] = [
+DBZ_DERIV_OHLCV: List[Tuple[str, Union[type, str]]] = [
     ("open", np.int64),
     ("high", np.int64),
     ("low", np.int64),
@@ -67,26 +67,23 @@ BIN_DERIV_OHLCV: List[Tuple[str, Union[type, str]]] = [
 ]
 
 
-BIN_RECORD_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
-    Schema.MBO: [
+DBZ_RECORD_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
+    Schema.MBO: DBZ_COMMON_HEADER
+    + [
         ("order_id", np.uint64),
-        ("pub_id", np.uint16),
-        ("chan_id", np.uint16),
-        ("product_id", np.uint32),
-        ("ts_event", np.uint64),
         ("price", np.int64),
         ("size", np.uint32),
-        ("type", "S1"),  # 1 byte chararray
         ("flags", np.int8),
+        ("chan_id", np.uint8),
         ("side", "S1"),  # 1 byte chararray
         ("action", "S1"),  # 1 byte chararray
         ("ts_recv", np.uint64),
         ("ts_in_delta", np.int32),
         ("sequence", np.uint32),
     ],
-    Schema.MBP_1: BIN_DERIV_HEADER + BIN_DERIV_TMUP + get_deriv_ba_types(0),  # 1
-    Schema.MBP_10: BIN_DERIV_HEADER
-    + BIN_DERIV_TMUP
+    Schema.MBP_1: DBZ_COMMON_HEADER + DBZ_DERIV_TMUP + get_deriv_ba_types(0),  # 1
+    Schema.MBP_10: DBZ_COMMON_HEADER
+    + DBZ_DERIV_TMUP
     + get_deriv_ba_types(0)  # 1
     + get_deriv_ba_types(1)  # 2
     + get_deriv_ba_types(2)  # 3
@@ -97,13 +94,13 @@ BIN_RECORD_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     + get_deriv_ba_types(7)  # 8
     + get_deriv_ba_types(8)  # 9
     + get_deriv_ba_types(9),  # 10
-    Schema.TBBO: BIN_DERIV_HEADER + BIN_DERIV_TMUP + get_deriv_ba_types(0),
-    Schema.TRADES: BIN_DERIV_HEADER + BIN_DERIV_TMUP,
-    Schema.OHLCV_1S: BIN_DERIV_HEADER + BIN_DERIV_OHLCV,
-    Schema.OHLCV_1M: BIN_DERIV_HEADER + BIN_DERIV_OHLCV,
-    Schema.OHLCV_1H: BIN_DERIV_HEADER + BIN_DERIV_OHLCV,
-    Schema.OHLCV_1D: BIN_DERIV_HEADER + BIN_DERIV_OHLCV,
-    Schema.STATUS: BIN_DERIV_HEADER
+    Schema.TBBO: DBZ_COMMON_HEADER + DBZ_DERIV_TMUP + get_deriv_ba_types(0),
+    Schema.TRADES: DBZ_COMMON_HEADER + DBZ_DERIV_TMUP,
+    Schema.OHLCV_1S: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
+    Schema.OHLCV_1M: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
+    Schema.OHLCV_1H: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
+    Schema.OHLCV_1D: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
+    Schema.STATUS: DBZ_COMMON_HEADER
     + [
         ("ts_recv", np.uint64),
         ("group", "S1"),  # 1 byte chararray
@@ -111,7 +108,7 @@ BIN_RECORD_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("halt_reason", np.uint8),
         ("trading_event", np.uint8),
     ],
-    Schema.DEFINITION: BIN_DERIV_HEADER
+    Schema.DEFINITION: DBZ_COMMON_HEADER
     + [
         ("ts_recv", np.uint64),
         ("min_price_increment", np.int64),
@@ -179,7 +176,7 @@ BIN_RECORD_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
 
 
 ################################################################################
-# BIN fields
+# DBZ fields
 ################################################################################
 
 
@@ -194,7 +191,7 @@ def get_deriv_ba_fields(level: int) -> List[str]:
     ]
 
 
-BIN_DERIV_HEADER_FIELDS = [
+DBZ_DERIV_HEADER_FIELDS = [
     "ts_event",
     "ts_in_delta",
     "pub_id",
@@ -207,7 +204,7 @@ BIN_DERIV_HEADER_FIELDS = [
     "sequence",
 ]
 
-BIN_COLUMNS = {
+DBZ_COLUMNS = {
     Schema.MBO: [
         "ts_event",
         "ts_in_delta",
@@ -221,8 +218,8 @@ BIN_COLUMNS = {
         "size",
         "sequence",
     ],
-    Schema.MBP_1: BIN_DERIV_HEADER_FIELDS + get_deriv_ba_fields(0),
-    Schema.MBP_10: BIN_DERIV_HEADER_FIELDS
+    Schema.MBP_1: DBZ_DERIV_HEADER_FIELDS + get_deriv_ba_fields(0),
+    Schema.MBP_10: DBZ_DERIV_HEADER_FIELDS
     + get_deriv_ba_fields(0)
     + get_deriv_ba_fields(1)
     + get_deriv_ba_fields(2)
@@ -233,6 +230,39 @@ BIN_COLUMNS = {
     + get_deriv_ba_fields(7)
     + get_deriv_ba_fields(8)
     + get_deriv_ba_fields(9),
-    Schema.TBBO: BIN_DERIV_HEADER_FIELDS + get_deriv_ba_fields(0),
-    Schema.TRADES: BIN_DERIV_HEADER_FIELDS,
+    Schema.TBBO: DBZ_DERIV_HEADER_FIELDS + get_deriv_ba_fields(0),
+    Schema.TRADES: DBZ_DERIV_HEADER_FIELDS,
+}
+
+
+################################################################################
+# CSV headers
+################################################################################
+
+CSV_DERIV_HEADER = b"ts_recv,ts_event,ts_in_delta,pub_id,product_id,action,side,flags,price,size,sequence"  # noqa
+CSV_OHLCV_HEADER = b"ts_event,pub_id,product_id,open,high,low,close,volume"
+
+
+CSV_HEADERS = {
+    Schema.MBO: b"ts_recv,ts_event,ts_in_delta,pub_id,product_id,order_id,action,side,flags,price,size,sequence",  # noqa
+    Schema.MBP_1: CSV_DERIV_HEADER + b"," + ",".join(get_deriv_ba_fields(0)).encode(),
+    Schema.MBP_10: CSV_DERIV_HEADER
+    + b","
+    + ",".join(get_deriv_ba_fields(0)).encode()
+    + ",".join(get_deriv_ba_fields(1)).encode()
+    + ",".join(get_deriv_ba_fields(2)).encode()
+    + ",".join(get_deriv_ba_fields(3)).encode()
+    + ",".join(get_deriv_ba_fields(4)).encode()
+    + ",".join(get_deriv_ba_fields(5)).encode()
+    + ",".join(get_deriv_ba_fields(6)).encode()
+    + ",".join(get_deriv_ba_fields(7)).encode()
+    + ",".join(get_deriv_ba_fields(8)).encode()
+    + ",".join(get_deriv_ba_fields(9)).encode(),
+    Schema.TBBO: CSV_DERIV_HEADER + b"," + ",".join(get_deriv_ba_fields(0)).encode(),
+    Schema.TRADES: CSV_DERIV_HEADER,
+    Schema.OHLCV_1S: CSV_OHLCV_HEADER,
+    Schema.OHLCV_1M: CSV_OHLCV_HEADER,
+    Schema.OHLCV_1H: CSV_OHLCV_HEADER,
+    Schema.OHLCV_1D: CSV_OHLCV_HEADER,
+    # TODO(cs) Complete headers
 }

@@ -8,7 +8,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    data: Bento = client.timeseries.stream(
+    bento: Bento = client.timeseries.stream(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
@@ -19,4 +19,4 @@ if __name__ == "__main__":
         limit=1000,  # <-- limiting response to 1000 records only
     )
 
-    data.replay(callback=print)
+    bento.replay(callback=print)

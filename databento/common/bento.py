@@ -6,7 +6,7 @@ from typing import Any, BinaryIO, Callable, Dict, List, Optional
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import BIN_COLUMNS, BIN_RECORD_MAP, DERIV_SCHEMAS
+from databento.common.data import DBZ_COLUMNS, DBZ_RECORD_MAP, DERIV_SCHEMAS
 from databento.common.enums import Compression, Encoding, Schema
 
 
@@ -27,8 +27,10 @@ class Bento:
 
         # Set schema
         self._schema = schema or self._infer_schema()
-        self._struct_fmt = np.dtype(BIN_RECORD_MAP[self._schema])
+        self._struct_fmt = np.dtype(DBZ_RECORD_MAP[self._schema])
         self._struct_size = self._struct_fmt.itemsize
+
+        self._metadata: Optional[dict[str, Any]] = None
 
     @property
     def schema(self) -> Schema:
@@ -240,6 +242,13 @@ class Bento:
         else:  # pragma: no cover (design-time error)
             raise ValueError(f"invalid encoding, was {self._encoding.value}")
 
+    def set_metadata_json(self, metadata: dict[str, Any]):
+        """
+        Pass JSON metadata to load.
+        """
+        # TODO(cs): Validate metadata
+        self._metadata = metadata
+
     def _should_decompress(self, decompress: bool) -> bool:
         if not decompress:
             return False
@@ -303,7 +312,7 @@ class Bento:
 
     def _prepare_list_bin(self) -> List[np.void]:
         data: bytes = self.reader(decompress=True).read()
-        return np.frombuffer(data, dtype=BIN_RECORD_MAP[self._schema])
+        return np.frombuffer(data, dtype=DBZ_RECORD_MAP[self._schema])
 
     def _prepare_list_csv(self) -> List[str]:
         data: bytes = self.reader(decompress=True).read()
@@ -319,13 +328,13 @@ class Bento:
         # Cleanup dataframe
         if self._schema == Schema.MBO:
             df.drop("chan_id", axis=1, inplace=True)
-            df = df.reindex(columns=BIN_COLUMNS[self._schema])
+            df = df.reindex(columns=DBZ_COLUMNS[self._schema])
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
             df["action"] = df["action"].str.decode("utf-8")
         elif self._schema in DERIV_SCHEMAS:
             df.drop(["nwords", "type", "depth"], axis=1, inplace=True)
-            df = df.reindex(columns=BIN_COLUMNS[self._schema])
+            df = df.reindex(columns=DBZ_COLUMNS[self._schema])
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
             df["action"] = df["action"].str.decode("utf-8")
@@ -346,7 +355,7 @@ class Bento:
         return df
 
     def _replay_bin(self, callback: Callable[[Any], None]) -> None:
-        dtype = BIN_RECORD_MAP[self._schema]
+        dtype = DBZ_RECORD_MAP[self._schema]
         reader: BinaryIO = self.reader(decompress=True)
         while True:
             raw: bytes = reader.read(self.struct_size)

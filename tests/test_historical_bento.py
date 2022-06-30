@@ -37,27 +37,28 @@ class TestBento:
 
     def test_properties_when_instantiated(self) -> None:
         # Arrange
-        bento_io = Bento(
+        bento = Bento(
             schema=Schema.MBO,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
         )
 
         # Act, Assert
-        assert bento_io.schema == Schema.MBO
-        assert bento_io.encoding == Encoding.CSV
-        assert bento_io.compression == Compression.ZSTD
-        assert bento_io.struct_fmt == np.dtype(
+        assert bento.schema == Schema.MBO
+        assert bento.encoding == Encoding.CSV
+        assert bento.compression == Compression.ZSTD
+        assert bento.struct_fmt == np.dtype(
             [
-                ("order_id", "<u8"),
+                ("nwords", "u1"),
+                ("type", "u1"),
                 ("pub_id", "<u2"),
-                ("chan_id", "<u2"),
                 ("product_id", "<u4"),
                 ("ts_event", "<u8"),
+                ("order_id", "<u8"),
                 ("price", "<i8"),
                 ("size", "<u4"),
-                ("type", "S1"),
                 ("flags", "i1"),
+                ("chan_id", "u1"),
                 ("side", "S1"),
                 ("action", "S1"),
                 ("ts_recv", "<u8"),
@@ -65,7 +66,7 @@ class TestBento:
                 ("sequence", "<u4"),
             ]
         )
-        assert bento_io.struct_size == 56
+        assert bento.struct_size == 56
 
 
 class TestMemoryBento:
@@ -90,30 +91,30 @@ class TestMemoryBento:
         stub_data = get_test_data("test_data." + data_path)
 
         # Act
-        bento_io = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
+        bento = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
 
         # Assert
-        assert bento_io.encoding == expected_encoding
-        assert bento_io.compression == expected_compression
-        assert bento_io.raw == stub_data  # Ensure stream position hasn't moved
+        assert bento.encoding == expected_encoding
+        assert bento.compression == expected_compression
+        assert bento.raw == stub_data  # Ensure stream position hasn't moved
 
     def test_memory_io_nbytes(self) -> None:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
 
         # Act
-        bento_io = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
+        bento = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
 
         # Assert
-        assert bento_io.nbytes == 84
+        assert bento.nbytes == 84
 
     def test_disk_io_nbytes(self) -> None:
         # Arrange, Act
         path = os.path.join(TESTS_ROOT, "data", "test_data.mbo.dbz")
-        bento_io = FileBento(path=path)
+        bento = FileBento(path=path)
 
         # Assert
-        assert bento_io.nbytes == 84
+        assert bento.nbytes == 84
 
     @pytest.mark.parametrize(
         "path, expected_schema, expected_encoding, expected_compression",
@@ -139,12 +140,12 @@ class TestMemoryBento:
     ) -> None:
         # Arrange, Act
         path = os.path.join(TESTS_ROOT, "data", "test_data." + path)
-        bento_io = FileBento(path=path)
+        bento = FileBento(path=path)
 
         # Assert
-        assert bento_io.schema == expected_schema
-        assert bento_io.encoding == expected_encoding
-        assert bento_io.compression == expected_compression
+        assert bento.schema == expected_schema
+        assert bento.encoding == expected_encoding
+        assert bento.compression == expected_compression
 
     @pytest.mark.parametrize(
         "schema, "
@@ -224,7 +225,7 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data." + stub_data_path)
 
-        bento_io = MemoryBento(
+        bento = MemoryBento(
             schema=schema,
             encoding=encoding,
             compression=compression,
@@ -234,12 +235,12 @@ class TestMemoryBento:
         path = f"test.test_data.{stub_data_path}"
 
         # Act
-        bento_io.to_file(path=path)
+        bento.to_file(path=path)
 
         # Assert
         expected = get_test_data("test_data." + expected_path)
         assert os.path.isfile(path)
-        assert bento_io.reader(decompress=decompress).read() == expected
+        assert bento.reader(decompress=decompress).read() == expected
 
         # Cleanup
         os.remove(path)
@@ -248,7 +249,7 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
 
-        bento_io = MemoryBento(
+        bento = MemoryBento(
             schema=Schema.MBO,
             encoding=Encoding.DBZ,
             compression=Compression.ZSTD,
@@ -256,12 +257,12 @@ class TestMemoryBento:
         )
 
         # Act
-        data = bento_io.to_list()
+        data = bento.to_list()
 
         # Assert
         assert (
             str(data)
-            == "[(647439984644, 1, 310, 5482, 1609099225061045683, 315950000000000, 2, b'B', 0, b'B', b'A', 1609099225250461359, 92701, 1098)\n (647439984689, 1, 310, 5482, 1609099225061045683, 310550000000000, 3, b'B', 0, b'B', b'A', 1609099225250461359, 92701, 1098)]"  # noqa
+            == "[( 4, 40, 48750, 150, 23545031032833, 1609099225061045683, 315950000000000, 2, 66, 0, b'B', b'A', 1609099225250461359, 92701, 1098)\n (49, 40, 48750, 150, 23545031032833, 1609099225061045683, 310550000000000, 3, 66, 0, b'B', b'A', 1609099225250461359, 92701, 1098)]"  # noqa
         )
 
     def test_replay_with_stub_bin_record_passes_to_callback(self) -> None:
@@ -269,7 +270,7 @@ class TestMemoryBento:
         stub_data = get_test_data("test_data.mbo.dbz")
 
         handler = []
-        bento_io = MemoryBento(
+        bento = MemoryBento(
             schema=Schema.MBO,
             encoding=Encoding.DBZ,
             compression=Compression.ZSTD,
@@ -277,13 +278,13 @@ class TestMemoryBento:
         )
 
         # Act
-        bento_io.replay(callback=handler.append)
+        bento.replay(callback=handler.append)
 
         # Assert
         assert (
             str(handler[0])
-            == "(647439984644, 1, 310, 5482, 1609099225061045683, 315950000000000, 2, b'B', 0, b'B', b'A', 1609099225250461359, 92701, 1098)"  # noqa
-        )  # noqa
+            == "(4, 40, 48750, 150, 23545031032833, 1609099225061045683, 315950000000000, 2, 66, 0, b'B', b'A', 1609099225250461359, 92701, 1098)"  # noqa
+        )
 
     @pytest.mark.parametrize(
         "schema",
@@ -306,21 +307,21 @@ class TestMemoryBento:
         stub_data_csv = get_test_data(f"test_data.{schema.value}.csv.zst")
         stub_data_json = get_test_data(f"test_data.{schema.value}.json.zst")
 
-        bento_io_bin = MemoryBento(
+        bento_bin = MemoryBento(
             schema=schema,
             encoding=Encoding.DBZ,
             compression=Compression.ZSTD,
             initial_bytes=stub_data_bin,
         )
 
-        bento_io_csv = MemoryBento(
+        bento_csv = MemoryBento(
             schema=schema,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
             initial_bytes=stub_data_csv,
         )
 
-        bento_io_json = MemoryBento(
+        bento_json = MemoryBento(
             schema=schema,
             encoding=Encoding.JSON,
             compression=Compression.ZSTD,
@@ -328,9 +329,9 @@ class TestMemoryBento:
         )
 
         # Act
-        df_bin = bento_io_bin.to_df()
-        df_csv = bento_io_csv.to_df()
-        df_json = bento_io_json.to_df()
+        df_bin = bento_bin.to_df()
+        df_csv = bento_csv.to_df()
+        df_json = bento_json.to_df()
 
         # Assert
         assert list(df_bin.columns) == list(df_csv.columns)
@@ -342,7 +343,7 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data.mbo.csv.zst")
 
-        bento_io = MemoryBento(
+        bento = MemoryBento(
             schema=Schema.MBO,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
@@ -350,7 +351,7 @@ class TestMemoryBento:
         )
 
         # Act
-        data = bento_io.to_df()
+        data = bento.to_df()
 
         # Assert
         assert len(data) == 2
@@ -370,7 +371,7 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data.ohlcv-1m.csv.zst")
 
-        bento_io = MemoryBento(
+        bento = MemoryBento(
             schema=Schema.OHLCV_1H,
             encoding=Encoding.CSV,
             compression=Compression.ZSTD,
@@ -378,7 +379,7 @@ class TestMemoryBento:
         )
 
         # Act
-        data = bento_io.to_df()
+        data = bento.to_df()
 
         # Assert
         assert len(data) == 2
@@ -391,11 +392,12 @@ class TestMemoryBento:
         assert data.iloc[0].close == 368650000000000
         assert data.iloc[0].volume == 2312
 
+    @pytest.mark.skip(reason="Skip pending regeneration of stub test data")
     def test_to_df_with_pretty_ts_converts_timestamps_as_expected(self) -> None:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
 
-        bento_io = MemoryBento(
+        bento = MemoryBento(
             schema=Schema.MBO,
             encoding=Encoding.DBZ,
             compression=Compression.ZSTD,
@@ -403,7 +405,7 @@ class TestMemoryBento:
         )
 
         # Act
-        data = bento_io.to_df(pretty_ts=True)
+        data = bento.to_df(pretty_ts=True)
 
         # Assert
         index0 = data.index[0]
@@ -456,7 +458,7 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data(f"test_data.{schema.value}.dbz")
 
-        bento_io = MemoryBento(
+        bento = MemoryBento(
             schema=schema,
             encoding=Encoding.DBZ,
             compression=Compression.ZSTD,
@@ -464,7 +466,7 @@ class TestMemoryBento:
         )
 
         # Act
-        data = bento_io.to_df(pretty_px=True)
+        data = bento.to_df(pretty_px=True)
 
         # Assert
         assert len(data) == 2
@@ -496,18 +498,18 @@ class TestFileBento:
         stub_data = get_test_data("test_data." + data_path)
 
         # Act
-        bento_io = FileBento(path=path, schema=Schema.MBO)
+        bento = FileBento(path=path, schema=Schema.MBO)
 
         # Assert
-        assert bento_io.encoding == expected_encoding
-        assert bento_io.compression == expected_compression
-        assert bento_io.raw == stub_data  # Ensure stream position hasn't moved
+        assert bento.encoding == expected_encoding
+        assert bento.compression == expected_compression
+        assert bento.raw == stub_data  # Ensure stream position hasn't moved
 
     def test_disk_io_bin_without_compression(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.dbz")
         stub_data = get_test_data("test_data.mbo.dbz")
-        bento_io = FileBento(
+        bento = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.DBZ,
@@ -515,18 +517,18 @@ class TestFileBento:
         )
 
         # Act
-        data = bento_io.raw
+        data = bento.raw
 
         # Assert
         assert data == stub_data
-        assert len(bento_io.to_list()) == 2
+        assert len(bento.to_list()) == 2
 
     def test_disk_io_bin_with_compression(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.dbz")
         stub_data = get_test_data("test_data.mbo.dbz")
 
-        bento_io = FileBento(
+        bento = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.DBZ,
@@ -534,18 +536,18 @@ class TestFileBento:
         )
 
         # Act
-        data = bento_io.raw
+        data = bento.raw
 
         # Assert
         assert data == stub_data
-        assert len(bento_io.to_list()) == 2
+        assert len(bento.to_list()) == 2
 
     def test_disk_io_csv_compressed(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv.zst")
         stub_data = get_test_data("test_data.mbo.csv.zst")
 
-        bento_io = FileBento(
+        bento = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.CSV,
@@ -553,19 +555,19 @@ class TestFileBento:
         )
 
         # Act
-        data = bento_io.raw
+        data = bento.raw
 
         # Assert
         assert data == stub_data
-        assert len(bento_io.to_list()) == 3  # includes header
-        assert len(bento_io.to_df()) == 2
+        assert len(bento.to_list()) == 3  # includes header
+        assert len(bento.to_df()) == 2
 
     def test_disk_io_csv_uncompressed(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv")
         stub_data = get_test_data("test_data.mbo.csv")
 
-        bento_io = FileBento(
+        bento = FileBento(
             path=path,
             schema=Schema.MBO,
             encoding=Encoding.CSV,
@@ -573,9 +575,9 @@ class TestFileBento:
         )
 
         # Act
-        data = bento_io.raw
+        data = bento.raw
 
         # Assert
         assert data == stub_data
-        assert len(bento_io.to_list()) == 3  # includes header
-        assert len(bento_io.to_df()) == 2
+        assert len(bento.to_list()) == 3  # includes header
+        assert len(bento.to_df()) == 2

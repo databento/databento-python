@@ -85,7 +85,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         validate_enum(stype_out, SType, "stype_out")
 
         schema = Schema(schema)
-        encoding_in = Encoding.DBZ  # noqa # Always request DBZ encoding
+        encoding_in = Encoding.DBZ  # Always request DBZ encoding
         encoding_out = Encoding(encoding)
         compression_in = Compression.ZSTD  # Always request ZSTD compression
         compression_out = Compression(compression)
@@ -98,7 +98,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=encoding_out,  # TODO(cs): Use encoding OUT for now
+            encoding=encoding_in,
             compression=compression_in,
             stype_in=stype_in,
             stype_out=stype_out,
@@ -114,7 +114,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento_io: Bento = self._create_bento(
+        bento: Bento = self._create_bento(
             path=path,
             schema=schema,
             encoding=encoding_out,
@@ -126,14 +126,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
             basic_auth=True,
             schema=schema,
-            encoding_in=encoding_out,  # TODO(cs): Use encoding OUT for now
+            encoding_in=encoding_in,
             encoding_out=encoding_out,
             compression_in=compression_in,
             compression_out=compression_out,
-            bento_io=bento_io,
+            bento=bento,
         )
 
-        return bento_io
+        return bento
 
     async def stream_async(
         self,
@@ -198,8 +198,9 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         validate_enum(stype_out, SType, "stype_out")
 
         schema = Schema(schema)
-        encoding = Encoding(encoding)
-        compression_in = Compression.ZSTD  # Always requesting compressed
+        encoding_in = Encoding.DBZ  # Always request DBZ encoding
+        encoding_out = Encoding(encoding)
+        compression_in = Compression.ZSTD  # Always request ZSTD compression
         compression_out = Compression(compression)
         stype_in = SType(stype_in)
         stype_out = SType(stype_out)
@@ -210,7 +211,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=encoding,
+            encoding=encoding_in,
             compression=compression_in,
             stype_in=stype_in,
             stype_out=stype_out,
@@ -226,10 +227,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento_io: Bento = self._create_bento(
+        bento: Bento = self._create_bento(
             path=path,
             schema=schema,
-            encoding=encoding,
+            encoding=encoding_out,
             compression=compression_out,
         )
 
@@ -237,12 +238,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             url=self._base_url + ".stream",
             params=params,
             basic_auth=True,
-            decompress=compression_in == Compression.ZSTD
-            and compression_out == Compression.NONE,
-            binary_io=bento_io.writer(),
+            schema=schema,
+            encoding_in=encoding_in,
+            encoding_out=encoding_out,
+            compression_in=compression_in,
+            compression_out=compression_out,
+            bento=bento,
         )
 
-        return bento_io
+        return bento
 
     def _pre_check_data_size(
         self,
