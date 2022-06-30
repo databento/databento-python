@@ -58,7 +58,7 @@ class MetadataDecoder:
 
         Returns
         -------
-        dict[str, Any]
+        Dict[str, Any]
 
         """
         fixed_fmt: str = MetadataDecoder.METADATA_STRUCT_FMT
@@ -85,7 +85,7 @@ class MetadataDecoder:
 
         var_buffer: bytes = metadata[MetadataDecoder.METADATA_STRUCT_SIZE :]
         var_decompressed: bytes = zstandard.decompress(var_buffer)
-        var_json: dict[str, Any] = json.loads(var_decompressed)
+        var_json: Dict[str, Any] = json.loads(var_decompressed)
 
         json_obj = {
             "version": version,

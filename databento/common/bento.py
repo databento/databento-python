@@ -30,7 +30,7 @@ class Bento:
         self._struct_fmt = np.dtype(DBZ_RECORD_MAP[self._schema])
         self._struct_size = self._struct_fmt.itemsize
 
-        self._metadata: Optional[dict[str, Any]] = None
+        self._metadata: Optional[Dict[str, Any]] = None
 
     @property
     def schema(self) -> Schema:
@@ -242,7 +242,7 @@ class Bento:
         else:  # pragma: no cover (design-time error)
             raise ValueError(f"invalid encoding, was {self._encoding.value}")
 
-    def set_metadata_json(self, metadata: dict[str, Any]):
+    def set_metadata_json(self, metadata: Dict[str, Any]):
         """
         Pass JSON metadata to load.
         """

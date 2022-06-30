@@ -267,7 +267,7 @@ class BentoHttpAPI:
 
                         self._write_text_records(
                             text_buffer=text_buffer,
-                            inner_writer=writer,
+                            writer=writer,
                             compression_out=compression_out,
                         )
                         continue
@@ -380,7 +380,7 @@ class BentoHttpAPI:
 
                             self._write_text_records(
                                 text_buffer=text_buffer,
-                                inner_writer=writer,
+                                writer=writer,
                                 compression_out=compression_out,
                             )
                             continue
@@ -420,12 +420,12 @@ class BentoHttpAPI:
     def _write_text_records(
         self,
         text_buffer: bytes,
-        inner_writer: BinaryIO,
+        writer: BinaryIO,
         compression_out: Compression,
     ) -> None:
         if compression_out == Compression.ZSTD:
             text_buffer = zstandard.compress(text_buffer, level=2)
-        inner_writer.write(text_buffer)
+        writer.write(text_buffer)
 
     def _binary_to_csv_records(self, schema: Schema, values: np.ndarray) -> List[bytes]:
         if schema == Schema.MBO:
