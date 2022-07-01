@@ -290,8 +290,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
                     f"submit a batch data request."
                     f"\nYou can check the uncompressed binary size of a request "
                     f"through the metadata API (from the client library, or over "
-                    f"HTTP). "
-                    f"This warning can be suppressed "
+                    f"HTTP).\nThis warning can be suppressed "
                     f"https://docs.python.org/3/library/warnings.html",
                 )
 

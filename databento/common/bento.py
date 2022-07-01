@@ -30,6 +30,7 @@ class Bento:
         self._struct_fmt = np.dtype(DBZ_RECORD_MAP[self._schema])
         self._struct_size = self._struct_fmt.itemsize
 
+        # Metadata
         self._metadata: Optional[Dict[str, Any]] = None
 
     @property
@@ -173,7 +174,7 @@ class Bento:
 
         """
         if self._encoding == Encoding.DBZ:
-            return self._prepare_list_bin()
+            return self._prepare_list_dbz()
         elif self._encoding == Encoding.CSV:
             return self._prepare_list_csv()
         elif self._encoding == Encoding.JSON:
@@ -200,7 +201,7 @@ class Bento:
 
         """
         if self._encoding == Encoding.DBZ:
-            df: pd.DataFrame = self._prepare_df_bin()
+            df: pd.DataFrame = self._prepare_df_dbz()
         elif self._encoding == Encoding.CSV:
             df = self._prepare_df_csv()
         elif self._encoding == Encoding.JSON:
@@ -236,7 +237,7 @@ class Bento:
 
         """
         if self._encoding == Encoding.DBZ:
-            self._replay_bin(callback)
+            self._replay_dbz(callback)
         elif self._encoding in (Encoding.CSV, Encoding.JSON):
             self._replay_csv_or_json(callback)
         else:  # pragma: no cover (design-time error)
@@ -310,7 +311,7 @@ class Bento:
             else "ts_event"
         )
 
-    def _prepare_list_bin(self) -> List[np.void]:
+    def _prepare_list_dbz(self) -> List[np.void]:
         data: bytes = self.reader(decompress=True).read()
         return np.frombuffer(data, dtype=DBZ_RECORD_MAP[self._schema])
 
@@ -322,7 +323,7 @@ class Bento:
         lines: List[str] = self._prepare_list_csv()
         return list(map(json.loads, lines))
 
-    def _prepare_df_bin(self) -> pd.DataFrame:
+    def _prepare_df_dbz(self) -> pd.DataFrame:
         df = pd.DataFrame(self.to_list())
         df.set_index(self._get_index_column(), inplace=True)
         # Cleanup dataframe
@@ -354,7 +355,7 @@ class Bento:
         df.set_index(self._get_index_column(), inplace=True)
         return df
 
-    def _replay_bin(self, callback: Callable[[Any], None]) -> None:
+    def _replay_dbz(self, callback: Callable[[Any], None]) -> None:
         dtype = DBZ_RECORD_MAP[self._schema]
         reader: BinaryIO = self.reader(decompress=True)
         while True:

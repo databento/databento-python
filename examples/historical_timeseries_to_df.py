@@ -16,7 +16,7 @@ if __name__ == "__main__":
         schema="mbo",
         start="2020-12-28T12:00",
         end="2020-12-29",
-        encoding="csv",
+        encoding="dbz",
         compression="zstd",
         limit=1000,  # <-- limiting response to 1000 records only
     )
