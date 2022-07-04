@@ -19,18 +19,18 @@ class MetadataDecoder:
     Fixed query and shape metadata
     ------------------------------
     version       UInt8       1   1
-    dataset       Char[9]     9   10
-    schema        UInt8       1   11
-    stype_in      UInt8       1   12
-    stype_out     UInt8       1   13
-    start         UInt64      8   21
-    end           UInt64      8   29
-    limit         UInt64      8   37
-    encoding      UInt8       1   38
-    compression   UInt8       1   39
-    rows          UInt64      8   47
-    cols          UInt16      2   49
-    padding       x          15   64
+    dataset       Char[16]   16   17
+    schema        UInt8       1   18
+    stype_in      UInt8       1   19
+    stype_out     UInt8       1   20
+    start         UInt64      8   28
+    end           UInt64      8   36
+    limit         UInt64      8   44
+    encoding      UInt8       1   45
+    compression   UInt8       1   46
+    rows          UInt64      8   54
+    cols          UInt16      2   56
+    padding       x          40   96
 
     References
     ----------
@@ -43,7 +43,7 @@ class MetadataDecoder:
     # skippable frame. This specification doesn't detail any specific tagging
     # for skippable frames.
     ZSTD_FIRST_MAGIC = 0x184D2A50  # 407710288
-    METADATA_STRUCT_FMT = "<B9sBBBQQQBBQH15x"
+    METADATA_STRUCT_FMT = "<B16sBBBQQQBBQH40x"
     METADATA_STRUCT_SIZE = struct.calcsize(METADATA_STRUCT_FMT)
 
     @staticmethod
@@ -67,7 +67,7 @@ class MetadataDecoder:
 
         # Decode fixed values
         version: int = fixed_values[0]
-        dataset: str = fixed_values[1].decode("ascii")
+        dataset: str = fixed_values[1].replace(b"\x00", b"").decode("ascii")
         schema: Schema = int_to_schema(fixed_values[2])
         stype_in: SType = int_to_stype(fixed_values[3])
         stype_out: SType = int_to_stype(fixed_values[4])
