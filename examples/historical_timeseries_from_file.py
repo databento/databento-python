@@ -1,7 +1,6 @@
 import datetime
 
 import databento as db
-from databento.common.enums import Schema
 
 
 if __name__ == "__main__":
@@ -9,7 +8,7 @@ if __name__ == "__main__":
 
     # Can load from file path (if exists)
     ts_start = datetime.datetime.utcnow()
-    data = db.from_file(path="my_data.csv", schema=Schema.MBO)  # -> FileBento
+    data = db.from_dbz_file(path="my_data.dbz")  # -> FileBento
 
     print(data.to_df())
     print(datetime.datetime.utcnow() - ts_start)

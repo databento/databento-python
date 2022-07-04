@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from databento import from_file
+from databento import from_dbz_file
 from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Compression, Encoding, Schema
 
@@ -18,19 +18,19 @@ def get_test_data(file_name):
 
 
 class TestBento:
-    def test_from_file_when_not_exists_raises_expected_exception(self):
+    def test_from_dbz_file_when_not_exists_raises_expected_exception(self):
         # Arrange, Act, Assert
         with pytest.raises(FileNotFoundError):
-            from_file("my_data.csv")
+            from_dbz_file("my_data.dbz")
 
-    def test_from_file_when_file_empty_raises_expected_exception(self):
+    def test_from_dbz_file_when_file_empty_raises_expected_exception(self):
         # Arrange
-        path = "my_data.csv"
+        path = "my_data.dbz"
         Path(path).touch()
 
         # Act, Assert
         with pytest.raises(RuntimeError):
-            from_file(path)
+            from_dbz_file(path)
 
         # Cleanup
         os.remove(path)
@@ -70,34 +70,6 @@ class TestBento:
 
 
 class TestMemoryBento:
-    @pytest.mark.parametrize(
-        "schema, data_path, expected_encoding, expected_compression",
-        [
-            [Schema.MBO, "mbo.dbz", Encoding.DBZ, Compression.ZSTD],
-            [Schema.MBO, "mbo.csv", Encoding.CSV, Compression.NONE],
-            [Schema.MBO, "mbo.csv.zst", Encoding.CSV, Compression.ZSTD],
-            [Schema.MBO, "mbo.json.raw", Encoding.JSON, Compression.NONE],
-            [Schema.MBO, "mbo.json.zst", Encoding.JSON, Compression.ZSTD],
-        ],
-    )
-    def test_memory_io_inference(
-        self,
-        schema,
-        data_path,
-        expected_encoding,
-        expected_compression,
-    ) -> None:
-        # Arrange
-        stub_data = get_test_data("test_data." + data_path)
-
-        # Act
-        bento = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
-
-        # Assert
-        assert bento.encoding == expected_encoding
-        assert bento.compression == expected_compression
-        assert bento.raw == stub_data  # Ensure stream position hasn't moved
-
     def test_memory_io_nbytes(self) -> None:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
@@ -106,7 +78,7 @@ class TestMemoryBento:
         bento = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
 
         # Assert
-        assert bento.nbytes == 84
+        assert bento.nbytes == 386
 
     def test_disk_io_nbytes(self) -> None:
         # Arrange, Act
@@ -114,38 +86,7 @@ class TestMemoryBento:
         bento = FileBento(path=path)
 
         # Assert
-        assert bento.nbytes == 84
-
-    @pytest.mark.parametrize(
-        "path, expected_schema, expected_encoding, expected_compression",
-        [
-            ["mbo.dbz", Schema.MBO, Encoding.DBZ, Compression.ZSTD],
-            ["mbo.csv", Schema.MBO, Encoding.CSV, Compression.NONE],
-            ["mbo.csv.zst", Schema.MBO, Encoding.CSV, Compression.ZSTD],
-            ["mbo.json.raw", Schema.MBO, Encoding.JSON, Compression.NONE],
-            ["mbo.json.zst", Schema.MBO, Encoding.JSON, Compression.ZSTD],
-            ["mbp-1.dbz", Schema.MBP_1, Encoding.DBZ, Compression.ZSTD],
-            ["mbp-10.dbz", Schema.MBP_10, Encoding.DBZ, Compression.ZSTD],
-            ["trades.csv", Schema.TRADES, Encoding.CSV, Compression.NONE],
-            ["tbbo.csv.zst", Schema.TBBO, Encoding.CSV, Compression.ZSTD],
-            ["ohlcv-1h.json.raw", Schema.OHLCV_1H, Encoding.JSON, Compression.NONE],
-        ],
-    )
-    def test_disk_io_inference(
-        self,
-        path,
-        expected_schema,
-        expected_encoding,
-        expected_compression,
-    ) -> None:
-        # Arrange, Act
-        path = os.path.join(TESTS_ROOT, "data", "test_data." + path)
-        bento = FileBento(path=path)
-
-        # Assert
-        assert bento.schema == expected_schema
-        assert bento.encoding == expected_encoding
-        assert bento.compression == expected_compression
+        assert bento.nbytes == 386
 
     @pytest.mark.parametrize(
         "schema, "
@@ -262,7 +203,7 @@ class TestMemoryBento:
         # Assert
         assert (
             str(data)
-            == "[( 4, 40, 48750, 150, 23545031032833, 1609099225061045683, 315950000000000, 2, 66, 0, b'B', b'A', 1609099225250461359, 92701, 1098)\n (49, 40, 48750, 150, 23545031032833, 1609099225061045683, 310550000000000, 3, 66, 0, b'B', b'A', 1609099225250461359, 92701, 1098)]"  # noqa
+            == "[(14, 32, 1, 5482, 1609160400000429831, 647784973705, 372275000000000, 1, -128, 0, b'A', b'C', 1609160400000704060, 22993, 1170352)\n (14, 32, 1, 5482, 1609160400000431665, 647784973631, 372300000000000, 1, -128, 0, b'A', b'C', 1609160400000711344, 19621, 1170353)]"  # noqa
         )
 
     def test_replay_with_stub_bin_record_passes_to_callback(self) -> None:
@@ -283,7 +224,7 @@ class TestMemoryBento:
         # Assert
         assert (
             str(handler[0])
-            == "(4, 40, 48750, 150, 23545031032833, 1609099225061045683, 315950000000000, 2, 66, 0, b'B', b'A', 1609099225250461359, 92701, 1098)"  # noqa
+            == "(14, 32, 1, 5482, 1609160400000429831, 647784973705, 372275000000000, 1, -128, 0, b'A', b'C', 1609160400000704060, 22993, 1170352)"  # noqa
         )
 
     @pytest.mark.parametrize(
@@ -477,33 +418,28 @@ class TestMemoryBento:
 
 class TestFileBento:
     @pytest.mark.parametrize(
-        "schema, data_path, expected_encoding, expected_compression",
+        "path, expected_schema, expected_encoding, expected_compression",
         [
-            [Schema.MBO, "mbo.dbz", Encoding.DBZ, Compression.ZSTD],
-            [Schema.MBO, "mbo.csv", Encoding.CSV, Compression.NONE],
-            [Schema.MBO, "mbo.csv.zst", Encoding.CSV, Compression.ZSTD],
-            [Schema.MBO, "mbo.json.raw", Encoding.JSON, Compression.NONE],
-            [Schema.MBO, "mbo.json.zst", Encoding.JSON, Compression.ZSTD],
+            ["mbo.dbz", Schema.MBO, Encoding.DBZ, Compression.ZSTD],
+            ["mbp-1.dbz", Schema.MBP_1, Encoding.DBZ, Compression.ZSTD],
+            ["mbp-10.dbz", Schema.MBP_10, Encoding.DBZ, Compression.ZSTD],
         ],
     )
-    def test_inference(
+    def test_disk_io_inference(
         self,
-        schema,
-        data_path,
+        path,
+        expected_schema,
         expected_encoding,
         expected_compression,
     ) -> None:
-        # Arrange
-        path = os.path.join(TESTS_ROOT, "data", "test_data." + data_path)
-        stub_data = get_test_data("test_data." + data_path)
-
-        # Act
-        bento = FileBento(path=path, schema=Schema.MBO)
+        # Arrange, Act
+        path = os.path.join(TESTS_ROOT, "data", "test_data." + path)
+        bento = from_dbz_file(path=path)
 
         # Assert
+        assert bento.schema == expected_schema
         assert bento.encoding == expected_encoding
         assert bento.compression == expected_compression
-        assert bento.raw == stub_data  # Ensure stream position hasn't moved
 
     def test_disk_io_bin_without_compression(self) -> None:
         # Arrange
@@ -559,7 +495,7 @@ class TestFileBento:
 
         # Assert
         assert data == stub_data
-        assert len(bento.to_list()) == 3  # includes header
+        assert len(bento.to_list()) == 2  # Does not include header
         assert len(bento.to_df()) == 2
 
     def test_disk_io_csv_uncompressed(self) -> None:
@@ -579,5 +515,5 @@ class TestFileBento:
 
         # Assert
         assert data == stub_data
-        assert len(bento.to_list()) == 3  # includes header
+        assert len(bento.to_list()) == 2  # Does not include header
         assert len(bento.to_df()) == 2

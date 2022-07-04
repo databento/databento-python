@@ -11,7 +11,7 @@ import zstandard
 from aiohttp import ClientResponse
 from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.buffer import BinaryBuffer
-from databento.common.data import CSV_HEADERS, DBZ_RECORD_MAP
+from databento.common.data import CSV_HEADERS, DBZ_STRUCT_MAP
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.logging import log_debug, log_info
 from databento.common.metadata import MetadataDecoder
@@ -196,7 +196,8 @@ class BentoHttpAPI:
             binary_stream = BinaryBuffer()
             binary_writer_in = zstandard.ZstdDecompressor().stream_writer(binary_stream)
 
-            inner_writer = bento.writer()
+            bento_writer = bento.writer()
+            inner_writer = bento_writer
             text_writer_out = inner_writer
             if compression_in == Compression.ZSTD:
                 if compression_out == Compression.NONE:
@@ -211,7 +212,7 @@ class BentoHttpAPI:
                     )
 
             # Binary struct format
-            binary_map = DBZ_RECORD_MAP[schema]
+            binary_map = DBZ_STRUCT_MAP[schema]
             binary_size = np.dtype(binary_map).itemsize
 
             # Header flags
@@ -228,7 +229,8 @@ class BentoHttpAPI:
                     # Here we check for a known magic number. Improve this to
                     # check for all valid skippable frame magic numbers.
                     if not metadata_header_received and chunk.startswith(b"Q*M\x18"):
-                        self._decode_metadata(chunk, bento)
+                        self._decode_metadata(raw=chunk, bento=bento)
+                        bento_writer.write(chunk)
                         metadata_header_received = True
                         continue
 
@@ -309,7 +311,7 @@ class BentoHttpAPI:
                         )
 
                 # Binary struct format
-                binary_map = DBZ_RECORD_MAP[schema]
+                binary_map = DBZ_STRUCT_MAP[schema]
                 binary_size = np.dtype(binary_map).itemsize
 
                 # Header flags
@@ -329,7 +331,7 @@ class BentoHttpAPI:
                         if not metadata_header_received and chunk.startswith(
                             b"Q*M\x18"
                         ):
-                            self._decode_metadata(chunk, bento)
+                            self._decode_metadata(raw=chunk, bento=bento)
                             metadata_header_received = True
                             continue
 
@@ -363,17 +365,18 @@ class BentoHttpAPI:
 
             text_writer_out.flush()
 
-    def _decode_metadata(self, chunk: bytes, bento: Bento):
+    def _decode_metadata(self, raw: bytes, bento: Bento):
         log_debug("Decoding metadata...")
-        magic = int.from_bytes(chunk[:4], byteorder="little")
-        frame_size = int.from_bytes(chunk[4:8], byteorder="little")
-        if len(chunk) != 8 + frame_size:
-            raise RuntimeError("Invalid metadata chunk received")
+        magic = int.from_bytes(raw[:4], byteorder="little")
+        frame_size = int.from_bytes(raw[4:8], byteorder="little")
+        if len(raw) != 8 + frame_size:
+            raise RuntimeError("invalid metadata chunk received")
         log_debug(f"magic={magic}, frame_size={frame_size}")
 
-        metadata = MetadataDecoder.decode_to_json(chunk[8 : frame_size + 8])
+        metadata = MetadataDecoder.decode_to_json(raw[8 : frame_size + 8])
         log_debug(f"metadata={metadata}")  # TODO(cs): Temporary logging
         bento.set_metadata_json(metadata)
+        bento.set_metadata_raw(raw)
 
     def _decode_binary_to_text_buffer(
         self,

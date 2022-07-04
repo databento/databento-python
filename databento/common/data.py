@@ -67,7 +67,7 @@ DBZ_DERIV_OHLCV: List[Tuple[str, Union[type, str]]] = [
 ]
 
 
-DBZ_RECORD_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
+DBZ_STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     Schema.MBO: DBZ_COMMON_HEADER
     + [
         ("order_id", np.uint64),

@@ -14,17 +14,17 @@ if __name__ == "__main__":
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
-        start="2020-12-27",
+        start="2020-12-28",
         end="2020-12-30",
-        encoding="csv",
+        encoding="dbz",
         compression="zstd",
         limit=1000,  # <-- limiting response to 1000 records only
     )  # -> MemoryBento
 
-    path = "my_data.csv"
+    path = "my_data.dbz"
     bento.to_file(path=path)  # -> FileBento
 
-    bento = db.from_file(path="my_data.csv", schema="mbo")  # -> FileBento
+    bento = db.from_dbz_file(path=path)  # -> FileBento
 
     # Data now loaded into memory
     pprint(bento.raw)

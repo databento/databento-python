@@ -6,7 +6,7 @@ from typing import Any, BinaryIO, Callable, Dict, List, Optional
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import DBZ_COLUMNS, DBZ_RECORD_MAP, DERIV_SCHEMAS
+from databento.common.data import DBZ_COLUMNS, DBZ_STRUCT_MAP, DERIV_SCHEMAS
 from databento.common.enums import Compression, Encoding, Schema
 
 
@@ -19,19 +19,19 @@ class Bento:
         encoding: Optional[Encoding],
         compression: Optional[Compression],
     ):
-        # Set compression
-        self._compression = compression or self._infer_compression()
+        self._schema = schema
+        self._encoding = encoding
+        self._compression = compression
 
-        # Set encoding
-        self._encoding = encoding or self._infer_encoding()
+        if self._schema is not None:
+            self._struct_fmt = np.dtype(DBZ_STRUCT_MAP[self._schema])
+            self._struct_size = self._struct_fmt.itemsize
+        else:
+            self._struct_fmt = None
+            self._struct_size = None
 
-        # Set schema
-        self._schema = schema or self._infer_schema()
-        self._struct_fmt = np.dtype(DBZ_RECORD_MAP[self._schema])
-        self._struct_size = self._struct_fmt.itemsize
-
-        # Metadata
         self._metadata: Optional[Dict[str, Any]] = None
+        self._metadata_raw: Optional[bytes] = None
 
     @property
     def schema(self) -> Schema:
@@ -136,30 +136,6 @@ class Bento:
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def to_file(self, path: str) -> "FileBento":
-        """
-        Write the data to a file at the given path.
-
-        Parameters
-        ----------
-        path : str
-            The path to write to.
-
-        Returns
-        -------
-        FileBento
-
-        """
-        with open(path, mode="wb") as f:
-            f.write(self.raw)
-
-        return FileBento(
-            path=path,
-            schema=self._schema,
-            encoding=self._encoding,
-            compression=self._compression,
-        )
-
     def to_list(self) -> List[Any]:
         """
         Return the data as a list records.
@@ -239,64 +215,94 @@ class Bento:
         if self._encoding == Encoding.DBZ:
             self._replay_dbz(callback)
         elif self._encoding in (Encoding.CSV, Encoding.JSON):
-            self._replay_csv_or_json(callback)
+            self._replay_text(callback)
         else:  # pragma: no cover (design-time error)
             raise ValueError(f"invalid encoding, was {self._encoding.value}")
 
-    def set_metadata_json(self, metadata: Dict[str, Any]):
+    def to_file(self, path: str) -> "FileBento":
         """
-        Pass JSON metadata to load.
+        Write the data to a file at the given path.
+
+        Parameters
+        ----------
+        path : str
+            The path to write to.
+
+        Returns
+        -------
+        FileBento
+
         """
-        # TODO(cs): Validate metadata
+        with open(path, mode="wb") as f:
+            if self._metadata_raw:
+                f.write(self._metadata_raw)
+            f.write(self.raw)
+
+        return FileBento(
+            path=path,
+            schema=self._schema,
+            encoding=self._encoding,
+            compression=self._compression,
+        )
+
+    def set_metadata_json(self, metadata: Dict[str, Any]) -> None:
+        """
+        Set metadata from a JSON object.
+
+        Parameters
+        ----------
+        metadata : Dict[str, Any]
+            The metadata to set for the object.
+
+        """
         self._metadata = metadata
+
+        schema = Schema(metadata["schema"])
+        encoding = Encoding(metadata["encoding"])
+        compression = Compression(metadata["compression"])
+
+        if self._schema is None:
+            self._schema = schema
+        else:
+            assert self._schema == schema, (
+                f"Metadata schema '{schema.value}' is not equal to "
+                f"existing schema '{self._schema.value}'"
+            )
+
+        if self._encoding is None:
+            self._encoding = encoding
+        # TODO(cs): Improve metadata validation
+        # else:
+        #     assert self._encoding == encoding, (
+        #         f"Metadata encoding '{encoding.value}' is not equal to "
+        #         f"existing encoding '{self._encoding.value}'"
+        #     )
+
+        if self._compression is None:
+            self._compression = compression
+        # TODO(cs): Improve metadata validation
+        # else:
+        #     assert self._compression == compression, (
+        #         f"Metadata compression '{compression.value}' is not equal to "
+        #         f"existing compression '{self._compression.value}'"
+        #     )
+
+    def set_metadata_raw(self, raw: bytes) -> None:
+        """
+        Set metadata from raw bytes.
+
+        Parameters
+        ----------
+        raw : bytes
+            The raw metadata to set for the object.
+        """
+        # TODO(cs): Temporary method until consolidated encoder
+        self._metadata_raw = raw
 
     def _should_decompress(self, decompress: bool) -> bool:
         if not decompress:
             return False
         return self._compression == Compression.ZSTD
-
-    def _infer_compression(self) -> Optional[Compression]:
-        # Infer by checking for zstd header
-        reader: BinaryIO = self.reader()
-        header: bytes = reader.read(4)
-        if header is None:
-            return None
-        elif header == b"(\xb5/\xfd":
-            return Compression.ZSTD
-        else:
-            return Compression.NONE
-
-    def _infer_encoding(self) -> Optional[Encoding]:
-        # Infer by checking pattern of initial bytes
-        reader: BinaryIO = self.reader(decompress=True)
-        initial: bytes = reader.read(3)
-        if initial is None:
-            return None
-        if initial == b"ts_":
-            return Encoding.CSV
-        elif initial == b'{"t':
-            return Encoding.JSON
-        else:
-            return Encoding.DBZ
-
-    def _infer_schema(self) -> Optional[Schema]:
-        if hasattr(self, "path"):
-            path = self.path  # type: ignore  # (checked above)
-        else:  # pragma: no cover (design-time error)
-            raise RuntimeError("cannot infer schema without a path to read from")
-
-        # Firstly, attempt to infer from file path
-        extensions: List[str] = path.split(".")
-        # Iterate schemas in reverse order as MBP-10 needs to be checked prior to MBP-1
-        for schema in reversed([x for x in Schema]):
-            if schema.value in extensions:
-                return schema
-
-        raise RuntimeError(
-            f"unable to infer schema from `path` '{path}' "
-            f"(add the schema value as an extension e.g. 'my_data.mbo', "
-            f"or specify the schema explicitly)",
-        )
 
     def _get_index_column(self) -> str:
         return (
@@ -313,14 +319,17 @@ class Bento:
 
     def _prepare_list_dbz(self) -> List[np.void]:
         data: bytes = self.reader(decompress=True).read()
-        return np.frombuffer(data, dtype=DBZ_RECORD_MAP[self._schema])
+        return np.frombuffer(data, dtype=DBZ_STRUCT_MAP[self._schema])
 
     def _prepare_list_csv(self) -> List[str]:
         data: bytes = self.reader(decompress=True).read()
-        return data.decode().splitlines(keepends=False)
+        lines: List[str] = data.decode().splitlines(keepends=False)
+        lines.pop(0)  # Remove header row
+        return lines
 
     def _prepare_list_json(self) -> List[Dict]:
-        lines: List[str] = self._prepare_list_csv()
+        data: bytes = self.reader(decompress=True).read()
+        lines: List[str] = data.decode().splitlines(keepends=False)
         return list(map(json.loads, lines))
 
     def _prepare_df_dbz(self) -> pd.DataFrame:
@@ -356,7 +365,7 @@ class Bento:
         return df
 
     def _replay_dbz(self, callback: Callable[[Any], None]) -> None:
-        dtype = DBZ_RECORD_MAP[self._schema]
+        dtype = DBZ_STRUCT_MAP[self._schema]
         reader: BinaryIO = self.reader(decompress=True)
         while True:
             raw: bytes = reader.read(self.struct_size)
@@ -365,14 +374,15 @@ class Bento:
                 break
             callback(record[0])
 
-    def _replay_csv_or_json(self, callback: Callable[[Any], None]) -> None:
+    def _replay_text(self, callback: Callable[[Any], None]) -> None:
         if self._compression == Compression.NONE:
             reader: BinaryIO = self.reader(decompress=True)
             while True:
-                record: bytes = reader.readline()
-                if not record:
+                raw: bytes = reader.readline()
+                if not raw:
                     break
-                callback(record.decode().rstrip("\n"))
+                record = raw.decode().rstrip("\n")
+                callback(record)
         else:
             for record in self.to_list():
                 callback(record)
@@ -438,18 +448,12 @@ class MemoryBento(Bento):
 
 class FileBento(Bento):
     """
-    Provides a data container backed by file streaming I/O.
+    Provides a data container backed by DBZ file streaming I/O.
 
     Parameters
     ----------
     path : str
         The path to the data file.
-    schema : Schema, optional
-        The data record schema. If ``None`` then will be inferred.
-    encoding : Encoding, optional
-        The data encoding. If ``None`` then will be inferred.
-    compression : Compression, optional
-        The data compression mode. If ``None`` then will be inferred.
     """
 
     def __init__(
