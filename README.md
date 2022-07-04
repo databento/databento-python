@@ -1,4 +1,4 @@
-# Library #
+# databento-python
 
 [![test](https://github.com/databento/databento-python/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/databento/databento-python/actions/workflows/test.yml)
 ![python](https://img.shields.io/badge/python-3.7+-blue.svg)
@@ -10,8 +10,8 @@ Official Python client library for [Databento](https://databento.com).
 Key features include:
 - Fast, lightweight access to both live and historical data from [multiple markets]().
 - [Multiple schemas]() such as MBO, MBP, top of book, OHLCV, last sale, and more.
-- [Fully normalized](), i.e. identical message schemas for both live and historical data, and across multiple asset classes.
-- Provides mappings between different symbology systems, including [smart symbology]() resolution to handle rollovers.
+- [Fully normalized](), i.e. identical message schemas for both live and historical data, across multiple asset classes.
+- Provides mappings between different symbology systems, including [smart symbology]() for futures rollovers.
 - [Point-in-time]() instrument definitions, free of look-ahead bias and retroactive adjustments.
 - Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding]().
 - Event-driven [market replay](), including at high-frequency order book granularity.
@@ -41,14 +41,14 @@ To install the latest stable version of the package from PyPI:
     pip install -U databento
 
 ## Usage
-The library needs to be configured with your account's access key, which can
-be found on your [Databento user portal](https://databento.com/platform/keys).
-[Sign up](https://app0.databento.com/signup) for free and you will
-automatically receive a set of access keys to start with.
+The library needs to be configured with an access key from your account.
+[Sign up](https://databento.com/signup) for free and you will automatically
+receive a set of access keys to start with. Each access key is a 28-character
+string that can be found on the Access Keys page of your [Databento user portal](https://databento.com/platform/keys).
 
 A simple Databento application looks like this:
 
-```
+```python
 import databento as db
 
 client = db.Historical('YOUR_ACCESS_KEY')
@@ -57,24 +57,28 @@ bento = client.timeseries.stream(
     start='2020-11-02T14:30',
     end='2020-11-02T14:40')
 
-bento.replay(callback=print)
+bento.replay(callback=print)    # market replay, with `print` as event handler
 ```
 
-Replace `YOUR_ACCESS_KEY` with your actual access key, then run this program.
+Replace `YOUR_ACCESS_KEY` with an actual access key, then run this program.
 
-Notice that you've used `.replay()` to access the entire block of data
-and dispatch each data event to a callback function. You can also use
-`.to_df()` or `.to_list()` to cast the data into a Pandas DataFrame or list
-respectively.
+This shows the use of `.replay()` to access the entire block of data
+and dispatch each data event to an event handler. You can also use
+`.to_df()` or `.to_list()` to cast the data into a Pandas DataFrame or list:
+
+```python
+df = bento.to_df(pretty_ts=True, pretty_px=True)    # to DataFrame, with pretty formatting
+lst = bento.to_list()                               # to list
+```
 
 The access key was also passed as a parameter, which is [not recommended for production applications](https://docs0.databento.com/knowledge-base/new-users/securing-your-access-keys?historical=python&live=python).
 Instead, you can leave out this parameter to pass your access key via the `DATABENTO_ACCESS_KEY` environment variable:
 
-```
+```python
 import databento as db
 
-client = db.Historical('YOUR_ACCESS_KEY')   # pass key via parameter
-client = db.Historical()                    # pass key via `DATABENTO_ACCESS_KEY` environment variable
+client = db.Historical('YOUR_ACCESS_KEY')   # pass via parameter
+client = db.Historical()                    # pass via `DATABENTO_ACCESS_KEY` environment variable
 ```
 
 ## License
