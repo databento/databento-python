@@ -77,8 +77,8 @@ Instead, you can leave out this parameter to pass your access key via the `DATAB
 ```python
 import databento as db
 
-client = db.Historical('YOUR_ACCESS_KEY')   # pass via parameter
-client = db.Historical()                    # pass via `DATABENTO_ACCESS_KEY` environment variable
+client = db.Historical('YOUR_ACCESS_KEY')   # pass as parameter
+client = db.Historical()                    # pass as `DATABENTO_ACCESS_KEY` environment variable
 ```
 
 ## License
