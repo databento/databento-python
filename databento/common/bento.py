@@ -235,8 +235,6 @@ class Bento:
 
         """
         with open(path, mode="wb") as f:
-            if self._metadata_raw:
-                f.write(self._metadata_raw)
             f.write(self.raw)
 
         return FileBento(
@@ -272,33 +270,19 @@ class Bento:
 
         if self._encoding is None:
             self._encoding = encoding
-        # TODO(cs): Improve metadata validation
-        # else:
-        #     assert self._encoding == encoding, (
-        #         f"Metadata encoding '{encoding.value}' is not equal to "
-        #         f"existing encoding '{self._encoding.value}'"
-        #     )
+        else:
+            assert self._encoding == encoding, (
+                f"Metadata encoding '{encoding.value}' is not equal to "
+                f"existing encoding '{self._encoding.value}'"
+            )
 
         if self._compression is None:
             self._compression = compression
-        # TODO(cs): Improve metadata validation
-        # else:
-        #     assert self._compression == compression, (
-        #         f"Metadata compression '{compression.value}' is not equal to "
-        #         f"existing compression '{self._compression.value}'"
-        #     )
-
-    def set_metadata_raw(self, raw: bytes) -> None:
-        """
-        Set metadata from raw bytes.
-
-        Parameters
-        ----------
-        raw : bytes
-            The raw metadata to set for the object.
-        """
-        # TODO(cs): Temporary method until consolidated encoder
-        self._metadata_raw = raw
+        else:
+            assert self._compression == compression, (
+                f"Metadata compression '{compression.value}' is not equal to "
+                f"existing compression '{self._compression.value}'"
+            )
 
     def _should_decompress(self, decompress: bool) -> bool:
         if not decompress:

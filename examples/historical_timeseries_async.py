@@ -15,8 +15,8 @@ async def request_stream_async():
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
-        start="2020-12-27T10:00",
-        end="2020-12-28T10:10",
+        start="2020-12-28T10:00",
+        end="2020-12-29T10:10",
         encoding="dbz",
         compression="zstd",
         limit=1000,  # <-- limiting response to 1000 records only
