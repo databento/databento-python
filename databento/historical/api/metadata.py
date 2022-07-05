@@ -246,6 +246,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
+        encoding: Union[Encoding, str] = "dbz",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> Tuple[int, int]:
@@ -268,6 +269,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range (UTC).
             If using an integer then this represents nanoseconds since UNIX epoch.
+        encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
+            The data output encoding.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         limit : int, optional
@@ -286,6 +289,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema = Schema(schema)
         start = maybe_datetime_to_string(start)
         end = maybe_datetime_to_string(end)
+        encoding = Encoding(encoding)
         stype_in = SType(stype_in)
 
         # Build params list
@@ -295,6 +299,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             ("schema", schema.value),
             ("start", start),
             ("end", end),
+            ("encoding", encoding.value),
             ("stype_in", stype_in.value),
         ]
         if limit is not None:

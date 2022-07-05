@@ -36,7 +36,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: str = None,
-    ) -> Optional[Bento]:
+    ) -> Bento:
         """
         Request a historical time series stream from the Databento API servers.
 
@@ -148,7 +148,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: str = None,
-    ) -> Optional[Bento]:
+    ) -> Bento:
         """
         Request a historical time series stream from the Databento API servers
         asynchronously.

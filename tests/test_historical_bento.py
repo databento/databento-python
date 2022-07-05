@@ -333,7 +333,6 @@ class TestMemoryBento:
         assert data.iloc[0].close == 368650000000000
         assert data.iloc[0].volume == 2312
 
-    @pytest.mark.skip(reason="Skip pending regeneration of stub test data")
     def test_to_df_with_pretty_ts_converts_timestamps_as_expected(self) -> None:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
@@ -353,8 +352,8 @@ class TestMemoryBento:
         event0 = data["ts_event"][0]
         assert isinstance(index0, pd.Timestamp)
         assert isinstance(event0, pd.Timestamp)
-        assert index0 == pd.Timestamp("2020-12-27 20:00:25.250461359+0000", tz="UTC")
-        assert event0 == pd.Timestamp("2020-12-27 20:00:25.061045683+0000", tz="UTC")
+        assert index0 == pd.Timestamp("2020-12-28 13:00:00.000704060+0000", tz="UTC")
+        assert event0 == pd.Timestamp("2020-12-28 13:00:00.000429831+0000", tz="UTC")
         assert len(data) == 2
 
     @pytest.mark.parametrize(
@@ -423,9 +422,15 @@ class TestFileBento:
             ["mbo.dbz", Schema.MBO, Encoding.DBZ, Compression.ZSTD],
             ["mbp-1.dbz", Schema.MBP_1, Encoding.DBZ, Compression.ZSTD],
             ["mbp-10.dbz", Schema.MBP_10, Encoding.DBZ, Compression.ZSTD],
+            ["tbbo.dbz", Schema.TBBO, Encoding.DBZ, Compression.ZSTD],
+            ["trades.dbz", Schema.TRADES, Encoding.DBZ, Compression.ZSTD],
+            ["ohlcv-1s.dbz", Schema.OHLCV_1S, Encoding.DBZ, Compression.ZSTD],
+            ["ohlcv-1m.dbz", Schema.OHLCV_1M, Encoding.DBZ, Compression.ZSTD],
+            ["ohlcv-1h.dbz", Schema.OHLCV_1H, Encoding.DBZ, Compression.ZSTD],
+            ["ohlcv-1d.dbz", Schema.OHLCV_1D, Encoding.DBZ, Compression.ZSTD],
         ],
     )
-    def test_disk_io_inference(
+    def test_from_dbz_file_inference(
         self,
         path,
         expected_schema,
@@ -441,7 +446,7 @@ class TestFileBento:
         assert bento.encoding == expected_encoding
         assert bento.compression == expected_compression
 
-    def test_disk_io_bin_without_compression(self) -> None:
+    def test_file_bento_given_path(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.dbz")
         stub_data = get_test_data("test_data.mbo.dbz")
@@ -459,7 +464,7 @@ class TestFileBento:
         assert data == stub_data
         assert len(bento.to_list()) == 2
 
-    def test_disk_io_bin_with_compression(self) -> None:
+    def test_file_bento_bin_with_compression(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.dbz")
         stub_data = get_test_data("test_data.mbo.dbz")
@@ -478,7 +483,7 @@ class TestFileBento:
         assert data == stub_data
         assert len(bento.to_list()) == 2
 
-    def test_disk_io_csv_compressed(self) -> None:
+    def test_file_bento_csv_compressed(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv.zst")
         stub_data = get_test_data("test_data.mbo.csv.zst")
@@ -498,7 +503,7 @@ class TestFileBento:
         assert len(bento.to_list()) == 2  # Does not include header
         assert len(bento.to_df()) == 2
 
-    def test_disk_io_csv_uncompressed(self) -> None:
+    def test_file_bento_csv_uncompressed(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv")
         stub_data = get_test_data("test_data.mbo.csv")

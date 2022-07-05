@@ -57,7 +57,7 @@ class Historical:
         log_info(f"Initialized {type(self).__name__}(gateway={self._gateway})")
 
     @property
-    def key(self):
+    def key(self) -> str:
         """
         Return the API user access key for the client.
 
@@ -69,7 +69,7 @@ class Historical:
         return self._key
 
     @property
-    def gateway(self):
+    def gateway(self) -> str:
         """
         Return the API server gateway for the client.
 

@@ -1,6 +1,8 @@
 import json
+import multiprocessing
 from datetime import date
 from json.decoder import JSONDecodeError
+from multiprocessing.pool import Pool
 from typing import BinaryIO, List, Optional, Tuple, Union
 
 import aiohttp
@@ -102,8 +104,8 @@ class BentoHttpAPI:
         if self._key == "YOUR_ACCESS_KEY":
             raise ValueError(
                 "The access key is currently set to 'YOUR_ACCESS_KEY'. "
-                "Please replace this value with either a test or production "
-                "access key. You will find these through your Databento dashboard.",
+                "Please replace this value with a valid access key. "
+                "You can find these through your Databento user portal.",
             )
 
     def _get(
@@ -196,7 +198,7 @@ class BentoHttpAPI:
             binary_stream = BinaryBuffer()
             binary_writer_in = zstandard.ZstdDecompressor().stream_writer(binary_stream)
 
-            bento_writer = bento.writer()
+            bento_writer: BinaryIO = bento.writer()
             inner_writer = bento_writer
             text_writer_out = inner_writer
             if compression_in == Compression.ZSTD:
@@ -219,7 +221,7 @@ class BentoHttpAPI:
             metadata_header_received = False
             csv_header_written = False
 
-            record_count = 0
+            pool: Pool = multiprocessing.Pool()
             for chunk in response.iter_content(chunk_size=_32KB):
                 if chunk == _NO_DATA_FOUND:
                     log_info("No data found for query.")
@@ -244,12 +246,12 @@ class BentoHttpAPI:
                         binary_writer_in.write(chunk)
 
                         # Check binary length aligns with record size
-                        if len(binary_stream) % binary_size > 0:
+                        bin_len = len(binary_stream)
+                        if bin_len == 0 or bin_len % binary_size > 0:
                             continue
 
-                        record_count += len(binary_stream) // binary_size
-
                         text_buffer: bytes = self._decode_binary_to_text_buffer(
+                            pool=pool,
                             binary_map=binary_map,
                             binary_buffer=binary_stream.raw,
                             schema=schema,
@@ -262,6 +264,8 @@ class BentoHttpAPI:
 
                 inner_writer.write(chunk)
 
+            pool.close()
+            pool.join()
             text_writer_out.flush()
 
     async def _stream_async(
@@ -318,7 +322,7 @@ class BentoHttpAPI:
                 metadata_header_received = False
                 csv_header_written = False
 
-                record_count = 0
+                pool: Pool = multiprocessing.Pool()
                 async for async_chunk in response.content.iter_chunks():
                     chunk: bytes = async_chunk[0]
                     if chunk == _NO_DATA_FOUND:
@@ -345,12 +349,12 @@ class BentoHttpAPI:
                             binary_writer_in.write(chunk)
 
                             # Check binary length aligns with record size
-                            if len(binary_stream) % binary_size > 0:
+                            bin_len = len(binary_stream)
+                            if bin_len == 0 or bin_len % binary_size > 0:
                                 continue
 
-                            record_count += len(binary_stream) // binary_size
-
                             text_buffer: bytes = self._decode_binary_to_text_buffer(
+                                pool=pool,
                                 binary_map=binary_map,
                                 binary_buffer=binary_stream.raw,
                                 schema=schema,
@@ -363,9 +367,11 @@ class BentoHttpAPI:
 
                     inner_writer.write(chunk)
 
+            pool.close()
+            pool.join()
             text_writer_out.flush()
 
-    def _decode_metadata(self, raw: bytes, bento: Bento):
+    def _decode_metadata(self, raw: bytes, bento: Bento) -> None:
         log_debug("Decoding metadata...")
         magic = int.from_bytes(raw[:4], byteorder="little")
         frame_size = int.from_bytes(raw[4:8], byteorder="little")
@@ -380,6 +386,7 @@ class BentoHttpAPI:
 
     def _decode_binary_to_text_buffer(
         self,
+        pool: Pool,
         binary_map,
         binary_buffer: bytes,
         schema: Schema,
@@ -390,32 +397,30 @@ class BentoHttpAPI:
 
         text_records: List[bytes]
         if encoding == Encoding.CSV:
-            text_records = self._binary_to_csv_records(schema, binary_records)
+            text_records = self._binary_to_csv_records(pool, schema, binary_records)
         elif encoding == Encoding.JSON:
-            text_records = self._binary_to_json_records(schema, binary_records)
+            text_records = self._binary_to_json_records(pool, schema, binary_records)
         else:
             raise NotImplementedError(f"Cannot decode DBZ to {encoding.value}")
 
         return b"\n".join(text_records) + b"\n"
 
-    def _write_text_records(
+    def _binary_to_csv_records(
         self,
-        text_buffer: bytes,
-        text_writer_out: BinaryIO,
-    ) -> None:
-        text_writer_out.write(text_buffer)
-
-    def _binary_to_csv_records(self, schema: Schema, values: np.ndarray) -> List[bytes]:
+        pool: Pool,
+        schema: Schema,
+        values: np.ndarray,
+    ) -> List[bytes]:
         if schema == Schema.MBO:
-            return list(map(self._binary_mbo_to_csv_record, values))
+            return list(pool.map(self._binary_mbo_to_csv_record, values))
         elif schema == Schema.MBP_1:
-            return list(map(self._binary_mbp_1_to_csv_record, values))
+            return list(pool.map(self._binary_mbp_1_to_csv_record, values))
         elif schema == Schema.MBP_10:
-            return list(map(self._binary_mbp_10_to_csv_record, values))
+            return list(pool.map(self._binary_mbp_10_to_csv_record, values))
         elif schema == Schema.TBBO:
-            return list(map(self._binary_tbbo_to_csv_record, values))
+            return list(pool.map(self._binary_tbbo_to_csv_record, values))
         elif schema == Schema.TRADES:
-            return list(map(self._binary_trades_to_csv_record, values))
+            return list(pool.map(self._binary_trades_to_csv_record, values))
         elif schema in (
             Schema.OHLCV_1S,
             Schema.OHLCV_1M,
@@ -429,18 +434,21 @@ class BentoHttpAPI:
             )
 
     def _binary_to_json_records(
-        self, schema: Schema, values: np.ndarray
+        self,
+        pool: Pool,
+        schema: Schema,
+        values: np.ndarray,
     ) -> List[bytes]:
         if schema == Schema.MBO:
-            return list(map(self._binary_mbo_to_json_record, values))
+            return list(pool.map(self._binary_mbo_to_json_record, values))
         elif schema == Schema.MBP_1:
-            return list(map(self._binary_mbp_1_to_json_record, values))
+            return list(pool.map(self._binary_mbp_1_to_json_record, values))
         elif schema == Schema.MBP_10:
-            return list(map(self._binary_mbp_10_to_json_record, values))
+            return list(pool.map(self._binary_mbp_10_to_json_record, values))
         elif schema == Schema.TBBO:
-            return list(map(self._binary_tbbo_to_json_record, values))
+            return list(pool.map(self._binary_tbbo_to_json_record, values))
         elif schema == Schema.TRADES:
-            return list(map(self._binary_trades_to_json_record, values))
+            return list(pool.map(self._binary_trades_to_json_record, values))
         elif schema in (
             Schema.OHLCV_1S,
             Schema.OHLCV_1M,

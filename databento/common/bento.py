@@ -140,9 +140,9 @@ class Bento:
         """
         Return the data as a list records.
 
-        - BIN encoding will return a list of `np.void` mixed dtypes.
-        - CSV encoding will return a list of `str`.
-        - JSON encoding will return a list of `Dict[str, Any]`.
+        - ``DBZ`` encoding will return a list of `np.void` mixed dtypes.
+        - ``CSV`` encoding will return a list of `str`.
+        - ``JSON`` encoding will return a list of `Dict[str, Any]`.
 
         Returns
         -------
@@ -176,8 +176,9 @@ class Bento:
         pd.DataFrame
 
         """
+        df: pd.DataFrame
         if self._encoding == Encoding.DBZ:
-            df: pd.DataFrame = self._prepare_df_dbz()
+            df = self._prepare_df_dbz()
         elif self._encoding == Encoding.CSV:
             df = self._prepare_df_csv()
         elif self._encoding == Encoding.JSON:
@@ -394,19 +395,19 @@ class MemoryBento(Bento):
 
     Parameters
     ----------
-    schema : Schema
+    schema : Schema, optional
         The data record schema.
     encoding : Encoding, optional
-        The data encoding. If ``None`` then will be inferred.
+        The data encoding.
     compression : Compression, optional
-        The data compression mode. If ``None`` then will be inferred.
+        The data compression mode.
     initial_bytes : bytes, optional
         The initial data for the memory buffer.
     """
 
     def __init__(
         self,
-        schema: Schema,
+        schema: Optional[Schema] = None,
         encoding: Optional[Encoding] = None,
         compression: Optional[Compression] = None,
         initial_bytes: Optional[bytes] = None,
