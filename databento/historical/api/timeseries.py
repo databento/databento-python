@@ -92,6 +92,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in = SType(stype_in)
         stype_out = SType(stype_out)
 
+        if encoding_out == Encoding.DBZ and compression_out == Compression.NONE:
+            raise ValueError(
+                "Cannot request for 'dbz' `encoding` with 'none' `compression`. "
+                "Please request with 'zstd' `compression`.",
+            )
+
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
             symbols=symbols,

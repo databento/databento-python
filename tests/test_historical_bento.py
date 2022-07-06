@@ -206,7 +206,7 @@ class TestMemoryBento:
             == "[(14, 32, 1, 5482, 1609160400000429831, 647784973705, 372275000000000, 1, -128, 0, b'A', b'C', 1609160400000704060, 22993, 1170352)\n (14, 32, 1, 5482, 1609160400000431665, 647784973631, 372300000000000, 1, -128, 0, b'A', b'C', 1609160400000711344, 19621, 1170353)]"  # noqa
         )
 
-    def test_replay_with_stub_bin_record_passes_to_callback(self) -> None:
+    def test_replay_with_stub_dbz_record_passes_to_callback(self) -> None:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
 
@@ -464,7 +464,7 @@ class TestFileBento:
         assert data == stub_data
         assert len(bento.to_list()) == 2
 
-    def test_file_bento_bin_with_compression(self) -> None:
+    def test_file_bento_dbz_with_compression(self) -> None:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.dbz")
         stub_data = get_test_data("test_data.mbo.dbz")

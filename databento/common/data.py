@@ -249,14 +249,23 @@ CSV_HEADERS = {
     Schema.MBP_10: CSV_DERIV_HEADER
     + b","
     + ",".join(get_deriv_ba_fields(0)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(1)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(2)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(3)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(4)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(5)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(6)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(7)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(8)).encode()
+    + b","
     + ",".join(get_deriv_ba_fields(9)).encode(),
     Schema.TBBO: CSV_DERIV_HEADER + b"," + ",".join(get_deriv_ba_fields(0)).encode(),
     Schema.TRADES: CSV_DERIV_HEADER,

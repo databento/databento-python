@@ -10,6 +10,19 @@ class TestHistoricalTimeSeries:
         key = "DUMMY_ACCESS_KEY"
         self.client = db.Historical(key=key)
 
+    def test_stream_given_dbz_encoding_with_none_compression_raises_error(self) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(ValueError):
+            self.client.timeseries.stream(
+                dataset="GLBX.MDP3",
+                symbols="ESH1",
+                schema="mbo",
+                start="2020-12-28",
+                end="2020-12-28T23:00",
+                encoding="dbz",
+                compression="none",  # <--- invalid
+            )
+
     def test_stream_given_invalid_schema_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):

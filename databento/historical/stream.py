@@ -39,23 +39,27 @@ class StreamOrchestrator:
         # Setup streams
         self.binary_stream = BinaryBuffer()
         self.binary_writer_in = zstandard.ZstdDecompressor().stream_writer(
-            self.binary_stream
+            self.binary_stream,
         )
 
         self.bento_writer: BinaryIO = bento.writer()
         self.inner_writer = self.bento_writer
         self.text_writer_out = self.inner_writer
+        self.should_close_text_writer_out = False
         if compression_in == Compression.ZSTD:
             if compression_out == Compression.NONE:
                 # Wrap inner writer with zstd decompressor
                 self.inner_writer = zstandard.ZstdDecompressor().stream_writer(
-                    self.inner_writer
+                    self.inner_writer,
                 )
             else:
-                # Wrap text writer out with zstd compressor
+                # Wrap inner writer with zstd compressor. Here we set `closefd`
+                # to False so that we may use the inner stream later.
                 self.text_writer_out = zstandard.ZstdCompressor().stream_writer(
-                    self.inner_writer
+                    self.inner_writer,
+                    closefd=False,
                 )
+                self.should_close_text_writer_out = True
 
         # Binary struct format
         self.binary_map = DBZ_STRUCT_MAP[schema]
@@ -97,13 +101,16 @@ class StreamOrchestrator:
                 self.binary_writer_in.write(chunk)
 
                 # Check binary length aligns with record size
-                bin_len = len(self.binary_stream)
-                if bin_len == 0 or bin_len % self.binary_size > 0:
+                binary_len = len(self.binary_stream)
+                if binary_len == 0 or binary_len % self.binary_size > 0:
                     # Check on next chunk
                     return
 
-                text_buffer: bytes = self._decode_binary_to_text_buffer()
+                binary_buffer: bytes = self.binary_stream.raw
+                text_buffer: bytes = self._decode_binary_to_text_buffer(binary_buffer)
                 self.text_writer_out.write(text_buffer)
+
+                # Clear input binary stream as it is now written
                 self.binary_stream.clear()
 
     def close(self) -> None:
@@ -111,6 +118,9 @@ class StreamOrchestrator:
         Close the stream.
         """
         self.text_writer_out.flush()
+        if self.should_close_text_writer_out:
+            # Finally ensure the end of the zstd frame is written
+            self.text_writer_out.close()
 
     def _decode_metadata(self, raw: bytes, bento: Bento) -> None:
         log_debug("Decoding metadata...")
@@ -123,11 +133,9 @@ class StreamOrchestrator:
         metadata = MetadataDecoder.decode_to_json(raw[8 : frame_size + 8])
         bento.set_metadata_json(metadata)
 
-    def _decode_binary_to_text_buffer(self) -> bytes:
+    def _decode_binary_to_text_buffer(self, buffer: bytes) -> bytes:
         # Unpack binary into discrete records
-        binary_records: np.ndarray = np.frombuffer(
-            self.binary_stream.raw, dtype=self.binary_map
-        )
+        binary_records: np.ndarray = np.frombuffer(buffer=buffer, dtype=self.binary_map)
 
         text_records: List[bytes]
         if self.encoding_out == Encoding.CSV:
@@ -195,7 +203,7 @@ class StreamOrchestrator:
             f"{values[5]},"  # order_id
             f"{values[11].decode()},"  # action
             f"{values[10].decode()},"  # side
-            f"{values[9]},"  # flags
+            f"{values[8] & 0xff},"  # flags
             f"{values[6]},"  # price
             f"{values[7]},"  # size
             f"{values[14]}"  # sequence
@@ -208,9 +216,9 @@ class StreamOrchestrator:
             f"{values[12]},"  # ts_in_delta
             f"{values[2]},"  # pub_id
             f"{values[3]},"  # product_id
-            f"{values[7].decode()},"  # action
-            f"{values[8].decode()},"  # side
-            f"{values[9]},"  # flags
+            f"{values[8].decode()},"  # action
+            f"{values[7].decode()},"  # side
+            f"{values[9] & 0xff},"  # flags
             f"{values[5]},"  # price
             f"{values[6]},"  # size
             f"{values[13]},"  # sequence
@@ -229,9 +237,9 @@ class StreamOrchestrator:
             f"{values[12]},"  # ts_in_delta
             f"{values[2]},"  # pub_id
             f"{values[3]},"  # product_id
-            f"{values[7].decode()},"  # action
-            f"{values[8].decode()},"  # side
-            f"{values[9]},"  # flags
+            f"{values[8].decode()},"  # action
+            f"{values[7].decode()},"  # side
+            f"{values[9] & 0xff},"  # flags
             f"{values[5]},"  # price
             f"{values[6]},"  # size
             f"{values[13]},"  # sequence
@@ -304,9 +312,9 @@ class StreamOrchestrator:
             f"{values[12]},"  # ts_in_delta
             f"{values[2]},"  # pub_id
             f"{values[3]},"  # product_id
-            f"{values[7].decode()},"  # action
-            f"{values[8].decode()},"  # side
-            f"{values[9]},"  # flags
+            f"{values[8].decode()},"  # action
+            f"{values[7].decode()},"  # side
+            f"{values[9] & 0xff},"  # flags
             f"{values[5]},"  # price
             f"{values[6]},"  # size
             f"{values[13]},"  # sequence
@@ -325,9 +333,9 @@ class StreamOrchestrator:
             f"{values[12]},"  # ts_in_delta
             f"{values[2]},"  # pub_id
             f"{values[3]},"  # product_id
-            f"{values[7].decode()},"  # action
-            f"{values[8].decode()},"  # side
-            f"{values[9]},"  # flags
+            f"{values[8].decode()},"  # action
+            f"{values[7].decode()},"  # side
+            f"{values[9] & 0xff},"  # flags
             f"{values[5]},"  # price
             f"{values[6]},"  # size
             f"{values[13]}"  # sequence
@@ -346,173 +354,206 @@ class StreamOrchestrator:
         ).encode()
 
     def _binary_mbo_to_json_record(self, values: Tuple) -> bytes:
-        return json.dumps(
-            {
-                "ts_recv": int(values[12]),
-                "ts_event": int(values[4]),
-                "ts_in_delta": int(values[13]),
-                "pub_id": int(values[2]),
-                "product_id": int(values[3]),
-                "order_id": int(values[5]),
-                "action": values[11].decode(),
-                "side": values[10].decode(),
-                "flags": int(values[9]),
-                "price": int(values[6]),
-                "size": int(values[7]),
-                "sequence": int(values[14]),
-            }
-        ).encode()
+        record = {
+            "ts_recv": int(values[12]),
+            "ts_event": int(values[4]),
+            "ts_in_delta": int(values[13]),
+            "pub_id": int(values[2]),
+            "product_id": int(values[3]),
+            "order_id": int(values[5]),
+            "action": values[11].decode(),
+            "side": values[10].decode(),
+            "flags": int(values[8] & 0xFF),
+            "price": int(values[6]),
+            "size": int(values[7]),
+            "sequence": int(values[14]),
+        }
+
+        return json.dumps(record).encode()
 
     def _binary_mbp_1_to_json_record(self, values: Tuple) -> bytes:
-        return json.dumps(
+        record = {
+            "ts_recv": int(values[11]),
+            "ts_event": int(values[4]),
+            "ts_in_delta": int(values[13]),
+            "pub_id": int(values[2]),
+            "product_id": int(values[3]),
+            "action": values[8].decode(),
+            "side": values[7].decode(),
+            "flags": int(values[9] & 0xFF),
+            "price": int(values[5]),
+            "size": int(values[6]),
+            "sequence": int(values[13]),
+        }
+        levels = [
             {
-                "ts_recv": int(values[11]),
-                "ts_event": int(values[4]),
-                "ts_in_delta": int(values[13]),
-                "pub_id": int(values[2]),
-                "product_id": int(values[3]),
-                "action": values[7].decode(),
-                "side": values[8].decode(),
-                "flags": int(values[9]),
-                "price": int(values[5]),
-                "size": int(values[6]),
-                "sequence": int(values[13]),
-                "bid_px_00": int(values[14]),
-                "ask_px_00": int(values[15]),
-                "bid_sz_00": int(values[16]),
-                "ask_sz_00": int(values[17]),
-                "bid_oq_00": int(values[18]),
-                "ask_oq_00": int(values[19]),
-            }
-        ).encode()
+                "bid_px": int(values[14]),
+                "ask_px": int(values[15]),
+                "bid_sz": int(values[16]),
+                "ask_sz": int(values[17]),
+                "bid_oq": int(values[18]),
+                "ask_oq": int(values[19]),
+            },
+        ]
+        record["levels"] = levels
+
+        return json.dumps(record).encode()
 
     def _binary_mbp_10_to_json_record(self, values: Tuple) -> bytes:
-        return json.dumps(
+        record = {
+            "ts_recv": int(values[11]),
+            "ts_event": int(values[4]),
+            "ts_in_delta": int(values[12]),
+            "pub_id": int(values[2]),
+            "product_id": int(values[3]),
+            "action": values[8].decode(),
+            "side": values[7].decode(),
+            "flags": int(values[9] & 0xFF),
+            "price": int(values[5]),
+            "size": int(values[6]),
+            "sequence": int(values[13]),
+        }
+        levels = [
             {
-                "ts_recv": int(values[11]),
-                "ts_event": int(values[4]),
-                "ts_in_delta": int(values[12]),
-                "pub_id": int(values[2]),
-                "product_id": int(values[3]),
-                "action": values[7].decode(),
-                "side": values[8].decode(),
-                "flags": int(values[9]),
-                "price": int(values[5]),
-                "size": int(values[6]),
-                "sequence": int(values[13]),
-                "bid_px_00": int(values[14]),
-                "ask_px_00": int(values[15]),
-                "bid_sz_00": int(values[16]),
-                "ask_sz_00": int(values[17]),
-                "bid_oq_00": int(values[18]),
-                "ask_oq_00": int(values[19]),
-                "bid_px_01": int(values[20]),
-                "ask_px_01": int(values[21]),
-                "bid_sz_01": int(values[22]),
-                "ask_sz_01": int(values[23]),
-                "bid_oq_01": int(values[24]),
-                "ask_oq_01": int(values[25]),
-                "bid_px_02": int(values[26]),
-                "ask_px_02": int(values[27]),
-                "bid_sz_02": int(values[28]),
-                "ask_sz_02": int(values[29]),
-                "bid_oq_02": int(values[30]),
-                "ask_oq_02": int(values[31]),
-                "bid_px_03": int(values[32]),
-                "ask_px_03": int(values[33]),
-                "bid_sz_03": int(values[34]),
-                "ask_sz_03": int(values[35]),
-                "bid_oq_03": int(values[36]),
-                "ask_oq_03": int(values[37]),
-                "bid_px_04": int(values[38]),
-                "ask_px_04": int(values[39]),
-                "bid_sz_04": int(values[40]),
-                "ask_sz_04": int(values[41]),
-                "bid_oq_04": int(values[42]),
-                "ask_oq_04": int(values[43]),
-                "bid_px_05": int(values[44]),
-                "ask_px_05": int(values[45]),
-                "bid_sz_05": int(values[46]),
-                "ask_sz_05": int(values[47]),
-                "bid_oq_05": int(values[48]),
-                "ask_oq_05": int(values[49]),
-                "bid_px_06": int(values[50]),
-                "ask_px_06": int(values[51]),
-                "bid_sz_06": int(values[52]),
-                "ask_sz_06": int(values[53]),
-                "bid_oq_06": int(values[54]),
-                "ask_oq_06": int(values[55]),
-                "bid_px_07": int(values[56]),
-                "ask_px_07": int(values[57]),
-                "bid_sz_07": int(values[58]),
-                "ask_sz_07": int(values[59]),
-                "bid_oq_07": int(values[60]),
-                "ask_oq_07": int(values[61]),
-                "bid_px_08": int(values[62]),
-                "ask_px_08": int(values[63]),
-                "bid_sz_08": int(values[64]),
-                "ask_sz_08": int(values[65]),
-                "bid_oq_08": int(values[66]),
-                "ask_oq_08": int(values[67]),
-                "bid_px_09": int(values[68]),
-                "ask_px_09": int(values[69]),
-                "bid_sz_09": int(values[70]),
-                "ask_sz_09": int(values[71]),
-                "bid_oq_09": int(values[72]),
-                "ask_oq_09": int(values[73]),
-            }
-        ).encode()
+                "bid_px": int(values[14]),
+                "ask_px": int(values[15]),
+                "bid_sz": int(values[16]),
+                "ask_sz": int(values[17]),
+                "bid_oq": int(values[18]),
+                "ask_oq": int(values[19]),
+            },
+            {
+                "bid_px": int(values[20]),
+                "ask_px": int(values[21]),
+                "bid_sz": int(values[22]),
+                "ask_sz": int(values[23]),
+                "bid_oq": int(values[24]),
+                "ask_oq": int(values[25]),
+            },
+            {
+                "bid_px": int(values[26]),
+                "ask_px": int(values[27]),
+                "bid_sz": int(values[28]),
+                "ask_sz": int(values[29]),
+                "bid_oq": int(values[30]),
+                "ask_oq": int(values[31]),
+            },
+            {
+                "bid_px": int(values[32]),
+                "ask_px": int(values[33]),
+                "bid_sz": int(values[34]),
+                "ask_sz": int(values[35]),
+                "bid_oq": int(values[36]),
+                "ask_oq": int(values[37]),
+            },
+            {
+                "bid_px": int(values[38]),
+                "ask_px": int(values[39]),
+                "bid_sz": int(values[40]),
+                "ask_sz": int(values[41]),
+                "bid_oq": int(values[42]),
+                "ask_oq": int(values[43]),
+            },
+            {
+                "bid_px": int(values[44]),
+                "ask_px": int(values[45]),
+                "bid_sz": int(values[46]),
+                "ask_sz": int(values[47]),
+                "bid_oq": int(values[48]),
+                "ask_oq": int(values[49]),
+            },
+            {
+                "bid_px": int(values[50]),
+                "ask_px": int(values[51]),
+                "bid_sz": int(values[52]),
+                "ask_sz": int(values[53]),
+                "bid_oq": int(values[54]),
+                "ask_oq": int(values[55]),
+            },
+            {
+                "bid_px": int(values[56]),
+                "ask_px": int(values[57]),
+                "bid_sz": int(values[58]),
+                "ask_sz": int(values[59]),
+                "bid_oq": int(values[60]),
+                "ask_oq": int(values[61]),
+            },
+            {
+                "bid_px": int(values[62]),
+                "ask_px": int(values[63]),
+                "bid_sz": int(values[64]),
+                "ask_sz": int(values[65]),
+                "bid_oq": int(values[66]),
+                "ask_oq": int(values[67]),
+            },
+            {
+                "bid_px": int(values[68]),
+                "ask_px": int(values[69]),
+                "bid_sz": int(values[70]),
+                "ask_sz": int(values[71]),
+                "bid_oq": int(values[72]),
+                "ask_oq": int(values[73]),
+            },
+        ]
+        record["levels"] = levels
+
+        return json.dumps(record).encode()
 
     def _binary_tbbo_to_json_record(self, values: Tuple) -> bytes:
-        return json.dumps(
+        record = {
+            "ts_recv": int(values[11]),
+            "ts_event": int(values[4]),
+            "ts_in_delta": int(values[12]),
+            "pub_id": int(values[2]),
+            "product_id": int(values[3]),
+            "action": values[8].decode(),
+            "side": values[7].decode(),
+            "flags": int(values[9] & 0xFF),
+            "price": int(values[5]),
+            "size": int(values[6]),
+            "sequence": int(values[13]),
+        }
+        levels = [
             {
-                "ts_recv": int(values[11]),
-                "ts_event": int(values[4]),
-                "ts_in_delta": int(values[12]),
-                "pub_id": int(values[2]),
-                "product_id": int(values[3]),
-                "action": values[7].decode(),
-                "side": values[8].decode(),
-                "flags": int(values[9]),
-                "price": int(values[5]),
-                "size": int(values[6]),
-                "sequence": int(values[13]),
-                "bid_px_00": int(values[14]),
-                "ask_px_00": int(values[15]),
-                "bid_sz_00": int(values[16]),
-                "ask_sz_00": int(values[17]),
-                "bid_oq_00": int(values[18]),
-                "ask_oq_00": int(values[19]),
-            }
-        ).encode()
+                "bid_px": int(values[14]),
+                "ask_px": int(values[15]),
+                "bid_sz": int(values[16]),
+                "ask_sz": int(values[17]),
+                "bid_oq": int(values[18]),
+                "ask_oq": int(values[19]),
+            },
+        ]
+        record["levels"] = levels
+
+        return json.dumps(record).encode()
 
     def _binary_trades_to_json_record(self, values: Tuple) -> bytes:
-        return json.dumps(
-            {
-                "ts_recv": int(values[11]),
-                "ts_event": int(values[4]),
-                "ts_in_delta": int(values[12]),
-                "pub_id": int(values[2]),
-                "product_id": int(values[3]),
-                "action": values[7].decode(),
-                "side": values[8].decode(),
-                "flags": int(values[9]),
-                "price": int(values[5]),
-                "size": int(values[6]),
-                "sequence": int(values[13]),
-            }
-        ).encode()
+        record = {
+            "ts_recv": int(values[11]),
+            "ts_event": int(values[4]),
+            "ts_in_delta": int(values[12]),
+            "pub_id": int(values[2]),
+            "product_id": int(values[3]),
+            "action": values[8].decode(),
+            "side": values[7].decode(),
+            "flags": int(values[9] & 0xFF),
+            "price": int(values[5]),
+            "size": int(values[6]),
+            "sequence": int(values[13]),
+        }
+
+        return json.dumps(record).encode()
 
     def _binary_ohlcv_to_json_record(self, values: Tuple) -> bytes:
-        return json.dumps(
-            {
-                "ts_event": int(values[4]),
-                "pub_id": int(values[2]),
-                "product_id": int(values[3]),
-                "open": int(values[5]),
-                "high": int(values[6]),
-                "low": int(values[7]),
-                "close": int(values[8]),
-                "volume": int(values[9]),
-            }
-        ).encode()
+        record = {
+            "ts_event": int(values[4]),
+            "pub_id": int(values[2]),
+            "product_id": int(values[3]),
+            "open": int(values[5]),
+            "high": int(values[6]),
+            "low": int(values[7]),
+            "close": int(values[8]),
+            "volume": int(values[9]),
+        }
+
+        return json.dumps(record).encode()
