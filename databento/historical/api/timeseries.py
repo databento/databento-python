@@ -1,6 +1,6 @@
 import warnings
 from datetime import date
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.bento import Bento
@@ -35,7 +35,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
-        path: str = None,
+        path: Optional[str] = None,
     ) -> Bento:
         """
         Request a historical time series stream from the Databento API servers.
@@ -120,12 +120,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento: Bento = self._create_bento(
-            path=path,
-            schema=schema,
-            encoding=encoding_out,
-            compression=compression_out,
-        )
+        bento: Bento = self._create_bento(path=path)
 
         self._stream(
             url=self._base_url + ".stream",
@@ -233,12 +228,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params=params,
         )
 
-        bento: Bento = self._create_bento(
-            path=path,
-            schema=schema,
-            encoding=encoding_out,
-            compression=compression_out,
-        )
+        bento: Bento = self._create_bento(path=path)
 
         await self._stream_async(
             url=self._base_url + ".stream",
@@ -261,7 +251,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         start: Optional[Union[pd.Timestamp, date, str, int]],
         end: Optional[Union[pd.Timestamp, date, str, int]],
         limit: Optional[int],
-        params: List[Tuple[str, str]],
+        params: List[Tuple[str, Any]],
     ):
         if limit and limit < 10**7:
             return

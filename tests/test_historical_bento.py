@@ -1,7 +1,7 @@
+import copy
 import os
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import pytest
 from databento import from_dbz_file
@@ -35,38 +35,13 @@ class TestBento:
         # Cleanup
         os.remove(path)
 
-    def test_properties_when_instantiated(self) -> None:
+    def test_dataset_when_metadata_not_initialized_raises_value_error(self):
         # Arrange
-        bento = Bento(
-            schema=Schema.MBO,
-            encoding=Encoding.CSV,
-            compression=Compression.ZSTD,
-        )
+        bento = Bento()
 
         # Act, Assert
-        assert bento.schema == Schema.MBO
-        assert bento.encoding == Encoding.CSV
-        assert bento.compression == Compression.ZSTD
-        assert bento.struct_fmt == np.dtype(
-            [
-                ("nwords", "u1"),
-                ("type", "u1"),
-                ("pub_id", "<u2"),
-                ("product_id", "<u4"),
-                ("ts_event", "<u8"),
-                ("order_id", "<u8"),
-                ("price", "<i8"),
-                ("size", "<u4"),
-                ("flags", "i1"),
-                ("chan_id", "u1"),
-                ("side", "S1"),
-                ("action", "S1"),
-                ("ts_recv", "<u8"),
-                ("ts_in_delta", "<i4"),
-                ("sequence", "<u4"),
-            ]
-        )
-        assert bento.struct_size == 56
+        with pytest.raises(ValueError):
+            bento.dataset
 
 
 class TestMemoryBento:
@@ -75,7 +50,7 @@ class TestMemoryBento:
         stub_data = get_test_data("test_data.mbo.dbz")
 
         # Act
-        bento = MemoryBento(schema=Schema.MBO, initial_bytes=stub_data)
+        bento = MemoryBento(initial_bytes=stub_data)
 
         # Assert
         assert bento.nbytes == 386
@@ -89,76 +64,17 @@ class TestMemoryBento:
         assert bento.nbytes == 386
 
     @pytest.mark.parametrize(
-        "schema, "
-        "encoding, "
-        "compression, "
-        "stub_data_path, "
-        "decompress, "
-        "expected_path",
+        "stub_data_path, " "decompress, " "expected_path",
         [
             [
-                Schema.MBO,
-                Encoding.DBZ,
-                Compression.ZSTD,
                 "mbo.dbz",
                 False,
                 "mbo.dbz",
-            ],
-            [
-                Schema.MBO,
-                Encoding.CSV,
-                Compression.NONE,
-                "mbo.csv",
-                True,
-                "mbo.csv",
-            ],
-            [
-                Schema.MBO,
-                Encoding.CSV,
-                Compression.ZSTD,
-                "mbo.csv.zst",
-                False,
-                "mbo.csv.zst",
-            ],
-            [
-                Schema.MBO,
-                Encoding.CSV,
-                Compression.ZSTD,
-                "mbo.csv.zst",
-                True,
-                "mbo.csv",
-            ],
-            [
-                Schema.MBO,
-                Encoding.JSON,
-                Compression.NONE,
-                "mbo.json.raw",
-                False,
-                "mbo.json.raw",
-            ],
-            [
-                Schema.MBO,
-                Encoding.JSON,
-                Compression.ZSTD,
-                "mbo.json.zst",
-                False,
-                "mbo.json.zst",
-            ],
-            [
-                Schema.MBO,
-                Encoding.JSON,
-                Compression.ZSTD,
-                "mbo.json.zst",
-                True,
-                "mbo.json.raw",
             ],
         ],
     )
     def test_to_disk_with_various_combinations_persists_to_disk(
         self,
-        schema,
-        encoding,
-        compression,
         stub_data_path,
         decompress,
         expected_path,
@@ -166,12 +82,7 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data." + stub_data_path)
 
-        bento = MemoryBento(
-            schema=schema,
-            encoding=encoding,
-            compression=compression,
-            initial_bytes=stub_data,
-        )
+        bento = MemoryBento(initial_bytes=stub_data)
 
         path = f"test.test_data.{stub_data_path}"
 
@@ -190,12 +101,14 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
 
-        bento = MemoryBento(
-            schema=Schema.MBO,
-            encoding=Encoding.DBZ,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "dbz",
+            "compression": "zstd",
+        }
+        bento = MemoryBento(initial_bytes=stub_data)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.to_list()
@@ -210,13 +123,16 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
 
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "dbz",
+            "compression": "zstd",
+        }
+
         handler = []
-        bento = MemoryBento(
-            schema=Schema.MBO,
-            encoding=Encoding.DBZ,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data,
-        )
+        bento = MemoryBento(initial_bytes=stub_data)
+        bento.set_metadata_json(metadata)
 
         # Act
         bento.replay(callback=handler.append)
@@ -248,29 +164,28 @@ class TestMemoryBento:
         stub_data_csv = get_test_data(f"test_data.{schema.value}.csv.zst")
         stub_data_json = get_test_data(f"test_data.{schema.value}.json.zst")
 
-        bento_bin = MemoryBento(
-            schema=schema,
-            encoding=Encoding.DBZ,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data_bin,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": schema.value,
+            "compression": "zstd",
+        }
 
-        bento_csv = MemoryBento(
-            schema=schema,
-            encoding=Encoding.CSV,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data_csv,
-        )
+        metadata["encoding"] = "dbz"
+        bento_dbz = MemoryBento(initial_bytes=stub_data_bin)
+        bento_dbz.set_metadata_json(metadata)
 
-        bento_json = MemoryBento(
-            schema=schema,
-            encoding=Encoding.JSON,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data_json,
-        )
+        metadata = copy.copy(metadata)
+        metadata["encoding"] = "csv"
+        bento_csv = MemoryBento(initial_bytes=stub_data_csv)
+        bento_csv.set_metadata_json(metadata)
+
+        metadata = copy.copy(metadata)
+        metadata["encoding"] = "json"
+        bento_json = MemoryBento(initial_bytes=stub_data_json)
+        bento_json.set_metadata_json(metadata)
 
         # Act
-        df_bin = bento_bin.to_df()
+        df_bin = bento_dbz.to_df()
         df_csv = bento_csv.to_df()
         df_json = bento_json.to_df()
 
@@ -282,14 +197,17 @@ class TestMemoryBento:
 
     def test_to_df_with_mbo_compressed_record_returns_expected(self) -> None:
         # Arrange
-        stub_data = get_test_data("test_data.mbo.csv.zst")
+        stub_data = get_test_data("test_data.mbo.dbz")
 
-        bento = MemoryBento(
-            schema=Schema.MBO,
-            encoding=Encoding.CSV,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "dbz",
+            "compression": "zstd",
+        }
+
+        bento = MemoryBento(initial_bytes=stub_data)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.to_df()
@@ -297,27 +215,30 @@ class TestMemoryBento:
         # Assert
         assert len(data) == 2
         assert data.index.name == "ts_recv"
-        assert data.index.values[0] == 1609099225250461359
-        assert data.iloc[0].ts_event == 1609099225061045683
+        assert data.index.values[0] == 1609160400000704060
+        assert data.iloc[0].ts_event == 1609160400000429831
         assert data.iloc[0].pub_id == 1
         assert data.iloc[0].product_id == 5482
-        assert data.iloc[0].order_id == 647439984644
-        assert data.iloc[0].action == "A"
-        assert data.iloc[0].side == "B"
-        assert data.iloc[0].price == 315950000000000
+        assert data.iloc[0].order_id == 647784973705
+        assert data.iloc[0].action == "C"
+        assert data.iloc[0].side == "A"
+        assert data.iloc[0].price == 372275000000000
         assert data.iloc[0].size == 11
-        assert data.iloc[0].sequence == 1098
+        assert data.iloc[0].sequence == 1170352
 
     def test_to_df_with_stub_ohlcv_record_returns_expected(self) -> None:
         # Arrange
         stub_data = get_test_data("test_data.ohlcv-1m.csv.zst")
 
-        bento = MemoryBento(
-            schema=Schema.OHLCV_1H,
-            encoding=Encoding.CSV,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "ohlcv-1m",
+            "encoding": "csv",
+            "compression": "zstd",
+        }
+
+        bento = MemoryBento(initial_bytes=stub_data)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.to_df()
@@ -337,12 +258,15 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data("test_data.mbo.dbz")
 
-        bento = MemoryBento(
-            schema=Schema.MBO,
-            encoding=Encoding.DBZ,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "dbz",
+            "compression": "zstd",
+        }
+
+        bento = MemoryBento(initial_bytes=stub_data)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.to_df(pretty_ts=True)
@@ -398,12 +322,15 @@ class TestMemoryBento:
         # Arrange
         stub_data = get_test_data(f"test_data.{schema.value}.dbz")
 
-        bento = MemoryBento(
-            schema=schema,
-            encoding=Encoding.DBZ,
-            compression=Compression.ZSTD,
-            initial_bytes=stub_data,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": schema.value,
+            "encoding": "dbz",
+            "compression": "zstd",
+        }
+
+        bento = MemoryBento(initial_bytes=stub_data)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.to_df(pretty_px=True)
@@ -450,12 +377,14 @@ class TestFileBento:
         # Arrange
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.dbz")
         stub_data = get_test_data("test_data.mbo.dbz")
-        bento = FileBento(
-            path=path,
-            schema=Schema.MBO,
-            encoding=Encoding.DBZ,
-            compression=Compression.ZSTD,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "dbz",
+            "compression": "zstd",
+        }
+        bento = FileBento(path=path)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.raw
@@ -469,12 +398,15 @@ class TestFileBento:
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.dbz")
         stub_data = get_test_data("test_data.mbo.dbz")
 
-        bento = FileBento(
-            path=path,
-            schema=Schema.MBO,
-            encoding=Encoding.DBZ,
-            compression=Compression.ZSTD,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "dbz",
+            "compression": "zstd",
+        }
+
+        bento = FileBento(path=path)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.raw
@@ -488,12 +420,15 @@ class TestFileBento:
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv.zst")
         stub_data = get_test_data("test_data.mbo.csv.zst")
 
-        bento = FileBento(
-            path=path,
-            schema=Schema.MBO,
-            encoding=Encoding.CSV,
-            compression=Compression.ZSTD,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "csv",
+            "compression": "zstd",
+        }
+
+        bento = FileBento(path=path)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.raw
@@ -508,12 +443,15 @@ class TestFileBento:
         path = os.path.join(TESTS_ROOT, "data/test_data.mbo.csv")
         stub_data = get_test_data("test_data.mbo.csv")
 
-        bento = FileBento(
-            path=path,
-            schema=Schema.MBO,
-            encoding=Encoding.CSV,
-            compression=Compression.NONE,
-        )
+        metadata = {
+            "dataset": "GLBX.MDP3",
+            "schema": "mbo",
+            "encoding": "csv",
+            "compression": "none",
+        }
+
+        bento = FileBento(path=path)
+        bento.set_metadata_json(metadata)
 
         # Act
         data = bento.raw

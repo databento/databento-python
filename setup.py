@@ -36,7 +36,7 @@ setup(
     zip_safe=False,
     install_requires=install_requires,
     tests_require=tests_require,
-    python_requires=">=3.6.*",
+    python_requires=">=3.7.*",
     project_urls={
         "Bug Tracker": "https://github.com/databento/databento-python/issues",
         "Documentation": "https://docs.databento.com/",
@@ -47,7 +47,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",

@@ -1,6 +1,6 @@
 from datetime import date
 from json.decoder import JSONDecodeError
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import aiohttp
 import pandas as pd
@@ -55,7 +55,7 @@ class BentoHttpAPI:
         end = maybe_datetime_to_string(end)
 
         # Build params list
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Any]] = [
             ("dataset", dataset),
             ("symbols", symbols),
             ("schema", schema.value),
@@ -73,25 +73,11 @@ class BentoHttpAPI:
         return params
 
     @staticmethod
-    def _create_bento(
-        path: str,
-        schema: Schema,
-        encoding: Encoding,
-        compression: Compression,
-    ) -> Union[MemoryBento, FileBento]:
+    def _create_bento(path: str) -> Union[MemoryBento, FileBento]:
         if path is None:
-            return MemoryBento(
-                schema=schema,
-                encoding=encoding,
-                compression=compression,
-            )
+            return MemoryBento()
         else:
-            return FileBento(
-                path=path,
-                schema=schema,
-                encoding=encoding,
-                compression=compression,
-            )
+            return FileBento(path=path)
 
     def _check_access_key(self):
         if self._key == "YOUR_ACCESS_KEY":
