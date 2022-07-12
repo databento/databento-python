@@ -225,14 +225,13 @@ class Bento:
         """
         Return the number of columns for the data.
 
+        This is the number of columns contained in the raw binary data.
+        Some columns may be dropped when converting to a `pd.DataFrame`
+        using `to_df()`.
+
         Returns
         -------
         int
-
-        Notes
-        -----
-        This is the number of columns contained in the raw data. Some of these
-        may be dropped when converting to lists or dataframes.
 
         """
         if self._cols is None:
@@ -284,6 +283,93 @@ class Bento:
 
         """
         raise NotImplementedError()  # pragma: no cover
+
+    @property
+    def mappings(self) -> List[Dict[str, List[Dict[str, str]]]]:
+        """
+        Return the symbology mappings for the data.
+
+        Returns
+        -------
+        List[Dict[str, List[Dict[str, str]]]]
+
+        """
+        self._check_metadata()
+
+        return self._metadata["mappings"]
+
+    @property
+    def symbology(self) -> Dict[str, Any]:
+        """
+        Return the symbology resolution response information for the query.
+
+        This JSON representable object should exactly match a `symbology.resolve`
+        request using the same query parameters.
+
+        Returns
+        -------
+        Dict[str, Any]
+
+        """
+        self._check_metadata()
+
+        status = self._metadata["status"]
+        if status == 1:
+            message = "Partially resolved"
+        elif status == 2:
+            message = "Not found"
+        else:
+            message = "OK"
+
+        response: Dict[str, Any] = {
+            "result": self.mappings,
+            "symbols": self.symbols,
+            "stype_in": self.stype_in.value,
+            "stype_out": self.stype_out.value,
+            "from_date": str(self.start.date()),
+            "to_date": str(self.end.date()),
+            "partial": self._metadata["partial"],
+            "not_found": self._metadata["not_found"],
+            "message": message,
+            "status": status,
+        }
+
+        return response
+
+    @property
+    def definitions(self) -> List[Dict[str, Any]]:
+        """
+        Return the instrument 'mini-definitions' for the data.
+
+        A 'mini-definition' is a subset of the full `definition` schema,
+        which provides additional useful metadata for working with the data.
+
+        Returns
+        -------
+        List[Dict[str, Any]]
+
+        """
+        self._check_metadata()
+
+        return self._metadata["definitions"]
+
+    def instrument(self, symbol: str) -> List[Dict[str, Any]]:
+        """
+        Return the 'mini-definition' for the given native symbol.
+
+        Parameters
+        ----------
+        symbol : str
+            The native symbol for the instrument.
+
+        Returns
+        -------
+        List[Dict[str, Any]]
+
+        """
+        self._check_metadata()
+
+        return [d for d in self._metadata["definitions"] if d["symbol"] == symbol]
 
     def reader(self, decompress: bool = False) -> BinaryIO:
         """
@@ -411,7 +497,7 @@ class Bento:
 
         """
         with open(path, mode="wb") as f:
-            f.write(self.raw)
+            f.write(self.reader().read())
 
         bento = FileBento(path=path)
         bento.set_metadata_json(self._metadata)

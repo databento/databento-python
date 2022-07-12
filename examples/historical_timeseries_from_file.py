@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     # Can load from file path (if exists)
     ts_start = datetime.datetime.utcnow()
-    data = db.from_dbz_file(path="my_data.dbz")  # -> FileBento
+    data = db.from_dbz_file(path="my_data.dbz")
 
     print(data.to_df())
     print(datetime.datetime.utcnow() - ts_start)

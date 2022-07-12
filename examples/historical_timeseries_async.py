@@ -11,7 +11,7 @@ async def request_stream_async():
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    bento: Bento = await client.timeseries.stream_async(
+    data: Bento = await client.timeseries.stream_async(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
@@ -21,7 +21,7 @@ async def request_stream_async():
         compression="zstd",
         limit=1000,  # <-- limiting response to 1000 records only
     )
-    pprint(bento.to_df())
+    pprint(data.to_df())
 
 
 if __name__ == "__main__":

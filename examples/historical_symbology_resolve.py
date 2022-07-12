@@ -10,7 +10,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    result = client.symbology.resolve(
+    response = client.symbology.resolve(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         stype_in=SType.NATIVE,
@@ -19,4 +19,4 @@ if __name__ == "__main__":
         end="2020-12-29",
     )
 
-    pprint(result)
+    pprint(response)

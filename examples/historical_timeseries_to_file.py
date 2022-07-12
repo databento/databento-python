@@ -10,7 +10,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    bento: Bento = client.timeseries.stream(
+    data: Bento = client.timeseries.stream(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
@@ -22,9 +22,9 @@ if __name__ == "__main__":
     )  # -> MemoryBento
 
     path = "my_data.dbz"
-    bento.to_file(path=path)  # -> FileBento
+    data.to_file(path=path)  # -> FileBento
 
-    bento = db.from_dbz_file(path=path)  # -> FileBento
+    data = db.from_dbz_file(path=path)  # -> FileBento
 
     # Data now loaded into memory
-    pprint(bento.raw)
+    pprint(data.raw)

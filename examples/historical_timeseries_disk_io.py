@@ -13,7 +13,7 @@ if __name__ == "__main__":
     path = "my_data.csv"
 
     # Execute request through client
-    bento: Bento = client.timeseries.stream(
+    data: Bento = client.timeseries.stream(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
@@ -23,6 +23,6 @@ if __name__ == "__main__":
         compression="none",
         limit=1000,  # <-- limiting response to 1000 records only
         path=path,
-    )  # -> DiskBento
+    )
 
-    pprint(bento.to_list())
+    pprint(data.to_list())

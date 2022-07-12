@@ -10,7 +10,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    bento: Bento = client.timeseries.stream(
+    data: Bento = client.timeseries.stream(
         dataset="XNAS.ITCH",
         symbols="MSFT",
         schema="mbo",
@@ -21,4 +21,4 @@ if __name__ == "__main__":
         limit=1000,  # <-- limiting response to 1000 records only
     )
 
-    pprint(bento.to_list())
+    pprint(data.to_list())
