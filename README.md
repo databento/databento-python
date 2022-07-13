@@ -21,7 +21,7 @@ Key features include:
 ## Documentation
 The best place to begin is with our [Getting started](https://docs.databento.com/getting-started?historical=python&live=python) guide.
 
-The full client API reference can be found on the [Historical Reference](https://docs.databento.com/reference-historical?historical=python&live=python) and
+You can find our full client API reference on the [Historical Reference](https://docs.databento.com/reference-historical?historical=python&live=python) and
 [Live Reference](https://docs.databento.com/reference-live?historical=python&live=python) sections of our documentation. See also the
 [Examples]() section for various tutorials and code samples.
 
@@ -62,7 +62,7 @@ bento.replay(callback=print)    # market replay, with `print` as event handler
 
 Replace `YOUR_ACCESS_KEY` with an actual access key, then run this program.
 
-This shows the use of `.replay()` to access the entire block of data
+This uses `.replay()` to access the entire block of data
 and dispatch each data event to an event handler. You can also use
 `.to_df()` or `.to_list()` to cast the data into a Pandas DataFrame or list:
 
@@ -71,7 +71,8 @@ df = bento.to_df(pretty_ts=True, pretty_px=True)    # to DataFrame, with pretty 
 lst = bento.to_list()                               # to list
 ```
 
-The access key was also passed as a parameter, which is [not recommended for production applications](https://docs0.databento.com/knowledge-base/new-users/securing-your-access-keys?historical=python&live=python).
+Note that the access key was also passed as a parameter, which is
+[not recommended for production applications](https://docs0.databento.com/knowledge-base/new-users/securing-your-access-keys?historical=python&live=python).
 Instead, you can leave out this parameter to pass your access key via the `DATABENTO_ACCESS_KEY` environment variable:
 
 ```python
