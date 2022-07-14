@@ -200,45 +200,9 @@ class Bento:
         """
         if self._shape is None:
             self._check_metadata()
-            self._shape = (self.rows, self.cols)
+            self._shape = (self._metadata["nrows"], self._metadata["ncols"])
 
         return self._shape
-
-    @property
-    def rows(self) -> int:
-        """
-        Return the number of rows for the data.
-
-        Returns
-        -------
-        int
-
-        """
-        if self._rows is None:
-            self._check_metadata()
-            self._rows = self._metadata["rows"]
-
-        return self._rows
-
-    @property
-    def cols(self) -> int:
-        """
-        Return the number of columns for the data.
-
-        This is the number of columns contained in the raw binary data.
-        Some columns may be dropped when converting to a `pd.DataFrame`
-        using `to_df()`.
-
-        Returns
-        -------
-        int
-
-        """
-        if self._cols is None:
-            self._check_metadata()
-            self._cols = self._metadata["cols"]
-
-        return self._cols
 
     @property
     def dtype(self) -> np.dtype:
@@ -500,18 +464,18 @@ class Bento:
             f.write(self.reader().read())
 
         bento = FileBento(path=path)
-        bento.set_metadata_json(self._metadata)
+        bento.set_metadata(self._metadata)
 
         return bento
 
-    def set_metadata_json(self, metadata: Dict[str, Any]) -> None:
+    def set_metadata(self, metadata: Dict[str, Any]) -> None:
         """
         Set metadata from a JSON object.
 
         Parameters
         ----------
         metadata : Dict[str, Any]
-            The metadata to set for the object.
+            The metadata to set.
 
         """
         self._metadata = metadata

@@ -57,5 +57,6 @@ def from_dbz_file(path: str) -> FileBento:
         log_debug(f"metadata={metadata}")  # TODO(cs): Temporary logging
 
         bento = FileBento(path=path)
-        bento.set_metadata_json(metadata)
+        bento.set_metadata(metadata)
+
         return bento

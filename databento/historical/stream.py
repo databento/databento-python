@@ -131,7 +131,7 @@ class StreamOrchestrator:
         log_debug(f"magic={magic}, frame_size={frame_size}")
 
         metadata = MetadataDecoder.decode_to_json(raw[8 : frame_size + 8])
-        bento.set_metadata_json(metadata)
+        bento.set_metadata(metadata)
 
     def _decode_binary_to_text_buffer(self, buffer: bytes) -> bytes:
         # Unpack binary into discrete records
