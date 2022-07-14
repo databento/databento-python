@@ -28,8 +28,8 @@ class MetadataDecoder:
     limit         UInt64      8   44
     encoding      UInt8       1   45
     compression   UInt8       1   46
-    rows          UInt64      8   54
-    cols          UInt16      2   56
+    nrows         UInt64      8   54
+    ncols         UInt16      2   56
     padding       x          40   96
 
     References
@@ -80,8 +80,8 @@ class MetadataDecoder:
         encoding: Encoding = int_to_encoding(fixed_values[8])
         compression: Compression = int_to_compression(fixed_values[9])
 
-        rows: int = fixed_values[10]
-        cols: int = fixed_values[11]
+        nrows: int = fixed_values[10]
+        ncols: int = fixed_values[11]
 
         var_buffer: bytes = metadata[MetadataDecoder.METADATA_STRUCT_SIZE :]
         var_decompressed: bytes = zstandard.decompress(var_buffer)
@@ -98,8 +98,8 @@ class MetadataDecoder:
             "limit": limit,
             "encoding": encoding.value,
             "compression": compression.value,
-            "rows": rows,
-            "cols": cols,
+            "nrows": nrows,
+            "ncols": ncols,
         }
 
         json_obj.update(var_json)
