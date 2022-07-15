@@ -65,7 +65,11 @@ class StreamOrchestrator:
         self.binary_map = DBZ_STRUCT_MAP[schema]
         self.binary_size = np.dtype(self.binary_map).itemsize
 
+        self.metadata_buffer: bytes = b""
+        self.metadata_frame_size: int = 0
+
         # Header flags
+        self.receiving_header = False
         self.metadata_header_received = False
         self.csv_header_written = False
 
@@ -83,14 +87,35 @@ class StreamOrchestrator:
             self.inner_writer.write(chunk)
         else:
             if self.encoding_out == Encoding.DBZ:
+                if self.metadata_header_received:
+                    self.inner_writer.write(chunk)
                 # Here we check for a known magic number. Improve this to
                 # check for all valid skippable frame magic numbers.
-                if not self.metadata_header_received and chunk.startswith(b"Q*M\x18"):
-                    self._decode_metadata(raw=chunk, bento=self.bento)
+                elif self.receiving_header or chunk.startswith(b"Q*M\x18"):
                     self.bento_writer.write(chunk)
+
+                    if not self.receiving_header:
+                        log_debug("Receiving metadata...")
+                        self.metadata_frame_size = int.from_bytes(
+                            bytes=chunk[4:8],
+                            byteorder="little",
+                        )
+                        self.receiving_header = True
+
+                    if self.metadata_frame_size > len(self.metadata_buffer) + len(
+                        chunk
+                    ):
+                        self.metadata_buffer += chunk
+                        return
+
+                    self._decode_metadata(
+                        raw=self.metadata_buffer + chunk,
+                        frame_size=self.metadata_frame_size,
+                        bento=self.bento,
+                    )
+
+                    self.metadata_buffer = b""
                     self.metadata_header_received = True
-                    return
-                self.inner_writer.write(chunk)
             else:
                 if self.encoding_out == Encoding.CSV and not self.csv_header_written:
                     csv_header: bytes = CSV_HEADERS[self.schema] + b"\n"
@@ -122,14 +147,8 @@ class StreamOrchestrator:
             # Finally ensure the end of the zstd frame is written
             self.text_writer_out.close()
 
-    def _decode_metadata(self, raw: bytes, bento: Bento) -> None:
+    def _decode_metadata(self, raw: bytes, frame_size: int, bento: Bento) -> None:
         log_debug("Decoding metadata...")
-        magic = int.from_bytes(raw[:4], byteorder="little")
-        frame_size = int.from_bytes(raw[4:8], byteorder="little")
-        if len(raw) != 8 + frame_size:
-            raise RuntimeError("invalid metadata chunk received")
-        log_debug(f"magic={magic}, frame_size={frame_size}")
-
         metadata = MetadataDecoder.decode_to_json(raw[8 : frame_size + 8])
         bento.set_metadata(metadata)
 

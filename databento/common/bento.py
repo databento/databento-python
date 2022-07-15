@@ -319,7 +319,7 @@ class Bento:
 
     def instrument(self, symbol: str) -> List[Dict[str, Any]]:
         """
-        Return the 'mini-definition' for the given native symbol.
+        Return a 'mini-definition' list for the given native symbol.
 
         Parameters
         ----------
@@ -329,11 +329,12 @@ class Bento:
         Returns
         -------
         List[Dict[str, Any]]
+            An empty list if the symbol is not found.
 
         """
         self._check_metadata()
 
-        return [d for d in self._metadata["definitions"] if d["symbol"] == symbol]
+        return self._metadata["definitions"].get(symbol, [])
 
     def reader(self, decompress: bool = False) -> BinaryIO:
         """
