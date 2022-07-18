@@ -443,8 +443,8 @@ class Bento:
 
         if pretty_ts:
             df.index = pd.to_datetime(df.index, utc=True)
-            for column in list(df.columns):
-                if column.startswith("ts_") and not column.__contains__("delta"):
+            for column in df.columns:
+                if column.startswith("ts_") and "delta" not in column:
                     df[column] = pd.to_datetime(df[column], utc=True)
 
         if pretty_px:
