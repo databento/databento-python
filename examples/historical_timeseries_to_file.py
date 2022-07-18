@@ -16,15 +16,13 @@ if __name__ == "__main__":
         schema="mbo",
         start="2020-12-28",
         end="2020-12-30",
-        encoding="dbz",
-        compression="zstd",
         limit=1000,  # <-- limiting response to 1000 records only
     )  # -> MemoryBento
 
     path = "my_data.dbz"
     data.to_file(path=path)  # -> FileBento
 
-    data = db.from_dbz_file(path=path)  # -> FileBento
+    data = db.from_file(path=path)  # -> FileBento
 
     # Data now loaded into memory
     pprint(data.raw)

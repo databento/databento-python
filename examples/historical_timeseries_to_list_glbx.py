@@ -16,9 +16,7 @@ if __name__ == "__main__":
         schema="mbo",
         start="2020-12-27T13:00",
         end="2020-12-28",
-        encoding="dbz",
-        compression="zstd",
         limit=1000,  # <-- limiting response to 1000 records only
     )
 
-    pprint(data.to_list())
+    pprint(data.to_ndarray())

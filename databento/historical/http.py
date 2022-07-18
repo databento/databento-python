@@ -1,6 +1,6 @@
 from datetime import date
 from json.decoder import JSONDecodeError
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, List, Optional, Tuple, Union
 
 import aiohttp
 import pandas as pd
@@ -15,7 +15,6 @@ from databento.common.parsing import (
     maybe_symbols_list_to_string,
 )
 from databento.historical.error import BentoClientError, BentoServerError
-from databento.historical.stream import StreamOrchestrator
 from requests import Response
 from requests.auth import HTTPBasicAuth
 
@@ -152,11 +151,6 @@ class BentoHttpAPI:
         url: str,
         params: List[Tuple[str, str]],
         basic_auth: bool,
-        schema: Schema,
-        encoding_in: Encoding,
-        encoding_out: Encoding,
-        compression_in: Compression,
-        compression_out: Compression,
         bento: Bento,
     ) -> None:
         self._check_access_key()
@@ -173,34 +167,24 @@ class BentoHttpAPI:
         ) as response:
             check_http_error(response)
 
-            stream = StreamOrchestrator(
-                schema=schema,
-                encoding_in=encoding_in,
-                encoding_out=encoding_out,
-                compression_in=compression_in,
-                compression_out=compression_out,
-                bento=bento,
-            )
+            # Setup bento I/O writer
+            writer: BinaryIO = bento.writer()
 
-            try:
-                for chunk in response.iter_content(chunk_size=_32KB):
-                    if chunk == _NO_DATA_FOUND:
-                        log_info("No data found for query.")
-                        return
-                    stream.write(chunk)
-            finally:
-                stream.close()
+            for chunk in response.iter_content(chunk_size=_32KB):
+                if chunk == _NO_DATA_FOUND:
+                    log_info("No data found for query.")
+                    return
+
+                writer.write(chunk)
+
+            metadata = bento.source_metadata()
+            bento.set_metadata(metadata)
 
     async def _stream_async(
         self,
         url: str,
         params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
-        schema: Schema,
-        encoding_in: Encoding,
-        encoding_out: Encoding,
-        compression_in: Compression,
-        compression_out: Compression,
         bento: Bento,
     ) -> None:
         self._check_access_key()
@@ -217,24 +201,19 @@ class BentoHttpAPI:
             ) as response:
                 await check_http_error_async(response)
 
-                stream = StreamOrchestrator(
-                    schema=schema,
-                    encoding_in=encoding_in,
-                    encoding_out=encoding_out,
-                    compression_in=compression_in,
-                    compression_out=compression_out,
-                    bento=bento,
-                )
+                # Setup bento I/O writer
+                writer: BinaryIO = bento.writer()
 
-                try:
-                    async for async_chunk in response.content.iter_chunks():
-                        chunk: bytes = async_chunk[0]
-                        if chunk == _NO_DATA_FOUND:
-                            log_info("No data found for query.")
-                            return
-                        stream.write(chunk)
-                finally:
-                    stream.close()
+                async for chunk in response.content.iter_chunks():
+                    data: bytes = chunk[0]
+                    if data == _NO_DATA_FOUND:
+                        log_info("No data found for query.")
+                        return
+
+                    writer.write(data)
+
+                metadata = bento.source_metadata()
+                bento.set_metadata(metadata)
 
 
 def is_400_series_error(status: int) -> bool:

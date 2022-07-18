@@ -52,12 +52,12 @@ A simple Databento application looks like this:
 import databento as db
 
 client = db.Historical('YOUR_ACCESS_KEY')
-bento = client.timeseries.stream(
+data = client.timeseries.stream(
     dataset='GLBX.MDP3',
     start='2020-11-02T14:30',
     end='2020-11-02T14:40')
 
-bento.replay(callback=print)    # market replay, with `print` as event handler
+data.replay(callback=print)    # market replay, with `print` as event handler
 ```
 
 Replace `YOUR_ACCESS_KEY` with an actual access key, then run this program.
@@ -67,8 +67,8 @@ and dispatch each data event to an event handler. You can also use
 `.to_df()` or `.to_list()` to cast the data into a Pandas DataFrame or list:
 
 ```python
-df = bento.to_df(pretty_ts=True, pretty_px=True)    # to DataFrame, with pretty formatting
-lst = bento.to_list()                               # to list
+df = data.to_df(pretty_ts=True, pretty_px=True)  # to DataFrame, with pretty formatting
+array = data.to_ndarray()                        # to array
 ```
 
 Note that the access key was also passed as a parameter, which is

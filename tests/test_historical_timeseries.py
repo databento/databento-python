@@ -10,19 +10,6 @@ class TestHistoricalTimeSeries:
         key = "DUMMY_ACCESS_KEY"
         self.client = db.Historical(key=key)
 
-    def test_stream_given_dbz_encoding_with_none_compression_raises_error(self) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(ValueError):
-            self.client.timeseries.stream(
-                dataset="GLBX.MDP3",
-                symbols="ESH1",
-                schema="mbo",
-                start="2020-12-28",
-                end="2020-12-28T23:00",
-                encoding="dbz",
-                compression="none",  # <--- invalid
-            )
-
     def test_stream_given_invalid_schema_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
@@ -32,32 +19,6 @@ class TestHistoricalTimeSeries:
                 schema="ticks",  # <--- invalid
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="csv",
-            )
-
-    def test_stream_given_invalid_encoding_raises_error(self) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(ValueError):
-            self.client.timeseries.stream(
-                dataset="GLBX.MDP3",
-                symbols="ESH1",
-                schema="mbo",
-                start="2020-12-28",
-                end="2020-12-28T23:00",
-                encoding="text",  # <--- invalid
-            )
-
-    def test_stream_given_invalid_compression_raises_error(self) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(ValueError):
-            self.client.timeseries.stream(
-                dataset="GLBX.MDP3",
-                symbols="ESH1",
-                schema="mbo",
-                start="2020-12-28",
-                end="2020-12-28T23:00",
-                encoding="dbz",
-                compression="gzip",  # <--- invalid
             )
 
     def test_stream_given_invalid_stype_in_raises_error(self) -> None:
@@ -69,8 +30,6 @@ class TestHistoricalTimeSeries:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="dbz",
-                compression="zstd",
                 stype_in="zzz",  # <--- invalid
             )
 
@@ -83,11 +42,10 @@ class TestHistoricalTimeSeries:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="dbz",
-                compression="zstd",
                 stype_out="zzz",  # <--- invalid
             )
 
+    @pytest.mark.skip(reason="until confirmed new design")
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_stream_sends_expected_request(self, mocker) -> None:
         # Arrange
@@ -100,8 +58,6 @@ class TestHistoricalTimeSeries:
             schema="trades",
             start="2020-12-28T12:00",
             end="2020-12-29",
-            encoding="csv",
-            compression="zstd",
         )
 
         # Assert
@@ -120,6 +76,7 @@ class TestHistoricalTimeSeries:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
+    @pytest.mark.skip(reason="until confirmed new design")
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_stream_with_limit_sends_expected_request(self, mocker) -> None:
         # Arrange
@@ -132,8 +89,6 @@ class TestHistoricalTimeSeries:
             schema="trades",
             start="2020-12-28T12:00",
             end="2020-12-29",
-            encoding="csv",
-            compression="zstd",
             limit=1000000,
         )
 

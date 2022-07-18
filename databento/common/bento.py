@@ -1,5 +1,4 @@
 import io
-import json
 import os.path
 from typing import Any, BinaryIO, Callable, Dict, List, Optional, Tuple
 
@@ -8,6 +7,8 @@ import pandas as pd
 import zstandard
 from databento.common.data import DBZ_COLUMNS, DBZ_STRUCT_MAP, DERIV_SCHEMAS
 from databento.common.enums import Compression, Encoding, Schema, SType
+from databento.common.logging import log_debug
+from databento.common.metadata import MetadataDecoder
 
 
 class Bento:
@@ -15,6 +16,7 @@ class Bento:
 
     def __init__(self):
         self._metadata: Dict[str, Any] = {}
+        self._dtype: Optional[np.dtype] = None
 
         self._dataset: Optional[str] = None
         self._schema: Optional[Schema] = None
@@ -29,11 +31,38 @@ class Bento:
         self._rows: Optional[int] = None
         self._cols: Optional[int] = None
 
-        self._dtype: Optional[np.dtype] = None
-
     def _check_metadata(self) -> None:
         if not self._metadata:
-            raise ValueError("metadata has not been correctly initialized")
+            raise RuntimeError("metadata has not been correctly initialized")
+
+    def source_metadata(self) -> Dict[str, Any]:
+        log_debug("Decoding metadata...")
+        metadata_initial: bytes = self.reader().read(8)
+
+        if not metadata_initial.startswith(b"Q*M\x18"):
+            raise ValueError("invalid metadata")
+
+        magic_bin = metadata_initial[:4]
+        frame_size_bin = metadata_initial[4:]
+
+        metadata_magic = int.from_bytes(bytes=magic_bin, byteorder="little")
+        metadata_frame_size = int.from_bytes(bytes=frame_size_bin, byteorder="little")
+        log_debug(f"magic={metadata_magic}, frame_size={metadata_frame_size}")
+
+        metadata_raw = self.reader().read(8 + metadata_frame_size)
+        return MetadataDecoder.decode_to_json(metadata_raw[8:])
+
+    def set_metadata(self, metadata: Dict[str, Any]) -> None:
+        """
+        Set metadata from a JSON object.
+
+        Parameters
+        ----------
+        metadata : Dict[str, Any]
+            The metadata to set.
+
+        """
+        self._metadata = metadata
 
     @property
     def dataset(self) -> str:
@@ -301,7 +330,7 @@ class Bento:
         return response
 
     @property
-    def definitions(self) -> List[Dict[str, Any]]:
+    def definitions(self) -> Dict[str, List[Dict[str, Any]]]:
         """
         Return the instrument 'mini-definitions' for the data.
 
@@ -310,7 +339,7 @@ class Bento:
 
         Returns
         -------
-        List[Dict[str, Any]]
+         Dict[str, List[MiniDefinition]]
 
         """
         self._check_metadata()
@@ -319,7 +348,7 @@ class Bento:
 
     def instrument(self, symbol: str) -> List[Dict[str, Any]]:
         """
-        Return a 'mini-definition' list for the given native symbol.
+        Return the mini-definitions for the given native symbol.
 
         Parameters
         ----------
@@ -343,7 +372,7 @@ class Bento:
         Parameters
         ----------
         decompress : bool
-            If data should be decompressed (if compressed).
+            If data should be decompressed.
 
         Returns
         -------
@@ -363,31 +392,21 @@ class Bento:
         """
         raise NotImplementedError()  # pragma: no cover
 
-    def to_list(self) -> List[Any]:
+    def to_ndarray(self) -> np.ndarray:
         """
-        Return the data as a list records.
-
-        - ``DBZ`` encoding will return a list of `np.void` mixed dtypes.
-        - ``CSV`` encoding will return a list of `str`.
-        - ``JSON`` encoding will return a list of `Dict[str, Any]`.
+        Return the data as a numpy ndarray.
 
         Returns
         -------
-        List[Any]
+        np.ndarray
 
         """
-        if self.encoding == Encoding.DBZ:
-            return self._prepare_list_dbz()
-        elif self.encoding == Encoding.CSV:
-            return self._prepare_list_csv()
-        elif self.encoding == Encoding.JSON:
-            return self._prepare_list_json()
-        else:  # pragma: no cover (design-time error)
-            raise ValueError(f"invalid encoding, was {self.encoding.value}")
+        data: bytes = self.reader(decompress=True).read()
+        return np.frombuffer(data, dtype=DBZ_STRUCT_MAP[self.schema])
 
     def to_df(self, pretty_ts: bool = False, pretty_px: bool = False) -> pd.DataFrame:
         """
-        Return the data as a pd.DataFrame.
+        Return the data as a `pd.DataFrame`.
 
         Parameters
         ----------
@@ -403,15 +422,24 @@ class Bento:
         pd.DataFrame
 
         """
-        df: pd.DataFrame
-        if self.encoding == Encoding.DBZ:
-            df = self._prepare_df_dbz()
-        elif self.encoding == Encoding.CSV:
-            df = self._prepare_df_csv()
-        elif self.encoding == Encoding.JSON:
-            df = self._prepare_df_json()
-        else:  # pragma: no cover (design-time error)
-            raise ValueError(f"invalid encoding, was {self.encoding.value}")
+        df = pd.DataFrame(self.to_ndarray())
+        df.set_index(self._get_index_column(), inplace=True)
+
+        # Cleanup dataframe
+        if self.schema == Schema.MBO:
+            df.drop("chan_id", axis=1, inplace=True)
+            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
+            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
+            df["side"] = df["side"].str.decode("utf-8")
+            df["action"] = df["action"].str.decode("utf-8")
+        elif self.schema in DERIV_SCHEMAS:
+            df.drop(["nwords", "type", "depth"], axis=1, inplace=True)
+            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
+            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
+            df["side"] = df["side"].str.decode("utf-8")
+            df["action"] = df["action"].str.decode("utf-8")
+        else:
+            df.drop(["nwords", "type"], axis=1, inplace=True)
 
         if pretty_ts:
             df.index = pd.to_datetime(df.index, utc=True)
@@ -440,16 +468,18 @@ class Bento:
             The callback to the data handler.
 
         """
-        if self.encoding == Encoding.DBZ:
-            self._replay_dbz(callback)
-        elif self.encoding in (Encoding.CSV, Encoding.JSON):
-            self._replay_text(callback)
-        else:  # pragma: no cover (design-time error)
-            raise ValueError(f"invalid encoding, was {self.encoding.value}")
+        dtype = DBZ_STRUCT_MAP[self.schema]
+        reader: BinaryIO = self.reader(decompress=True)
+        while True:
+            raw: bytes = reader.read(self.struct_size)
+            record = np.frombuffer(raw, dtype=dtype)
+            if record.size == 0:
+                break
+            callback(record[0])
 
     def to_file(self, path: str) -> "FileBento":
         """
-        Write the data to a file at the given path.
+        Write the data to a DBZ file at the given path.
 
         Parameters
         ----------
@@ -469,23 +499,6 @@ class Bento:
 
         return bento
 
-    def set_metadata(self, metadata: Dict[str, Any]) -> None:
-        """
-        Set metadata from a JSON object.
-
-        Parameters
-        ----------
-        metadata : Dict[str, Any]
-            The metadata to set.
-
-        """
-        self._metadata = metadata
-
-    def _should_decompress(self, decompress: bool) -> bool:
-        if not decompress:
-            return False
-        return self.compression == Compression.ZSTD
-
     def _get_index_column(self) -> str:
         return (
             "ts_recv"
@@ -498,76 +511,6 @@ class Bento:
             )
             else "ts_event"
         )
-
-    def _prepare_list_dbz(self) -> List[np.void]:
-        data: bytes = self.reader(decompress=True).read()
-        return np.frombuffer(data, dtype=DBZ_STRUCT_MAP[self.schema])
-
-    def _prepare_list_csv(self) -> List[str]:
-        data: bytes = self.reader(decompress=True).read()
-        lines: List[str] = data.decode().splitlines(keepends=False)
-        lines.pop(0)  # Remove header row
-        return lines
-
-    def _prepare_list_json(self) -> List[Dict]:
-        data: bytes = self.reader(decompress=True).read()
-        lines: List[str] = data.decode().splitlines(keepends=False)
-        return list(map(json.loads, lines))
-
-    def _prepare_df_dbz(self) -> pd.DataFrame:
-        df = pd.DataFrame(self.to_list())
-        df.set_index(self._get_index_column(), inplace=True)
-        # Cleanup dataframe
-        if self.schema == Schema.MBO:
-            df.drop("chan_id", axis=1, inplace=True)
-            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
-            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
-            df["side"] = df["side"].str.decode("utf-8")
-            df["action"] = df["action"].str.decode("utf-8")
-        elif self.schema in DERIV_SCHEMAS:
-            df.drop(["nwords", "type", "depth"], axis=1, inplace=True)
-            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
-            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
-            df["side"] = df["side"].str.decode("utf-8")
-            df["action"] = df["action"].str.decode("utf-8")
-        else:
-            df.drop(["nwords", "type"], axis=1, inplace=True)
-
-        return df
-
-    def _prepare_df_csv(self) -> pd.DataFrame:
-        data: bytes = self.reader(decompress=True).read()
-        df = pd.read_csv(io.BytesIO(data), index_col=self._get_index_column())
-        return df
-
-    def _prepare_df_json(self) -> pd.DataFrame:
-        jsons: List[Dict] = self.to_list()
-        df = pd.DataFrame.from_dict(jsons, orient="columns")
-        df.set_index(self._get_index_column(), inplace=True)
-        return df
-
-    def _replay_dbz(self, callback: Callable[[Any], None]) -> None:
-        dtype = DBZ_STRUCT_MAP[self.schema]
-        reader: BinaryIO = self.reader(decompress=True)
-        while True:
-            raw: bytes = reader.read(self.struct_size)
-            record = np.frombuffer(raw, dtype=dtype)
-            if record.size == 0:
-                break
-            callback(record[0])
-
-    def _replay_text(self, callback: Callable[[Any], None]) -> None:
-        if self.compression == Compression.NONE:
-            reader: BinaryIO = self.reader(decompress=True)
-            while True:
-                raw: bytes = reader.readline()
-                if not raw:
-                    break
-                record = raw.decode().rstrip("\n")
-                callback(record)
-        else:
-            for record in self.to_list():
-                callback(record)
 
 
 class MemoryBento(Bento):
@@ -583,7 +526,7 @@ class MemoryBento(Bento):
     def __init__(self, initial_bytes: Optional[bytes] = None):
         super().__init__()
 
-        self._raw = io.BytesIO(initial_bytes=initial_bytes or b"")
+        self._buffer = io.BytesIO(initial_bytes=initial_bytes or b"")
 
     @property
     def nbytes(self) -> int:
@@ -596,21 +539,21 @@ class MemoryBento(Bento):
         int
 
         """
-        return self._raw.getbuffer().nbytes
+        return self._buffer.getbuffer().nbytes
 
     @property
     def raw(self) -> bytes:
-        return self._raw.getvalue()
+        return self._buffer.getvalue()
 
     def reader(self, decompress: bool = False) -> BinaryIO:
-        self._raw.seek(0)  # Ensure reader at start of stream
-        if self._should_decompress(decompress):
-            return zstandard.ZstdDecompressor().stream_reader(self._raw.getbuffer())
+        self._buffer.seek(0)  # Ensure reader at start of stream
+        if decompress:
+            return zstandard.ZstdDecompressor().stream_reader(self._buffer.getbuffer())
         else:
-            return self._raw
+            return self._buffer
 
     def writer(self) -> BinaryIO:
-        return self._raw
+        return self._buffer
 
 
 class FileBento(Bento):
@@ -658,7 +601,7 @@ class FileBento(Bento):
 
     def reader(self, decompress: bool = False) -> BinaryIO:
         f = open(self._path, mode="rb")
-        if self._should_decompress(decompress):
+        if decompress:
             return zstandard.ZstdDecompressor().stream_reader(f)
         else:
             return f

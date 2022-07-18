@@ -30,8 +30,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "dbz",
-        compression: Optional[Union[Compression, str]] = "zstd",
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -56,10 +54,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The UTC end of the time range (exclusive) for the request.
             If using an integer then this represents nanoseconds since UNIX epoch.
-        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
-            The data output encoding.
-        compression : Compression or str {'none', 'zstd'}, default 'zstd'
-            The data output compression.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         stype_out : SType or str, default 'product_id'
@@ -74,29 +68,18 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Bento
             If `path` provided then FileBento, otherwise MemoryBento.
 
-        """
-        if compression is None:
-            compression = Compression.NONE
+        Notes
+        -----
+        The Databento Binary Encoding + Zstd Compression (DBZ) will be streamed.
 
+        """
         validate_enum(schema, Schema, "schema")
-        validate_enum(encoding, Encoding, "encoding")
-        validate_enum(compression, Compression, "compression")
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
         schema = Schema(schema)
-        encoding_in = Encoding.DBZ  # Always request DBZ encoding
-        encoding_out = Encoding(encoding)
-        compression_in = Compression.ZSTD  # Always request ZSTD compression
-        compression_out = Compression(compression)
         stype_in = SType(stype_in)
         stype_out = SType(stype_out)
-
-        if encoding_out == Encoding.DBZ and compression_out == Compression.NONE:
-            raise ValueError(
-                "Cannot request for 'dbz' `encoding` with 'none' `compression`. "
-                "Please request with 'zstd' `compression`.",
-            )
 
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
@@ -104,8 +87,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=encoding_in,
-            compression=compression_in,
+            encoding=Encoding.DBZ,  # Always requests DBZ
+            compression=Compression.ZSTD,  # Always requests ZSTD
             stype_in=stype_in,
             stype_out=stype_out,
             limit=limit,
@@ -126,11 +109,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             url=self._base_url + ".stream",
             params=params,
             basic_auth=True,
-            schema=schema,
-            encoding_in=encoding_in,
-            encoding_out=encoding_out,
-            compression_in=compression_in,
-            compression_out=compression_out,
             bento=bento,
         )
 
@@ -143,8 +121,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "dbz",
-        compression: Optional[Union[Compression, str]] = "zstd",
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -170,10 +146,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The UTC end of the time range (exclusive) for the request.
             If using an integer then this represents nanoseconds since UNIX epoch.
-        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
-            The data output encoding.
-        compression : Compression or str {'none', 'zstd'}, default 'zstd'
-            The data output compression.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         stype_out : SType or str, default 'product_id'
@@ -188,21 +160,16 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Bento
             If `path` provided then FileBento, otherwise MemoryBento.
 
-        """
-        if compression is None:
-            compression = Compression.NONE
+        Notes
+        -----
+        The Databento Binary Encoding + Zstd Compression (DBZ) will be streamed.
 
+        """
         validate_enum(schema, Schema, "schema")
-        validate_enum(encoding, Encoding, "encoding")
-        validate_enum(compression, Compression, "compression")
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
         schema = Schema(schema)
-        encoding_in = Encoding.DBZ  # Always request DBZ encoding
-        encoding_out = Encoding(encoding)
-        compression_in = Compression.ZSTD  # Always request ZSTD compression
-        compression_out = Compression(compression)
         stype_in = SType(stype_in)
         stype_out = SType(stype_out)
 
@@ -212,8 +179,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=encoding_in,
-            compression=compression_in,
+            encoding=Encoding.DBZ,  # Always requests DBZ
+            compression=Compression.ZSTD,  # Always requests ZSTD
             stype_in=stype_in,
             stype_out=stype_out,
             limit=limit,
@@ -234,11 +201,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             url=self._base_url + ".stream",
             params=params,
             basic_auth=True,
-            schema=schema,
-            encoding_in=encoding_in,
-            encoding_out=encoding_out,
-            compression_in=compression_in,
-            compression_out=compression_out,
             bento=bento,
         )
 

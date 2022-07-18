@@ -28,8 +28,6 @@ if __name__ == "__main__":
             schema=schema,
             start="2020-12-28T13:00",
             end="2020-12-30",
-            encoding=encoding,
-            compression=compression,
             limit=2,  # <-- limiting response to 2 records only (for test cases)
             path=path,
         )  # -> FileBento
