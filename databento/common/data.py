@@ -48,8 +48,8 @@ DBZ_COMMON_HEADER: List[Tuple[str, Union[type, str]]] = [
 DBZ_DERIV_TMUP: List[Tuple[str, Union[type, str]]] = [
     ("price", np.int64),
     ("size", np.uint32),
-    ("side", "S1"),  # 1 byte chararray
     ("action", "S1"),  # 1 byte chararray
+    ("side", "S1"),  # 1 byte chararray
     ("flags", np.int8),
     ("depth", np.uint8),
     ("ts_recv", np.uint64),
@@ -75,8 +75,8 @@ DBZ_STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("size", np.uint32),
         ("flags", np.int8),
         ("chan_id", np.uint8),
-        ("side", "S1"),  # 1 byte chararray
         ("action", "S1"),  # 1 byte chararray
+        ("side", "S1"),  # 1 byte chararray
         ("ts_recv", np.uint64),
         ("ts_in_delta", np.int32),
         ("sequence", np.uint32),

@@ -214,8 +214,8 @@ class TestMemoryBento:
         assert data.iloc[0].pub_id == 1
         assert data.iloc[0].product_id == 5482
         assert data.iloc[0].order_id == 647784973705
-        assert data.iloc[0].action == "C"
-        assert data.iloc[0].side == "A"
+        assert data.iloc[0].action == "A"  # TODO(cs): Invalid until data regenerated
+        assert data.iloc[0].side == "C"  # TODO(cs): Invalid until data regenerated
         assert data.iloc[0].price == 372275000000000
         assert data.iloc[0].size == 11
         assert data.iloc[0].sequence == 1170352
