@@ -374,15 +374,16 @@ class TestBento:
 
         # Assert
         written = open(path, mode="rb").read()
-        if sys.platform == "win32":
-            written = written.replace(b"\n", b"\r\n")
         assert os.path.isfile(path)
-        assert written == (
+        expected = (
             b"ts_recv,ts_event,ts_in_delta,pub_id,product_id,order_id,action,side,flags,pr"  # noqa
             b"ice,size,sequence\n1609160400000704060,1609160400000429831,22993,1,5482,6"  # noqa
             b"47784973705,A,C,128,372275000000000,1,1170352\n1609160400000711344,160916"  # noqa
             b"0400000431665,19621,1,5482,647784973631,A,C,128,372300000000000,1,1170353\n"  # noqa
         )
+        if sys.platform == "win32":
+            expected = expected.replace(b"\n", b"\r\n")
+        assert written == expected
 
         # Cleanup
         os.remove(path)
@@ -398,8 +399,9 @@ class TestBento:
         data.to_json(path)
 
         # Assert
+        written = open(path, mode="rb").read()
         assert os.path.isfile(path)
-        assert open(path, mode="rb").read() == (
+        assert written == (
             b'{"ts_event":1609160400000429831,"ts_in_delta":22993,"pub_id":1,"product_id":'  # noqa
             b'5482,"order_id":647784973705,"action":"A","side":"C","flags":128,"price":372'  # noqa
             b'275000000000,"size":1,"sequence":1170352}\n{"ts_event":160916040000043166'  # noqa
