@@ -33,9 +33,17 @@ class Bento:
 
     def _check_metadata(self) -> None:
         if not self._metadata:
-            raise RuntimeError("metadata has not been correctly initialized")
+            self._metadata = self.source_metadata()
 
     def source_metadata(self) -> Dict[str, Any]:
+        """
+        Return the metadata parsed from the data header.
+
+        Returns
+        -------
+        Dict[str, Any
+
+        """
         log_debug("Decoding metadata...")
         metadata_initial: bytes = self.reader().read(8)
 
@@ -63,6 +71,89 @@ class Bento:
 
         """
         self._metadata = metadata
+
+    def reader(self, decompress: bool = False) -> BinaryIO:
+        """
+        Return an I/O reader for the data.
+
+        Parameters
+        ----------
+        decompress : bool
+            If data should be decompressed.
+
+        Returns
+        -------
+        BinaryIO
+
+        """
+        raise NotImplementedError()  # pragma: no cover
+
+    def writer(self) -> BinaryIO:
+        """
+        Return a raw I/O writer for the data.
+
+        Returns
+        -------
+        BinaryIO
+
+        """
+        raise NotImplementedError()  # pragma: no cover
+
+    @property
+    def nbytes(self) -> int:
+        raise NotImplementedError()  # pragma: no cover
+
+    @property
+    def raw(self) -> bytes:
+        """
+        Return the raw data from the I/O stream.
+
+        Returns
+        -------
+        bytes
+
+        """
+        raise NotImplementedError()  # pragma: no cover
+
+    @property
+    def dtype(self) -> np.dtype:
+        """
+        Return the binary struct format for the data schema.
+
+        Returns
+        -------
+        np.dtype
+
+        """
+        if self._dtype is None:
+            self._check_metadata()
+            self._dtype = np.dtype(DBZ_STRUCT_MAP[self.schema])
+
+        return self._dtype
+
+    @property
+    def struct_size(self) -> int:
+        """
+        Return the binary struct size in bytes.
+
+        Returns
+        -------
+        int
+
+        """
+        return self.dtype.itemsize
+
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        """
+        Return the metadata for the data.
+
+        Returns
+        -------
+        Dict[str, Any]
+
+        """
+        return self._metadata
 
     @property
     def dataset(self) -> str:
@@ -234,50 +325,6 @@ class Bento:
         return self._shape
 
     @property
-    def dtype(self) -> np.dtype:
-        """
-        Return the binary struct format for the schema.
-
-        Returns
-        -------
-        np.dtype
-
-        """
-        if self._dtype is None:
-            self._check_metadata()
-            self._dtype = np.dtype(DBZ_STRUCT_MAP[self.schema])
-
-        return self._dtype
-
-    @property
-    def struct_size(self) -> int:
-        """
-        Return the schemas binary struct size in bytes.
-
-        Returns
-        -------
-        int
-
-        """
-        return self.dtype.itemsize
-
-    @property
-    def nbytes(self) -> int:
-        raise NotImplementedError()  # pragma: no cover
-
-    @property
-    def raw(self) -> bytes:
-        """
-        Return the raw data from the I/O stream.
-
-        Returns
-        -------
-        bytes
-
-        """
-        raise NotImplementedError()  # pragma: no cover
-
-    @property
     def mappings(self) -> List[Dict[str, List[Dict[str, str]]]]:
         """
         Return the symbology mappings for the data.
@@ -364,33 +411,6 @@ class Bento:
         self._check_metadata()
 
         return self._metadata["definitions"].get(symbol, [])
-
-    def reader(self, decompress: bool = False) -> BinaryIO:
-        """
-        Return an I/O reader for the data.
-
-        Parameters
-        ----------
-        decompress : bool
-            If data should be decompressed.
-
-        Returns
-        -------
-        BinaryIO
-
-        """
-        raise NotImplementedError()  # pragma: no cover
-
-    def writer(self) -> BinaryIO:
-        """
-        Return a raw I/O writer for the data.
-
-        Returns
-        -------
-        BinaryIO
-
-        """
-        raise NotImplementedError()  # pragma: no cover
 
     def to_ndarray(self) -> np.ndarray:
         """
@@ -486,10 +506,6 @@ class Bento:
         path : str
             The path to write to.
 
-        Returns
-        -------
-        FileBento
-
         """
         with open(path, mode="wb") as f:
             f.write(self.reader().read())
@@ -499,17 +515,41 @@ class Bento:
 
         return bento
 
+    def to_csv(self, path: str) -> None:
+        """
+        Write the data to a CSV file at the given path.
+
+        Parameters
+        ----------
+        path : str
+            The path to write to.
+
+        """
+        self.to_df().to_csv(path)
+
+    def to_json(self, path: str) -> None:
+        """
+        Write the data to a JSON file at the given path.
+
+        Parameters
+        ----------
+        path : str
+            The path to write to.
+
+        """
+        self.to_df().to_json(path, orient="records", lines=True)
+
     def _get_index_column(self) -> str:
         return (
-            "ts_recv"
+            "ts_event"
             if self.schema
-            not in (
+            in (
                 Schema.OHLCV_1S,
                 Schema.OHLCV_1M,
                 Schema.OHLCV_1H,
                 Schema.OHLCV_1D,
             )
-            else "ts_event"
+            else "ts_recv"
         )
 
 
@@ -558,7 +598,7 @@ class MemoryBento(Bento):
 
 class FileBento(Bento):
     """
-    Provides a data container backed by DBZ file streaming I/O.
+    Provides a data container backed by file streaming I/O.
 
     Parameters
     ----------

@@ -174,8 +174,10 @@ class BentoHttpAPI:
                 if chunk == _NO_DATA_FOUND:
                     log_info("No data found for query.")
                     return
-
                 writer.write(chunk)
+
+            if isinstance(bento, FileBento):
+                writer.close()
 
             metadata = bento.source_metadata()
             bento.set_metadata(metadata)
@@ -209,8 +211,10 @@ class BentoHttpAPI:
                     if data == _NO_DATA_FOUND:
                         log_info("No data found for query.")
                         return
-
                     writer.write(data)
+
+                if isinstance(bento, FileBento):
+                    writer.close()
 
                 metadata = bento.source_metadata()
                 bento.set_metadata(metadata)
