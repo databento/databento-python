@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -372,8 +373,11 @@ class TestBento:
         data.to_csv(path)
 
         # Assert
+        written = open(path, mode="rb").read()
+        if sys.platform == "win32":
+            written = written.replace(b"\n", b"\r\n")
         assert os.path.isfile(path)
-        assert open(path, mode="rb").read() == (
+        assert written == (
             b"ts_recv,ts_event,ts_in_delta,pub_id,product_id,order_id,action,side,flags,pr"  # noqa
             b"ice,size,sequence\n1609160400000704060,1609160400000429831,22993,1,5482,6"  # noqa
             b"47784973705,A,C,128,372275000000000,1,1170352\n1609160400000711344,160916"  # noqa
