@@ -118,6 +118,7 @@ class TestBento:
         assert data.stype_out == SType.PRODUCT_ID
         assert data.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
         assert data.end == pd.Timestamp("2020-12-29 00:00:00+0000", tz="UTC")
+        assert data.limit == 2
         assert data.encoding == Encoding.DBZ
         assert data.compression == Compression.ZSTD
         assert data.shape == (2, 14)

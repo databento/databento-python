@@ -25,6 +25,7 @@ class Bento:
         self._stype_out: Optional[SType] = None
         self._start: Optional[pd.Timestamp] = None
         self._end: Optional[pd.Timestamp] = None
+        self._limit: Optional[int] = None
         self._encoding: Optional[Encoding] = None
         self._compression: Optional[Compression] = None
         self._shape: Optional[Tuple[int, int]] = None
@@ -274,6 +275,22 @@ class Bento:
             self._end = pd.Timestamp(self._metadata["end"], tz="UTC")
 
         return self._end
+
+    @property
+    def limit(self) -> Optional[int]:
+        """
+        Return the query limit for the data.
+
+        Returns
+        -------
+        int or None
+
+        """
+        if self._limit is None:
+            self._check_metadata()
+            self._limit = self._metadata["limit"]
+
+        return self._limit
 
     @property
     def encoding(self) -> Encoding:
