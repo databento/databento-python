@@ -152,13 +152,16 @@ class TestHistoricalMetadata:
         call = mocked_get.call_args.kwargs
         assert call["url"] == "https://hist.databento.com/v1/metadata.get_shape"
         assert call["headers"] == {"accept": "application/json"}
-        assert ("dataset", "glbx.mdp3") in call["params"]
-        assert ("symbols", "ESH1") in call["params"]
-        assert ("schema", "mbo") in call["params"]
-        assert ("start", "2020-12-28T12:00:00") in call["params"]
-        assert ("end", "2020-12-29T00:00:00") in call["params"]
-        assert ("stype_in", "native") in call["params"]
-        assert ("limit", "1000000") in call["params"]
+        assert call["params"] == [
+            ("dataset", "glbx.mdp3"),
+            ("symbols", "ESH1"),
+            ("schema", "mbo"),
+            ("start", "2020-12-28T12:00:00"),
+            ("end", "2020-12-29T00:00:00"),
+            ("encoding", "dbz"),
+            ("stype_in", "native"),
+            ("limit", "1000000"),
+        ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -182,16 +185,18 @@ class TestHistoricalMetadata:
         call = mocked_get.call_args.kwargs
         assert call["url"] == "https://hist.databento.com/v1/metadata.get_billable_size"
         assert call["headers"] == {"accept": "application/json"}
-        assert ("dataset", "glbx.mdp3") in call["params"]
-        assert ("symbols", "ESH1") in call["params"]
-        assert ("schema", "mbo") in call["params"]
-        assert ("start", "2020-12-28T12:00:00") in call["params"]
-        assert ("end", "2020-12-29T00:00:00") in call["params"]
-        assert ("encoding", "csv") in call["params"]
-        assert ("compression", "none") in call["params"]
-        assert ("stype_in", "native") in call["params"]
-        assert ("stype_out", "product_id") in call["params"]
-        assert ("limit", "1000000") in call["params"]
+        assert call["params"] == [
+            ("dataset", "glbx.mdp3"),
+            ("symbols", "ESH1"),
+            ("schema", "mbo"),
+            ("start", "2020-12-28T12:00:00"),
+            ("end", "2020-12-29T00:00:00"),
+            ("encoding", "csv"),
+            ("compression", "none"),
+            ("stype_in", "native"),
+            ("stype_out", "product_id"),
+            ("limit", "1000000"),
+        ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -216,15 +221,18 @@ class TestHistoricalMetadata:
         call = mocked_get.call_args.kwargs
         assert call["url"] == "https://hist.databento.com/v1/metadata.get_cost"
         assert call["headers"] == {"accept": "application/json"}
-        assert ("dataset", "glbx.mdp3") in call["params"]
-        assert ("symbols", "ESH1") in call["params"]
-        assert ("schema", "mbo") in call["params"]
-        assert ("start", "2020-12-28T12:00:00") in call["params"]
-        assert ("end", "2020-12-29T00:00:00") in call["params"]
-        assert ("encoding", "csv") in call["params"]
-        assert ("compression", "zstd") in call["params"]
-        assert ("stype_in", "native") in call["params"]
-        assert ("stype_out", "product_id") in call["params"]
-        assert ("limit", "1000000") in call["params"]
+        assert call["params"] == [
+            ("dataset", "glbx.mdp3"),
+            ("symbols", "ESH1"),
+            ("schema", "mbo"),
+            ("start", "2020-12-28T12:00:00"),
+            ("end", "2020-12-29T00:00:00"),
+            ("encoding", "csv"),
+            ("compression", "zstd"),
+            ("stype_in", "native"),
+            ("stype_out", "product_id"),
+            ("limit", "1000000"),
+            ("mode", "historical-streaming"),
+        ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

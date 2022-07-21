@@ -1,6 +1,11 @@
+import sys
+
 import databento as db
 import pytest
-from databento.common.enums import HistoricalGateway
+import requests
+from databento import FileBento, Historical
+from databento.common.enums import HistoricalGateway, Schema
+from tests.fixtures import get_test_data_path
 
 
 class TestHistoricalClient:
@@ -50,3 +55,63 @@ class TestHistoricalClient:
 
         # Assert
         assert client.gateway == ny4_gateway
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_re_request_symbology_makes_expected_request(self, mocker) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+
+        test_data_path = get_test_data_path(schema=Schema.MBO)
+        data = FileBento(path=test_data_path)
+
+        client = Historical(key="DUMMY_ACCESS_KEY")
+
+        # Act
+        client.request_symbology(data)
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert call["url"] == "https://hist.databento.com/v1/symbology.resolve"
+        assert call["params"] == [
+            ("dataset", "glbx.mdp3"),
+            ("symbols", "ESH1"),
+            ("stype_in", "native"),
+            ("stype_out", "product_id"),
+            ("start", "2020-12-28"),
+            ("end", "2020-12-29"),
+            ("default_value", ""),
+        ]
+        assert call["headers"] == {"accept": "application/json"}
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_request_full_definitions_expected_request(self, mocker) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+
+        test_data_path = get_test_data_path(schema=Schema.MBO)
+        data = FileBento(path=test_data_path)
+
+        client = Historical(key="DUMMY_ACCESS_KEY")
+
+        # Act
+        client.request_full_definitions(data)
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert call["url"] == "https://hist.databento.com/v1/timeseries.stream"
+        assert call["params"] == [
+            ("dataset", "glbx.mdp3"),
+            ("symbols", "ESH1"),
+            ("schema", "definition"),
+            ("start", "2020-12-28T13:00:00+00:00"),
+            ("end", "2020-12-29T00:00:00+00:00"),
+            ("encoding", "dbz"),
+            ("compression", "zstd"),
+            ("stype_in", "native"),
+            ("stype_out", "product_id"),
+        ]
+        assert call["headers"] == {"accept": "application/json"}
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

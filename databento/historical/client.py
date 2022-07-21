@@ -1,7 +1,8 @@
 import os
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
-from databento.common.enums import HistoricalGateway
+from databento import Bento
+from databento.common.enums import HistoricalGateway, Schema
 from databento.common.logging import log_info
 from databento.common.parsing import enum_or_str_lowercase
 from databento.historical.api.batch import BatchHttpAPI
@@ -79,3 +80,69 @@ class Historical:
 
         """
         return self._gateway
+
+    def request_symbology(self, data: Bento) -> Dict[str, Dict[str, Any]]:
+        """
+        Request symbology resolution based on the metadata properties.
+
+        `GET /v1/symbology.resolve` HTTP API endpoint.
+
+        Current symbology mappings from the metadata are also available by
+        calling the `.symbology` or `.mappings` properties.
+
+        Parameters
+        ----------
+        data : Bento
+            The bento to source the metadata from.
+
+        Returns
+        -------
+        Dict[str, Dict[str, Any]]
+            A map of input symbol to output symbol across the date range.
+
+        """
+        return self.symbology.resolve(
+            dataset=data.dataset,
+            symbols=data.symbols,
+            stype_in=data.stype_in,
+            stype_out=data.stype_out,
+            start=data.start,
+            end=data.end,
+        )
+
+    def request_full_definitions(
+        self,
+        data: Bento,
+        path: Optional[str] = None,
+    ) -> Bento:
+        """
+        Request full instrument definitions based on the metadata properties.
+
+        `GET /v1/timeseries.stream` HTTP API endpoint.
+
+        Parameters
+        ----------
+        data : Bento
+            The bento to source the metadata from.
+        path : str, optional
+            The optional path to stream the data to on disk.
+
+        Returns
+        -------
+        Bento
+
+        Warnings
+        --------
+        Calling this method will incur a cost.
+
+        """
+        return self.timeseries.stream(
+            dataset=data.dataset,
+            symbols=data.symbols,
+            schema=Schema.DEFINITION,
+            start=data.start,
+            end=data.end,
+            stype_in=data.stype_in,
+            stype_out=data.stype_out,
+            path=path,
+        )

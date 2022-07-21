@@ -72,19 +72,21 @@ class TestHistoricalBatch:
         call = mocked_get.call_args.kwargs
         assert call["url"] == "https://hist.databento.com/v1/batch.timeseries_submit"
         assert call["headers"] == {"accept": "application/json"}
-        assert ("dataset", "glbx.mdp3") in call["params"]
-        assert ("symbols", "ESH1") in call["params"]
-        assert ("schema", "trades") in call["params"]
-        assert ("start", "2020-12-28T12:00:00") in call["params"]
-        assert ("end", "2020-12-29T00:00:00") in call["params"]
-        assert ("encoding", "csv") in call["params"]
-        assert ("split_duration", "day") in call["params"]
-        assert ("split_size", "10000000000") in call["params"]
-        assert ("packaging", "none") in call["params"]
-        assert ("delivery", "download") in call["params"]
-        assert ("compression", "zstd") in call["params"]
-        assert ("stype_in", "native") in call["params"]
-        assert ("stype_out", "product_id") in call["params"]
+        assert call["params"] == [
+            ("dataset", "glbx.mdp3"),
+            ("symbols", "ESH1"),
+            ("schema", "trades"),
+            ("start", "2020-12-28T12:00:00"),
+            ("end", "2020-12-29T00:00:00"),
+            ("encoding", "csv"),
+            ("compression", "zstd"),
+            ("stype_in", "native"),
+            ("stype_out", "product_id"),
+            ("split_duration", "day"),
+            ("packaging", "none"),
+            ("delivery", "download"),
+            ("split_size", "10000000000"),
+        ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -100,7 +102,9 @@ class TestHistoricalBatch:
         call = mocked_get.call_args.kwargs
         assert call["url"] == "https://hist.databento.com/v1/batch.list_jobs"
         assert call["headers"] == {"accept": "application/json"}
-        assert ("states", "queued,processing,done") in call["params"]
-        assert ("since", "2022-01-01T00:00:00") in call["params"]
+        assert call["params"] == [
+            ("states", "queued,processing,done"),
+            ("since", "2022-01-01T00:00:00"),
+        ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

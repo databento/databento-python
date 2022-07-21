@@ -35,6 +35,21 @@ class Bento:
     def _check_metadata(self) -> None:
         if not self._metadata:
             self._metadata = self.source_metadata()
+            if not self._metadata:
+                raise RuntimeError("invalid metadata")
+
+    def _get_index_column(self) -> str:
+        return (
+            "ts_event"
+            if self.schema
+            in (
+                Schema.OHLCV_1S,
+                Schema.OHLCV_1M,
+                Schema.OHLCV_1H,
+                Schema.OHLCV_1D,
+            )
+            else "ts_recv"
+        )
 
     def source_metadata(self) -> Dict[str, Any]:
         """
@@ -49,7 +64,7 @@ class Bento:
         metadata_initial: bytes = self.reader().read(8)
 
         if not metadata_initial.startswith(b"Q*M\x18"):
-            raise ValueError("invalid metadata")
+            return {}
 
         magic_bin = metadata_initial[:4]
         frame_size_bin = metadata_initial[4:]
@@ -69,6 +84,10 @@ class Bento:
         ----------
         metadata : Dict[str, Any]
             The metadata to set.
+
+        Warnings
+        --------
+        This is not intended to be called by users.
 
         """
         self._metadata = metadata
@@ -555,19 +574,6 @@ class Bento:
 
         """
         self.to_df().to_json(path, orient="records", lines=True)
-
-    def _get_index_column(self) -> str:
-        return (
-            "ts_event"
-            if self.schema
-            in (
-                Schema.OHLCV_1S,
-                Schema.OHLCV_1M,
-                Schema.OHLCV_1H,
-                Schema.OHLCV_1D,
-            )
-            else "ts_recv"
-        )
 
 
 class MemoryBento(Bento):

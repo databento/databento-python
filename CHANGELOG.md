@@ -11,9 +11,9 @@ your integration.
 Most often, we introduce backward-compatible changes between minor versions
 in the form of:
 
-- New data formats or encodings.
-- Additional fields to existing data formats.
-- Additional batch download customizations.
+- New data formats or encodings
+- Additional fields to existing data formats
+- Additional batch download customizations
 
 Our API and official client libraries are kept in sync with same-day releases
 for major and minor versions. For instance, `v1.2.x` of the Python client
@@ -43,11 +43,11 @@ Additionally note:
 
 
 ## 0.2.0 - 2021-12-10
- - Added backend endpoint APIs.
- - Added async stream support.
- - Added `Bento` convenience objects.
- - Updated Changelog and versioning policy.
+ - Added backend endpoint APIs
+ - Added async stream support
+ - Added `Bento` convenience objects
+ - Updated Changelog and versioning policy
 
 ## 0.1.0 - 2021-08-30
- - Added support for remote procedure call (RPC) streaming requests.
- - Refactored legacy code.
+ - Added support for remote procedure call (RPC) streaming requests
+ - Refactored legacy code

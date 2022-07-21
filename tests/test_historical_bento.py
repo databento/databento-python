@@ -8,18 +8,7 @@ import pytest
 from databento import from_file
 from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Compression, Encoding, Schema, SType
-
-
-TESTS_ROOT = os.path.dirname(os.path.abspath(__file__))
-
-
-def get_test_data_path(schema: Schema):
-    return os.path.join(TESTS_ROOT, "data", f"test_data.{schema.value}.dbz")
-
-
-def get_test_data(schema: Schema):
-    with open(get_test_data_path(schema), "rb") as f:
-        return f.read()
+from tests.fixtures import get_test_data, get_test_data_path
 
 
 class TestBento:
@@ -141,7 +130,7 @@ class TestBento:
 
     def test_file_bento_given_valid_path_initialized_expected_data(self) -> None:
         # Arrange, Act
-        path = os.path.join(TESTS_ROOT, "data", "test_data.mbo.dbz")
+        path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=path)
 
         # Assert
@@ -365,7 +354,7 @@ class TestBento:
 
     def test_to_csv_writes_expected_file_to_disk(self) -> None:
         # Arrange
-        test_data_path = os.path.join(TESTS_ROOT, "data", "test_data.mbo.dbz")
+        test_data_path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=test_data_path)
 
         path = "test.my_mbo.csv"
@@ -391,7 +380,7 @@ class TestBento:
 
     def test_to_json_writes_expected_file_to_disk(self) -> None:
         # Arrange
-        test_data_path = os.path.join(TESTS_ROOT, "data", "test_data.mbo.dbz")
+        test_data_path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=test_data_path)
 
         path = "test.my_mbo.json"
