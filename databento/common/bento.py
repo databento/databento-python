@@ -412,42 +412,6 @@ class Bento:
 
         return response
 
-    @property
-    def definitions(self) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Return the instrument 'mini-definitions' for the data.
-
-        A 'mini-definition' is a subset of the full `definition` schema,
-        which provides additional useful metadata for working with the data.
-
-        Returns
-        -------
-         Dict[str, List[MiniDefinition]]
-
-        """
-        self._check_metadata()
-
-        return self._metadata["definitions"]
-
-    def instrument(self, symbol: str) -> List[Dict[str, Any]]:
-        """
-        Return the mini-definitions for the given native symbol.
-
-        Parameters
-        ----------
-        symbol : str
-            The native symbol for the instrument.
-
-        Returns
-        -------
-        List[Dict[str, Any]]
-            An empty list if the symbol is not found.
-
-        """
-        self._check_metadata()
-
-        return self._metadata["definitions"].get(symbol, [])
-
     def to_ndarray(self) -> np.ndarray:
         """
         Return the data as a numpy ndarray.

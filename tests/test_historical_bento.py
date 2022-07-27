@@ -126,7 +126,6 @@ class TestBento:
             "symbols": ["ESH1"],
             "to_date": "2020-12-29",
         }
-        assert data.definitions == {}
 
     def test_file_bento_given_valid_path_initialized_expected_data(self) -> None:
         # Arrange, Act
