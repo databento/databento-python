@@ -87,12 +87,13 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=Encoding.DBZ,  # Always requests DBZ
-            compression=Compression.ZSTD,  # Always requests ZSTD
             stype_in=stype_in,
             stype_out=stype_out,
             limit=limit,
         )
+
+        params.append(("encoding", Encoding.DBZ.value))  # Always requests DBZ
+        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
 
         self._pre_check_data_size(
             symbols=symbols,
@@ -179,12 +180,13 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=Encoding.DBZ,  # Always requests DBZ
-            compression=Compression.ZSTD,  # Always requests ZSTD
             stype_in=stype_in,
             stype_out=stype_out,
             limit=limit,
         )
+
+        params.append(("encoding", Encoding.DBZ.value))  # Always requests DBZ
+        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
 
         self._pre_check_data_size(
             symbols=symbols,

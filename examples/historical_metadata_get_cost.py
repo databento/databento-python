@@ -13,8 +13,6 @@ if __name__ == "__main__":
         schema="mbo",
         start="2020-12-27T12:00",
         end="2020-12-29",
-        encoding="csv",
-        compression="zstd",
     )
 
     print(cost1)
@@ -25,8 +23,6 @@ if __name__ == "__main__":
         schema="trades",
         start="2015-04-22",
         end="2015-04-22T12:10",
-        encoding="csv",
-        compression="none",
     )
 
     print(cost2)

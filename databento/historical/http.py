@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 from aiohttp import ClientResponse
 from databento.common.bento import Bento, FileBento, MemoryBento
-from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
+from databento.common.enums import Dataset, Schema, SType
 from databento.common.logging import log_info
 from databento.common.parsing import (
     enum_or_str_lowercase,
@@ -42,8 +42,6 @@ class BentoHttpAPI:
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         limit: Optional[int] = None,
-        encoding: Encoding,
-        compression: Compression,
         stype_in: SType,
         stype_out: SType = SType.PRODUCT_ID,
     ) -> List[Tuple[str, str]]:
@@ -60,8 +58,6 @@ class BentoHttpAPI:
             ("schema", schema.value),
             ("start", start),
             ("end", end),
-            ("encoding", encoding.value),
-            ("compression", compression.value),
             ("stype_in", stype_in.value),
             ("stype_out", stype_out.value),
         ]

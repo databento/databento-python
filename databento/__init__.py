@@ -1,7 +1,6 @@
 from typing import Optional
 
 from databento.common.bento import Bento, FileBento, MemoryBento
-from databento.common.load import from_file
 from databento.historical.client import Historical
 
 
@@ -10,7 +9,6 @@ __all__ = [
     "FileBento",
     "MemoryBento",
     "Historical",
-    "from_file",
 ]
 
 

@@ -13,7 +13,7 @@ if __name__ == "__main__":
     data: Bento = client.timeseries.stream(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
-        schema="mbo",
+        schema="trades",
         start="2020-12-27T12:00",
         end="2020-12-29",
         limit=1000,  # <-- limiting response to 1000 records only

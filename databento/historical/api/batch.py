@@ -115,12 +115,12 @@ class BatchHttpAPI(BentoHttpAPI):
             start=start,
             end=end,
             limit=limit,
-            encoding=encoding,
-            compression=compression,
             stype_in=stype_in,
             stype_out=stype_out,
         )
 
+        params.append(("encoding", encoding.value))
+        params.append(("compression", compression.value))
         params.append(("split_duration", split_duration.value))
         params.append(("packaging", packaging.value))
         params.append(("delivery", delivery.value))

@@ -497,6 +497,40 @@ class Bento:
                 break
             callback(record[0])
 
+    @staticmethod
+    def from_file(path: str) -> "FileBento":
+        """
+        Load the data from a DBZ file at the given path.
+
+        Parameters
+        ----------
+        path : str
+            The path to read from.
+
+        Returns
+        -------
+        FileBento
+
+        Raises
+        ------
+        FileNotFoundError
+            If no file is found at the given path.
+        RuntimeError
+            If an empty file exists at the given path.
+
+        """
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"no file found at `path` '{path}'")
+        if os.stat(path).st_size == 0:
+            raise RuntimeError(f"the file at `path` '{path}' was empty")
+
+        bento = FileBento(path=path)
+
+        metadata = bento.source_metadata()
+        bento.set_metadata(metadata)
+
+        return bento
+
     def to_file(self, path: str) -> "FileBento":
         """
         Write the data to a DBZ file at the given path.
@@ -505,6 +539,10 @@ class Bento:
         ----------
         path : str
             The path to write to.
+
+        Returns
+        -------
+        FileBento
 
         """
         with open(path, mode="wb") as f:

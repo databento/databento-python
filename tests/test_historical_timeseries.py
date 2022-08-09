@@ -69,10 +69,10 @@ class TestHistoricalTimeSeries:
             ("schema", "trades"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
-            ("encoding", "dbz"),
-            ("compression", "zstd"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
+            ("encoding", "dbz"),
+            ("compression", "zstd"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
@@ -102,11 +102,11 @@ class TestHistoricalTimeSeries:
             ("schema", "trades"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
-            ("encoding", "dbz"),
-            ("compression", "zstd"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("limit", "1000000"),
+            ("encoding", "dbz"),
+            ("compression", "zstd"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

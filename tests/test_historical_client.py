@@ -107,10 +107,10 @@ class TestHistoricalClient:
             ("schema", "definition"),
             ("start", "2020-12-28T13:00:00+00:00"),
             ("end", "2020-12-29T00:00:00+00:00"),
-            ("encoding", "dbz"),
-            ("compression", "zstd"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
+            ("encoding", "dbz"),
+            ("compression", "zstd"),
         ]
         assert call["headers"] == {"accept": "application/json"}
         assert call["timeout"] == (100, 100)

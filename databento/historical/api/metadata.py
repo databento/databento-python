@@ -2,14 +2,7 @@ from datetime import date
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from databento.common.enums import (
-    Compression,
-    Dataset,
-    Encoding,
-    FeedMode,
-    Schema,
-    SType,
-)
+from databento.common.enums import Dataset, Encoding, FeedMode, Schema, SType
 from databento.common.parsing import (
     enum_or_str_lowercase,
     maybe_datetime_to_string,
@@ -321,7 +314,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "dbz",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> int:
@@ -344,8 +336,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range (UTC).
             If using an integer then this represents nanoseconds since UNIX epoch.
-        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'bin'
-            The data output encoding.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         limit : int, optional
@@ -358,11 +348,9 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         validate_enum(schema, Schema, "schema")
-        validate_enum(encoding, Encoding, "encoding")
         validate_enum(stype_in, SType, "stype_in")
 
         schema = Schema(schema)
-        encoding = Encoding(encoding)
         stype_in = SType(stype_in)
 
         params: List[Tuple[str, str]] = super()._timeseries_params(
@@ -371,8 +359,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             schema=Schema(schema),
             start=start,
             end=end,
-            encoding=Encoding(encoding),
-            compression=Compression.NONE,
             stype_in=SType(stype_in),
             limit=limit,
         )
@@ -393,8 +379,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "dbz",
-        compression: Optional[Union[Compression, str]] = "zstd",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> float:
@@ -419,10 +403,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range (UTC).
             If using an integer then this represents nanoseconds since UNIX epoch.
-        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
-            The data output encoding.
-        compression : Compression or str {'none', 'zstd'}, default 'zstd'
-            The compression mode for the request.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         limit : int, optional
@@ -434,19 +414,12 @@ class MetadataHttpAPI(BentoHttpAPI):
             The cost for the data in US Dollars.
 
         """
-        if compression is None:
-            compression = Compression.NONE
-
         validate_enum(mode, FeedMode, "mode")
         validate_enum(schema, Schema, "schema")
-        validate_enum(encoding, Encoding, "encoding")
-        validate_enum(compression, Compression, "compression")
         validate_enum(stype_in, SType, "stype_in")
 
         mode = FeedMode(mode)
         schema = Schema(schema)
-        encoding = Encoding(encoding)
-        compression = Compression(compression)
         stype_in = SType(stype_in)
 
         params: List[Tuple[str, str]] = super()._timeseries_params(
@@ -455,8 +428,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             schema=schema,
             start=start,
             end=end,
-            encoding=encoding,
-            compression=compression,
             stype_in=stype_in,
             limit=limit,
         )

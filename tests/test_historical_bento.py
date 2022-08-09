@@ -5,7 +5,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from databento import from_file
 from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Compression, Encoding, Schema, SType
 from tests.fixtures import get_test_data, get_test_data_path
@@ -15,7 +14,7 @@ class TestBento:
     def test_from_file_when_not_exists_raises_expected_exception(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(FileNotFoundError):
-            from_file("my_data.dbz")
+            Bento.from_file("my_data.dbz")
 
     def test_from_file_when_file_empty_raises_expected_exception(self) -> None:
         # Arrange
@@ -24,7 +23,7 @@ class TestBento:
 
         # Act, Assert
         with pytest.raises(RuntimeError):
-            from_file(path)
+            Bento.from_file(path)
 
         # Cleanup
         os.remove(path)
@@ -344,7 +343,7 @@ class TestBento:
     ) -> None:
         # Arrange, Act
         path = get_test_data_path(schema=expected_schema)
-        data = from_file(path=path)
+        data = Bento.from_file(path=path)
 
         # Assert
         assert data.schema == expected_schema
