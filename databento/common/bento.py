@@ -447,7 +447,7 @@ class Bento:
 
         # Cleanup dataframe
         if self.schema == Schema.MBO:
-            df.drop("chan_id", axis=1, inplace=True)
+            df.drop("channel_id", axis=1, inplace=True)
             df = df.reindex(columns=DBZ_COLUMNS[self.schema])
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")

@@ -89,7 +89,7 @@ class TestBento:
                 ("price", "<i8"),
                 ("size", "<u4"),
                 ("flags", "i1"),
-                ("chan_id", "u1"),
+                ("channel_id", "u1"),
                 ("action", "S1"),
                 ("side", "S1"),
                 ("ts_recv", "<u8"),

@@ -74,7 +74,7 @@ DBZ_STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("price", np.int64),
         ("size", np.uint32),
         ("flags", np.int8),
-        ("chan_id", np.uint8),
+        ("channel_id", np.uint8),
         ("action", "S1"),  # 1 byte chararray
         ("side", "S1"),  # 1 byte chararray
         ("ts_recv", np.uint64),
