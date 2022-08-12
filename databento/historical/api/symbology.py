@@ -36,7 +36,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset ID for the request.
+            The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols to resolve.
         stype_in : SType or str, default 'native'

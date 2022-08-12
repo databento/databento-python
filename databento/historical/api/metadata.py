@@ -77,7 +77,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset ID for the request.
+            The dataset name for the request.
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range (UTC).
             If using an integer then this represents nanoseconds since UNIX epoch.
@@ -121,7 +121,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset ID for the request.
+            The dataset name for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
             The data record schema for the request.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
@@ -201,7 +201,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset ID for the request.
+            The dataset name for the request.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, optional
             The data feed mode for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
@@ -252,7 +252,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset ID for the request.
+            The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -326,7 +326,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset ID for the request.
+            The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols for the request. If ``None`` then will be for ALL symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -391,7 +391,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset ID for the request.
+            The dataset name for the request.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional

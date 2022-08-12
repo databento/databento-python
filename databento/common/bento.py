@@ -178,7 +178,7 @@ class Bento:
     @property
     def dataset(self) -> str:
         """
-        Return the dataset ID.
+        Return the dataset name.
 
         Returns
         -------
