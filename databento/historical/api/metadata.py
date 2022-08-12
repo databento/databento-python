@@ -10,6 +10,7 @@ from databento.common.parsing import (
     maybe_symbols_list_to_string,
 )
 from databento.common.validation import validate_enum, validate_maybe_enum
+from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from requests import Response
 
@@ -21,7 +22,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def __init__(self, key, gateway):
         super().__init__(key=key, gateway=gateway)
-        self._base_url = gateway + "/v1/metadata"
+        self._base_url = gateway + f"/v{API_VERSION}/metadata"
 
     def list_datasets(
         self,
@@ -31,7 +32,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the available datasets from the API server.
 
-        `GET /v1/metadata.list_datasets` HTTP API endpoint.
+        `GET /v0/metadata.list_datasets` HTTP API endpoint.
 
         Parameters
         ----------
@@ -71,7 +72,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the available record schemas from the API server.
 
-        `GET /v1/metadata.list_schemas` HTTP API endpoint.
+        `GET /v0/metadata.list_schemas` HTTP API endpoint.
 
         Parameters
         ----------
@@ -115,7 +116,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the data record fields from the API server.
 
-        `GET /v1/metadata.list_fields` HTTP API endpoint.
+        `GET /v0/metadata.list_fields` HTTP API endpoint.
 
         Parameters
         ----------
@@ -156,7 +157,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the available encoding options from the API server.
 
-        `GET /v1/metadata.list_encodings` HTTP API endpoint.
+        `GET /v0/metadata.list_encodings` HTTP API endpoint.
 
         Returns
         -------
@@ -173,7 +174,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the available compression options from the API server.
 
-        `GET /v1/metadata.list_compressions` HTTP API endpoint.
+        `GET /v0/metadata.list_compressions` HTTP API endpoint.
 
         Returns
         -------
@@ -195,7 +196,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the data prices per unit GB from the API server.
 
-        `GET /v1/metadata.list_unit_prices` HTTP API endpoint.
+        `GET /v0/metadata.list_unit_prices` HTTP API endpoint.
 
         Parameters
         ----------
@@ -246,7 +247,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the shape of the timeseries data as a rows and columns tuple.
 
-        GET `/v1/metadata.get_shape` HTTP API endpoint.
+        GET `/v0/metadata.get_shape` HTTP API endpoint.
 
         Parameters
         ----------
@@ -320,7 +321,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the uncompressed binary size of the data stream (used for billing).
 
-        GET `/v1/metadata.get_billable_size` HTTP API endpoint.
+        GET `/v0/metadata.get_billable_size` HTTP API endpoint.
 
         Parameters
         ----------
@@ -385,7 +386,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Request the expected total cost of the data stream.
 
-        `GET /v1/metadata.get_cost` HTTP API endpoint.
+        `GET /v0/metadata.get_cost` HTTP API endpoint.
 
         Parameters
         ----------

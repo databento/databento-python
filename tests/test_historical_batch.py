@@ -70,7 +70,10 @@ class TestHistoricalBatch:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/batch.timeseries_submit"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/batch.timeseries_submit"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
@@ -100,7 +103,10 @@ class TestHistoricalBatch:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/batch.list_jobs"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/batch.list_jobs"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("states", "queued,processing,done"),

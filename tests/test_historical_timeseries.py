@@ -61,7 +61,10 @@ class TestHistoricalTimeSeries:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/timeseries.stream"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
@@ -94,7 +97,10 @@ class TestHistoricalTimeSeries:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/timeseries.stream"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),

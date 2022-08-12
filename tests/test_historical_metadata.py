@@ -21,7 +21,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.list_datasets"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_datasets"
+        )
         assert ("start", "2018-01-01T00:00:00") in call["params"]
         assert ("end", "2020-01-01T00:00:00") in call["params"]
         assert call["headers"] == {"accept": "application/json"}
@@ -42,7 +45,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.list_schemas"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_schemas"
+        )
         assert ("start", "2018-01-01T00:00:00") in call["params"]
         assert ("end", "2021-01-01T00:00:00") in call["params"]
         assert call["headers"] == {"accept": "application/json"}
@@ -63,7 +69,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.list_fields"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_fields"
+        )
         assert ("schema", "mbo") in call["params"]
         assert ("encoding", "dbz") in call["params"]
         assert call["headers"] == {"accept": "application/json"}
@@ -80,7 +89,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.list_encodings"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_encodings"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
@@ -95,7 +107,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.list_compressions"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_compressions"  # noqa
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
@@ -123,7 +138,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.list_unit_prices"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_unit_prices"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
@@ -150,7 +168,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.get_shape"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_shape"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
@@ -182,7 +203,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.get_billable_size"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_billable_size"  # noqa
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
@@ -214,7 +238,10 @@ class TestHistoricalMetadata:
 
         # Assert
         call = mocked_get.call_args.kwargs
-        assert call["url"] == "https://hist.databento.com/v1/metadata.get_cost"
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_cost"
+        )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),

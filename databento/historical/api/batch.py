@@ -14,6 +14,7 @@ from databento.common.enums import (
 )
 from databento.common.parsing import maybe_datetime_to_string
 from databento.common.validation import validate_enum
+from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 
 
@@ -24,7 +25,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def __init__(self, key, gateway):
         super().__init__(key=key, gateway=gateway)
-        self._base_url = gateway + "/v1/batch"
+        self._base_url = gateway + f"/v{API_VERSION}/batch"
 
     def timeseries_submit(
         self,
@@ -46,7 +47,7 @@ class BatchHttpAPI(BentoHttpAPI):
         """
         Submit a timeseries batch data job to the Databento backend.
 
-        `POST /v1/batch.timeseries_submit` HTTP API endpoint.
+        `POST /v0/batch.timeseries_submit` HTTP API endpoint.
 
         Parameters
         ----------
@@ -142,7 +143,7 @@ class BatchHttpAPI(BentoHttpAPI):
         Request all batch data jobs associated with the client access key with
         the optional query filters.
 
-        `GET /v1/batch.list_jobs` HTTP API endpoint.
+        `GET /v0/batch.list_jobs` HTTP API endpoint.
 
         Parameters
         ----------

@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 from databento.common.enums import SType
 from databento.common.parsing import enum_or_str_lowercase, maybe_symbols_list_to_string
+from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from requests import Response
 
@@ -15,7 +16,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
 
     def __init__(self, key, gateway):
         super().__init__(key=key, gateway=gateway)
-        self._base_url = gateway + "/v1/symbology"
+        self._base_url = gateway + f"/v{API_VERSION}/symbology"
 
     def resolve(
         self,
@@ -30,7 +31,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         """
         Request symbology resolution.
 
-        `GET /v1/symbology.resolve` HTTP API endpoint.
+        `GET /v0/symbology.resolve` HTTP API endpoint.
 
         Parameters
         ----------

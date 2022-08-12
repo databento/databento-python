@@ -7,6 +7,7 @@ from databento.common.bento import Bento
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.validation import validate_enum
+from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from requests import Response
 
@@ -21,7 +22,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
     def __init__(self, key, gateway):
         super().__init__(key=key, gateway=gateway)
-        self._base_url = gateway + "/v1/timeseries"
+        self._base_url = gateway + f"/v{API_VERSION}/timeseries"
 
     def stream(
         self,
@@ -38,7 +39,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         """
         Request a historical time series stream from the Databento API servers.
 
-        `GET /v1/timeseries.stream` HTTP API endpoint.
+        `GET /v0/timeseries.stream` HTTP API endpoint.
 
         Parameters
         ----------
@@ -131,7 +132,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Request a historical time series stream from the Databento API servers
         asynchronously.
 
-        `GET /v1/timeseries.stream` HTTP API endpoint.
+        `GET /v0/timeseries.stream` HTTP API endpoint.
 
         Parameters
         ----------
@@ -233,7 +234,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
                 "request...",
             )
             response: Response = self._get(
-                url=self._gateway + "/v1/metadata.get_size_estimation",
+                url=self._gateway + "/v0/metadata.get_size_estimation",
                 params=params,
                 basic_auth=True,
             )
