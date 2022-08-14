@@ -70,7 +70,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
     ) -> List[str]:
         """
-        Request the available record schemas from the API server.
+        Request the available data record schemas from the API server.
 
         `GET /v0/metadata.list_schemas` HTTP API endpoint.
 

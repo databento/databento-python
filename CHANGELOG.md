@@ -11,8 +11,8 @@ your integration.
 Most often, we introduce backward-compatible changes between minor versions
 in the form of:
 
-- New data formats or encodings
-- Additional fields to existing data formats
+- New data schemas or encodings
+- Additional fields to existing data schemas
 - Additional batch download customizations
 
 Our API and official client libraries are kept in sync with same-day releases
