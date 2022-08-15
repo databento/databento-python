@@ -130,7 +130,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Returns
         -------
         Dict[str, Any]
-            A map of field name-value pairs filtered on the given optional parameters.
+            A mapping of dataset to encoding to schema to field to data type.
 
         """
         validate_maybe_enum(schema, Schema, "schema")
