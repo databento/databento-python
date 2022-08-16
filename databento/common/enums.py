@@ -30,7 +30,7 @@ class FeedMode(Enum):
 
 @unique
 class Dataset(Enum):
-    """Represents a dataset."""
+    """Represents a dataset name (string identifier)."""
 
     GLBX_MDP3 = "GLBX.MDP3"
     XNAS_ITCH = "XNAS.ITCH"
@@ -65,7 +65,7 @@ class Encoding(Enum):
 
 @unique
 class Compression(Enum):
-    """Represents a data compression option."""
+    """Represents a data compression mode."""
 
     NONE = "none"
     ZSTD = "zstd"
@@ -110,7 +110,7 @@ class SType(Enum):
 
 @unique
 class RollRule(Enum):
-    """Represents a roll rule."""
+    """Represents a smart symbology roll rule."""
 
     VOLUME = 0
     OPEN_INTEREST = 1

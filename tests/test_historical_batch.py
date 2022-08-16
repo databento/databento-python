@@ -109,7 +109,7 @@ class TestHistoricalBatch:
         )
         assert call["headers"] == {"accept": "application/json"}
         assert call["params"] == [
-            ("states", "queued,processing,done"),
+            ("states", "received,queued,processing,done"),
             ("since", "2022-01-01T00:00:00"),
         ]
         assert call["timeout"] == (100, 100)

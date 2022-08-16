@@ -136,7 +136,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def list_jobs(
         self,
-        states: Optional[str] = "queued,processing,done",
+        states: Optional[str] = "received,queued,processing,done",
         since: Optional[Union[pd.Timestamp, date, str, int]] = None,
     ) -> List[Dict[str, Any]]:
         """
@@ -147,7 +147,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        states : str, optional {'queued', 'processing', 'done', 'expired'}
+        states : str, optional {'received', 'queued', 'processing', 'done', 'expired'}
             The comma separated job states to include in the response. If ``None``
             will default to 'queued,processing,done' (may contain whitespace).
         since : pd.Timestamp or date or str or int, optional
