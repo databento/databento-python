@@ -5,6 +5,7 @@ import pytest
 from databento.common.enums import Dataset, Flags
 from databento.common.parsing import (
     enum_or_str_lowercase,
+    maybe_date_to_string,
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
     maybe_symbols_list_to_string,
@@ -84,6 +85,27 @@ class TestParsing:
     ) -> None:
         # Arrange, Act
         result = maybe_symbols_list_to_string(symbols)
+
+        # Assert
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            [None, None],
+            [1604782791000000000, "2020-11-07"],
+            ["2020-11-07T20:59:51", "2020-11-07"],
+            [date(2020, 12, 28), "2020-12-28"],
+            [pd.Timestamp("2020-12-28T23:12:01.123"), "2020-12-28"],
+        ],
+    )
+    def test_maybe_date_to_string_give_valid_values_returns_expected_results(
+        self,
+        value,
+        expected,
+    ) -> None:
+        # Arrange, Act
+        result = maybe_date_to_string(value)
 
         # Assert
         assert result == expected

@@ -15,8 +15,8 @@ if __name__ == "__main__":
         symbols=["ESH1"],
         stype_in=SType.NATIVE,
         stype_out=SType.PRODUCT_ID,
-        start="2020-12-27",
-        end="2020-12-29",
+        start_date="2020-12-27",
+        end_date="2020-12-29",
     )
 
     pprint(response)

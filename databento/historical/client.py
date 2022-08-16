@@ -106,8 +106,8 @@ class Historical:
             symbols=data.symbols,
             stype_in=data.stype_in,
             stype_out=data.stype_out,
-            start=data.start,
-            end=data.end,
+            start_date=data.start.date(),
+            end_date=data.end.date(),
         )
 
     def request_full_definitions(

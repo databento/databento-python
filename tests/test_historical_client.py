@@ -80,8 +80,8 @@ class TestHistoricalClient:
             ("symbols", "ESH1"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
-            ("start", "2020-12-28"),
-            ("end", "2020-12-29"),
+            ("start_date", "2020-12-28"),
+            ("end_date", "2020-12-29"),
             ("default_value", ""),
         ]
         assert call["headers"] == {"accept": "application/json"}

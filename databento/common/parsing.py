@@ -95,6 +95,28 @@ def maybe_symbols_list_to_string(
         raise TypeError(f"invalid symbols type, was {type(symbols)}")
 
 
+def maybe_date_to_string(
+    value: Optional[Union[date, str]],
+) -> Optional[str]:
+    """
+    Return a valid date string from the given value (if not None).
+
+    Parameters
+    ----------
+    value : date or str, optional
+        The value to parse.
+
+    Returns
+    -------
+    str or ``None``
+
+    """
+    if value is None:
+        return None
+
+    return str(pd.to_datetime(value).date())
+
+
 def maybe_datetime_to_string(
     value: Optional[Union[pd.Timestamp, date, str]],
 ) -> Optional[str]:

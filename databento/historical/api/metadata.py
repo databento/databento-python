@@ -5,6 +5,7 @@ import pandas as pd
 from databento.common.enums import Dataset, Encoding, FeedMode, Schema, SType
 from databento.common.parsing import (
     enum_or_str_lowercase,
+    maybe_date_to_string,
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
     maybe_symbols_list_to_string,
@@ -26,8 +27,8 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_datasets(
         self,
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
+        start_date: Optional[Union[date, str]] = None,
+        end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
         """
         List all datasets available from Databento.
@@ -36,12 +37,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        start : pd.Timestamp or date or str or int, optional
-            The UTC start datetime for the request range.
-            If using an integer then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The UTC end datetime for the request range.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+        start_date : date or str, optional
+            The start date (UTC) for the request range.
+        end_date : date or str, optional
+            The end date (UTC) for the request range.
 
         Returns
         -------
@@ -59,12 +58,12 @@ class MetadataHttpAPI(BentoHttpAPI):
         other methods which take the `dataset` parameter.
 
         """
-        start = maybe_datetime_to_string(start)
-        end = maybe_datetime_to_string(end)
+        start_date = maybe_date_to_string(start_date)
+        end_date = maybe_date_to_string(end_date)
 
         params: List[Tuple[str, str]] = [
-            ("start", start),
-            ("end", end),
+            ("start_date", start_date),
+            ("end_date", end_date),
         ]
 
         response: Response = self._get(
@@ -77,8 +76,8 @@ class MetadataHttpAPI(BentoHttpAPI):
     def list_schemas(
         self,
         dataset: Union[Dataset, str],
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
+        start_date: Optional[Union[date, str]] = None,
+        end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
         """
         List all data schemas available from Databento.
@@ -89,12 +88,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset name for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range (UTC).
-            If using an integer then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range (UTC).
-            If using an integer then this represents nanoseconds since UNIX epoch.
+        start_date : date or str, optional
+            The start date (UTC) for the request range.
+        end_date : date or str, optional
+            The end date (UTC) for the request range.
 
         Returns
         -------
@@ -102,13 +99,13 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         dataset = enum_or_str_lowercase(dataset, "dataset")
-        start = maybe_datetime_to_string(start)
-        end = maybe_datetime_to_string(end)
+        start_date = maybe_date_to_string(start_date)
+        end_date = maybe_date_to_string(end_date)
 
         params: List[Tuple[str, str]] = [
             ("dataset", dataset),
-            ("start", start),
-            ("end", end),
+            ("start_date", start_date),
+            ("end_date", end_date),
         ]
 
         response: Response = self._get(
@@ -272,10 +269,12 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range (UTC).
+            The start datetime for the request range.
+            Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range (UTC).
+            The end datetime for the request range.
+            Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
             The data encoding.
@@ -347,10 +346,12 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range (UTC).
+            The start datetime for the request range.
+            Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range (UTC).
+            The end datetime for the request range.
+            Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
@@ -414,10 +415,12 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range (UTC).
+            The start datetime for the request range.
+            Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range (UTC).
+            The end datetime for the request range.
+            Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.

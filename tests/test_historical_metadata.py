@@ -17,7 +17,10 @@ class TestHistoricalMetadata:
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.list_datasets(start="2018-01-01", end="2020-01-01")
+        self.client.metadata.list_datasets(
+            start_date="2018-01-01",
+            end_date="2020-01-01",
+        )
 
         # Assert
         call = mocked_get.call_args.kwargs
@@ -25,8 +28,8 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_datasets"
         )
-        assert ("start", "2018-01-01T00:00:00") in call["params"]
-        assert ("end", "2020-01-01T00:00:00") in call["params"]
+        assert ("start_date", "2018-01-01") in call["params"]
+        assert ("end_date", "2020-01-01") in call["params"]
         assert call["headers"] == {"accept": "application/json"}
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
@@ -39,8 +42,8 @@ class TestHistoricalMetadata:
         # Act
         self.client.metadata.list_schemas(
             dataset="GLBX.MDP3",
-            start="2018-01-01",
-            end="2021-01-01",
+            start_date="2018-01-01",
+            end_date="2021-01-01",
         )
 
         # Assert
@@ -49,8 +52,8 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_schemas"
         )
-        assert ("start", "2018-01-01T00:00:00") in call["params"]
-        assert ("end", "2021-01-01T00:00:00") in call["params"]
+        assert ("start_date", "2018-01-01") in call["params"]
+        assert ("end_date", "2021-01-01") in call["params"]
         assert call["headers"] == {"accept": "application/json"}
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

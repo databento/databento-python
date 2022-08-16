@@ -24,8 +24,8 @@ class SymbologyHttpAPI(BentoHttpAPI):
         symbols: Union[List[str], str],
         stype_in: Union[SType, str],
         stype_out: Union[SType, str],
-        start: Union[date, str],
-        end: Union[date, str],
+        start_date: Union[date, str],
+        end_date: Union[date, str],
         default_value: Optional[str] = "",
     ):
         """
@@ -43,12 +43,10 @@ class SymbologyHttpAPI(BentoHttpAPI):
             The input symbol type to resolve from.
         stype_out : SType or str, default 'product_id'
             The output symbol type to resolve to.
-        start : pd.Timestamp or date or str or int
-            The UTC start of the time range (inclusive) to resolve.
-            If using an integer then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int
-            The UTC end of the time range (exclusive) to resolve.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+        start_date : date or str
+            The start date (UTC) of the request time range (inclusive).
+        end_date : date or str
+            The end date (UTC) of the request time range (exclusive).
         default_value : str, default '' (empty string)
             The default value to return if a symbol cannot be resolved.
 
@@ -62,16 +60,16 @@ class SymbologyHttpAPI(BentoHttpAPI):
         symbols = maybe_symbols_list_to_string(symbols)
         stype_in = enum_or_str_lowercase(stype_in, "stype_in")
         stype_out = enum_or_str_lowercase(stype_out, "stype_out")
-        start = str(pd.to_datetime(start).date())
-        end = str(pd.to_datetime(end).date())
+        start_date = str(pd.to_datetime(start_date).date())
+        end_date = str(pd.to_datetime(end_date).date())
 
         params: List[Tuple[str, str]] = [
             ("dataset", dataset),
             ("symbols", symbols),
             ("stype_in", stype_in),
             ("stype_out", stype_out),
-            ("start", start),
-            ("end", end),
+            ("start_date", start_date),
+            ("end_date", end_date),
             ("default_value", default_value),
         ]
 

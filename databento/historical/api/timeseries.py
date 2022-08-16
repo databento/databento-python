@@ -50,10 +50,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The UTC start of the time range (inclusive) for the request.
+            The start datetime (UTC) of the request time range (inclusive).
             If using an integer then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The UTC end of the time range (exclusive) for the request.
+            The end datetime (UTC) of the request time range (exclusive).
             If using an integer then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
@@ -143,15 +143,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The UTC start of the time range (inclusive) for the request.
+            The start datetime (UTC) of the request time range (inclusive).
             If using an integer then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The UTC end of the time range (exclusive) for the request.
+            The end datetime (UTC) of the request time range (exclusive).
             If using an integer then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
-            The input symbol type to resolve from.
+            The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
-            The output symbol type to resolve to.
+            The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return.
         path : str, optional

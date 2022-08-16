@@ -114,7 +114,7 @@ class TestBento:
             "ESH1": [{"s": "5482", "t0": "2020-12-28", "t1": "2020-12-29"}]
         }
         assert data.symbology == {
-            "from_date": "2020-12-28",
+            "start_date": "2020-12-28",
             "message": "OK",
             "not_found": [],
             "partial": [],
@@ -123,7 +123,7 @@ class TestBento:
             "stype_in": "native",
             "stype_out": "product_id",
             "symbols": ["ESH1"],
-            "to_date": "2020-12-29",
+            "end_date": "2020-12-29",
         }
 
     def test_file_bento_given_valid_path_initialized_expected_data(self) -> None:
