@@ -9,7 +9,7 @@ if __name__ == "__main__":
     key = "YOUR_ACCESS_KEY"
     client = db.Historical(key=key)
 
-    shape: Tuple[int, int] = client.metadata.get_shape(
+    shape: Tuple = client.metadata.get_shape(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",

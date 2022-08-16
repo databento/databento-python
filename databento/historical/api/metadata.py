@@ -30,9 +30,9 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
     ) -> List[str]:
         """
-        Request the available datasets from the API server.
+        List all datasets available from Databento.
 
-        `GET /v0/metadata.list_datasets` HTTP API endpoint.
+        Makes a `GET /v0/metadata.list_datasets` HTTP request.
 
         Parameters
         ----------
@@ -46,6 +46,17 @@ class MetadataHttpAPI(BentoHttpAPI):
         Returns
         -------
         List[str]
+
+        Notes
+        -----
+        We use dataset names in the form `PUBLISHER.DATASET` for each dataset,
+        where each publisher is represented by a 4 character code, which is
+        usually its ISO 10383 [Market Identifier Code (MIC)](https://www.iso20022.org/market-identifier-codes).  # noqa
+        These dataset names are also found on the [Explore]() and [Quick Download]()
+        features of the Databento user portal.
+
+        Use this method to list the _names_ of all available datasets, so you can use
+        other methods which take the `dataset` parameter.
 
         """
         start = maybe_datetime_to_string(start)
@@ -70,9 +81,9 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
     ) -> List[str]:
         """
-        Request the available data record schemas from the API server.
+        List all data schemas available from Databento.
 
-        `GET /v0/metadata.list_schemas` HTTP API endpoint.
+        Makes a `GET /v0/metadata.list_schemas` HTTP request.
 
         Parameters
         ----------
@@ -114,9 +125,12 @@ class MetadataHttpAPI(BentoHttpAPI):
         encoding: Optional[Union[Encoding, str]] = None,
     ) -> Dict[str, Dict]:
         """
-        Request the data record fields from the API server.
+        List all fields for a dataset, schema and encoding from Databento.
 
-        `GET /v0/metadata.list_fields` HTTP API endpoint.
+        Makes a `GET /v0/metadata.list_fields` HTTP request.
+
+        The `schema` and `encoding` parameters act as optional filters. All
+        metadata for that parameter is returned if they are not specified.
 
         Parameters
         ----------
@@ -125,7 +139,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
             The data record schema for the request.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
-            The data output encoding.
+            The data encoding.
 
         Returns
         -------
@@ -155,9 +169,9 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_encodings(self) -> List[str]:
         """
-        Request the available encoding options from the API server.
+        List all data encodings available from Databento.
 
-        `GET /v0/metadata.list_encodings` HTTP API endpoint.
+        Makes a `GET /v0/metadata.list_encodings` HTTP request.
 
         Returns
         -------
@@ -172,9 +186,9 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_compressions(self) -> List[str]:
         """
-        Request the available compression options from the API server.
+        List all data compression modes available from Databento.
 
-        `GET /v0/metadata.list_compressions` HTTP API endpoint.
+        Makes a `GET /v0/metadata.list_compressions` HTTP request.
 
         Returns
         -------
@@ -192,11 +206,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Union[Dataset, str],
         mode: Optional[Union[FeedMode, str]] = None,
         schema: Optional[Union[Schema, str]] = None,
-    ) -> Union[Dict[str, Any], float]:
+    ) -> Dict[str, Any]:
         """
-        Request the data prices per unit GB from the API server.
+        List data schema prices per GB unit from Databento.
 
-        `GET /v0/metadata.list_unit_prices` HTTP API endpoint.
+        Makes a `GET /v0/metadata.list_unit_prices` HTTP request.
 
         Parameters
         ----------
@@ -209,8 +223,8 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Any] or float
-            A map of unit prices filtered on the given optional parameters.
+        Dict[str, Any]
+            A map of dataset to feed mode to unit price.
 
         """
         validate_maybe_enum(schema, Schema, "schema")
@@ -243,11 +257,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         encoding: Union[Encoding, str] = "dbz",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
-    ) -> Tuple[int, int]:
+    ) -> Tuple:
         """
-        Request the shape of the timeseries data as a rows and columns tuple.
+        Get the shape of the time series data query.
 
-        GET `/v0/metadata.get_shape` HTTP API endpoint.
+        Makes a GET `/v0/metadata.get_shape` HTTP request.
 
         Parameters
         ----------
@@ -264,15 +278,15 @@ class MetadataHttpAPI(BentoHttpAPI):
             The end datetime for the request range (UTC).
             If using an integer then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
-            The data output encoding.
+            The data encoding.
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         limit : int, optional
-            The maximum number of records for the request.
+            The maximum number of records to include in the query.
 
         Returns
         -------
-        Tuple[int, int]
+        Tuple
 
         """
         validate_enum(schema, Schema, "schema")
@@ -319,9 +333,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> int:
         """
-        Request the uncompressed binary size of the data stream (used for billing).
+        Get the raw uncompressed binary size of a historical streaming or batch
+        data request, which would be used for billing.
 
-        GET `/v0/metadata.get_billable_size` HTTP API endpoint.
+        Makes a GET `/v0/metadata.get_billable_size` HTTP request.
 
         Parameters
         ----------
@@ -340,12 +355,12 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         limit : int, optional
-            The maximum number of records for the request.
+            The maximum number of records to include in the query.
 
         Returns
         -------
         int
-            The uncompressed size of the data in bytes.
+            The size in number of bytes used for billing.
 
         """
         validate_enum(schema, Schema, "schema")
@@ -384,9 +399,9 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> float:
         """
-        Request the expected total cost of the data stream.
+        Get the expected total cost of the data stream.
 
-        `GET /v0/metadata.get_cost` HTTP API endpoint.
+        Makes a `GET /v0/metadata.get_cost` HTTP request.
 
         Parameters
         ----------
@@ -407,7 +422,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in : SType or str, default 'native'
             The input symbol type to resolve from.
         limit : int, optional
-            The maximum number of records for the request.
+            The maximum number of records to include in the query.
 
         Returns
         -------

@@ -45,7 +45,7 @@ class BatchHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Submit a timeseries batch data job to the Databento backend.
+        Submit a time series batch data job to the Databento backend.
 
         `POST /v0/batch.timeseries_submit` HTTP API endpoint.
 
@@ -64,9 +64,9 @@ class BatchHttpAPI(BentoHttpAPI):
             The UTC end of the time range (exclusive) for the request.
             If using an integer then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
-            The data output encoding.
+            The data encoding.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
-            The data output compression.
+            The data compression mode.
         split_duration : Duration or str {'day', 'week', 'month', 'none'}, default 'day'
             The time duration split per data file ('week' starts on Sunday UTC).
         split_size : int, optional
@@ -143,7 +143,7 @@ class BatchHttpAPI(BentoHttpAPI):
         Request all batch data jobs associated with the client access key with
         the optional query filters.
 
-        `GET /v0/batch.list_jobs` HTTP API endpoint.
+        Makes a `GET /v0/batch.list_jobs` HTTP request.
 
         Parameters
         ----------

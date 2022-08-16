@@ -414,7 +414,7 @@ class Bento:
 
     def to_ndarray(self) -> np.ndarray:
         """
-        Return the data as a numpy ndarray.
+        Return the data as a numpy `ndarray`.
 
         Returns
         -------
@@ -480,7 +480,7 @@ class Bento:
 
     def replay(self, callback: Callable[[Any], None]) -> None:
         """
-        Pass all data records sequentially to the given callback.
+        Replay data by passing records sequentially to the given callback.
 
         Parameters
         ----------
@@ -538,7 +538,7 @@ class Bento:
         Parameters
         ----------
         path : str
-            The path to write to.
+            The file path to write to.
 
         Returns
         -------
@@ -555,24 +555,32 @@ class Bento:
 
     def to_csv(self, path: str) -> None:
         """
-        Write the data to a CSV file at the given path.
+        Write the data to a file in CSV format.
 
         Parameters
         ----------
         path : str
-            The path to write to.
+            The file path to write to.
+
+        Notes
+        -----
+        Requires all the data to be brought up into memory to then be written.
 
         """
         self.to_df().to_csv(path)
 
     def to_json(self, path: str) -> None:
         """
-        Write the data to a JSON file at the given path.
+        Write the data to a file in JSON format.
 
         Parameters
         ----------
         path : str
-            The path to write to.
+            The file path to write to.
+
+        Notes
+        -----
+        Requires all the data to be brought up into memory to then be written.
 
         """
         self.to_df().to_json(path, orient="records", lines=True)

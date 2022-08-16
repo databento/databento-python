@@ -39,7 +39,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         """
         Request a historical time series stream from the Databento API servers.
 
-        `GET /v0/timeseries.stream` HTTP API endpoint.
+        Makes a `GET /v0/timeseries.stream` HTTP request.
 
         Parameters
         ----------
@@ -60,7 +60,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbol type to resolve to.
         limit : int, optional
-            The maximum number of records for the request.
+            The maximum number of records to return.
         path : str, optional
             The path to the file to write to on disk (if provided).
 
@@ -132,7 +132,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Request a historical time series stream from the Databento API servers
         asynchronously.
 
-        `GET /v0/timeseries.stream` HTTP API endpoint.
+        Makes a `GET /v0/timeseries.stream` HTTP request.
 
         Parameters
         ----------
@@ -153,7 +153,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbol type to resolve to.
         limit : int, optional
-            The maximum number of records for the request.
+            The maximum number of records to return.
         path : str, optional
             The path to the file to write to (if provided).
 
