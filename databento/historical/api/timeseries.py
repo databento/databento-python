@@ -39,7 +39,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         """
         Request a historical time series stream from the Databento API servers.
 
-        Makes a `GET /v0/timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.stream` HTTP request.
 
         Parameters
         ----------
@@ -133,7 +133,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Request a historical time series stream from the Databento API servers
         asynchronously.
 
-        Makes a `GET /v0/timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.stream` HTTP request.
 
         Parameters
         ----------
@@ -236,7 +236,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
                 "request...",
             )
             response: Response = self._get(
-                url=self._gateway + "/v0/metadata.get_size_estimation",
+                url=self._gateway + f"/v{API_VERSION}/metadata.get_size_estimation",
                 params=params,
                 basic_auth=True,
             )
@@ -260,7 +260,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
 def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]):
     if not symbols:
-        return True  # ALL
+        return True  # All symbols
 
     if isinstance(symbols, str):
         symbols = symbols.split(",")

@@ -31,7 +31,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         """
         Request symbology resolution.
 
-        Makes a `GET /v0/symbology.resolve` HTTP request.
+        Makes a `GET /symbology.resolve` HTTP request.
 
         Parameters
         ----------

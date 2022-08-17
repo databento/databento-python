@@ -68,15 +68,61 @@ def maybe_enum_or_str_lowercase(
     return enum_or_str_lowercase(value, param)
 
 
-def maybe_symbols_list_to_string(
-    symbols: Optional[Iterable[str]],
-) -> Optional[str]:
+def values_list_to_string(
+    values: Union[Iterable[str], str],
+) -> str:
     """
-    Concatenate a symbols string (if not None).
+    Concatenate a values string or iterable of string values.
 
     Parameters
     ----------
-    symbols : iterable of str, optional
+    values : iterable of str or str
+        The values to concatenate.
+
+    Returns
+    -------
+    str
+
+    """
+    if isinstance(values, str):
+        return values.strip().rstrip(",").lower()
+    elif isinstance(values, Iterable):
+        return ",".join(values).strip().lower()
+    else:
+        raise TypeError(f"invalid values type, was {type(values)}")
+
+
+def maybe_values_list_to_string(
+    values: Optional[Union[Iterable[str], str]],
+) -> Optional[str]:
+    """
+    Concatenate a values string or iterable of string values (if not None).
+
+    Parameters
+    ----------
+    values : iterable of str or str, optional
+        The values to concatenate.
+
+    Returns
+    -------
+    str or ``None``
+
+    """
+    if values is None:
+        return None
+
+    return values_list_to_string(values)
+
+
+def maybe_symbols_list_to_string(
+    symbols: Optional[Union[Iterable[str], str]],
+) -> Optional[str]:
+    """
+    Concatenate a symbols string or iterable of symbol strings (if not None).
+
+    Parameters
+    ----------
+    symbols : iterable of str or str, optional
         The symbols to concatenate.
 
     Returns
@@ -85,12 +131,12 @@ def maybe_symbols_list_to_string(
 
     """
     if symbols is None:
-        return None  # ALL
+        return None  # All symbols
 
     if isinstance(symbols, str):
-        return symbols.rstrip(",").upper()
-    if isinstance(symbols, (tuple, list)):
-        return ",".join(symbols).upper()
+        return symbols.strip().rstrip(",").upper()
+    elif isinstance(symbols, Iterable):
+        return ",".join(symbols).strip().upper()
     else:
         raise TypeError(f"invalid symbols type, was {type(symbols)}")
 

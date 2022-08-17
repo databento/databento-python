@@ -1,5 +1,6 @@
 from datetime import date
 
+import numpy as np
 import pandas as pd
 import pytest
 from databento.common.enums import Dataset, Flags
@@ -9,6 +10,7 @@ from databento.common.parsing import (
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
     maybe_symbols_list_to_string,
+    maybe_values_list_to_string,
     parse_flags,
 )
 
@@ -59,6 +61,35 @@ class TestParsing:
     ):
         # Arrange, Act, Assert
         assert maybe_enum_or_str_lowercase(value, "param") == expected
+
+    def test_maybe_values_list_to_string_given_invalid_input_raises_type_error(
+        self,
+    ) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            maybe_values_list_to_string(type)
+
+    @pytest.mark.parametrize(
+        "values, expected",
+        [
+            [None, None],
+            ["ABC,DEF", "abc,def"],
+            [" ABC, DEF ", "abc, def"],
+            [[" ABC", "DEF "], "abc,def"],
+            [np.asarray([" ABC", "DEF "]), "abc,def"],
+            [("1", "2"), "1,2"],
+        ],
+    )
+    def test_maybe_values_list_to_string_given_valid_inputs_returns_expected(
+        self,
+        values,
+        expected,
+    ) -> None:
+        # Arrange, Act
+        result = maybe_values_list_to_string(values)
+
+        # Assert
+        assert result == expected
 
     def test_maybe_symbols_list_to_string_given_invalid_input_raises_type_error(
         self,

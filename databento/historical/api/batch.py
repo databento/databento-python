@@ -12,7 +12,10 @@ from databento.common.enums import (
     Schema,
     SType,
 )
-from databento.common.parsing import maybe_datetime_to_string
+from databento.common.parsing import (
+    maybe_datetime_to_string,
+    maybe_values_list_to_string,
+)
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -47,7 +50,7 @@ class BatchHttpAPI(BentoHttpAPI):
         """
         Submit a time series batch data job to the Databento backend.
 
-        `POST /v0/batch.timeseries_submit` HTTP API endpoint.
+        Makes a `POST /batch.timeseries_submit` HTTP request.
 
         Parameters
         ----------
@@ -139,32 +142,35 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def list_jobs(
         self,
-        states: Optional[str] = "received,queued,processing,done",
+        states: Optional[Union[List[str], str]] = "received,queued,processing,done",
         since: Optional[Union[pd.Timestamp, date, str, int]] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Request all batch data jobs associated with the client access key with
-        the optional query filters.
+        List batch job details for the user account.
 
-        Makes a `GET /v0/batch.list_jobs` HTTP request.
+        The job details will be sorted in order of `ts_received`.
+
+        Makes a `GET /batch.list_jobs` HTTP request.
 
         Parameters
         ----------
-        states : str, optional {'received', 'queued', 'processing', 'done', 'expired'}
-            The comma separated job states to include in the response. If ``None``
-            will default to 'queued,processing,done' (may contain whitespace).
+        states : List[str] or str, optional {'received', 'queued', 'processing', 'done', 'expired'}  # noqa
+            The filter for jobs states as a list of comma separated values.
         since : pd.Timestamp or date or str or int, optional
-            The datetime to filter from.
+            The filter for timestamp submitted (will not include jobs prior to this).
 
         Returns
         -------
         List[Dict[str, Any]]
-            The matching jobs sorted in order of timestamp received.
+            The batch job details.
 
         """
+        states = maybe_values_list_to_string(states)
+        since = maybe_datetime_to_string(since)
+
         params: List[Tuple[str, str]] = [
             ("states", states),
-            ("since", maybe_datetime_to_string(since)),
+            ("since", since),
         ]
 
         return self._get(

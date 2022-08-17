@@ -9,6 +9,7 @@ from databento.common.parsing import (
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
     maybe_symbols_list_to_string,
+    values_list_to_string,
 )
 from databento.common.validation import validate_enum, validate_maybe_enum
 from databento.historical.api import API_VERSION
@@ -33,7 +34,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         List all available datasets from Databento.
 
-        Makes a `GET /v0/metadata.list_datasets` HTTP request.
+        Makes a `GET /metadata.list_datasets` HTTP request.
 
         Parameters
         ----------
@@ -82,7 +83,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         List all available data schemas from Databento.
 
-        Makes a `GET /v0/metadata.list_schemas` HTTP request.
+        Makes a `GET /metadata.list_schemas` HTTP request.
 
         Parameters
         ----------
@@ -124,7 +125,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         List all fields for a dataset, schema and encoding from Databento.
 
-        Makes a `GET /v0/metadata.list_fields` HTTP request.
+        Makes a `GET /metadata.list_fields` HTTP request.
 
         The `schema` and `encoding` parameters act as optional filters. All
         metadata for that parameter is returned if they are not specified.
@@ -168,7 +169,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         List all available data encodings from Databento.
 
-        Makes a `GET /v0/metadata.list_encodings` HTTP request.
+        Makes a `GET /metadata.list_encodings` HTTP request.
 
         Returns
         -------
@@ -185,7 +186,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         List all available data compression modes from Databento.
 
-        Makes a `GET /v0/metadata.list_compressions` HTTP request.
+        Makes a `GET /metadata.list_compressions` HTTP request.
 
         Returns
         -------
@@ -207,7 +208,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         List data schema prices per GB unit from Databento.
 
-        Makes a `GET /v0/metadata.list_unit_prices` HTTP request.
+        Makes a `GET /metadata.list_unit_prices` HTTP request.
 
         Parameters
         ----------
@@ -258,7 +259,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Get the shape of the time series data query.
 
-        Makes a GET `/v0/metadata.get_shape` HTTP request.
+        Makes a GET `/metadata.get_shape` HTTP request.
 
         Parameters
         ----------
@@ -337,7 +338,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Get the raw uncompressed binary size of a historical streaming or batch
         data request, which would be used for billing.
 
-        Makes a GET `/v0/metadata.get_billable_size` HTTP request.
+        Makes a GET `/metadata.get_billable_size` HTTP request.
 
         Parameters
         ----------
@@ -405,7 +406,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Get cost in US Dollars for a historical streaming or batch data request.
 
-        Makes a `GET /v0/metadata.get_cost` HTTP request.
+        Makes a `GET /metadata.get_cost` HTTP request.
 
         Parameters
         ----------
@@ -459,6 +460,45 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         response: Response = self._get(
             url=self._base_url + ".get_cost",
+            params=params,
+            basic_auth=True,
+        )
+
+        return response.json()
+
+    def get_license_fee(
+        self,
+        dataset: Union[Dataset, str],
+        purposes: Union[List[str], str],
+    ) -> int:
+        """
+        Get the license fee in US Dollars for a dataset and access purposes.
+
+        Makes a `GET /metadata.get_license_fee` HTTP request.
+
+        Parameters
+        ----------
+        dataset : Dataset or str
+            The dataset name for the request.
+        purposes : List[str] or str, {'professional trading', 'display usage', 'non-display usage', 'external redistribution', 'internal redistribution'}  # noqa
+            The licensing purposes.
+
+        Returns
+        -------
+        int
+            The license fee in US Dollars.
+
+        """
+        dataset = enum_or_str_lowercase(dataset, "dataset")
+        purposes = values_list_to_string(purposes)
+
+        params: List[Tuple[str, str]] = [
+            ("dataset", dataset),
+            ("purposes", purposes),
+        ]
+
+        response: Response = self._get(
+            url=self._base_url + ".get_license_fee",
             params=params,
             basic_auth=True,
         )

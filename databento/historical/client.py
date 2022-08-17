@@ -85,7 +85,7 @@ class Historical:
         """
         Request symbology resolution based on the metadata properties.
 
-        Makes a `GET /v0/symbology.resolve` HTTP request.
+        Makes a `GET /symbology.resolve` HTTP request.
 
         Current symbology mappings from the metadata are also available by
         calling the `.symbology` or `.mappings` properties.
@@ -118,7 +118,7 @@ class Historical:
         """
         Request full instrument definitions based on the metadata properties.
 
-        Makes a `GET /v0/timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.stream` HTTP request.
 
         Parameters
         ----------
