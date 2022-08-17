@@ -1,3 +1,4 @@
+import sys
 from datetime import date
 from json.decoder import JSONDecodeError
 from typing import Any, BinaryIO, List, Optional, Tuple, Union
@@ -15,6 +16,7 @@ from databento.common.parsing import (
     maybe_symbols_list_to_string,
 )
 from databento.historical.error import BentoClientError, BentoServerError
+from databento.version import __version__
 from requests import Response
 from requests.auth import HTTPBasicAuth
 
@@ -29,9 +31,12 @@ class BentoHttpAPI:
     TIMEOUT = 100
 
     def __init__(self, key: str, gateway: str):
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        user_agent = f"Databento/{__version__} Python/{python_version}"
+
         self._key = key
         self._gateway = gateway
-        self._headers = {"accept": "application/json"}
+        self._headers = {"accept": "application/json", "user-agent": user_agent}
 
     @staticmethod
     def _timeseries_params(

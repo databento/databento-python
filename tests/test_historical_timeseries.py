@@ -65,7 +65,11 @@ class TestHistoricalTimeSeries:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("symbols", "ESH1"),
@@ -101,7 +105,11 @@ class TestHistoricalTimeSeries:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("symbols", "ESH1"),

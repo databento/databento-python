@@ -84,7 +84,11 @@ class TestHistoricalClient:
             ("end_date", "2020-12-29"),
             ("default_value", ""),
         ]
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -118,6 +122,10 @@ class TestHistoricalClient:
             ("encoding", "dbz"),
             ("compression", "zstd"),
         ]
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

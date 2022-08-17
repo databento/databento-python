@@ -30,7 +30,11 @@ class TestHistoricalMetadata:
         )
         assert ("start_date", "2018-01-01") in call["params"]
         assert ("end_date", "2020-01-01") in call["params"]
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -54,7 +58,11 @@ class TestHistoricalMetadata:
         )
         assert ("start_date", "2018-01-01") in call["params"]
         assert ("end_date", "2021-01-01") in call["params"]
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -78,7 +86,11 @@ class TestHistoricalMetadata:
         )
         assert ("schema", "mbo") in call["params"]
         assert ("encoding", "dbz") in call["params"]
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -96,7 +108,11 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_encodings"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -114,7 +130,11 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_compressions"  # noqa
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -145,7 +165,11 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_unit_prices"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("mode", "live"),
@@ -175,7 +199,11 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_shape"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("symbols", "ESH1"),
@@ -210,7 +238,11 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_billable_size"  # noqa
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("symbols", "ESH1"),
@@ -245,7 +277,11 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_cost"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("symbols", "ESH1"),
@@ -277,7 +313,11 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_license_fee"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("purposes", "professional trading"),

@@ -74,7 +74,11 @@ class TestHistoricalBatch:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/batch.timeseries_submit"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
             ("symbols", "ESH1"),
@@ -107,7 +111,11 @@ class TestHistoricalBatch:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/batch.list_jobs"
         )
-        assert call["headers"] == {"accept": "application/json"}
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
         assert call["params"] == [
             ("states", "received,queued,processing,done"),
             ("since", "2022-01-01T00:00:00"),

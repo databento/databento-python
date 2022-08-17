@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 import os
 
+from databento.version import __version__
 from setuptools import find_packages, setup
 
 
 here = os.path.abspath(os.path.dirname(__file__))
 os.chdir(here)
 
-
-with open("VERSION") as f:
-    version = f.read()
 
 with open("README.md") as f:
     readme = f.read()
@@ -23,7 +21,7 @@ with open("requirements_dev.txt", "r") as f:
 
 setup(
     name="databento",
-    version=version,
+    version=__version__,
     description="Official Python client library for Databento",
     long_description=readme,
     long_description_content_type="text/x-rst",
