@@ -125,7 +125,7 @@ class Historical:
         data : Bento
             The bento to source the metadata from.
         path : str, optional
-            The optional path to stream the data to on disk.
+            The file path to write to on disk (if provided).
 
         Returns
         -------

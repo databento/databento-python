@@ -78,11 +78,12 @@ class BatchHttpAPI(BentoHttpAPI):
         delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
             The batch data delivery mechanism.
         stype_in : SType or str, default 'native'
-            The input symbol type to resolve from.
+            The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
-            The output symbol type to resolve to.
+            The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records for the request.
+            If ``None`` is passed then no limit.
 
         Returns
         -------

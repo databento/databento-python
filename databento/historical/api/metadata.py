@@ -31,7 +31,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
         """
-        List all datasets available from Databento.
+        List all available datasets from Databento.
 
         Makes a `GET /v0/metadata.list_datasets` HTTP request.
 
@@ -80,7 +80,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
         """
-        List all data schemas available from Databento.
+        List all available data schemas from Databento.
 
         Makes a `GET /v0/metadata.list_schemas` HTTP request.
 
@@ -166,7 +166,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_encodings(self) -> List[str]:
         """
-        List all data encodings available from Databento.
+        List all available data encodings from Databento.
 
         Makes a `GET /v0/metadata.list_encodings` HTTP request.
 
@@ -183,7 +183,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_compressions(self) -> List[str]:
         """
-        List all data compression modes available from Databento.
+        List all available data compression modes from Databento.
 
         Makes a `GET /v0/metadata.list_compressions` HTTP request.
 
@@ -279,13 +279,15 @@ class MetadataHttpAPI(BentoHttpAPI):
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
             The data encoding.
         stype_in : SType or str, default 'native'
-            The input symbol type to resolve from.
+            The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to include in the query.
+            If ``None`` is passed then no limit.
 
         Returns
         -------
         Tuple
+            The shape of the data expressed as size per dimension.
 
         """
         validate_enum(schema, Schema, "schema")
@@ -319,7 +321,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
 
         values = response.json()
-        return values[0], values[1]
+        return tuple(values)
 
     def get_billable_size(
         self,
@@ -354,9 +356,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
-            The input symbol type to resolve from.
+            The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to include in the query.
+            If ``None`` is passed then no limit.
 
         Returns
         -------
@@ -400,7 +403,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> float:
         """
-        Get the expected total cost of the data stream.
+        Get cost in US Dollars for a historical streaming or batch data request.
 
         Makes a `GET /v0/metadata.get_cost` HTTP request.
 
@@ -423,14 +426,15 @@ class MetadataHttpAPI(BentoHttpAPI):
             Assumes UTC as timezone unless passed a tz-aware object.
             If using an integer then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
-            The input symbol type to resolve from.
+            The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to include in the query.
+            If ``None`` is passed then no limit.
 
         Returns
         -------
         float
-            The cost for the data in US Dollars.
+            The cost in US Dollars.
 
         """
         validate_enum(mode, FeedMode, "mode")

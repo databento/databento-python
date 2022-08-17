@@ -101,7 +101,7 @@ class Delivery(Enum):
 
 @unique
 class SType(Enum):
-    """Represents a symbology symbol type."""
+    """Represents a symbology type."""
 
     PRODUCT_ID = "product_id"
     NATIVE = "native"

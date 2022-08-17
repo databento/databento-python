@@ -56,13 +56,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The end datetime (UTC) of the request time range (exclusive).
             If using an integer then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
-            The input symbol type to resolve from.
+            The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
-            The output symbol type to resolve to.
+            The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return.
+            If ``None`` is passed then no limit.
         path : str, optional
-            The path to the file to write to on disk (if provided).
+            The file path to write to on disk (if provided).
 
         Returns
         -------
@@ -154,8 +155,9 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return.
+            If ``None`` is passed then no limit.
         path : str, optional
-            The path to the file to write to (if provided).
+            The file path to write to on disk (if provided).
 
         Returns
         -------

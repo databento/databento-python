@@ -226,7 +226,7 @@ class Bento:
     @property
     def stype_in(self) -> SType:
         """
-        Return the query input symbol type for the data.
+        Return the query input symbology type for the data.
 
         Returns
         -------
@@ -242,7 +242,7 @@ class Bento:
     @property
     def stype_out(self) -> SType:
         """
-        Return the query output symbol type for the data.
+        Return the query output symbology type for the data.
 
         Returns
         -------
