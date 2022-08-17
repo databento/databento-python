@@ -48,7 +48,7 @@ class BatchHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Submit a time series batch data job to the Databento backend.
+        Request a new time series batch data job from Databento.
 
         Makes a `POST /batch.timeseries_submit` HTTP request.
 
@@ -92,6 +92,10 @@ class BatchHttpAPI(BentoHttpAPI):
         -------
         Dict[str, Any]
             The job info for submitted batch data request.
+
+        Warnings
+        --------
+        Calling this method will incur a cost.
 
         """
         if compression is None:
@@ -146,7 +150,7 @@ class BatchHttpAPI(BentoHttpAPI):
         since: Optional[Union[pd.Timestamp, date, str, int]] = None,
     ) -> List[Dict[str, Any]]:
         """
-        List batch job details for the user account.
+        Request all batch data job details for the user account.
 
         The job details will be sorted in order of `ts_received`.
 

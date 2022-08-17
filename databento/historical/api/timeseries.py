@@ -37,7 +37,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         path: Optional[str] = None,
     ) -> Bento:
         """
-        Request a historical time series stream from the Databento API servers.
+        Request a historical time series stream from Databento.
 
         Makes a `GET /timeseries.stream` HTTP request.
 
@@ -68,11 +68,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Returns
         -------
         Bento
-            If `path` provided then FileBento, otherwise MemoryBento.
+            If `path` provided then `FileBento`, otherwise `MemoryBento`.
 
         Notes
         -----
         The Databento Binary Encoding + Zstd Compression (DBZ) will be streamed.
+
+        Warnings
+        --------
+        Calling this method will incur a cost.
 
         """
         validate_enum(schema, Schema, "schema")
@@ -130,8 +134,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         path: str = None,
     ) -> Bento:
         """
-        Request a historical time series stream from the Databento API servers
-        asynchronously.
+        Request a historical time series stream from Databento asynchronously.
 
         Makes a `GET /timeseries.stream` HTTP request.
 
@@ -162,11 +165,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Returns
         -------
         Bento
-            If `path` provided then FileBento, otherwise MemoryBento.
+            If `path` provided then `FileBento`, otherwise `MemoryBento`.
 
         Notes
         -----
         The Databento Binary Encoding + Zstd Compression (DBZ) will be streamed.
+
+        Warnings
+        --------
+        Calling this method will incur a cost.
 
         """
         validate_enum(schema, Schema, "schema")

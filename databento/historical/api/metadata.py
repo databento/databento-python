@@ -32,7 +32,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
         """
-        List all available datasets from Databento.
+        Request all available datasets from Databento.
 
         Makes a `GET /metadata.list_datasets` HTTP request.
 
@@ -81,7 +81,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
         """
-        List all available data schemas from Databento.
+        Request all available data schemas from Databento.
 
         Makes a `GET /metadata.list_schemas` HTTP request.
 
@@ -123,7 +123,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         encoding: Optional[Union[Encoding, str]] = None,
     ) -> Dict[str, Dict]:
         """
-        List all fields for a dataset, schema and encoding from Databento.
+        Request all fields for a dataset, schema and encoding from Databento.
 
         Makes a `GET /metadata.list_fields` HTTP request.
 
@@ -167,7 +167,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_encodings(self) -> List[str]:
         """
-        List all available data encodings from Databento.
+        Request all available data encodings from Databento.
 
         Makes a `GET /metadata.list_encodings` HTTP request.
 
@@ -184,7 +184,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_compressions(self) -> List[str]:
         """
-        List all available data compression modes from Databento.
+        Request all available data compression modes from Databento.
 
         Makes a `GET /metadata.list_compressions` HTTP request.
 
@@ -206,7 +206,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Optional[Union[Schema, str]] = None,
     ) -> Dict[str, Any]:
         """
-        List data schema prices per GB unit from Databento.
+        Request data schema prices per GB unit from Databento.
 
         Makes a `GET /metadata.list_unit_prices` HTTP request.
 
@@ -257,7 +257,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> Tuple:
         """
-        Get the shape of the time series data query.
+        Request the shape of the time series data from Databento.
 
         Makes a GET `/metadata.get_shape` HTTP request.
 
@@ -335,8 +335,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> int:
         """
-        Get the raw uncompressed binary size of a historical streaming or batch
-        data request, which would be used for billing.
+        Request the billable uncompressed raw binary size for historical
+        streaming or batched files from Databento.
 
         Makes a GET `/metadata.get_billable_size` HTTP request.
 
@@ -404,7 +404,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> float:
         """
-        Get cost in US Dollars for a historical streaming or batch data request.
+        Request the cost in US Dollars for historical streaming or batched files
+        from Databento.
 
         Makes a `GET /metadata.get_cost` HTTP request.
 
@@ -472,7 +473,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         purposes: Union[List[str], str],
     ) -> int:
         """
-        Get the license fee in US Dollars for a dataset and access purposes.
+        Request the license fee in US Dollars for a dataset and access purposes
+        from Databento.
 
         Makes a `GET /metadata.get_license_fee` HTTP request.
 

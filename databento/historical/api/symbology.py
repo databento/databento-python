@@ -29,7 +29,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         default_value: Optional[str] = "",
     ):
         """
-        Request symbology resolution.
+        Request symbology mappings resolution from Databento.
 
         Makes a `GET /symbology.resolve` HTTP request.
 
