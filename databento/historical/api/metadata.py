@@ -9,7 +9,6 @@ from databento.common.parsing import (
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
     maybe_symbols_list_to_string,
-    values_list_to_string,
 )
 from databento.common.validation import validate_enum, validate_maybe_enum
 from databento.historical.api import API_VERSION
@@ -462,46 +461,6 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         response: Response = self._get(
             url=self._base_url + ".get_cost",
-            params=params,
-            basic_auth=True,
-        )
-
-        return response.json()
-
-    def get_license_fee(
-        self,
-        dataset: Union[Dataset, str],
-        purposes: Union[List[str], str],
-    ) -> int:
-        """
-        Request the license fee in US Dollars for a dataset and access purposes
-        from Databento.
-
-        Makes a `GET /metadata.get_license_fee` HTTP request.
-
-        Parameters
-        ----------
-        dataset : Dataset or str
-            The dataset name for the request.
-        purposes : List[str] or str, {'professional trading', 'display usage', 'non-display usage', 'external redistribution', 'internal redistribution'}  # noqa
-            The licensing purposes.
-
-        Returns
-        -------
-        int
-            The license fee in US Dollars.
-
-        """
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        purposes = values_list_to_string(purposes)
-
-        params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
-            ("purposes", purposes),
-        ]
-
-        response: Response = self._get(
-            url=self._base_url + ".get_license_fee",
             params=params,
             basic_auth=True,
         )

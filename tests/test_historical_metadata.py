@@ -295,32 +295,3 @@ class TestHistoricalMetadata:
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
-
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_license_fee_sends_expected_request(self, mocker) -> None:
-        # Arrange
-        mocked_get = mocker.patch("requests.get")
-
-        # Act
-        self.client.metadata.get_license_fee(
-            dataset="GLBX.MDP3",
-            purposes="professional trading",
-        )
-
-        # Assert
-        call = mocked_get.call_args.kwargs
-        assert (
-            call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_license_fee"
-        )
-        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
-        assert call["headers"]["accept"] == "application/json"
-        assert all(
-            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
-        )
-        assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
-            ("purposes", "professional trading"),
-        ]
-        assert call["timeout"] == (100, 100)
-        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

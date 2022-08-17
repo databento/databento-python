@@ -1,18 +1,13 @@
 import warnings
 from datetime import date
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.bento import Bento
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
-from databento.common.logging import log_debug
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
-from requests import Response
-
-
-_5GB = 1024**3 * 5
 
 
 class TimeSeriesHttpAPI(BentoHttpAPI):
@@ -107,7 +102,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             start=start,
             end=end,
             limit=limit,
-            params=params,
         )
 
         bento: Bento = self._create_bento(path=path)
@@ -204,7 +198,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             start=start,
             end=end,
             limit=limit,
-            params=params,
         )
 
         bento: Bento = self._create_bento(path=path)
@@ -225,44 +218,26 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         start: Optional[Union[pd.Timestamp, date, str, int]],
         end: Optional[Union[pd.Timestamp, date, str, int]],
         limit: Optional[int],
-        params: List[Tuple[str, Any]],
     ):
         if limit and limit < 10**7:
             return
 
+        # Use heuristics to check ballpark data size
         if (
             _is_large_data_size_schema(schema)
             or _is_greater_than_one_day(start, end)
             or _is_large_number_of_symbols(symbols)
         ):
-            params = params[:]  # copy
-            params.append(("mode", "historical-streaming"))
-            params.append(("instruments", str(len(symbols))))
-            log_debug(
-                "Checking estimated data size for potentially large streaming "
-                "request...",
+            warnings.warn(
+                "\nThe size of the current streaming request is estimated "
+                "to be 5 GB or greater. We recommend smaller "
+                "individual streaming request sizes, or alternatively "
+                "submit a batch data request."
+                "\nYou can check the uncompressed binary size of a request "
+                "through the metadata API (from the client library, or over "
+                "HTTP).\nThis warning can be suppressed "
+                "https://docs.python.org/3/library/warnings.html",
             )
-            response: Response = self._get(
-                url=self._gateway + f"/v{API_VERSION}/metadata.get_size_estimation",
-                params=params,
-                basic_auth=True,
-            )
-
-            size: int = response.json()["size"]
-            log_debug(
-                f"Requesting data stream for {size:,} bytes (binary uncompressed)...",
-            )
-            if size > _5GB:
-                warnings.warn(
-                    f"\nThe size of the current streaming request is estimated "
-                    f"to exceed 5GB ({_5GB:,} bytes). We recommend smaller "
-                    f"individual streaming request sizes, or alternatively "
-                    f"submit a batch data request."
-                    f"\nYou can check the uncompressed binary size of a request "
-                    f"through the metadata API (from the client library, or over "
-                    f"HTTP).\nThis warning can be suppressed "
-                    f"https://docs.python.org/3/library/warnings.html",
-                )
 
 
 def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]):
