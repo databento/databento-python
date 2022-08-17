@@ -204,9 +204,9 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Union[Dataset, str],
         mode: Optional[Union[FeedMode, str]] = None,
         schema: Optional[Union[Schema, str]] = None,
-    ) -> Dict[str, Any]:
+    ) -> Union[float, Dict[str, Any]]:
         """
-        Request data schema prices per GB unit from Databento.
+        List unit prices for each data schema in dollars per gigabyte.
 
         Makes a `GET /metadata.list_unit_prices` HTTP request.
 
@@ -221,8 +221,9 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Any]
-            A map of dataset to feed mode to unit price.
+        float or Dict[str, Any]
+            If both `mode` and `schema` are specified, the unit price is returned as a single number.
+            Otherwise, return a map of feed mode to schema to unit price.
 
         """
         validate_maybe_enum(schema, Schema, "schema")
