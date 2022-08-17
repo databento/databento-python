@@ -63,11 +63,11 @@ class BatchHttpAPI(BentoHttpAPI):
         start : pd.Timestamp or date or str or int, optional
             The start datetime of the request time range (inclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
             The data encoding.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
@@ -86,7 +86,7 @@ class BatchHttpAPI(BentoHttpAPI):
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records for the request.
-            If ``None`` is passed then no limit.
+            If ``None`` is passed, then no limit.
 
         Returns
         -------

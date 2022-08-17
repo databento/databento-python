@@ -51,17 +51,17 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The start datetime (UTC) of the request time range (inclusive).
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime (UTC) of the request time range (exclusive).
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return.
-            If ``None`` is passed then no limit.
+            If ``None`` is passed, then no limit.
         path : str, optional
             The file path to write to on disk (if provided).
 
@@ -148,17 +148,17 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The start datetime (UTC) of the request time range (inclusive).
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime (UTC) of the request time range (exclusive).
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return.
-            If ``None`` is passed then no limit.
+            If ``None`` is passed, then no limit.
         path : str, optional
             The file path to write to on disk (if provided).
 

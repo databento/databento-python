@@ -272,18 +272,18 @@ class MetadataHttpAPI(BentoHttpAPI):
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range.
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range.
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
             The data encoding.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to include in the query.
-            If ``None`` is passed then no limit.
+            If ``None`` is passed, then no limit.
 
         Returns
         -------
@@ -351,16 +351,16 @@ class MetadataHttpAPI(BentoHttpAPI):
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range.
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range.
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to include in the query.
-            If ``None`` is passed then no limit.
+            If ``None`` is passed, then no limit.
 
         Returns
         -------
@@ -422,16 +422,16 @@ class MetadataHttpAPI(BentoHttpAPI):
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range.
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range.
             Assumes UTC as timezone unless passed a tz-aware object.
-            If using an integer then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to include in the query.
-            If ``None`` is passed then no limit.
+            If ``None`` is passed, then no limit.
 
         Returns
         -------
