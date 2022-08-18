@@ -83,7 +83,7 @@ class Duration(Enum):
 
 @unique
 class Packaging(Enum):
-    """Represents the packaging method for batch data files."""
+    """Represents the packaging method for batched data files."""
 
     NONE = "none"
     ZIP = "zip"

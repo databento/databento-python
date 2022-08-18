@@ -41,7 +41,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
-            The symbols for the request. If ``None`` then will be for ALL symbols.
+            The symbols for the request. If ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
@@ -55,8 +55,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
-            The maximum number of records to return.
-            If ``None`` is passed, then no limit.
+            The maximum number of records to return. If ``None`` then no limit.
         path : str, optional
             The file path to write to on disk (if provided).
 
@@ -137,7 +136,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
-            The symbols for the request. If ``None`` then will be for ALL symbols.
+            The symbols for the request. If ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
@@ -151,8 +150,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
-            The maximum number of records to return.
-            If ``None`` is passed, then no limit.
+            The maximum number of records to return. If ``None`` then no limit.
         path : str, optional
             The file path to write to on disk (if provided).
 

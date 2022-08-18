@@ -266,7 +266,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
-            The symbols for the request. If ``None`` then will be for ALL symbols.
+            The symbols for the request. If ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
@@ -283,7 +283,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to include in the query.
-            If ``None`` is passed, then no limit.
+            If ``None`` then no limit.
 
         Returns
         -------
@@ -345,7 +345,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
-            The symbols for the request. If ``None`` then will be for ALL symbols.
+            The symbols for the request. If ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
@@ -359,8 +359,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
-            The maximum number of records to include in the query.
-            If ``None`` is passed, then no limit.
+            The maximum number of records to include in the query. If ``None`` then no limit.
 
         Returns
         -------
@@ -416,7 +415,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional
-            The symbols for the request. If ``None`` then will be for ALL symbols.
+            The symbols for the request. If ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
@@ -430,8 +429,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
-            The maximum number of records to include in the query.
-            If ``None`` is passed, then no limit.
+            The maximum number of records to include in the query. If ``None`` then no limit.
 
         Returns
         -------
