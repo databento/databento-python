@@ -302,7 +302,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         encoding = Encoding(encoding)
         stype_in = SType(stype_in)
 
-        # Build params list
         params: List[Tuple[str, str]] = [
             ("dataset", dataset),
             ("symbols", symbols),
@@ -376,10 +375,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         params: List[Tuple[str, str]] = super()._timeseries_params(
             dataset=dataset,
             symbols=symbols,
-            schema=Schema(schema),
+            schema=schema,
             start=start,
             end=end,
-            stype_in=SType(stype_in),
+            stype_in=stype_in,
             limit=limit,
         )
 

@@ -56,7 +56,6 @@ class BentoHttpAPI:
         start = maybe_datetime_to_string(start)
         end = maybe_datetime_to_string(end)
 
-        # Build params list
         params: List[Tuple[str, Any]] = [
             ("dataset", dataset),
             ("symbols", symbols),
