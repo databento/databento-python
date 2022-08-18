@@ -270,12 +270,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range.
-            Assumes UTC as timezone unless passed a tz-aware object.
+            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range.
-            Assumes UTC as timezone unless passed a tz-aware object.
+            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
             The data encoding.
@@ -348,12 +346,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range.
-            Assumes UTC as timezone unless passed a tz-aware object.
+            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range.
-            Assumes UTC as timezone unless passed a tz-aware object.
+            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
@@ -418,12 +414,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range.
-            Assumes UTC as timezone unless passed a tz-aware object.
+            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range.
-            Assumes UTC as timezone unless passed a tz-aware object.
+            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
