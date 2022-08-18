@@ -16,22 +16,6 @@ class MetadataDecoder:
     """
     Provides a decoder for Databento metadata headers.
 
-    Fixed query and shape metadata
-    ------------------------------
-    version       UInt8       1   1
-    dataset       Char[16]   16   17
-    schema        UInt8       1   18
-    stype_in      UInt8       1   19
-    stype_out     UInt8       1   20
-    start         UInt64      8   28
-    end           UInt64      8   36
-    limit         UInt64      8   44
-    encoding      UInt8       1   45
-    compression   UInt8       1   46
-    nrows         UInt64      8   54
-    ncols         UInt16      2   56
-    padding       x          40   96
-
     References
     ----------
     https://github.com/facebook/zstd/wiki

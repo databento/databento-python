@@ -5,7 +5,12 @@ from typing import Any, BinaryIO, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import DBZ_COLUMNS, DBZ_STRUCT_MAP, DERIV_SCHEMAS
+from databento.common.data import (
+    CSV_HEADERS,
+    DBZ_COLUMNS,
+    DBZ_STRUCT_MAP,
+    DERIV_SCHEMAS,
+)
 from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.metadata import MetadataDecoder
@@ -28,9 +33,7 @@ class Bento:
         self._limit: Optional[int] = None
         self._encoding: Optional[Encoding] = None
         self._compression: Optional[Compression] = None
-        self._shape: Optional[Tuple[int, int]] = None
-        self._rows: Optional[int] = None
-        self._cols: Optional[int] = None
+        self._shape: Optional[Tuple] = None
 
     def _check_metadata(self) -> None:
         if not self._metadata:
@@ -344,19 +347,26 @@ class Bento:
         return self._compression
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> Tuple:
         """
         Return the shape of the data.
 
         Returns
         -------
-        Tuple[int, int]
-            The rows and columns.
+        Tuple
+            The data shape.
 
         """
         if self._shape is None:
             self._check_metadata()
-            self._shape = (self._metadata["nrows"], self._metadata["ncols"])
+            if self.encoding == Encoding.DBZ:
+                ncols = len(DBZ_STRUCT_MAP[self.schema])
+            else:
+                ncols = len(CSV_HEADERS[self.schema])
+            self._shape = (
+                self._metadata["record_count"],
+                ncols,
+            )
 
         return self._shape
 

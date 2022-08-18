@@ -36,6 +36,7 @@ class TestBento:
         with pytest.raises(RuntimeError):
             data.dataset
 
+    @pytest.mark.skip(reason="skip until dbz-lib is integrated")
     def test_sources_metadata_returns_expected_json_as_dict(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
@@ -57,8 +58,7 @@ class TestBento:
             "limit": 2,
             "encoding": "dbz",
             "compression": "zstd",
-            "nrows": 2,
-            "ncols": 14,
+            "record_count": 2,
             "symbols": ["ESH1"],
             "status": 0,
             "partial": [],
@@ -70,6 +70,7 @@ class TestBento:
         }
         assert data.metadata == metadata
 
+    @pytest.mark.skip(reason="skip until dbz-lib is integrated")
     def test_bento_given_initial_nbytes_returns_expected_metadata(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
