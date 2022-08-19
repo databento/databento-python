@@ -35,6 +35,9 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Makes a `GET /metadata.list_datasets` HTTP request.
 
+        Use this method to list the _names_ of all available datasets, so you
+        can use other methods which take the `dataset` parameter.
+
         Parameters
         ----------
         start_date : date or str, optional
@@ -45,17 +48,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         Returns
         -------
         List[str]
-
-        Notes
-        -----
-        We use dataset names in the form `PUBLISHER.DATASET` for each dataset,
-        where each publisher is represented by a 4 character code, which is
-        usually its ISO 10383 [Market Identifier Code (MIC)](https://www.iso20022.org/market-identifier-codes).  # noqa
-        These dataset names are also found on the [Explore]() and [Quick Download]()
-        features of the Databento user portal.
-
-        Use this method to list the _names_ of all available datasets, so you can use
-        other methods which take the `dataset` parameter.
 
         """
         start_date = maybe_date_to_string(start_date)
