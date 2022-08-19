@@ -33,12 +33,12 @@ class BentoHttpError(BentoError):
         self.http_status = http_status
         self.http_body = http_body
         self.json_body = json_body
-        self._message = message
+        self.message = message
         self.headers = headers or {}
         self.request_id = self.headers.get("request-id", None)
 
     def __str__(self):
-        msg = self._message or "<empty message>"
+        msg = self.message or "<empty message>"
         msg = f"{self.http_status} {msg}"
         if self.request_id is not None:
             return f"Request {self.request_id}: {msg}"
@@ -50,7 +50,7 @@ class BentoHttpError(BentoError):
             f"{type(self).__name__}("
             f"request_id={self.request_id}, "
             f"http_status={self.http_status}, "
-            f"message={self._message})"
+            f"message={self.message})"
         )
 
 
