@@ -64,7 +64,7 @@ class TestBento:
             "partial": [],
             "not_found": [],
             "mappings": {
-                "ESH1": [{"t0": "2020-12-28", "t1": "2020-12-29", "s": "5482"}]
+                "ESH1": [{"d0": "2020-12-28", "d1": "2020-12-29", "s": "5482"}]
             },
             "definitions": {},
         }
@@ -112,14 +112,14 @@ class TestBento:
         assert data.compression == Compression.ZSTD
         assert data.shape == (2, 14)
         assert data.mappings == {
-            "ESH1": [{"s": "5482", "t0": "2020-12-28", "t1": "2020-12-29"}]
+            "ESH1": [{"s": "5482", "d0": "2020-12-28", "d1": "2020-12-29"}]
         }
         assert data.symbology == {
             "start_date": "2020-12-28",
             "message": "OK",
             "not_found": [],
             "partial": [],
-            "result": {"ESH1": [{"s": "5482", "t0": "2020-12-28", "t1": "2020-12-29"}]},
+            "result": {"ESH1": [{"s": "5482", "d0": "2020-12-28", "d1": "2020-12-29"}]},
             "status": 0,
             "stype_in": "native",
             "stype_out": "product_id",

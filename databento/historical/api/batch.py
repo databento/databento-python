@@ -57,7 +57,9 @@ class BatchHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset name for the request.
         symbols : List[Union[str, int]] or str, optional
-            The symbols for the request. If ``None`` then will be for **all** symbols.
+            The product symbols to filter for. Takes up to 10,000 symbols per request.
+            If more than 1 symbol is specified, the data is merged and sorted by time.
+            If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
