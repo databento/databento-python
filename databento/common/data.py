@@ -39,13 +39,13 @@ OHLCV_SCHEMAS = (
 DBZ_COMMON_HEADER: List[Tuple[str, Union[type, str]]] = [
     ("nwords", np.uint8),
     ("type", np.uint8),
-    ("dataset_id", np.uint16),
+    ("publisher_id", np.uint16),
     ("product_id", np.uint32),
     ("ts_event", np.uint64),
 ]
 
 
-DBZ_DERIV_TMUP: List[Tuple[str, Union[type, str]]] = [
+DBZ_MBP_MSG: List[Tuple[str, Union[type, str]]] = [
     ("price", np.int64),
     ("size", np.uint32),
     ("action", "S1"),  # 1 byte chararray
@@ -58,7 +58,7 @@ DBZ_DERIV_TMUP: List[Tuple[str, Union[type, str]]] = [
 ]
 
 
-DBZ_DERIV_OHLCV: List[Tuple[str, Union[type, str]]] = [
+DBZ_OHLCV_MSG: List[Tuple[str, Union[type, str]]] = [
     ("open", np.int64),
     ("high", np.int64),
     ("low", np.int64),
@@ -81,9 +81,9 @@ DBZ_STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("ts_in_delta", np.int32),
         ("sequence", np.uint32),
     ],
-    Schema.MBP_1: DBZ_COMMON_HEADER + DBZ_DERIV_TMUP + get_deriv_ba_types(0),  # 1
+    Schema.MBP_1: DBZ_COMMON_HEADER + DBZ_MBP_MSG + get_deriv_ba_types(0),  # 1
     Schema.MBP_10: DBZ_COMMON_HEADER
-    + DBZ_DERIV_TMUP
+    + DBZ_MBP_MSG
     + get_deriv_ba_types(0)  # 1
     + get_deriv_ba_types(1)  # 2
     + get_deriv_ba_types(2)  # 3
@@ -94,12 +94,12 @@ DBZ_STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     + get_deriv_ba_types(7)  # 8
     + get_deriv_ba_types(8)  # 9
     + get_deriv_ba_types(9),  # 10
-    Schema.TBBO: DBZ_COMMON_HEADER + DBZ_DERIV_TMUP + get_deriv_ba_types(0),
-    Schema.TRADES: DBZ_COMMON_HEADER + DBZ_DERIV_TMUP,
-    Schema.OHLCV_1S: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
-    Schema.OHLCV_1M: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
-    Schema.OHLCV_1H: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
-    Schema.OHLCV_1D: DBZ_COMMON_HEADER + DBZ_DERIV_OHLCV,
+    Schema.TBBO: DBZ_COMMON_HEADER + DBZ_MBP_MSG + get_deriv_ba_types(0),
+    Schema.TRADES: DBZ_COMMON_HEADER + DBZ_MBP_MSG,
+    Schema.OHLCV_1S: DBZ_COMMON_HEADER + DBZ_OHLCV_MSG,
+    Schema.OHLCV_1M: DBZ_COMMON_HEADER + DBZ_OHLCV_MSG,
+    Schema.OHLCV_1H: DBZ_COMMON_HEADER + DBZ_OHLCV_MSG,
+    Schema.OHLCV_1D: DBZ_COMMON_HEADER + DBZ_OHLCV_MSG,
     Schema.STATUS: DBZ_COMMON_HEADER
     + [
         ("ts_recv", np.uint64),
@@ -194,7 +194,7 @@ def get_deriv_ba_fields(level: int) -> List[str]:
 DBZ_DERIV_HEADER_FIELDS = [
     "ts_event",
     "ts_in_delta",
-    "dataset_id",
+    "publisher_id",
     "product_id",
     "action",
     "side",
@@ -208,7 +208,7 @@ DBZ_COLUMNS = {
     Schema.MBO: [
         "ts_event",
         "ts_in_delta",
-        "dataset_id",
+        "publisher_id",
         "product_id",
         "order_id",
         "action",
@@ -239,12 +239,12 @@ DBZ_COLUMNS = {
 # CSV headers
 ################################################################################
 
-CSV_DERIV_HEADER = b"ts_recv,ts_event,ts_in_delta,dataset_id,product_id,action,side,flags,price,size,sequence"  # noqa
-CSV_OHLCV_HEADER = b"ts_event,dataset_id,product_id,open,high,low,close,volume"
+CSV_DERIV_HEADER = b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,action,side,flags,price,size,sequence"  # noqa
+CSV_OHLCV_HEADER = b"ts_event,publisher_id,product_id,open,high,low,close,volume"
 
 
 CSV_HEADERS = {
-    Schema.MBO: b"ts_recv,ts_event,ts_in_delta,dataset_id,product_id,order_id,action,side,flags,price,size,sequence",  # noqa
+    Schema.MBO: b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,order_id,action,side,flags,price,size,sequence",  # noqa
     Schema.MBP_1: CSV_DERIV_HEADER + b"," + ",".join(get_deriv_ba_fields(0)).encode(),
     Schema.MBP_10: CSV_DERIV_HEADER
     + b","
