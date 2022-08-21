@@ -12,6 +12,28 @@ class TestHistoricalMetadata:
         self.client = db.Historical(key=key)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_list_publishers_sends_expected_request(self, mocker) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+
+        # Act
+        self.client.metadata.list_publishers()
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_publishers"
+        )
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_datasets_sends_expected_request(self, mocker) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")

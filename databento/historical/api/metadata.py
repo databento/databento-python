@@ -25,6 +25,25 @@ class MetadataHttpAPI(BentoHttpAPI):
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/metadata"
 
+    def list_publishers(self) -> Dict[str, int]:
+        """
+        Request all publishers from Databento.
+
+        Makes a `GET /metadata.list_publishers` HTTP request.
+
+        Use this method to list the mappings of publisher names to publisher IDs.
+
+        Returns
+        -------
+        Dict[str, int]
+
+        """
+        response: Response = self._get(
+            url=self._base_url + ".list_publishers",
+            basic_auth=True,
+        )
+        return response.json()
+
     def list_datasets(
         self,
         start_date: Optional[Union[date, str]] = None,
