@@ -7,7 +7,7 @@ from databento.common.enums import SType
 if __name__ == "__main__":
     db.log = "debug"  # optional debug logging
 
-    key = "YOUR_ACCESS_KEY"
+    key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
     response = client.symbology.resolve(

@@ -4,7 +4,7 @@ import databento as db
 if __name__ == "__main__":
     db.log = "debug"  # optional debug logging
 
-    key = "YOUR_ACCESS_KEY"
+    key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
     print(client.metadata.list_publishers())

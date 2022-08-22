@@ -8,7 +8,7 @@ from databento import Bento
 async def request_stream_async():
     db.log = "debug"  # optional debug logging
 
-    key = "YOUR_ACCESS_KEY"
+    key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
     data: Bento = await client.timeseries.stream_async(

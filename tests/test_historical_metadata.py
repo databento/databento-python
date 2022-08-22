@@ -8,7 +8,7 @@ from databento.common.enums import Dataset, FeedMode, Schema
 
 class TestHistoricalMetadata:
     def setup(self) -> None:
-        key = "DUMMY_ACCESS_KEY"
+        key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")

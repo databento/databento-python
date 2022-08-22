@@ -78,11 +78,11 @@ class BentoHttpAPI:
         else:
             return FileBento(path=path)
 
-    def _check_access_key(self):
-        if self._key == "YOUR_ACCESS_KEY":
+    def _check_api_key(self):
+        if self._key == "YOUR_API_KEY":
             raise ValueError(
-                "The access key is currently set to 'YOUR_ACCESS_KEY'. "
-                "Please replace this value with a valid access key. "
+                "The API key is currently set to 'YOUR_API_KEY'. "
+                "Please replace this value with a valid API key. "
                 "You can find these through your Databento user portal.",
             )
 
@@ -92,7 +92,7 @@ class BentoHttpAPI:
         params: Optional[List[Tuple[str, str]]] = None,
         basic_auth: bool = False,
     ) -> Response:
-        self._check_access_key()
+        self._check_api_key()
 
         with requests.get(
             url=url,
@@ -112,7 +112,7 @@ class BentoHttpAPI:
         params: Optional[List[Tuple[str, str]]] = None,
         basic_auth: bool = False,
     ) -> ClientResponse:
-        self._check_access_key()
+        self._check_api_key()
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 url=url,
@@ -132,7 +132,7 @@ class BentoHttpAPI:
         params: Optional[List[Tuple[str, str]]] = None,
         basic_auth: bool = False,
     ) -> Response:
-        self._check_access_key()
+        self._check_api_key()
 
         with requests.post(
             url=url,
@@ -153,7 +153,7 @@ class BentoHttpAPI:
         basic_auth: bool,
         bento: Bento,
     ) -> None:
-        self._check_access_key()
+        self._check_api_key()
 
         with requests.get(
             url=url,
@@ -189,7 +189,7 @@ class BentoHttpAPI:
         basic_auth: bool,
         bento: Bento,
     ) -> None:
-        self._check_access_key()
+        self._check_api_key()
 
         async with aiohttp.ClientSession() as session:
             async with session.get(

@@ -11,17 +11,17 @@ from tests.fixtures import get_test_data_path
 class TestHistoricalClient:
     def test_key_returns_expected(self) -> None:
         # Arrange
-        key = "DUMMY_ACCESS_KEY"
+        key = "DUMMY_API_KEY"
 
         # Act
         client = db.Historical(key=key)
 
         # Assert
-        assert client.key == "DUMMY_ACCESS_KEY"
+        assert client.key == "DUMMY_API_KEY"
 
     def test_default_host_returns_expected(self) -> None:
         # Arrange, Act
-        self.client = db.Historical(key="DUMMY_ACCESS_KEY")
+        self.client = db.Historical(key="DUMMY_API_KEY")
 
         # Assert
         assert self.client.gateway == "https://hist.databento.com"
@@ -41,7 +41,7 @@ class TestHistoricalClient:
         expected,
     ):
         # Arrange, Act
-        client = db.Historical(key="DUMMY_ACCESS_KEY", gateway=gateway)
+        client = db.Historical(key="DUMMY_API_KEY", gateway=gateway)
 
         # Assert
         assert client.gateway == expected
@@ -51,7 +51,7 @@ class TestHistoricalClient:
         ny4_gateway = "ny4.databento.com"
 
         # Act
-        client = db.Historical(key="DUMMY_ACCESS_KEY", gateway=ny4_gateway)
+        client = db.Historical(key="DUMMY_API_KEY", gateway=ny4_gateway)
 
         # Assert
         assert client.gateway == ny4_gateway
@@ -64,7 +64,7 @@ class TestHistoricalClient:
         test_data_path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=test_data_path)
 
-        client = Historical(key="DUMMY_ACCESS_KEY")
+        client = Historical(key="DUMMY_API_KEY")
 
         # Act
         client.request_symbology(data)
@@ -100,7 +100,7 @@ class TestHistoricalClient:
         test_data_path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=test_data_path)
 
-        client = Historical(key="DUMMY_ACCESS_KEY")
+        client = Historical(key="DUMMY_API_KEY")
 
         # Act
         client.request_full_definitions(data)

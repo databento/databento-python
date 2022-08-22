@@ -42,17 +42,17 @@ To install the latest stable version of the package from PyPI:
     pip install -U databento
 
 ## Usage
-The library needs to be configured with an access key from your account.
+The library needs to be configured with an API key from your account.
 [Sign up](https://databento.com/signup) for free and you will automatically
-receive a set of access keys to start with. Each access key is a 28-character
-string that can be found on the Access Keys page of your [Databento user portal](https://databento.com/platform/keys).
+receive a set of API keys to start with. Each API key is a 28-character
+string that can be found on the API Keys page of your [Databento user portal](https://databento.com/platform/keys).
 
 A simple Databento application looks like this:
 
 ```python
 import databento as db
 
-client = db.Historical('YOUR_ACCESS_KEY')
+client = db.Historical('YOUR_API_KEY')
 data = client.timeseries.stream(
     dataset='GLBX.MDP3',
     start='2020-11-02T14:30',
@@ -61,7 +61,7 @@ data = client.timeseries.stream(
 data.replay(callback=print)    # market replay, with `print` as event handler
 ```
 
-Replace `YOUR_ACCESS_KEY` with an actual access key, then run this program.
+Replace `YOUR_API_KEY` with an actual API key, then run this program.
 
 This uses `.replay()` to access the entire block of data
 and dispatch each data event to an event handler. You can also use
@@ -72,15 +72,15 @@ df = data.to_df(pretty_ts=True, pretty_px=True)  # to DataFrame, with pretty for
 array = data.to_ndarray()                        # to ndarray
 ```
 
-Note that the access key was also passed as a parameter, which is
-[not recommended for production applications](https://docs0.databento.com/knowledge-base/new-users/securing-your-access-keys?historical=python&live=python).
-Instead, you can leave out this parameter to pass your access key via the `DATABENTO_ACCESS_KEY` environment variable:
+Note that the API key was also passed as a parameter, which is
+[not recommended for production applications](https://docs0.databento.com/knowledge-base/new-users/securing-your-api-keys?historical=python&live=python).
+Instead, you can leave out this parameter to pass your API key via the `DATABENTO_API_KEY` environment variable:
 
 ```python
 import databento as db
 
-client = db.Historical('YOUR_ACCESS_KEY')   # pass as parameter
-client = db.Historical()                    # pass as `DATABENTO_ACCESS_KEY` environment variable
+client = db.Historical('YOUR_API_KEY')  # pass as parameter
+client = db.Historical()                # pass as `DATABENTO_API_KEY` environment variable
 ```
 
 ## License

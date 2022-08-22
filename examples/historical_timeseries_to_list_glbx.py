@@ -7,7 +7,7 @@ from databento import Bento
 if __name__ == "__main__":
     db.log = "debug"  # optional debug logging
 
-    key = "YOUR_ACCESS_KEY"
+    key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
     data: Bento = client.timeseries.stream(

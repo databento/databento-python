@@ -7,7 +7,7 @@ import requests
 
 class TestHistoricalTimeSeries:
     def setup(self) -> None:
-        key = "DUMMY_ACCESS_KEY"
+        key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
     def test_stream_given_invalid_schema_raises_error(self) -> None:

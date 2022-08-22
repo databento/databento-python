@@ -4,7 +4,7 @@ from databento.common.enums import Schema
 
 
 if __name__ == "__main__":
-    key = ""  # <-- Change to valid access key prior to running
+    key = ""  # <-- Change to valid API key prior to running
     client = db.Historical(key=key)
 
     for schema in Schema:
