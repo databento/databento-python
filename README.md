@@ -65,11 +65,11 @@ Replace `YOUR_ACCESS_KEY` with an actual access key, then run this program.
 
 This uses `.replay()` to access the entire block of data
 and dispatch each data event to an event handler. You can also use
-`.to_df()` or `.to_list()` to cast the data into a Pandas DataFrame or list:
+`.to_df()` or `.to_ndarray()` to cast the data into a Pandas `DataFrame` or numpy `ndarray`:
 
 ```python
 df = data.to_df(pretty_ts=True, pretty_px=True)  # to DataFrame, with pretty formatting
-array = data.to_ndarray()                        # to array
+array = data.to_ndarray()                        # to ndarray
 ```
 
 Note that the access key was also passed as a parameter, which is
