@@ -75,13 +75,14 @@ class BatchHttpAPI(BentoHttpAPI):
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
             The data compression mode.
         split_duration : Duration or str {'day', 'week', 'month', 'none'}, default 'day'
-            The time duration split per data file ('week' starts on Sunday UTC).
+            The maximum time duration before batched data is split into multiple files.
+            A week starts on Sunday UTC.
         split_size : int, optional
-            The maximum size of each data file on disk before being split.
+            The maximum size (bytes) of each batched data file before being split.
         packaging : Packaging or str {'none', 'zip', 'tar'}, default 'none'
-            The packaging method for batched data files.
+            The archive type to package all batched data files in.
         delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
-            The batch data delivery mechanism.
+            The delivery mechanism for the processed batched data files.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
