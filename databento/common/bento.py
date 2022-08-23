@@ -113,7 +113,7 @@ class Bento:
 
     def writer(self) -> BinaryIO:
         """
-        Return a raw I/O writer for the data.
+        Return an I/O writer for the data.
 
         Returns
         -------
@@ -124,6 +124,14 @@ class Bento:
 
     @property
     def nbytes(self) -> int:
+        """
+        Return the size of the data in bytes.
+
+        Returns
+        -------
+        int
+
+        """
         raise NotImplementedError()  # pragma: no cover
 
     @property
@@ -181,7 +189,7 @@ class Bento:
     @property
     def dataset(self) -> str:
         """
-        Return the dataset name.
+        Return the dataset code.
 
         Returns
         -------
@@ -317,7 +325,7 @@ class Bento:
     @property
     def encoding(self) -> Encoding:
         """
-        Return the encoding for the data.
+        Return the data encoding.
 
         Returns
         -------
@@ -333,7 +341,7 @@ class Bento:
     @property
     def compression(self) -> Compression:
         """
-        Return the compression mode for the data.
+        Return the data compression mode.
 
         Returns
         -------
@@ -441,11 +449,11 @@ class Bento:
         Parameters
         ----------
         pretty_ts : bool, default False
-            If the type of any timestamp columns should be converted from UNIX
-            nanosecond `int` to `pd.Timestamp` (UTC).
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to `pd.Timestamp` tz-aware (UTC).
         pretty_px : bool, default False
-            If the type of any price columns should be converted from `int` to
-            `float` at the correct scale (using the fixed precision scalar 1e-9).
+            If all price columns should be converted from `int` to `float` at
+            the correct scale (using the fixed precision scalar 1e-9).
 
         Returns
         -------
@@ -598,7 +606,7 @@ class Bento:
 
 class MemoryBento(Bento):
     """
-    Provides a data container backed by in-memory buffer streaming I/O.
+    Provides data streaming I/O operations backed by an in-memory buffer.
 
     Parameters
     ----------
@@ -613,15 +621,6 @@ class MemoryBento(Bento):
 
     @property
     def nbytes(self) -> int:
-        """
-        Return the amount of space in bytes that the data array would use in a
-        contiguous representation.
-
-        Returns
-        -------
-        int
-
-        """
         return self._buffer.getbuffer().nbytes
 
     @property
@@ -641,7 +640,7 @@ class MemoryBento(Bento):
 
 class FileBento(Bento):
     """
-    Provides a data container backed by file streaming I/O.
+    Provides data streaming I/O operations backed by a file on disk.
 
     Parameters
     ----------
@@ -668,14 +667,6 @@ class FileBento(Bento):
 
     @property
     def nbytes(self) -> int:
-        """
-        Return the amount of space occupied by the data.
-
-        Returns
-        -------
-        int
-
-        """
         return os.path.getsize(self._path)
 
     @property
