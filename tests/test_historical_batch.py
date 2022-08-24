@@ -10,10 +10,10 @@ class TestHistoricalBatch:
         key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
-    def test_batch_timeseries_submit_given_invalid_schema_raises_error(self) -> None:
+    def test_batch_submit_job_given_invalid_schema_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.batch.timeseries_submit(
+            self.client.batch.submit_job(
                 dataset="GLBX.MDP3",
                 symbols=["ES"],
                 schema="ticks",  # <--- invalid
@@ -22,10 +22,10 @@ class TestHistoricalBatch:
                 encoding="csv",
             )
 
-    def test_batch_timeseries_submit_given_invalid_encoding_raises_error(self) -> None:
+    def test_batch_submit_job_given_invalid_encoding_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.batch.timeseries_submit(
+            self.client.batch.submit_job(
                 dataset="GLBX.MDP3",
                 symbols=["ES"],
                 schema="mbo",
@@ -34,10 +34,10 @@ class TestHistoricalBatch:
                 encoding="gzip",  # <--- invalid
             )
 
-    def test_batch_timeseries_submit_given_invalid_stype_in_raises_error(self) -> None:
+    def test_batch_submit_job_given_invalid_stype_in_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.batch.timeseries_submit(
+            self.client.batch.submit_job(
                 dataset="GLBX.MDP3",
                 symbols="ESH1",
                 schema="mbo",
@@ -49,12 +49,12 @@ class TestHistoricalBatch:
             )
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_batch_timeseries_submit_sends_expected_request(self, mocker) -> None:
+    def test_batch_submit_job_sends_expected_request(self, mocker) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.post")
 
         # Act
-        self.client.batch.timeseries_submit(
+        self.client.batch.submit_job(
             dataset="GLBX.MDP3",
             symbols="ESH1",
             schema="trades",
@@ -72,7 +72,7 @@ class TestHistoricalBatch:
         call = mocked_get.call_args.kwargs
         assert (
             call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/batch.timeseries_submit"
+            == f"https://hist.databento.com/v{db.API_VERSION}/batch.submit_job"
         )
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"

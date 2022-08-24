@@ -30,7 +30,7 @@ class BatchHttpAPI(BentoHttpAPI):
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/batch"
 
-    def timeseries_submit(
+    def submit_job(
         self,
         dataset: Union[Dataset, str],
         symbols: Optional[Union[List[str], str]] = None,
@@ -48,9 +48,9 @@ class BatchHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Request a new time series batch data job from Databento.
+        Request a new time series data batch job from Databento.
 
-        Makes a `POST /batch.timeseries_submit` HTTP request.
+        Makes a `POST /batch.submit_job` HTTP request.
 
         Parameters
         ----------
@@ -141,7 +141,7 @@ class BatchHttpAPI(BentoHttpAPI):
             params.append(("split_size", str(split_size)))
 
         return self._post(
-            url=self._base_url + ".timeseries_submit",
+            url=self._base_url + ".submit_job",
             params=params,
             basic_auth=True,
         ).json()
@@ -152,7 +152,7 @@ class BatchHttpAPI(BentoHttpAPI):
         since: Optional[Union[pd.Timestamp, date, str, int]] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Request all batch data job details for the user account.
+        Request all batch job details for the user account.
 
         The job details will be sorted in order of `ts_received`.
 

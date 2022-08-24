@@ -32,7 +32,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         path: Optional[str] = None,
     ) -> Bento:
         """
-        Request a historical time series stream from Databento.
+        Request a historical time series data stream from Databento.
 
         Makes a `GET /timeseries.stream` HTTP request.
 
@@ -129,7 +129,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         path: Optional[str] = None,
     ) -> Bento:
         """
-        Request a historical time series stream from Databento asynchronously.
+        Request a historical time series data stream from Databento asynchronously.
 
         Makes a `GET /timeseries.stream` HTTP request.
 

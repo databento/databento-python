@@ -9,7 +9,7 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    response = client.batch.timeseries_submit(
+    response = client.batch.submit_job(
         dataset="GLBX.MDP3",
         symbols=["ESH1"],
         schema="mbo",
