@@ -55,7 +55,7 @@ class BatchHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code (string identifier) for the request.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 10,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.

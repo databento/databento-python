@@ -98,7 +98,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code (string identifier) for the request.
         start_date : date or str, optional
             The start date (UTC) for the request range.
         end_date : date or str, optional
@@ -143,7 +143,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code (string identifier) for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
             The data record schema for the request.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
@@ -223,7 +223,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code for the request.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, optional
             The data feed mode for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
@@ -275,7 +275,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code for the request.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 10,000 symbols per request.
             If `*` or ``None`` then will be for **all** symbols.
@@ -352,7 +352,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code for the request.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 10,000 symbols per request.
             If `*` or ``None`` then will be for **all** symbols.
@@ -419,7 +419,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code for the request.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional

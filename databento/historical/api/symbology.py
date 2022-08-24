@@ -36,7 +36,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         dataset : Dataset or str
-            The dataset name for the request.
+            The dataset code (string identifier) for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols to resolve. Takes up to 10,000 symbols per request.
             If `*` or ``None`` then will be for **all** symbols.

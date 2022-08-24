@@ -30,7 +30,7 @@ class FeedMode(Enum):
 
 @unique
 class Dataset(Enum):
-    """Represents a dataset name (string identifier)."""
+    """Represents a dataset code (string identifier)."""
 
     GLBX_MDP3 = "GLBX.MDP3"
     XNAS_ITCH = "XNAS.ITCH"
