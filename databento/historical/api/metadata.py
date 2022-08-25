@@ -277,7 +277,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code for the request.
         symbols : List[Union[str, int]] or str, optional
-            The product symbols to filter for. Takes up to 10,000 symbols per request.
+            The product symbols to filter for. Takes up to 2,000 symbols per request.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
@@ -354,7 +354,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code for the request.
         symbols : List[Union[str, int]] or str, optional
-            The product symbols to filter for. Takes up to 10,000 symbols per request.
+            The product symbols to filter for. Takes up to 2,000 symbols per request.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
@@ -423,7 +423,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional
-            The product symbols to filter for. Takes up to 10,000 symbols per request.
+            The product symbols to filter for. Takes up to 2,000 symbols per request.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
