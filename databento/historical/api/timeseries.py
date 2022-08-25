@@ -95,7 +95,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         )
 
         params.append(("encoding", Encoding.DBZ.value))  # Always requests DBZ
-        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
 
         self._pre_check_data_size(
             symbols=symbols,

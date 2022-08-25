@@ -120,7 +120,6 @@ class TestHistoricalClient:
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("encoding", "dbz"),
-            ("compression", "zstd"),
         ]
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"

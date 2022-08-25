@@ -33,12 +33,12 @@ class BatchHttpAPI(BentoHttpAPI):
     def submit_job(
         self,
         dataset: Union[Dataset, str],
+        schema: Union[Schema, str],
         symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
         start: Optional[Union[pd.Timestamp, date, str, int]] = None,
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "dbz",
-        compression: Optional[Union[Compression, str]] = "zstd",
+        compression: Optional[Union[Compression, str]] = None,
         split_duration: Union[Duration, str] = "day",
         split_size: Optional[int] = None,
         packaging: Union[Packaging, str] = "none",
@@ -72,8 +72,9 @@ class BatchHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
             The data encoding.
-        compression : Compression or str {'none', 'zstd'}, default 'zstd'
+        compression : Compression or str {'none', 'zstd'}, optional
             The data compression mode.
+            If encoding is 'dbz' then specifying a `compression` is invalid (already zstd compressed).
         split_duration : Duration or str {'day', 'week', 'month', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
             A week starts on Sunday UTC.
