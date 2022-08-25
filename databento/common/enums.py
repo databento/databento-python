@@ -65,7 +65,7 @@ class Encoding(Enum):
 
 @unique
 class Compression(Enum):
-    """Represents a data compression mode."""
+    """Represents a data compression format (if any)."""
 
     NONE = "none"
     ZSTD = "zstd"

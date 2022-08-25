@@ -341,7 +341,7 @@ class Bento:
     @property
     def compression(self) -> Compression:
         """
-        Return the data compression mode.
+        Return the data compression format (if any).
 
         Returns
         -------

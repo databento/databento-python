@@ -73,7 +73,7 @@ class BatchHttpAPI(BentoHttpAPI):
         encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
             The data encoding.
         compression : Compression or str {'none', 'zstd'}, optional
-            The data compression mode.
+            The data compression format (if any).
             If encoding is 'dbz' then specifying a `compression` is invalid (already zstd compressed).
         split_duration : Duration or str {'day', 'week', 'month', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
