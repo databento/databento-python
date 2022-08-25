@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
+from typing import Any, Dict
 
-from databento.version import __version__
 from setuptools import find_packages, setup
 
 
@@ -12,6 +12,13 @@ os.chdir(here)
 with open("README.md") as f:
     readme = f.read()
 
+# Option 3 for single-sourcing version information, via
+# https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
+with open("databento/version.py") as f:
+    version_globals: Dict[str, Any] = {}
+    exec(f.read(), version_globals)
+    version = version_globals["__version__"]
+
 with open("requirements.txt", "r") as f:
     install_requires = f.read().splitlines(keepends=False)
 
@@ -21,14 +28,14 @@ with open("requirements_dev.txt", "r") as f:
 
 setup(
     name="databento",
-    version=__version__,
+    version=version,
     description="Official Python client library for Databento",
     long_description=readme,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     author="Databento",
     author_email="support@databento.com",
     url="https://github.com/databento/databento-python",
-    license="MIT",
+    license="Apache License 2.0",
     keywords="databento financial data API",
     packages=find_packages(exclude=["tests", "examples"]),
     zip_safe=False,
@@ -42,7 +49,7 @@ setup(
     },
     classifiers=[
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.7",
