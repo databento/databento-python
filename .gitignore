@@ -60,5 +60,4 @@ venv.bak/
 !.vscode/extensions.json
 
 # Allow Jupyter tutorials
-!notebooks/quickstart.ipynb
-
+!notebooks/*
