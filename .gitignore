@@ -61,3 +61,4 @@ venv.bak/
 
 # Allow Jupyter tutorials
 !notebooks/quickstart.ipynb
+
