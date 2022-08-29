@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 
 from databento.common.parsing import int_to_compression, int_to_schema, int_to_stype
 from dbz_lib import decode_metadata
@@ -10,7 +10,7 @@ class MetadataDecoder:
     """
 
     @staticmethod
-    def decode_to_json(raw_metadata: bytes) -> dict[str, Any]:
+    def decode_to_json(raw_metadata: bytes) -> Dict[str, Any]:
         """
         Decode the given metadata into a JSON object (as a Python dict).
 
@@ -21,7 +21,7 @@ class MetadataDecoder:
 
         Returns
         -------
-        dict[str, Any]
+        Dict[str, Any]
 
         """
 
