@@ -1,4 +1,5 @@
 aiohttp>=3.7.2
+dbz-lib>=0.1.1
 numpy>=1.17.0
 pandas>=1.1.3
 requests>=2.24.0

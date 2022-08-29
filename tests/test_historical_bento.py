@@ -1,3 +1,4 @@
+import datetime as dt
 import os
 import sys
 from pathlib import Path
@@ -36,7 +37,6 @@ class TestBento:
         with pytest.raises(RuntimeError):
             data.dataset
 
-    @pytest.mark.skip(reason="skip until dbz-lib is integrated")
     def test_sources_metadata_returns_expected_json_as_dict(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
@@ -56,21 +56,23 @@ class TestBento:
             "start": 1609160400000000000,
             "end": 1609200000000000000,
             "limit": 2,
-            "encoding": "dbz",
             "compression": "zstd",
             "record_count": 2,
             "symbols": ["ESH1"],
-            "status": 0,
             "partial": [],
             "not_found": [],
             "mappings": {
-                "ESH1": [{"d0": "2020-12-28", "d1": "2020-12-29", "s": "5482"}]
+                "ESH1": [
+                    {
+                        "start_date": dt.date(2020, 12, 28),
+                        "end_date": dt.date(2020, 12, 29),
+                        "symbol": "5482",
+                    },
+                ]
             },
-            "definitions": {},
         }
         assert data.metadata == metadata
 
-    @pytest.mark.skip(reason="skip until dbz-lib is integrated")
     def test_bento_given_initial_nbytes_returns_expected_metadata(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
@@ -99,7 +101,7 @@ class TestBento:
             ]
         )
         assert data.struct_size == 56
-        assert data.nbytes == 322
+        assert data.nbytes == 245
         assert data.dataset == "GLBX.MDP3"
         assert data.schema == Schema.MBO
         assert data.symbols == ["ESH1"]
@@ -108,18 +110,31 @@ class TestBento:
         assert data.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
         assert data.end == pd.Timestamp("2020-12-29 00:00:00+0000", tz="UTC")
         assert data.limit == 2
-        assert data.encoding == Encoding.DBZ
         assert data.compression == Compression.ZSTD
-        assert data.shape == (2, 14)
+        assert data.shape == (2, 15)
         assert data.mappings == {
-            "ESH1": [{"s": "5482", "d0": "2020-12-28", "d1": "2020-12-29"}]
+            "ESH1": [
+                {
+                    "symbol": "5482",
+                    "start_date": dt.date(2020, 12, 28),
+                    "end_date": dt.date(2020, 12, 29),
+                },
+            ]
         }
         assert data.symbology == {
             "start_date": "2020-12-28",
             "message": "OK",
             "not_found": [],
             "partial": [],
-            "result": {"ESH1": [{"s": "5482", "d0": "2020-12-28", "d1": "2020-12-29"}]},
+            "result": {
+                "ESH1": [
+                    {
+                        "symbol": "5482",
+                        "start_date": dt.date(2020, 12, 28),
+                        "end_date": dt.date(2020, 12, 29),
+                    },
+                ]
+            },
             "status": 0,
             "stype_in": "native",
             "stype_out": "product_id",
@@ -134,7 +149,7 @@ class TestBento:
 
         # Assert
         assert data.dataset == "GLBX.MDP3"
-        assert data.nbytes == 322
+        assert data.nbytes == 245
 
     def test_to_file_persists_to_disk(self) -> None:
         # Arrange
@@ -148,7 +163,7 @@ class TestBento:
 
         # Assert
         assert os.path.isfile(path)
-        assert os.path.getsize(path) == 322
+        assert os.path.getsize(path) == 245
 
         # Cleanup
         os.remove(path)
@@ -165,7 +180,7 @@ class TestBento:
         assert isinstance(array, np.ndarray)
         assert (
             str(array)
-            == "[(14, 160, 1, 5482, 1609160400000429831, 647784973705, 372275000000000, 1, -128, 0, b'A', b'C', 1609160400000704060, 22993, 1170352)\n (14, 160, 1, 5482, 1609160400000431665, 647784973631, 372300000000000, 1, -128, 0, b'A', b'C', 1609160400000711344, 19621, 1170353)]"  # noqa
+            == "[(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)\n (14, 160, 1, 5482, 1609160400000431665, 647784973631, 3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, 19621, 1170353)]"  # noqa
         )
 
     def test_replay_with_stub_data_record_passes_to_callback(self) -> None:
@@ -181,7 +196,7 @@ class TestBento:
         # Assert
         assert (
             str(handler[0])
-            == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, 372275000000000, 1, -128, 0, b'A', b'C', 1609160400000704060, 22993, 1170352)"  # noqa
+            == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)"  # noqa
         )
 
     @pytest.mark.parametrize(
@@ -227,9 +242,9 @@ class TestBento:
         assert df.iloc[0].publisher_id == 1
         assert df.iloc[0].product_id == 5482
         assert df.iloc[0].order_id == 647784973705
-        assert df.iloc[0].action == "A"  # TODO(cs): Invalid until data regenerated
-        assert df.iloc[0].side == "C"  # TODO(cs): Invalid until data regenerated
-        assert df.iloc[0].price == 372275000000000
+        assert df.iloc[0].action == "C"
+        assert df.iloc[0].side == "A"
+        assert df.iloc[0].price == 3722750000000
         assert df.iloc[0].size == 11
         assert df.iloc[0].sequence == 1170352
 
@@ -348,7 +363,6 @@ class TestBento:
 
         # Assert
         assert data.schema == expected_schema
-        assert data.encoding == expected_encoding
         assert data.compression == expected_compression
 
     def test_to_csv_writes_expected_file_to_disk(self) -> None:
@@ -367,8 +381,8 @@ class TestBento:
         expected = (
             b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,order_id,action,side,flags,pr"  # noqa
             b"ice,size,sequence\n1609160400000704060,1609160400000429831,22993,1,5482,6"  # noqa
-            b"47784973705,A,C,128,372275000000000,1,1170352\n1609160400000711344,160916"  # noqa
-            b"0400000431665,19621,1,5482,647784973631,A,C,128,372300000000000,1,1170353\n"  # noqa
+            b"47784973705,C,A,128,3722750000000,1,1170352\n1609160400000711344,160916"  # noqa
+            b"0400000431665,19621,1,5482,647784973631,C,A,128,3723000000000,1,1170353\n"  # noqa
         )
         if sys.platform == "win32":
             expected = expected.replace(b"\n", b"\r\n")
@@ -392,10 +406,10 @@ class TestBento:
         assert os.path.isfile(path)
         assert written == (
             b'{"ts_event":1609160400000429831,"ts_in_delta":22993,"publisher_id":1,"product_id":'  # noqa
-            b'5482,"order_id":647784973705,"action":"A","side":"C","flags":128,"price":372'  # noqa
-            b'275000000000,"size":1,"sequence":1170352}\n{"ts_event":160916040000043166'  # noqa
+            b'5482,"order_id":647784973705,"action":"C","side":"A","flags":128,"price":372'  # noqa
+            b'2750000000,"size":1,"sequence":1170352}\n{"ts_event":160916040000043166'  # noqa
             b'5,"ts_in_delta":19621,"publisher_id":1,"product_id":5482,"order_id":647784973631,"'  # noqa
-            b'action":"A","side":"C","flags":128,"price":372300000000000,"size":1,"sequenc'  # noqa
+            b'action":"C","side":"A","flags":128,"price":3723000000000,"size":1,"sequenc'  # noqa
             b'e":1170353}\n'
         )
 

@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.bento import Bento
-from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
+from databento.common.enums import Dataset, Encoding, Schema, SType
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -191,7 +191,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         )
 
         params.append(("encoding", Encoding.DBZ.value))  # Always requests DBZ
-        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
 
         self._pre_check_data_size(
             symbols=symbols,

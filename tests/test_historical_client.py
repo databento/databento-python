@@ -61,13 +61,13 @@ class TestHistoricalClient:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
-        test_data_path = get_test_data_path(schema=Schema.MBO)
-        data = FileBento(path=test_data_path)
-
         client = Historical(key="DUMMY_API_KEY")
 
+        test_data_path = get_test_data_path(schema=Schema.MBO)
+        bento = FileBento(path=test_data_path)
+
         # Act
-        client.request_symbology(data)
+        bento.request_symbology(client)
 
         # Assert
         call = mocked_get.call_args.kwargs
@@ -97,13 +97,13 @@ class TestHistoricalClient:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
-        test_data_path = get_test_data_path(schema=Schema.MBO)
-        data = FileBento(path=test_data_path)
-
         client = Historical(key="DUMMY_API_KEY")
 
+        test_data_path = get_test_data_path(schema=Schema.MBO)
+        bento = FileBento(path=test_data_path)
+
         # Act
-        client.request_full_definitions(data)
+        bento.request_full_definitions(client)
 
         # Assert
         call = mocked_get.call_args.kwargs

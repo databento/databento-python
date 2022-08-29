@@ -5,12 +5,7 @@ from typing import Any, BinaryIO, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import (
-    CSV_HEADERS,
-    DBZ_COLUMNS,
-    DBZ_STRUCT_MAP,
-    DERIV_SCHEMAS,
-)
+from databento.common.data import DBZ_COLUMNS, DBZ_STRUCT_MAP, DERIV_SCHEMAS
 from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.metadata import MetadataDecoder
@@ -65,19 +60,18 @@ class Bento:
         """
         log_debug("Decoding metadata...")
         metadata_initial: bytes = self.reader().read(8)
-
-        if not metadata_initial.startswith(b"Q*M\x18"):
-            return {}
-
         magic_bin = metadata_initial[:4]
         frame_size_bin = metadata_initial[4:]
+
+        if not metadata_initial.startswith(b"P*M\x18"):
+            return {}
 
         metadata_magic = int.from_bytes(bytes=magic_bin, byteorder="little")
         metadata_frame_size = int.from_bytes(bytes=frame_size_bin, byteorder="little")
         log_debug(f"magic={metadata_magic}, frame_size={metadata_frame_size}")
 
         metadata_raw = self.reader().read(8 + metadata_frame_size)
-        return MetadataDecoder.decode_to_json(metadata_raw[8:])
+        return MetadataDecoder.decode_to_json(metadata_raw)
 
     def set_metadata(self, metadata: Dict[str, Any]) -> None:
         """
@@ -323,22 +317,6 @@ class Bento:
         return self._limit
 
     @property
-    def encoding(self) -> Encoding:
-        """
-        Return the data encoding.
-
-        Returns
-        -------
-        Encoding
-
-        """
-        if self._encoding is None:
-            self._check_metadata()
-            self._encoding = Encoding(self._metadata["encoding"])
-
-        return self._encoding
-
-    @property
     def compression(self) -> Compression:
         """
         Return the data compression format (if any).
@@ -367,13 +345,9 @@ class Bento:
         """
         if self._shape is None:
             self._check_metadata()
-            if self.encoding == Encoding.DBZ:
-                ncols = len(DBZ_STRUCT_MAP[self.schema])
-            else:
-                ncols = len(CSV_HEADERS[self.schema])
             self._shape = (
                 self._metadata["record_count"],
-                ncols,
+                len(DBZ_STRUCT_MAP[self.schema]),
             )
 
         return self._shape
@@ -395,10 +369,7 @@ class Bento:
     @property
     def symbology(self) -> Dict[str, Any]:
         """
-        Return the symbology resolution response information for the query.
-
-        This JSON representable object should exactly match a `symbology.resolve`
-        request using the same query parameters.
+        Return the symbology resolution information for the query.
 
         Returns
         -------
@@ -407,10 +378,12 @@ class Bento:
         """
         self._check_metadata()
 
-        status = self._metadata["status"]
-        if status == 1:
+        status = 0
+        if self._metadata["partial"]:
+            status = 1
             message = "Partially resolved"
-        elif status == 2:
+        elif self._metadata["not_found"]:
+            status = 2
             message = "Not found"
         else:
             message = "OK"
@@ -602,6 +575,72 @@ class Bento:
 
         """
         self.to_df().to_json(path, orient="records", lines=True)
+
+    def request_symbology(self, client) -> Dict[str, Dict[str, Any]]:
+        """
+        Request symbology resolution based on the metadata properties.
+
+        Makes a `GET /symbology.resolve` HTTP request.
+
+        Current symbology mappings from the metadata are also available by
+        calling the `.symbology` or `.mappings` properties.
+
+        Parameters
+        ----------
+        client : Historical
+            The historical client to use for the request.
+
+        Returns
+        -------
+        Dict[str, Dict[str, Any]]
+            A map of input symbol to output symbol across the date range.
+
+        """
+        return client.symbology.resolve(
+            dataset=self.dataset,
+            symbols=self.symbols,
+            stype_in=self.stype_in,
+            stype_out=self.stype_out,
+            start_date=self.start.date(),
+            end_date=self.end.date(),
+        )
+
+    def request_full_definitions(
+        self,
+        client,
+        path: Optional[str] = None,
+    ) -> "Bento":
+        """
+        Request full instrument definitions based on the metadata properties.
+
+        Makes a `GET /timeseries.stream` HTTP request.
+
+        Parameters
+        ----------
+        client : Historical
+            The historical client to use for the request.
+        path : str, optional
+            The file path to write to on disk (if provided).
+
+        Returns
+        -------
+        Bento
+
+        Warnings
+        --------
+        Calling this method will incur a cost.
+
+        """
+        return client.timeseries.stream(
+            dataset=self.dataset,
+            symbols=self.symbols,
+            schema=Schema.DEFINITION,
+            start=self.start,
+            end=self.end,
+            stype_in=self.stype_in,
+            stype_out=self.stype_out,
+            path=path,
+        )
 
 
 class MemoryBento(Bento):
