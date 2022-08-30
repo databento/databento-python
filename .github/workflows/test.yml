@@ -5,8 +5,6 @@ name: test
 on:
   push:
     branches: [ main, dev ]
-  pull_request:
-    branches: [ main, dev ]
 
 jobs:
   test:
@@ -41,11 +39,3 @@ jobs:
       # Run tests
       - name: Run tests
         run: pytest tests .
-
-      # Upload coverage report to codecov
-#      - name: Upload coverage report
-#        uses: codecov/codecov-action@v1
-#        with:
-#          token: ${{ secrets.CODECOV_TOKEN }}
-#          file: ./coverage.xml
-#          verbose: true

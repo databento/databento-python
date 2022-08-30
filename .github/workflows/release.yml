@@ -112,7 +112,11 @@ jobs:
 
       # Publish to PyPI
       - name: Publish to PyPI
-        run: python twine upload -r databento -u ${{ secrets.PYPI_USERNAME }} - p ${{ secrets.PYPI_TOKEN }}
+        id: publish-to-pypi
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: twine upload dist/*
 
   publish-wheels:
     needs: [ tag-release ]
@@ -169,4 +173,8 @@ jobs:
 
       # Publish to PyPI
       - name: Publish to PyPI
-        run: python twine upload -r databento -u ${{ secrets.PYPI_USERNAME }} - p ${{ secrets.PYPI_TOKEN }}
+        id: publish-to-pypi
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: twine upload dist/*
