@@ -59,7 +59,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If ``None`` then no limit.
         path : str, optional
-            The file path to write to on disk (if provided).
+            The path to stream the data to on disk (will then return a `FileBento`).
 
         Returns
         -------
@@ -155,7 +155,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If ``None`` then no limit.
         path : str, optional
-            The file path to write to on disk (if provided).
+            The path to stream the data to on disk (will then return a `FileBento`).
 
         Returns
         -------

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.enums import SType
@@ -27,7 +27,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         start_date: Union[date, str],
         end_date: Union[date, str],
         default_value: Optional[str] = "",
-    ):
+    ) -> Dict[str, Any]:
         """
         Request symbology mappings resolution from Databento.
 
@@ -53,8 +53,9 @@ class SymbologyHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Dict[str, Any]]
-            A map of input symbol to output symbol across the date range.
+        Dict[str, Any]
+            A result including a map of input symbol to output symbol across a
+            date range.
 
         """
         dataset = enum_or_str_lowercase(dataset, "dataset")

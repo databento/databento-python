@@ -576,7 +576,7 @@ class Bento:
         """
         self.to_df().to_json(path, orient="records", lines=True)
 
-    def request_symbology(self, client) -> Dict[str, Dict[str, Any]]:
+    def request_symbology(self, client) -> Dict[str, Any]:
         """
         Request symbology resolution based on the metadata properties.
 
@@ -592,8 +592,9 @@ class Bento:
 
         Returns
         -------
-        Dict[str, Dict[str, Any]]
-            A map of input symbol to output symbol across the date range.
+        Dict[str, Any]
+            A result including a map of input symbol to output symbol across a
+            date range.
 
         """
         return client.symbology.resolve(
@@ -618,9 +619,9 @@ class Bento:
         Parameters
         ----------
         client : Historical
-            The historical client to use for the request.
+            The historical client to use for the request (contains the API key).
         path : str, optional
-            The file path to write to on disk (if provided).
+            The path to stream the data to on disk (will then return a `FileBento`).
 
         Returns
         -------
