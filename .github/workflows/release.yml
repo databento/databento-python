@@ -11,9 +11,9 @@ on:
       - completed
 
 jobs:
-
   tag-release:
-    name: tag-release - Python 3.9 (ubuntu-latest)
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: tag-release - Python 3.10 (ubuntu-latest)
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.create-release.outputs.upload_url }}
@@ -27,7 +27,7 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       # Install dependencies
       - name: Install dependencies
@@ -40,14 +40,14 @@ jobs:
       - name: Create git tag
         uses: salsify/action-detect-and-tag-new-version@v2
         with:
-          version-command: cat VERSION
+          version-command: python setup.py --version
 
       # Set release output variables
       - name: Set output
         id: vars
         run: |
-          echo "::set-output name=tag_name::v$(cat VERSION)"
-          echo "::set-output name=release_name::$(cat VERSION)"
+          echo "::set-output name=tag_name::v$(python setup.py --version)"
+          echo "::set-output name=release_name::$(python setup.py --version)"
 
       # Create GitHub release
       - name: Create release
@@ -63,7 +63,7 @@ jobs:
           draft: false
           prerelease: false
 
-  publish:
+  publish-sdist:
     needs: [ tag-release ]
     name: publish-sdist - Python 3.9 (ubuntu-latest)
     runs-on: ubuntu-latest
@@ -75,11 +75,14 @@ jobs:
       - name: Set up Python environment
         uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       # Install release dependencies
       - name: Install release dependencies
-        run: python -m pip install --upgrade pip setuptools wheel twine
+        run: |
+          python -m pip install --upgrade pip setuptools wheel twine
+          pip install -r requirements.txt
+          pip install -r requirements_dev.txt
 
       # Set release output variables
       - name: Set output
@@ -91,7 +94,64 @@ jobs:
 
       # Create distributions
       - name: Package for release
-        run: python setup.py sdist bdist_wheel
+        run: python setup.py sdist
+
+      # Upload release asset
+      - name: Upload release asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ASSET_PATH: ${{ steps.vars.outputs.asset_path }}
+          ASSET_NAME: ${{ steps.vars.outputs.asset_name }}
+        with:
+          upload_url: ${{ needs.tag-release.outputs.upload_url }}
+          asset_path: ${{ env.ASSET_PATH }}
+          asset_name: ${{ env.ASSET_NAME }}
+          asset_content_type: application/zip
+
+      # Publish to PyPI
+      - name: Publish to PyPI
+        run: python twine upload -r databento -u ${{ secrets.PYPI_USERNAME }} - p ${{ secrets.PYPI_TOKEN }}
+
+  publish-wheels:
+    needs: [ tag-release ]
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ x86 ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+    name: publish-wheels - Python ${{ matrix.python-version }} (${{ matrix.arch }} ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Python setup
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Install release dependencies
+      - name: Install release dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel twine
+          pip install -r requirements.txt
+          pip install -r requirements_dev.txt
+
+      # Set release output variables
+      - name: Set output
+        id: vars
+        run: |
+          echo "::set-output name=asset_path::$(find ./dist -mindepth 1 -print -quit)"
+          cd dist
+          echo "::set-output name=asset_name::$(printf '%s\0' * | awk 'BEGIN{RS="\0"} {print;  exit}')"
+
+      # Create distributions
+      - name: Package for release
+        run: python setup.py bdist_wheel
 
       # Upload release asset
       - name: Upload release asset
