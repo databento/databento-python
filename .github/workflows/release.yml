@@ -84,6 +84,10 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements_dev.txt
 
+      # Create distribution
+      - name: Package for release
+        run: python setup.py sdist
+
       # Set release output variables
       - name: Set output
         id: vars
@@ -91,10 +95,6 @@ jobs:
           echo "::set-output name=asset_path::$(find ./dist -mindepth 1 -print -quit)"
           cd dist
           echo "::set-output name=asset_name::$(printf '%s\0' * | awk 'BEGIN{RS="\0"} {print;  exit}')"
-
-      # Create distributions
-      - name: Package for release
-        run: python setup.py sdist
 
       # Upload release asset
       - name: Upload release asset
@@ -141,6 +141,10 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements_dev.txt
 
+      # Create distribution
+      - name: Package for release
+        run: python setup.py bdist_wheel
+
       # Set release output variables
       - name: Set output
         id: vars
@@ -148,10 +152,6 @@ jobs:
           echo "::set-output name=asset_path::$(find ./dist -mindepth 1 -print -quit)"
           cd dist
           echo "::set-output name=asset_name::$(printf '%s\0' * | awk 'BEGIN{RS="\0"} {print;  exit}')"
-
-      # Create distributions
-      - name: Package for release
-        run: python setup.py bdist_wheel
 
       # Upload release asset
       - name: Upload release asset
