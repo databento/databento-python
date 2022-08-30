@@ -19,7 +19,7 @@ jobs:
       upload_url: ${{ steps.create-release.outputs.upload_url }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 2
 
@@ -65,11 +65,11 @@ jobs:
 
   publish-sdist:
     needs: [ tag-release ]
-    name: publish-sdist - Python 3.9 (ubuntu-latest)
+    name: publish-sdist - Python 3.10 (ubuntu-latest)
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Python setup
       - name: Set up Python environment
@@ -118,25 +118,19 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: twine upload dist/*
 
-  publish-wheels:
+  publish-wheel:
     needs: [ tag-release ]
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [ x86 ]
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
-    name: publish-wheels - Python ${{ matrix.python-version }} (${{ matrix.arch }} ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: publish-wheel - Python 3.10 (ubuntu-latest)
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # Python setup
       - name: Set up Python environment
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.10"
 
       # Install release dependencies
       - name: Install release dependencies
