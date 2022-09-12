@@ -9,10 +9,10 @@ if __name__ == "__main__":
 
     size: int = client.metadata.get_billable_size(
         dataset="GLBX.MDP3",
-        symbols=["ESH1"],
+        symbols=["ESM2"],
         schema="mbo",
-        start="2020-12-28T12:00",
-        end="2020-12-29",
+        start="2022-06-10T12:00",
+        end="2022-06-10T14:00",
     )
 
     print(size)
