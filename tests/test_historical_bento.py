@@ -73,6 +73,20 @@ class TestBento:
         }
         assert data.metadata == metadata
 
+    def test_build_product_id_index(self) -> None:
+        # Arrange
+        stub_data = get_test_data(schema=Schema.MBO)
+        data = MemoryBento(initial_bytes=stub_data)
+
+        metadata = data.source_metadata()
+        data.set_metadata(metadata)
+
+        # Act
+        product_id_index = data._build_product_id_index()
+
+        # Assert
+        assert product_id_index == {dt.date(2020, 12, 28): {5482: "ESH1"}}
+
     def test_bento_given_initial_nbytes_returns_expected_metadata(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
@@ -122,11 +136,14 @@ class TestBento:
             ]
         }
         assert data.symbology == {
+            "symbols": ["ESH1"],
+            "stype_in": "native",
+            "stype_out": "product_id",
             "start_date": "2020-12-28",
-            "message": "OK",
+            "end_date": "2020-12-29",
             "not_found": [],
             "partial": [],
-            "result": {
+            "mappings": {
                 "ESH1": [
                     {
                         "symbol": "5482",
@@ -135,11 +152,6 @@ class TestBento:
                     },
                 ]
             },
-            "status": 0,
-            "stype_in": "native",
-            "stype_out": "product_id",
-            "symbols": ["ESH1"],
-            "end_date": "2020-12-29",
         }
 
     def test_file_bento_given_valid_path_initialized_expected_data(self) -> None:

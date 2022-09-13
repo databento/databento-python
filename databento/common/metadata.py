@@ -37,6 +37,8 @@ class MetadataDecoder:
             "stype_in": enum_value(int_to_stype),
             "stype_out": enum_value(int_to_stype),
         }
+
         for key, conv_fn in conversion_mapping.items():
             metadata[key] = conv_fn(metadata[key])
+
         return metadata
