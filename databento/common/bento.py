@@ -678,7 +678,8 @@ class Bento:
             for ts in pd.date_range(
                 start=interval.start_date,
                 end=interval.end_date,
-                inclusive="left",
+                # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
+                **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
             ):
                 d: dt.date = ts.date()
                 date_map: Dict[int, str] = product_id_index.get(d, {})
