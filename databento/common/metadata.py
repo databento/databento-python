@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from databento.common.parsing import int_to_compression, int_to_schema, int_to_stype
-from dbz_lib import decode_metadata
+from dbz_python import decode_metadata
 
 
 class MetadataDecoder:
