@@ -7,22 +7,12 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    cost1: float = client.metadata.get_cost(
+    cost: float = client.metadata.get_cost(
         dataset="GLBX.MDP3",
-        symbols="*",
+        symbols="ESM2",
         schema="mbo",
-        start="2020-12-27T12:00",
-        end="2020-12-29",
+        start="2022-06-10",
+        end="2022-06-15",
     )
 
-    print(cost1)
-
-    cost2: float = client.metadata.get_cost(
-        dataset="XNAS.ITCH",
-        symbols=["MSFT"],
-        schema="trades",
-        start="2015-04-22",
-        end="2015-04-22T12:10",
-    )
-
-    print(cost2)
+    print(cost)

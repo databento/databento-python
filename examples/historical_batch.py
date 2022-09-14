@@ -11,10 +11,11 @@ if __name__ == "__main__":
 
     response = client.batch.submit_job(
         dataset="GLBX.MDP3",
-        symbols=["ESH1"],
+        symbols=["ESM2"],
         schema="mbo",
-        start="2020-12-27T12:00",
-        end="2020-12-29",
+        start="2022-06-10T12:00",
+        end="2022-06-10T14:00",
+        limit=1000,  # <-- limiting batch request to 1000 records only
         encoding="csv",
         compression="zstd",
         delivery="download",

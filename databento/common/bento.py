@@ -1,3 +1,4 @@
+import datetime as dt
 import io
 import os.path
 from typing import Any, BinaryIO, Callable, Dict, List, Optional, Tuple
@@ -9,6 +10,7 @@ from databento.common.data import DBZ_COLUMNS, DBZ_STRUCT_MAP, DERIV_SCHEMAS
 from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.metadata import MetadataDecoder
+from databento.common.symbology import ProductIdMappingInterval
 
 
 class Bento:
@@ -17,6 +19,7 @@ class Bento:
     def __init__(self):
         self._metadata: Dict[str, Any] = {}
         self._dtype: Optional[np.dtype] = None
+        self._product_id_index: Dict[dt.date, Dict[int, str]] = {}
 
         self._dataset: Optional[str] = None
         self._schema: Optional[Schema] = None
@@ -353,13 +356,13 @@ class Bento:
         return self._shape
 
     @property
-    def mappings(self) -> List[Dict[str, List[Dict[str, str]]]]:
+    def mappings(self) -> Dict[str, List[Dict[str, Any]]]:
         """
         Return the symbology mappings for the data.
 
         Returns
         -------
-        List[Dict[str, List[Dict[str, str]]]]
+        Dict[str, List[Dict[str, Any]]]
 
         """
         self._check_metadata()
@@ -369,7 +372,7 @@ class Bento:
     @property
     def symbology(self) -> Dict[str, Any]:
         """
-        Return the symbology resolution information for the query.
+        Return the symbology resolution mappings for the data.
 
         Returns
         -------
@@ -378,18 +381,7 @@ class Bento:
         """
         self._check_metadata()
 
-        status = 0
-        if self._metadata["partial"]:
-            status = 1
-            message = "Partially resolved"
-        elif self._metadata["not_found"]:
-            status = 2
-            message = "Not found"
-        else:
-            message = "OK"
-
-        response: Dict[str, Any] = {
-            "result": self.mappings,
+        symbology: Dict[str, Any] = {
             "symbols": self.symbols,
             "stype_in": self.stype_in.value,
             "stype_out": self.stype_out.value,
@@ -397,11 +389,10 @@ class Bento:
             "end_date": str(self.end.date()),
             "partial": self._metadata["partial"],
             "not_found": self._metadata["not_found"],
-            "message": message,
-            "status": status,
+            "mappings": self.mappings,
         }
 
-        return response
+        return symbology
 
     def to_ndarray(self) -> np.ndarray:
         """
@@ -415,7 +406,12 @@ class Bento:
         data: bytes = self.reader(decompress=True).read()
         return np.frombuffer(data, dtype=DBZ_STRUCT_MAP[self.schema])
 
-    def to_df(self, pretty_ts: bool = False, pretty_px: bool = False) -> pd.DataFrame:
+    def to_df(
+        self,
+        pretty_ts: bool = False,
+        pretty_px: bool = False,
+        map_symbols: bool = False,
+    ) -> pd.DataFrame:
         """
         Return the data as a `pd.DataFrame`.
 
@@ -427,6 +423,10 @@ class Bento:
         pretty_px : bool, default False
             If all price columns should be converted from `int` to `float` at
             the correct scale (using the fixed precision scalar 1e-9).
+        map_symbols : bool, default False
+            If symbology mappings from the metadata should be used to create
+            a 'symbol' column, mapping the product ID to its native symbol for
+            every record.
 
         Returns
         -------
@@ -466,6 +466,20 @@ class Bento:
                     or column.startswith("ask_px")  # MBP
                 ):
                     df[column] = df[column] * 1e-9
+
+        if map_symbols:
+            # Build product ID index
+            if not self._product_id_index:
+                self._product_id_index = self._build_product_id_index()
+
+            # Map product IDs to native symbols
+            if self._product_id_index:
+                df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
+                dates = [ts.date() for ts in df_index]
+                df["symbol"] = [
+                    self._product_id_index[dates[i]][p]
+                    for i, p in enumerate(df["product_id"])
+                ]
 
         return df
 
@@ -642,6 +656,38 @@ class Bento:
             stype_out=self.stype_out,
             path=path,
         )
+
+    def _build_product_id_index(self) -> Dict[dt.date, Dict[int, str]]:
+        intervals: List[ProductIdMappingInterval] = []
+        for native, i in self.mappings.items():
+            for row in i:
+                symbol = row["symbol"]
+                if symbol == "":
+                    continue
+                intervals.append(
+                    ProductIdMappingInterval(
+                        start_date=row["start_date"],
+                        end_date=row["end_date"],
+                        native=native,
+                        product_id=int(row["symbol"]),
+                    )
+                )
+
+        product_id_index: Dict[dt.date, Dict[int, str]] = {}
+        for interval in intervals:
+            for ts in pd.date_range(
+                start=interval.start_date,
+                end=interval.end_date,
+                # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
+                **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
+            ):
+                d: dt.date = ts.date()
+                date_map: Dict[int, str] = product_id_index.get(d, {})
+                if not date_map:
+                    product_id_index[d] = date_map
+                date_map[interval.product_id] = interval.native
+
+        return product_id_index
 
 
 class MemoryBento(Bento):
