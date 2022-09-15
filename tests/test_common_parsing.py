@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -15,6 +16,11 @@ from databento.common.parsing import (
 )
 
 
+# Set the type to `Any` to disable mypy type checking. Used to test if functions
+# will raise a `TypeError` when passed an incorrectly-typed argument.
+INCORRECT_TYPE: Any = type
+
+
 class TestParsing:
     def test_enum_or_str_lowercase_given_none_raises_type_error(self) -> None:
         # Arrange, Act, Assert
@@ -24,7 +30,7 @@ class TestParsing:
     def test_enum_or_str_lowercase_given_incorrect_type_raises_type_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            enum_or_str_lowercase(type, "param")
+            enum_or_str_lowercase(INCORRECT_TYPE, "param")
 
     @pytest.mark.parametrize(
         "value, expected",
@@ -45,7 +51,7 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_enum_or_str_lowercase(type, "param")
+            maybe_enum_or_str_lowercase(INCORRECT_TYPE, "param")
 
     @pytest.mark.parametrize(
         "value, expected",
@@ -67,7 +73,7 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_values_list_to_string(type)
+            maybe_values_list_to_string(INCORRECT_TYPE)
 
     @pytest.mark.parametrize(
         "values, expected",
@@ -96,7 +102,7 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_symbols_list_to_string(type)
+            maybe_symbols_list_to_string(INCORRECT_TYPE)
 
     @pytest.mark.parametrize(
         "symbols, expected",

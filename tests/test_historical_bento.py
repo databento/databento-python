@@ -2,6 +2,7 @@ import datetime as dt
 import os
 import sys
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -200,7 +201,7 @@ class TestBento:
         stub_data = get_test_data(schema=Schema.MBO)
         data = MemoryBento(initial_bytes=stub_data)
 
-        handler = []
+        handler: list[tuple[Union[int, bytes], ...]] = []
 
         # Act
         data.replay(callback=handler.append)
