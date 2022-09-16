@@ -69,12 +69,9 @@ class MetadataHttpAPI(BentoHttpAPI):
         List[str]
 
         """
-        start_date = maybe_date_to_string(start_date)
-        end_date = maybe_date_to_string(end_date)
-
-        params: List[Tuple[str, str]] = [
-            ("start_date", start_date),
-            ("end_date", end_date),
+        params: List[Tuple[str, Optional[str]]] = [
+            ("start_date", maybe_date_to_string(start_date)),
+            ("end_date", maybe_date_to_string(end_date)),
         ]
 
         response: Response = self._get(
@@ -109,14 +106,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         List[str]
 
         """
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        start_date = maybe_date_to_string(start_date)
-        end_date = maybe_date_to_string(end_date)
-
-        params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
-            ("start_date", start_date),
-            ("end_date", end_date),
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("start_date", maybe_date_to_string(start_date)),
+            ("end_date", maybe_date_to_string(end_date)),
         ]
 
         response: Response = self._get(
@@ -158,14 +151,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_maybe_enum(schema, Schema, "schema")
         validate_maybe_enum(encoding, Encoding, "encoding")
 
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        schema = maybe_enum_or_str_lowercase(schema, "schema")
-        encoding = maybe_enum_or_str_lowercase(encoding, "encoding")
-
         params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
-            ("schema", schema),
-            ("encoding", encoding),
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("schema", maybe_enum_or_str_lowercase(schema, "schema")),
+            ("encoding", maybe_enum_or_str_lowercase(encoding, "encoding")),
         ]
 
         response: Response = self._get(
@@ -239,14 +228,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_maybe_enum(schema, Schema, "schema")
         validate_maybe_enum(mode, FeedMode, "mode")
 
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        mode = maybe_enum_or_str_lowercase(mode, "mode")
-        schema = maybe_enum_or_str_lowercase(schema, "schema")
-
         params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
-            ("mode", mode),
-            ("schema", schema),
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("mode", maybe_enum_or_str_lowercase(mode, "mode")),
+            ("schema", maybe_enum_or_str_lowercase(schema, "schema")),
         ]
 
         response: Response = self._get(
@@ -304,22 +289,14 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_enum(schema, Schema, "schema")
         validate_enum(stype_in, SType, "stype_in")
 
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        symbols = maybe_symbols_list_to_string(symbols)
-        schema = Schema(schema)
-        start = maybe_datetime_to_string(start)
-        end = maybe_datetime_to_string(end)
-        encoding = Encoding(encoding)
-        stype_in = SType(stype_in)
-
         params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
-            ("symbols", symbols),
-            ("schema", schema.value),
-            ("start", start),
-            ("end", end),
-            ("encoding", encoding.value),
-            ("stype_in", stype_in.value),
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("symbols", maybe_symbols_list_to_string(symbols)),
+            ("schema", Schema(schema).value),
+            ("start", maybe_datetime_to_string(start)),
+            ("end", maybe_datetime_to_string(end)),
+            ("encoding", Encoding(encoding).value),
+            ("stype_in", SType(stype_in).value),
         ]
         if limit is not None:
             params.append(("limit", str(limit)))
@@ -378,16 +355,13 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_enum(schema, Schema, "schema")
         validate_enum(stype_in, SType, "stype_in")
 
-        schema = Schema(schema)
-        stype_in = SType(stype_in)
-
         params: List[Tuple[str, str]] = super()._timeseries_params(
             dataset=dataset,
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
-            stype_in=stype_in,
+            stype_in=SType(stype_in),
             limit=limit,
         )
 
@@ -448,21 +422,17 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_enum(schema, Schema, "schema")
         validate_enum(stype_in, SType, "stype_in")
 
-        mode = FeedMode(mode)
-        schema = Schema(schema)
-        stype_in = SType(stype_in)
-
         params: List[Tuple[str, str]] = super()._timeseries_params(
             dataset=dataset,
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
-            stype_in=stype_in,
+            stype_in=SType(stype_in),
             limit=limit,
         )
 
-        params.append(("mode", mode.value))
+        params.append(("mode", FeedMode(mode).value))
 
         response: Response = self._get(
             url=self._base_url + ".get_cost",

@@ -16,7 +16,7 @@ from databento.common.symbology import ProductIdMappingInterval
 class Bento:
     """The abstract base class for all Bento I/O classes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._metadata: Dict[str, Any] = {}
         self._dtype: Optional[np.dtype] = None
         self._product_id_index: Dict[dt.date, Dict[int, str]] = {}

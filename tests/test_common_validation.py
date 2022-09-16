@@ -44,6 +44,6 @@ class TestValidation:
         # Arrange, Act, Assert
         assert validate_enum(value, enum, "param") == expected
 
-    def test_validate_maybe_enum_give_none_returns_none(self):
+    def test_validate_maybe_enum_give_none_returns_none(self) -> None:
         # Arrange, Act, Assert
         assert validate_maybe_enum(None, Encoding, "encoding") is None

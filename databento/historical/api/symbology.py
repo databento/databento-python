@@ -57,20 +57,13 @@ class SymbologyHttpAPI(BentoHttpAPI):
             date range.
 
         """
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        symbols = maybe_symbols_list_to_string(symbols)
-        stype_in = enum_or_str_lowercase(stype_in, "stype_in")
-        stype_out = enum_or_str_lowercase(stype_out, "stype_out")
-        start_date = str(pd.to_datetime(start_date).date())
-        end_date = str(pd.to_datetime(end_date).date())
-
-        params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
-            ("symbols", symbols),
-            ("stype_in", stype_in),
-            ("stype_out", stype_out),
-            ("start_date", start_date),
-            ("end_date", end_date),
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("symbols", maybe_symbols_list_to_string(symbols)),
+            ("stype_in", enum_or_str_lowercase(stype_in, "stype_in")),
+            ("stype_out", enum_or_str_lowercase(stype_out, "stype_out")),
+            ("start_date", str(pd.to_datetime(start_date).date())),
+            ("end_date", str(pd.to_datetime(end_date).date())),
             ("default_value", default_value),
         ]
 

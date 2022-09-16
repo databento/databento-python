@@ -113,31 +113,22 @@ class BatchHttpAPI(BentoHttpAPI):
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
-        schema = Schema(schema)
-        encoding = Encoding(encoding)
-        compression = Compression(compression)
-        split_duration = Duration(split_duration)
-        packaging = Packaging(packaging)
-        delivery = Delivery(delivery)
-        stype_in = SType(stype_in)
-        stype_out = SType(stype_out)
-
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
             limit=limit,
-            stype_in=stype_in,
-            stype_out=stype_out,
+            stype_in=SType(stype_in),
+            stype_out=SType(stype_out),
         )
 
-        params.append(("encoding", encoding.value))
-        params.append(("compression", compression.value))
-        params.append(("split_duration", split_duration.value))
-        params.append(("packaging", packaging.value))
-        params.append(("delivery", delivery.value))
+        params.append(("encoding", Encoding(encoding).value))
+        params.append(("compression", Compression(compression).value))
+        params.append(("split_duration", Duration(split_duration).value))
+        params.append(("packaging", Packaging(packaging).value))
+        params.append(("delivery", Delivery(delivery).value))
         if split_size is not None:
             params.append(("split_size", str(split_size)))
 
@@ -172,12 +163,9 @@ class BatchHttpAPI(BentoHttpAPI):
             The batch job details.
 
         """
-        states = maybe_values_list_to_string(states)
-        since = maybe_datetime_to_string(since)
-
         params: List[Tuple[str, str]] = [
-            ("states", states),
-            ("since", since),
+            ("states", maybe_values_list_to_string(states)),
+            ("since", maybe_datetime_to_string(since)),
         ]
 
         return self._get(

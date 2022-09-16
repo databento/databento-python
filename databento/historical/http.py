@@ -1,7 +1,7 @@
 import sys
 from datetime import date
 from json.decoder import JSONDecodeError
-from typing import Any, BinaryIO, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, List, Optional, Sequence, Tuple, Union
 
 import aiohttp
 import pandas as pd
@@ -78,7 +78,7 @@ class BentoHttpAPI:
         else:
             return FileBento(path=path)
 
-    def _check_api_key(self):
+    def _check_api_key(self) -> None:
         if self._key == "YOUR_API_KEY":
             raise ValueError(
                 "The API key is currently set to 'YOUR_API_KEY'. "
@@ -185,7 +185,7 @@ class BentoHttpAPI:
     async def _stream_async(
         self,
         url: str,
-        params: List[Tuple[str, Optional[str]]],
+        params: Sequence[Tuple[str, Optional[str]]],
         basic_auth: bool,
         bento: Bento,
     ) -> None:

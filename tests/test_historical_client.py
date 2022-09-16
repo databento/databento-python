@@ -39,14 +39,14 @@ class TestHistoricalClient:
         self,
         gateway,
         expected,
-    ):
+    ) -> None:
         # Arrange, Act
         client = db.Historical(key="DUMMY_API_KEY", gateway=gateway)
 
         # Assert
         assert client.gateway == expected
 
-    def test_custom_gateway_returns_expected(self):
+    def test_custom_gateway_returns_expected(self) -> None:
         # Arrange
         ny4_gateway = "ny4.databento.com"
 

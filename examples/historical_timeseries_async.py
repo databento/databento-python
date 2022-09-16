@@ -5,7 +5,7 @@ import databento as db
 from databento import Bento
 
 
-async def request_stream_async():
+async def request_stream_async() -> None:
     db.log = "debug"  # optional debug logging
 
     key = "YOUR_API_KEY"

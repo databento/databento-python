@@ -79,18 +79,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
-        schema = Schema(schema)
-        stype_in = SType(stype_in)
-        stype_out = SType(stype_out)
-
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
-            stype_in=stype_in,
-            stype_out=stype_out,
+            stype_in=SType(stype_in),
+            stype_out=SType(stype_out),
             limit=limit,
         )
 
@@ -98,7 +94,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         self._pre_check_data_size(
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
             limit=limit,
@@ -175,18 +171,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
-        schema = Schema(schema)
-        stype_in = SType(stype_in)
-        stype_out = SType(stype_out)
-
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
-            stype_in=stype_in,
-            stype_out=stype_out,
+            stype_in=SType(stype_in),
+            stype_out=SType(stype_out),
             limit=limit,
         )
 
@@ -194,7 +186,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         self._pre_check_data_size(
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
             limit=limit,
@@ -211,14 +203,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         return bento
 
-    def _pre_check_data_size(
+    def _pre_check_data_size(  # noqa (prefer not to make static)
         self,
         symbols: Optional[Union[List[str], str]],
         schema: Schema,
         start: Optional[Union[pd.Timestamp, date, str, int]],
         end: Optional[Union[pd.Timestamp, date, str, int]],
         limit: Optional[int],
-    ):
+    ) -> None:
         if limit and limit < 10**7:
             return
 
@@ -240,7 +232,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             )
 
 
-def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]):
+def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]) -> bool:
     if not symbols:
         return True  # All symbols
 
@@ -253,11 +245,11 @@ def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]):
     return False
 
 
-def _is_large_data_size_schema(schema: Schema):
+def _is_large_data_size_schema(schema: Schema) -> bool:
     return schema in (Schema.MBO, Schema.MBP_10)
 
 
-def _is_greater_than_one_day(start, end):
+def _is_greater_than_one_day(start, end) -> bool:
     if start is None or end is None:
         return True
 

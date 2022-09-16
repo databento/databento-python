@@ -1,5 +1,6 @@
-from datetime import date
-from typing import Any
+import datetime as dt
+from enum import Enum
+from typing import Any, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -41,7 +42,7 @@ class TestParsing:
         ],
     )
     def test_enum_or_str_lowercase_returns_expected_outputs(
-        self, value, expected
+        self, value: Union[Enum, str], expected: str
     ) -> None:
         # Arrange, Act, Assert
         assert enum_or_str_lowercase(value, "param") == expected
@@ -63,8 +64,8 @@ class TestParsing:
         ],
     )
     def test_maybe_enum_or_str_lowercase_returns_expected_outputs(
-        self, value, expected
-    ):
+        self, value: Optional[Union[Enum, str]], expected: Optional[str]
+    ) -> None:
         # Arrange, Act, Assert
         assert maybe_enum_or_str_lowercase(value, "param") == expected
 
@@ -88,11 +89,11 @@ class TestParsing:
     )
     def test_maybe_values_list_to_string_given_valid_inputs_returns_expected(
         self,
-        values,
-        expected,
+        values: Optional[List[str]],
+        expected: str,
     ) -> None:
         # Arrange, Act
-        result = maybe_values_list_to_string(values)
+        result: Optional[str] = maybe_values_list_to_string(values)
 
         # Assert
         assert result == expected
@@ -117,11 +118,11 @@ class TestParsing:
     )
     def test_maybe_symbols_list_to_string_given_valid_inputs_returns_expected(
         self,
-        symbols,
-        expected,
+        symbols: Optional[List[str]],
+        expected: str,
     ) -> None:
         # Arrange, Act
-        result = maybe_symbols_list_to_string(symbols)
+        result: Optional[str] = maybe_symbols_list_to_string(symbols)
 
         # Assert
         assert result == expected
@@ -130,19 +131,17 @@ class TestParsing:
         "value, expected",
         [
             [None, None],
-            [1604782791000000000, "2020-11-07"],
-            ["2020-11-07T20:59:51", "2020-11-07"],
-            [date(2020, 12, 28), "2020-12-28"],
-            [pd.Timestamp("2020-12-28T23:12:01.123"), "2020-12-28"],
+            ["2020-11-07", "2020-11-07"],
+            [dt.date(2020, 12, 28), "2020-12-28"],
         ],
     )
     def test_maybe_date_to_string_give_valid_values_returns_expected_results(
         self,
-        value,
-        expected,
+        value: Union[dt.date, str],
+        expected: str,
     ) -> None:
         # Arrange, Act
-        result = maybe_date_to_string(value)
+        result: Optional[str] = maybe_date_to_string(value)
 
         # Assert
         assert result == expected
@@ -153,17 +152,17 @@ class TestParsing:
             [None, None],
             [1604782791000000000, "2020-11-07T20:59:51"],
             ["2020-11-07T20:59:51", "2020-11-07T20:59:51"],
-            [date(2020, 12, 28), "2020-12-28T00:00:00"],
-            [pd.Timestamp("2020-12-28T23:12:01.123"), "2020-12-28T23:12:01.123000"],
+            [dt.date(2020, 12, 28), "2020-12-28T00:00:00"],
+            [pd.to_datetime("2020-12-28T23:12:01.123"), "2020-12-28T23:12:01.123000"],
         ],
     )
     def test_maybe_datetime_to_string_give_valid_values_returns_expected_results(
         self,
-        value,
-        expected,
+        value: Union[pd.Timestamp, dt.date, str, int],
+        expected: str,
     ) -> None:
         # Arrange, Act
-        result = maybe_datetime_to_string(value)
+        result: Optional[str] = maybe_datetime_to_string(value)
 
         # Assert
         assert result == expected
@@ -179,11 +178,11 @@ class TestParsing:
     )
     def test_parse_flags_given_valid_values_returns_expected_results(
         self,
-        value,
-        expected,
+        value: int,
+        expected: List[str],
     ) -> None:
         # Arrange, Act
-        result = parse_flags(value)
+        result: List[str] = parse_flags(value)
 
         # Assert
         assert result == expected
