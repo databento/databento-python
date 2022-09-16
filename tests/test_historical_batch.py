@@ -3,6 +3,7 @@ import sys
 import databento as db
 import pytest
 import requests
+from pytest_mock import MockerFixture
 
 
 class TestHistoricalBatch:
@@ -49,7 +50,9 @@ class TestHistoricalBatch:
             )
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_batch_submit_job_sends_expected_request(self, mocker) -> None:
+    def test_batch_submit_job_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.post")
 
@@ -98,7 +101,9 @@ class TestHistoricalBatch:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_batch_list_jobs_sends_expected_request(self, mocker) -> None:
+    def test_batch_list_jobs_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 

@@ -249,7 +249,10 @@ def _is_large_data_size_schema(schema: Schema) -> bool:
     return schema in (Schema.MBO, Schema.MBP_10)
 
 
-def _is_greater_than_one_day(start, end) -> bool:
+def _is_greater_than_one_day(
+    start: Optional[Union[pd.Timestamp, date, str, int]],
+    end: Optional[Union[pd.Timestamp, date, str, int]],
+) -> bool:
     if start is None or end is None:
         return True
 

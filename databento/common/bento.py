@@ -1,7 +1,7 @@
 import datetime as dt
 import io
 import os.path
-from typing import Any, BinaryIO, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -11,6 +11,10 @@ from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import ProductIdMappingInterval
+
+
+if TYPE_CHECKING:
+    from databento.historical.client import Historical
 
 
 class Bento:
@@ -590,7 +594,7 @@ class Bento:
         """
         self.to_df().to_json(path, orient="records", lines=True)
 
-    def request_symbology(self, client) -> Dict[str, Any]:
+    def request_symbology(self, client: "Historical") -> Dict[str, Any]:
         """
         Request symbology resolution based on the metadata properties.
 
@@ -622,7 +626,7 @@ class Bento:
 
     def request_full_definitions(
         self,
-        client,
+        client: "Historical",
         path: Optional[str] = None,
     ) -> "Bento":
         """

@@ -1,10 +1,12 @@
 import sys
+from typing import Union
 
 import databento as db
 import pytest
 import requests
 from databento import FileBento, Historical
 from databento.common.enums import HistoricalGateway, Schema
+from pytest_mock import MockerFixture
 from tests.fixtures import get_test_data_path
 
 
@@ -37,8 +39,8 @@ class TestHistoricalClient:
     )
     def test_gateway_nearest_and_bo1_map_to_hist_databento(
         self,
-        gateway,
-        expected,
+        gateway: Union[HistoricalGateway, str],
+        expected: str,
     ) -> None:
         # Arrange, Act
         client = db.Historical(key="DUMMY_API_KEY", gateway=gateway)
@@ -57,7 +59,9 @@ class TestHistoricalClient:
         assert client.gateway == ny4_gateway
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_re_request_symbology_makes_expected_request(self, mocker) -> None:
+    def test_re_request_symbology_makes_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -93,7 +97,9 @@ class TestHistoricalClient:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_request_full_definitions_expected_request(self, mocker) -> None:
+    def test_request_full_definitions_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 

@@ -1,9 +1,11 @@
 import sys
+from typing import Union
 
 import databento as db
 import pytest
 import requests
 from databento.common.enums import Dataset, FeedMode, Schema
+from pytest_mock import MockerFixture
 
 
 class TestHistoricalMetadata:
@@ -12,7 +14,9 @@ class TestHistoricalMetadata:
         self.client = db.Historical(key=key)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_publishers_sends_expected_request(self, mocker) -> None:
+    def test_list_publishers_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -34,7 +38,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_datasets_sends_expected_request(self, mocker) -> None:
+    def test_list_datasets_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -61,7 +65,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_schemas_sends_expected_request(self, mocker) -> None:
+    def test_list_schemas_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -89,7 +93,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_fields_sends_expected_request(self, mocker) -> None:
+    def test_list_fields_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -117,7 +121,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_encodings_sends_expected_request(self, mocker) -> None:
+    def test_list_encodings_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -139,7 +143,9 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_compressions_sends_expected_request(self, mocker) -> None:
+    def test_list_compressions_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -169,7 +175,11 @@ class TestHistoricalMetadata:
         ],
     )
     def test_list_unit_price_sends_expected_request(
-        self, dataset, schema, mode, mocker
+        self,
+        dataset: Union[str, Dataset],
+        schema: Union[str, Schema],
+        mode: Union[str, FeedMode],
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -201,7 +211,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_shape_sends_expected_request(self, mocker) -> None:
+    def test_get_shape_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -240,7 +250,9 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_billable_size_sends_expected_request(self, mocker) -> None:
+    def test_get_billable_size_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -279,7 +291,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_cost_sends_expected_request(self, mocker) -> None:
+    def test_get_cost_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 

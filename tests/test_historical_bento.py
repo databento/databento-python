@@ -2,7 +2,7 @@ import datetime as dt
 import os
 import sys
 from pathlib import Path
-from typing import Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -201,7 +201,7 @@ class TestBento:
         stub_data = get_test_data(schema=Schema.MBO)
         data = MemoryBento(initial_bytes=stub_data)
 
-        handler: list[tuple[Union[int, bytes], ...]] = []
+        handler: List[Tuple[Union[int, bytes], ...]] = []
 
         # Act
         data.replay(callback=handler.append)
@@ -227,7 +227,9 @@ class TestBento:
             )
         ],
     )
-    def test_to_df_across_schemas_returns_identical_dimension_dfs(self, schema) -> None:
+    def test_to_df_across_schemas_returns_identical_dimension_dfs(
+        self, schema: Schema
+    ) -> None:
         # Arrange
         stub_data = get_test_data(schema=schema)
         data = MemoryBento(initial_bytes=stub_data)
@@ -334,8 +336,8 @@ class TestBento:
     )
     def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
         self,
-        schema,
-        columns,
+        schema: Schema,
+        columns: List[str],
     ) -> None:
         # Arrange
         stub_data = get_test_data(schema=schema)
@@ -366,9 +368,9 @@ class TestBento:
     )
     def test_from_file_given_various_paths_returns_expected_metadata(
         self,
-        expected_schema,
-        expected_encoding,
-        expected_compression,
+        expected_schema: Schema,
+        expected_encoding: Encoding,
+        expected_compression: Compression,
     ) -> None:
         # Arrange, Act
         path = get_test_data_path(schema=expected_schema)
