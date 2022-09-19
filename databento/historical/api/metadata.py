@@ -124,7 +124,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Union[Dataset, str],
         schema: Optional[Union[Schema, str]] = None,
         encoding: Optional[Union[Encoding, str]] = None,
-    ) -> Dict[str, Dict]:
+    ) -> Dict[str, Dict[str, str]]:
         """
         Request all fields for a dataset, schema and encoding from Databento.
 
@@ -144,7 +144,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Any]
+        Dict[str, Dict[str, str]]
             A mapping of dataset to encoding to schema to field to data type.
 
         """
@@ -251,7 +251,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         encoding: Union[Encoding, str] = "dbz",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
-    ) -> Tuple:
+    ) -> Tuple[int, ...]:
         """
         Request the shape of the time series data from Databento.
 
@@ -282,7 +282,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Tuple
+        Tuple[int, ...]
             The shape of the data expressed as size per dimension.
 
         """
@@ -307,7 +307,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             basic_auth=True,
         )
 
-        values = response.json()
+        values: List[int] = response.json()
         return tuple(values)
 
     def get_billable_size(

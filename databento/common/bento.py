@@ -35,7 +35,7 @@ class Bento:
         self._limit: Optional[int] = None
         self._encoding: Optional[Encoding] = None
         self._compression: Optional[Compression] = None
-        self._shape: Optional[Tuple] = None
+        self._shape: Optional[Tuple[int, ...]] = None
 
     def _check_metadata(self) -> None:
         if not self._metadata:
@@ -340,13 +340,13 @@ class Bento:
         return self._compression
 
     @property
-    def shape(self) -> Tuple:
+    def shape(self) -> Tuple[int, ...]:
         """
         Return the shape of the data.
 
         Returns
         -------
-        Tuple
+        Tuple[int, ...]
             The data shape.
 
         """
