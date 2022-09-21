@@ -14,7 +14,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
     Provides request methods for the symbology HTTP API endpoints.
     """
 
-    def __init__(self, key, gateway):
+    def __init__(self, key: str, gateway: str) -> None:
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/symbology"
 

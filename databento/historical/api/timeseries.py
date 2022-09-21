@@ -15,7 +15,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
     Provides request methods for the time series HTTP API endpoints.
     """
 
-    def __init__(self, key, gateway):
+    def __init__(self, key: str, gateway: str) -> None:
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/timeseries"
 
