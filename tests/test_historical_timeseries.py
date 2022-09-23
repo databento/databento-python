@@ -73,10 +73,10 @@ class TestHistoricalTimeSeries:
         )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("symbols", "ESH1"),
-            ("schema", "trades"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
+            ("symbols", "ESH1"),
+            ("schema", "trades"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("encoding", "dbz"),
@@ -114,10 +114,10 @@ class TestHistoricalTimeSeries:
         )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("symbols", "ESH1"),
-            ("schema", "trades"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
+            ("symbols", "ESH1"),
+            ("schema", "trades"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("limit", "1000000"),

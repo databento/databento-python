@@ -244,10 +244,10 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_shape(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "dbz",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
@@ -261,17 +261,17 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int
+            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
             The data encoding.
         stype_in : SType or str, default 'native'
@@ -313,10 +313,10 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_billable_size(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> int:
@@ -330,17 +330,17 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
-        symbols : List[Union[str, int]] or str, optional
-            The product symbols to filter for. Takes up to 2,000 symbols per request.
-            If `*` or ``None`` then will be for **all** symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
-            The data record schema for the request.
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        symbols : List[Union[str, int]] or str, optional
+            The product symbols to filter for. Takes up to 2,000 symbols per request.
+            If `*` or ``None`` then will be for **all** symbols.
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
+            The data record schema for the request.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
@@ -357,10 +357,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, str]] = super()._timeseries_params(
             dataset=dataset,
-            symbols=symbols,
-            schema=Schema(schema),
             start=start,
             end=end,
+            symbols=symbols,
+            schema=Schema(schema),
             stype_in=SType(stype_in),
             limit=limit,
         )
@@ -376,11 +376,11 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_cost(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         mode: Union[FeedMode, str] = "historical-streaming",
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> float:
@@ -394,6 +394,12 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int
+            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional
@@ -401,12 +407,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
@@ -424,10 +424,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, str]] = super()._timeseries_params(
             dataset=dataset,
-            symbols=symbols,
-            schema=Schema(schema),
             start=start,
             end=end,
+            symbols=symbols,
+            schema=Schema(schema),
             stype_in=SType(stype_in),
             limit=limit,
         )

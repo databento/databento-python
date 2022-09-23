@@ -22,10 +22,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
     def stream(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -40,18 +40,18 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime (UTC) of the request time range (inclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int
+            The end datetime (UTC) of the request time range (exclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime (UTC) of the request time range (inclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime (UTC) of the request time range (exclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
@@ -81,10 +81,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
-            symbols=symbols,
-            schema=Schema(schema),
             start=start,
             end=end,
+            symbols=symbols,
+            schema=Schema(schema),
             stype_in=SType(stype_in),
             stype_out=SType(stype_out),
             limit=limit,
@@ -114,10 +114,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
     async def stream_async(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -132,18 +132,18 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime (UTC) of the request time range (inclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int
+            The end datetime (UTC) of the request time range (exclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime (UTC) of the request time range (inclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime (UTC) of the request time range (exclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
@@ -173,10 +173,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
-            symbols=symbols,
-            schema=Schema(schema),
             start=start,
             end=end,
+            symbols=symbols,
+            schema=Schema(schema),
             stype_in=SType(stype_in),
             stype_out=SType(stype_out),
             limit=limit,

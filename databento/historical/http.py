@@ -42,26 +42,26 @@ class BentoHttpAPI:
     def _timeseries_params(
         *,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Schema,
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         limit: Optional[int] = None,
         stype_in: SType,
         stype_out: SType = SType.PRODUCT_ID,
     ) -> List[Tuple[str, str]]:
         # Parse inputs
         dataset = enum_or_str_lowercase(dataset, "dataset")
-        symbols = maybe_symbols_list_to_string(symbols)
         start = maybe_datetime_to_string(start)
         end = maybe_datetime_to_string(end)
+        symbols = maybe_symbols_list_to_string(symbols)
 
         params: List[Tuple[str, Any]] = [
             ("dataset", dataset),
-            ("symbols", symbols),
-            ("schema", schema.value),
             ("start", start),
             ("end", end),
+            ("symbols", symbols),
+            ("schema", schema.value),
             ("stype_in", stype_in.value),
             ("stype_out", stype_out.value),
         ]

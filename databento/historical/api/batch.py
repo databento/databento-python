@@ -115,10 +115,10 @@ class BatchHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
-            symbols=symbols,
-            schema=Schema(schema),
             start=start,
             end=end,
+            symbols=symbols,
+            schema=Schema(schema),
             limit=limit,
             stype_in=SType(stype_in),
             stype_out=SType(stype_out),
