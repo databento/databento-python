@@ -33,10 +33,10 @@ class BatchHttpAPI(BentoHttpAPI):
     def submit_job(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         schema: Union[Schema, str],
         symbols: Optional[Union[List[str], str]] = None,
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         encoding: Union[Encoding, str] = "dbz",
         compression: Optional[Union[Compression, str]] = None,
         split_duration: Union[Duration, str] = "day",
@@ -56,20 +56,20 @@ class BatchHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime of the request time range (inclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int
+            The end datetime of the request time range (exclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime of the request time range (inclusive).
-            Assumes UTC as timezone unless passed a tz-aware object.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime of the request time range (exclusive).
-            Assumes UTC as timezone unless passed a tz-aware object.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
             The data encoding.
         compression : Compression or str {'none', 'zstd'}, optional
@@ -163,7 +163,7 @@ class BatchHttpAPI(BentoHttpAPI):
             The batch job details.
 
         """
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("states", maybe_values_list_to_string(states)),
             ("since", maybe_datetime_to_string(since)),
         ]
