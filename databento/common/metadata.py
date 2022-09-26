@@ -25,7 +25,7 @@ class MetadataDecoder:
 
         """
 
-        def enum_value(fn: Callable) -> Any:
+        def enum_value(fn: Callable[[Any], Any]) -> Any:
             return lambda x: fn(x).value
 
         metadata = decode_metadata(raw_metadata)
