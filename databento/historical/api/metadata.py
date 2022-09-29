@@ -241,7 +241,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
-    def get_shape(
+    def get_record_count(
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
@@ -251,11 +251,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         encoding: Union[Encoding, str] = "dbz",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
-    ) -> Tuple[int, ...]:
+    ) -> int:
         """
-        Request the shape of the time series data from Databento.
+        Request the count of data records from Databento.
 
-        Makes a GET `/metadata.get_shape` HTTP request.
+        Makes a GET `/metadata.get_record_count` HTTP request.
 
         Parameters
         ----------
@@ -282,8 +282,8 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Tuple[int, ...]
-            The shape of the data expressed as size per dimension.
+        int
+            The count of records.
 
         """
         validate_enum(schema, Schema, "schema")
@@ -302,13 +302,12 @@ class MetadataHttpAPI(BentoHttpAPI):
             params.append(("limit", str(limit)))
 
         response: Response = self._get(
-            url=self._base_url + ".get_shape",
+            url=self._base_url + ".get_record_count",
             params=params,
             basic_auth=True,
         )
 
-        values: List[int] = response.json()
-        return tuple(values)
+        return response.json()
 
     def get_billable_size(
         self,

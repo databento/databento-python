@@ -126,7 +126,7 @@ class TestBento:
         assert data.end == pd.Timestamp("2020-12-29 00:00:00+0000", tz="UTC")
         assert data.limit == 2
         assert data.compression == Compression.ZSTD
-        assert data.shape == (2, 15)
+        assert data.record_count == 2
         assert data.mappings == {
             "ESH1": [
                 {

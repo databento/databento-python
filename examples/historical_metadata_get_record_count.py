@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import databento as db
 
 
@@ -9,7 +7,7 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    shape: Tuple[int, ...] = client.metadata.get_shape(
+    count: int = client.metadata.get_record_count(
         dataset="GLBX.MDP3",
         symbols=["ESM2"],
         schema="mbo",
@@ -18,4 +16,4 @@ if __name__ == "__main__":
         encoding="csv",
     )
 
-    print(shape)
+    print(count)

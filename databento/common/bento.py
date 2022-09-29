@@ -1,7 +1,7 @@
 import datetime as dt
 import io
 import os.path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -35,7 +35,7 @@ class Bento:
         self._limit: Optional[int] = None
         self._encoding: Optional[Encoding] = None
         self._compression: Optional[Compression] = None
-        self._shape: Optional[Tuple[int, ...]] = None
+        self._record_count: Optional[int] = None
 
     def _check_metadata(self) -> None:
         if not self._metadata:
@@ -340,24 +340,20 @@ class Bento:
         return self._compression
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def record_count(self) -> int:
         """
-        Return the shape of the data.
+        Return the record count.
 
         Returns
         -------
-        Tuple[int, ...]
-            The data shape.
+        int
 
         """
-        if self._shape is None:
+        if self._record_count is None:
             self._check_metadata()
-            self._shape = (
-                self._metadata["record_count"],
-                len(DBZ_STRUCT_MAP[self.schema]),
-            )
+            self._record_count = self._metadata["record_count"]
 
-        return self._shape
+        return self._record_count
 
     @property
     def mappings(self) -> Dict[str, List[Dict[str, Any]]]:
