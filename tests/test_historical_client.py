@@ -32,9 +32,7 @@ class TestHistoricalClient:
         "gateway, expected",
         [
             [HistoricalGateway.BO1, "https://hist.databento.com"],
-            [HistoricalGateway.NEAREST, "https://hist.databento.com"],
             ["bo1", "https://hist.databento.com"],
-            ["nearest", "https://hist.databento.com"],
         ],
     )
     def test_gateway_nearest_and_bo1_map_to_hist_databento(

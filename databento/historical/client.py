@@ -20,7 +20,7 @@ class Historical:
     key : str, optional
         The user API key for authentication.
         If ``None`` then the `DATABENTO_API_KEY` environment variable is used.
-    gateway : HistoricalGateway or str, default HistoricalGateway.NEAREST
+    gateway : HistoricalGateway or str, default HistoricalGateway.BO1
         The API server gateway.
         If ``None`` then the default gateway is used.
 
@@ -33,7 +33,7 @@ class Historical:
     def __init__(
         self,
         key: Optional[str] = None,
-        gateway: Union[HistoricalGateway, str] = HistoricalGateway.NEAREST,
+        gateway: Union[HistoricalGateway, str] = HistoricalGateway.BO1,
     ):
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -42,7 +42,7 @@ class Historical:
 
         # Configure data access gateway
         gateway = enum_or_str_lowercase(gateway, "gateway")
-        if gateway in ("nearest", "bo1"):
+        if gateway == "bo1":
             gateway = "https://hist.databento.com"
 
         self._key = key

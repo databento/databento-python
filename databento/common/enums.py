@@ -5,7 +5,6 @@ from enum import Enum, unique
 class HistoricalGateway(Enum):
     """Represents a historical data center gateway location."""
 
-    NEAREST = "nearest"
     BO1 = "bo1"
 
 
@@ -14,7 +13,6 @@ class LiveGateway(Enum):
     """Represents a live data center gateway location."""
 
     ORIGIN = "origin"
-    NEAREST = "nearest"
     NY4 = "ny4"
     DC3 = "dc3"
 
