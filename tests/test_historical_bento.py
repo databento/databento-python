@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Compression, Encoding, Schema, SType
+
 from tests.fixtures import get_test_data, get_test_data_path
 
 

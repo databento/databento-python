@@ -7,6 +7,7 @@ import requests
 from databento import FileBento, Historical
 from databento.common.enums import HistoricalGateway, Schema
 from pytest_mock import MockerFixture
+
 from tests.fixtures import get_test_data_path
 
 
