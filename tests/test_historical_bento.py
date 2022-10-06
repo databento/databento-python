@@ -98,8 +98,8 @@ class TestBento:
         # Assert
         assert data.dtype == np.dtype(
             [
-                ("nwords", "u1"),
-                ("type", "u1"),
+                ("length", "u1"),
+                ("rtype", "u1"),
                 ("publisher_id", "<u2"),
                 ("product_id", "<u4"),
                 ("ts_event", "<u8"),
@@ -260,7 +260,7 @@ class TestBento:
         assert df.iloc[0].action == "C"
         assert df.iloc[0].side == "A"
         assert df.iloc[0].price == 3722750000000
-        assert df.iloc[0].size == 11
+        assert df.iloc[0].size == 12
         assert df.iloc[0].sequence == 1170352
 
     def test_to_df_with_stub_ohlcv_data_returns_expected_record(self) -> None:
@@ -380,7 +380,7 @@ class TestBento:
         assert data.schema == expected_schema
         assert data.compression == expected_compression
 
-    def test_to_csv_writes_expected_file_to_disk(self) -> None:
+    def test_mbo_to_csv_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=test_data_path)
@@ -394,10 +394,11 @@ class TestBento:
         written = open(path, mode="rb").read()
         assert os.path.isfile(path)
         expected = (
-            b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,order_id,action,side,flags,pr"  # noqa
-            b"ice,size,sequence\n1609160400000704060,1609160400000429831,22993,1,5482,6"  # noqa
-            b"47784973705,C,A,128,3722750000000,1,1170352\n1609160400000711344,160916"  # noqa
-            b"0400000431665,19621,1,5482,647784973631,C,A,128,3723000000000,1,1170353\n"  # noqa
+            b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,product_id,order_id,act"  # noqa
+            b"ion,side,flags,price,size,sequence\n1609160400000704060,16091604000004298"  # noqa
+            b"31,22993,1,0,5482,647784973705,C,A,128,3722750000000,1,1170352\n160916040"  # noqa
+            b"0000711344,1609160400000431665,19621,1,0,5482,647784973631,C,A,128,372300000"  # noqa
+            b"0000,1,1170353\n"
         )
         if sys.platform == "win32":
             expected = expected.replace(b"\n", b"\r\n")
@@ -406,7 +407,35 @@ class TestBento:
         # Cleanup
         os.remove(path)
 
-    def test_to_json_writes_expected_file_to_disk(self) -> None:
+    def test_mbp_1_to_csv_writes_expected_file_to_disk(self) -> None:
+        # Arrange
+        test_data_path = get_test_data_path(schema=Schema.MBP_1)
+        data = FileBento(path=test_data_path)
+
+        path = "test.my_mbo.csv"
+
+        # Act
+        data.to_csv(path)
+
+        # Assert
+        written = open(path, mode="rb").read()
+        assert os.path.isfile(path)
+        expected = (
+            b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,product_id,action,side,"  # noqa
+            b"depth,flags,price,size,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_"  # noqa
+            b"oq_00,ask_oq_00\n1609160400006136329,1609160400006001487,17214,1,,5482,A,"  # noqa
+            b"A,0,128,3720500000000,1,1170362,3720250000000,3720500000000,24,11,15,9\n1"  # noqa
+            b"609160400006246513,1609160400006146661,18858,1,,5482,A,A,0,128,3720500000000"  # noqa
+            b",1,1170364,3720250000000,3720500000000,24,12,15,10\n"
+        )
+        if sys.platform == "win32":
+            expected = expected.replace(b"\n", b"\r\n")
+        assert written == expected
+
+        # Cleanup
+        os.remove(path)
+
+    def test_mbo_to_json_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=test_data_path)
@@ -420,12 +449,40 @@ class TestBento:
         written = open(path, mode="rb").read()
         assert os.path.isfile(path)
         assert written == (
-            b'{"ts_event":1609160400000429831,"ts_in_delta":22993,"publisher_id":1,"product_id":'  # noqa
-            b'5482,"order_id":647784973705,"action":"C","side":"A","flags":128,"price":372'  # noqa
-            b'2750000000,"size":1,"sequence":1170352}\n{"ts_event":160916040000043166'  # noqa
-            b'5,"ts_in_delta":19621,"publisher_id":1,"product_id":5482,"order_id":647784973631,"'  # noqa
-            b'action":"C","side":"A","flags":128,"price":3723000000000,"size":1,"sequenc'  # noqa
-            b'e":1170353}\n'
+            b'{"ts_event":1609160400000429831,"ts_in_delta":22993,"publisher_id":1,"channe'  # noqa
+            b'l_id":0,"product_id":5482,"order_id":647784973705,"action":"C","side":"A","f'  # noqa
+            b'lags":128,"price":3722750000000,"size":1,"sequence":1170352}\n{"ts_event"'  # noqa
+            b':1609160400000431665,"ts_in_delta":19621,"publisher_id":1,"channel_id":0,"pr'  # noqa
+            b'oduct_id":5482,"order_id":647784973631,"action":"C","side":"A","flags":128,"'  # noqa
+            b'price":3723000000000,"size":1,"sequence":1170353}\n'
+        )
+
+        # Cleanup
+        os.remove(path)
+
+    def test_mbp_1_to_json_writes_expected_file_to_disk(self) -> None:
+        # Arrange
+        test_data_path = get_test_data_path(schema=Schema.MBP_1)
+        data = FileBento(path=test_data_path)
+
+        path = "test.my_mbo.json"
+
+        # Act
+        data.to_json(path)
+
+        # Assert
+        written = open(path, mode="rb").read()
+        assert os.path.isfile(path)
+        assert written == (
+            b'{"ts_event":1609160400006001487,"ts_in_delta":17214,"publisher_id":1,"channe'  # noqa
+            b'l_id":null,"product_id":5482,"action":"A","side":"A","depth":0,"flags":128,"'  # noqa
+            b'price":3720500000000,"size":1,"sequence":1170362,"bid_px_00":3720250000000,"'  # noqa
+            b'ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":11,"bid_oq_00":15,"ask_o'  # noqa
+            b'q_00":9}\n{"ts_event":1609160400006146661,"ts_in_delta":18858,"publisher_'  # noqa
+            b'id":1,"channel_id":null,"product_id":5482,"action":"A","side":"A","depth":0,'  # noqa
+            b'"flags":128,"price":3720500000000,"size":1,"sequence":1170364,"bid_px_00":37'  # noqa
+            b'20250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":12,"bid_oq_'  # noqa
+            b'00":15,"ask_oq_00":10}\n'
         )
 
         # Cleanup

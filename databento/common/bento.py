@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import DBZ_COLUMNS, DBZ_STRUCT_MAP, DERIV_SCHEMAS
+from databento.common.data import COLUMNS, DERIV_SCHEMAS, STRUCT_MAP
 from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.metadata import MetadataDecoder
@@ -159,7 +159,7 @@ class Bento:
         """
         if self._dtype is None:
             self._check_metadata()
-            self._dtype = np.dtype(DBZ_STRUCT_MAP[self.schema])
+            self._dtype = np.dtype(STRUCT_MAP[self.schema])
 
         return self._dtype
 
@@ -404,7 +404,7 @@ class Bento:
 
         """
         data: bytes = self.reader(decompress=True).read()
-        return np.frombuffer(data, dtype=DBZ_STRUCT_MAP[self.schema])
+        return np.frombuffer(data, dtype=STRUCT_MAP[self.schema])
 
     def to_df(
         self,
@@ -437,20 +437,12 @@ class Bento:
         df.set_index(self._get_index_column(), inplace=True)
 
         # Cleanup dataframe
-        if self.schema == Schema.MBO:
-            df.drop("channel_id", axis=1, inplace=True)
-            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
+        df.drop(["length", "rtype"], axis=1, inplace=True)
+        if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
+            df = df.reindex(columns=COLUMNS[self.schema])
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
             df["action"] = df["action"].str.decode("utf-8")
-        elif self.schema in DERIV_SCHEMAS:
-            df.drop(["nwords", "type", "depth"], axis=1, inplace=True)
-            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
-            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
-            df["side"] = df["side"].str.decode("utf-8")
-            df["action"] = df["action"].str.decode("utf-8")
-        else:
-            df.drop(["nwords", "type"], axis=1, inplace=True)
 
         if pretty_ts:
             df.index = pd.to_datetime(df.index, utc=True)
@@ -493,7 +485,7 @@ class Bento:
             The callback to the data handler.
 
         """
-        dtype = DBZ_STRUCT_MAP[self.schema]
+        dtype = STRUCT_MAP[self.schema]
         reader: BinaryIO = self.reader(decompress=True)
         while True:
             raw: bytes = reader.read(self.struct_size)
