@@ -49,18 +49,12 @@ class BentoHttpAPI:
         limit: Optional[int] = None,
         stype_in: SType,
         stype_out: SType = SType.PRODUCT_ID,
-    ) -> List[Tuple[str, str]]:
-        # Parse inputs
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        start = maybe_datetime_to_string(start)
-        end = maybe_datetime_to_string(end)
-        symbols = maybe_symbols_list_to_string(symbols)
-
+    ) -> List[Tuple[str, Optional[str]]]:
         params: List[Tuple[str, Any]] = [
-            ("dataset", dataset),
-            ("start", start),
-            ("end", end),
-            ("symbols", symbols),
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("start", maybe_datetime_to_string(start)),
+            ("end", maybe_datetime_to_string(end)),
+            ("symbols", maybe_symbols_list_to_string(symbols)),
             ("schema", schema.value),
             ("stype_in", stype_in.value),
             ("stype_out", stype_out.value),

@@ -113,7 +113,7 @@ class BatchHttpAPI(BentoHttpAPI):
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
-        params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
+        params: List[Tuple[str, Optional[str]]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
             start=start,
             end=end,

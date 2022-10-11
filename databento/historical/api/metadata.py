@@ -83,7 +83,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_schemas(
         self,
-        dataset: Union[Dataset, str],
+        dataset: Optional[Union[Dataset, str]] = None,
         start_date: Optional[Union[date, str]] = None,
         end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
@@ -94,7 +94,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        dataset : Dataset or str
+        dataset : Dataset or str, optional
             The dataset code (string identifier) for the request.
         start_date : date or str, optional
             The start date (UTC) for the request range.
@@ -228,7 +228,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_maybe_enum(schema, Schema, "schema")
         validate_maybe_enum(mode, FeedMode, "mode")
 
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_lowercase(dataset, "dataset")),
             ("mode", maybe_enum_or_str_lowercase(mode, "mode")),
             ("schema", maybe_enum_or_str_lowercase(schema, "schema")),
@@ -289,7 +289,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_enum(schema, Schema, "schema")
         validate_enum(stype_in, SType, "stype_in")
 
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_lowercase(dataset, "dataset")),
             ("symbols", maybe_symbols_list_to_string(symbols)),
             ("schema", Schema(schema).value),
@@ -354,7 +354,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_enum(schema, Schema, "schema")
         validate_enum(stype_in, SType, "stype_in")
 
-        params: List[Tuple[str, str]] = super()._timeseries_params(
+        params: List[Tuple[str, Optional[str]]] = super()._timeseries_params(
             dataset=dataset,
             start=start,
             end=end,
@@ -421,7 +421,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_enum(schema, Schema, "schema")
         validate_enum(stype_in, SType, "stype_in")
 
-        params: List[Tuple[str, str]] = super()._timeseries_params(
+        params: List[Tuple[str, Optional[str]]] = super()._timeseries_params(
             dataset=dataset,
             start=start,
             end=end,
