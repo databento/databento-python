@@ -6,10 +6,10 @@ from databento.common.enums import (
     Compression,
     Dataset,
     Delivery,
-    Duration,
     Encoding,
     Packaging,
     Schema,
+    SplitDuration,
     SType,
 )
 from databento.common.parsing import (
@@ -39,7 +39,7 @@ class BatchHttpAPI(BentoHttpAPI):
         symbols: Optional[Union[List[str], str]] = None,
         encoding: Union[Encoding, str] = "dbz",
         compression: Optional[Union[Compression, str]] = None,
-        split_duration: Union[Duration, str] = "day",
+        split_duration: Union[SplitDuration, str] = "day",
         split_size: Optional[int] = None,
         packaging: Union[Packaging, str] = "none",
         delivery: Union[Delivery, str] = "download",
@@ -75,7 +75,7 @@ class BatchHttpAPI(BentoHttpAPI):
         compression : Compression or str {'none', 'zstd'}, optional
             The data compression format (if any).
             If encoding is 'dbz' then specifying a `compression` is invalid (already zstd compressed).
-        split_duration : Duration or str {'day', 'week', 'month', 'none'}, default 'day'
+        split_duration : SplitDuration or str {'day', 'week', 'month', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
             A week starts on Sunday UTC.
         split_size : int, optional
@@ -107,7 +107,7 @@ class BatchHttpAPI(BentoHttpAPI):
         validate_enum(schema, Schema, "schema")
         validate_enum(encoding, Encoding, "encoding")
         validate_enum(compression, Compression, "compression")
-        validate_enum(split_duration, Duration, "duration")
+        validate_enum(split_duration, SplitDuration, "duration")
         validate_enum(packaging, Packaging, "packaging")
         validate_enum(delivery, Delivery, "delivery")
         validate_enum(stype_in, SType, "stype_in")
@@ -126,7 +126,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         params.append(("encoding", Encoding(encoding).value))
         params.append(("compression", Compression(compression).value))
-        params.append(("split_duration", Duration(split_duration).value))
+        params.append(("split_duration", SplitDuration(split_duration).value))
         params.append(("packaging", Packaging(packaging).value))
         params.append(("delivery", Delivery(delivery).value))
         if split_size is not None:
