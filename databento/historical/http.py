@@ -54,7 +54,7 @@ class BentoHttpAPI:
             ("dataset", enum_or_str_lowercase(dataset, "dataset")),
             ("start", maybe_datetime_to_string(start)),
             ("end", maybe_datetime_to_string(end)),
-            ("symbols", maybe_symbols_list_to_string(symbols)),
+            ("symbols", maybe_symbols_list_to_string(symbols) or "*"),
             ("schema", schema.value),
             ("stype_in", stype_in.value),
             ("stype_out", stype_out.value),

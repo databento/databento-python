@@ -35,8 +35,8 @@ class BatchHttpAPI(BentoHttpAPI):
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
         end: Union[pd.Timestamp, date, str, int],
+        symbols: Optional[Union[List[str], str]],
         schema: Union[Schema, str],
-        symbols: Optional[Union[List[str], str]] = None,
         encoding: Union[Encoding, str] = "dbz",
         compression: Optional[Union[Compression, str]] = None,
         split_duration: Union[SplitDuration, str] = "day",
@@ -64,7 +64,7 @@ class BatchHttpAPI(BentoHttpAPI):
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        symbols : List[Union[str, int]] or str, optional
+        symbols : List[Union[str, int]] or str
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If `*` or ``None`` then will be for **all** symbols.
