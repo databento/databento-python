@@ -94,7 +94,7 @@ class BatchHttpAPI(BentoHttpAPI):
         Returns
         -------
         Dict[str, Any]
-            The job info for submitted batch data request.
+            The job info for submitted batch download request.
 
         Warnings
         --------

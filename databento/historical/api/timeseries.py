@@ -224,7 +224,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
                 "\nThe size of the current streaming request is estimated "
                 "to be 5 GB or greater. We recommend smaller "
                 "individual streaming request sizes, or alternatively "
-                "submit a batch data request."
+                "submit a batch download request."
                 "\nYou can check the uncompressed binary size of a request "
                 "through the metadata API (from the client library, or over "
                 "HTTP).\nThis warning can be suppressed "
