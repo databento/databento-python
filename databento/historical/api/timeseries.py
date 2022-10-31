@@ -36,6 +36,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         Makes a `GET /timeseries.stream` HTTP request.
 
+        Primary method for getting historical intraday market data, daily data,
+        instrument definitions and market status data directly into your application.
+
+        This method only returns after all of the data has been downloaded,
+        which can take a long time. For large requests, consider using a batch download.
+
         Parameters
         ----------
         dataset : Dataset or str
@@ -127,6 +133,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Request a historical time series data stream from Databento asynchronously.
 
         Makes a `GET /timeseries.stream` HTTP request.
+
+        Primary method for getting historical intraday market data, daily data,
+        instrument definitions and market status data directly into your application.
+
+        This coroutine will complete once all of the data has been downloaded,
+        which can take a long time. For large requests, consider using a batch download.
 
         Parameters
         ----------
