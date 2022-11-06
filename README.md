@@ -75,7 +75,7 @@ array = data.to_ndarray()  # to ndarray
 ```
 
 Note that the API key was also passed as a parameter, which is
-[not recommended for production applications](https://docs0.databento.com/knowledge-base/new-users/securing-your-api-keys?historical=python&live=python).
+[not recommended for production applications](https://docs.databento.com/knowledge-base/kb-new-users/kb-new-security-managing-api-keys?historical=python&live=python).
 Instead, you can leave out this parameter to pass your API key via the `DATABENTO_API_KEY` environment variable:
 
 ```python
