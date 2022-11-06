@@ -195,7 +195,6 @@ DERIV_HEADER_FIELDS = [
     "ts_event",
     "ts_in_delta",
     "publisher_id",
-    "channel_id",
     "product_id",
     "action",
     "side",

@@ -422,12 +422,12 @@ class TestBento:
         written = open(path, mode="rb").read()
         assert os.path.isfile(path)
         expected = (
-            b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,product_id,action,side,"  # noqa
-            b"depth,flags,price,size,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_"  # noqa
-            b"oq_00,ask_oq_00\n1609160400006136329,1609160400006001487,17214,1,,5482,A,"  # noqa
-            b"A,0,128,3720500000000,1,1170362,3720250000000,3720500000000,24,11,15,9\n1"  # noqa
-            b"609160400006246513,1609160400006146661,18858,1,,5482,A,A,0,128,3720500000000"  # noqa
-            b",1,1170364,3720250000000,3720500000000,24,12,15,10\n"
+            b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,action,side,depth,flags"  # noqa
+            b",price,size,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_oq_00,ask_o"  # noqa
+            b"q_00\n1609160400006136329,1609160400006001487,17214,1,5482,A,A,0,128,3720"  # noqa
+            b"500000000,1,1170362,3720250000000,3720500000000,24,11,15,9\n1609160400006"  # noqa
+            b"246513,1609160400006146661,18858,1,5482,A,A,0,128,3720500000000,1,1170364,37"  # noqa
+            b"20250000000,3720500000000,24,12,15,10\n"
         )
         if sys.platform == "win32":
             expected = expected.replace(b"\n", b"\r\n")
@@ -475,15 +475,14 @@ class TestBento:
         written = open(path, mode="rb").read()
         assert os.path.isfile(path)
         assert written == (
-            b'{"ts_event":1609160400006001487,"ts_in_delta":17214,"publisher_id":1,"channe'  # noqa
-            b'l_id":null,"product_id":5482,"action":"A","side":"A","depth":0,"flags":128,"'  # noqa
-            b'price":3720500000000,"size":1,"sequence":1170362,"bid_px_00":3720250000000,"'  # noqa
-            b'ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":11,"bid_oq_00":15,"ask_o'  # noqa
-            b'q_00":9}\n{"ts_event":1609160400006146661,"ts_in_delta":18858,"publisher_'  # noqa
-            b'id":1,"channel_id":null,"product_id":5482,"action":"A","side":"A","depth":0,'  # noqa
-            b'"flags":128,"price":3720500000000,"size":1,"sequence":1170364,"bid_px_00":37'  # noqa
-            b'20250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":12,"bid_oq_'  # noqa
-            b'00":15,"ask_oq_00":10}\n'
+            b'{"ts_event":1609160400006001487,"ts_in_delta":17214,"publisher_id":1,"produc'  # noqa
+            b't_id":5482,"action":"A","side":"A","depth":0,"flags":128,"price":37205000000'  # noqa
+            b'00,"size":1,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500'  # noqa
+            b'000000,"bid_sz_00":24,"ask_sz_00":11,"bid_oq_00":15,"ask_oq_00":9}\n{"ts_'  # noqa
+            b'event":1609160400006146661,"ts_in_delta":18858,"publisher_id":1,"product_id"'  # noqa
+            b':5482,"action":"A","side":"A","depth":0,"flags":128,"price":3720500000000,"s'  # noqa
+            b'ize":1,"sequence":1170364,"bid_px_00":3720250000000,"ask_px_00":372050000000'  # noqa
+            b'0,"bid_sz_00":24,"ask_sz_00":12,"bid_oq_00":15,"ask_oq_00":10}\n'  # noqa
         )
 
         # Cleanup

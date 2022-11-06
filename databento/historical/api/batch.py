@@ -125,12 +125,16 @@ class BatchHttpAPI(BentoHttpAPI):
         )
 
         params.append(("encoding", Encoding(encoding).value))
-        params.append(("compression", Compression(compression).value))
+        if (
+            Encoding(encoding) != Encoding.DBZ
+            or Compression(compression) != Compression.NONE
+        ):
+            params.append(("compression", Compression(compression).value))
         params.append(("split_duration", SplitDuration(split_duration).value))
-        params.append(("packaging", Packaging(packaging).value))
-        params.append(("delivery", Delivery(delivery).value))
         if split_size is not None:
             params.append(("split_size", str(split_size)))
+        params.append(("packaging", Packaging(packaging).value))
+        params.append(("delivery", Delivery(delivery).value))
 
         return self._post(
             url=self._base_url + ".submit_job",
