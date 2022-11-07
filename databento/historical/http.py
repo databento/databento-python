@@ -11,8 +11,8 @@ from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Dataset, Schema, SType
 from databento.common.logging import log_info
 from databento.common.parsing import (
+    datetime_to_string,
     enum_or_str_lowercase,
-    maybe_datetime_to_string,
     maybe_symbols_list_to_string,
 )
 from databento.historical.error import BentoClientError, BentoServerError
@@ -52,8 +52,8 @@ class BentoHttpAPI:
     ) -> List[Tuple[str, Optional[str]]]:
         params: List[Tuple[str, Any]] = [
             ("dataset", enum_or_str_lowercase(dataset, "dataset")),
-            ("start", maybe_datetime_to_string(start)),
-            ("end", maybe_datetime_to_string(end)),
+            ("start", datetime_to_string(start)),
+            ("end", datetime_to_string(end)),
             ("symbols", maybe_symbols_list_to_string(symbols) or "*"),
             ("schema", schema.value),
             ("stype_in", stype_in.value),
@@ -83,7 +83,7 @@ class BentoHttpAPI:
     def _get(
         self,
         url: str,
-        params: Optional[List[Tuple[str, str]]] = None,
+        params: Optional[List[Tuple[str, Optional[str]]]] = None,
         basic_auth: bool = False,
     ) -> Response:
         self._check_api_key()
@@ -103,7 +103,7 @@ class BentoHttpAPI:
     async def _get_async(
         self,
         url: str,
-        params: Optional[List[Tuple[str, str]]] = None,
+        params: Optional[List[Tuple[str, Optional[str]]]] = None,
         basic_auth: bool = False,
     ) -> ClientResponse:
         self._check_api_key()
@@ -123,7 +123,7 @@ class BentoHttpAPI:
     def _post(
         self,
         url: str,
-        params: Optional[List[Tuple[str, str]]] = None,
+        params: Optional[List[Tuple[str, Optional[str]]]] = None,
         basic_auth: bool = False,
     ) -> Response:
         self._check_api_key()
@@ -143,7 +143,7 @@ class BentoHttpAPI:
     def _stream(
         self,
         url: str,
-        params: List[Tuple[str, str]],
+        params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
         bento: Bento,
     ) -> None:

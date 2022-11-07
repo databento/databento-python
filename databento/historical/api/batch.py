@@ -48,7 +48,7 @@ class BatchHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Request a new time series data batch job from Databento.
+        Request a new time series data batch download from Databento.
 
         Makes a `POST /batch.submit_job` HTTP request.
 
@@ -94,7 +94,7 @@ class BatchHttpAPI(BentoHttpAPI):
         Returns
         -------
         Dict[str, Any]
-            The job info for submitted batch download request.
+            The job info for batch download request.
 
         Warnings
         --------

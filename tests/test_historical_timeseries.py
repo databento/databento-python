@@ -7,7 +7,7 @@ from pytest_mock import MockerFixture
 
 
 class TestHistoricalTimeSeries:
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 

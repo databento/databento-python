@@ -141,9 +141,7 @@ def maybe_symbols_list_to_string(
         raise TypeError(f"invalid symbols type, was {type(symbols)}")
 
 
-def maybe_date_to_string(
-    value: Optional[Union[date, str]],
-) -> Optional[str]:
+def maybe_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:
     """
     Return a valid date string from the given value (if not None).
 
@@ -163,8 +161,25 @@ def maybe_date_to_string(
     return str(pd.to_datetime(value).date())
 
 
+def datetime_to_string(value: Union[pd.Timestamp, date, str, int]) -> str:
+    """
+    Return a valid datetime string from the given value.
+
+    Parameters
+    ----------
+    value : pd.Timestamp or date or str
+        The value to parse.
+
+    Returns
+    -------
+    str
+
+    """
+    return str(pd.to_datetime(value)).replace(" ", "T")
+
+
 def maybe_datetime_to_string(
-    value: Optional[Union[pd.Timestamp, date, str]],
+    value: Optional[Union[pd.Timestamp, date, str, int]],
 ) -> Optional[str]:
     """
     Return a valid datetime string from the given value (if not None).
@@ -182,7 +197,7 @@ def maybe_datetime_to_string(
     if value is None:
         return None
 
-    return str(pd.to_datetime(value)).replace(" ", "T")
+    return datetime_to_string(value)
 
 
 def parse_flags(value: int, apply_bitmask: bool = False) -> List[str]:

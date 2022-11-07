@@ -1,7 +1,7 @@
 # Changelog
 
-## 0.5.0 - TBD
- - Fixed columns for derived data schemas (dropped `channel_id`)
+## 0.5.0 - 2022-11-07
+ - Fixed dataframe columns for derived data schemas (dropped `channel_id`)
  - Fixed `batch.submit_job` requests for `dbz` encoding
  - Updated `quickstart.ipynb` jupyter notebook
 
