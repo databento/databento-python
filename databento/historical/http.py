@@ -1,7 +1,7 @@
 import sys
 from datetime import date
 from json.decoder import JSONDecodeError
-from typing import Any, BinaryIO, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, List, Optional, Sequence, Tuple, Union
 
 import aiohttp
 import pandas as pd
@@ -11,8 +11,8 @@ from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.enums import Dataset, Schema, SType
 from databento.common.logging import log_info
 from databento.common.parsing import (
+    datetime_to_string,
     enum_or_str_lowercase,
-    maybe_datetime_to_string,
     maybe_symbols_list_to_string,
 )
 from databento.historical.error import BentoClientError, BentoServerError
@@ -42,26 +42,20 @@ class BentoHttpAPI:
     def _timeseries_params(
         *,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Schema,
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         limit: Optional[int] = None,
         stype_in: SType,
         stype_out: SType = SType.PRODUCT_ID,
-    ) -> List[Tuple[str, str]]:
-        # Parse inputs
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        symbols = maybe_symbols_list_to_string(symbols)
-        start = maybe_datetime_to_string(start)
-        end = maybe_datetime_to_string(end)
-
+    ) -> List[Tuple[str, Optional[str]]]:
         params: List[Tuple[str, Any]] = [
-            ("dataset", dataset),
-            ("symbols", symbols),
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("start", datetime_to_string(start)),
+            ("end", datetime_to_string(end)),
+            ("symbols", maybe_symbols_list_to_string(symbols) or "*"),
             ("schema", schema.value),
-            ("start", start),
-            ("end", end),
             ("stype_in", stype_in.value),
             ("stype_out", stype_out.value),
         ]
@@ -78,7 +72,7 @@ class BentoHttpAPI:
         else:
             return FileBento(path=path)
 
-    def _check_api_key(self):
+    def _check_api_key(self) -> None:
         if self._key == "YOUR_API_KEY":
             raise ValueError(
                 "The API key is currently set to 'YOUR_API_KEY'. "
@@ -89,7 +83,7 @@ class BentoHttpAPI:
     def _get(
         self,
         url: str,
-        params: Optional[List[Tuple[str, str]]] = None,
+        params: Optional[List[Tuple[str, Optional[str]]]] = None,
         basic_auth: bool = False,
     ) -> Response:
         self._check_api_key()
@@ -109,7 +103,7 @@ class BentoHttpAPI:
     async def _get_async(
         self,
         url: str,
-        params: Optional[List[Tuple[str, str]]] = None,
+        params: Optional[List[Tuple[str, Optional[str]]]] = None,
         basic_auth: bool = False,
     ) -> ClientResponse:
         self._check_api_key()
@@ -129,7 +123,7 @@ class BentoHttpAPI:
     def _post(
         self,
         url: str,
-        params: Optional[List[Tuple[str, str]]] = None,
+        params: Optional[List[Tuple[str, Optional[str]]]] = None,
         basic_auth: bool = False,
     ) -> Response:
         self._check_api_key()
@@ -149,7 +143,7 @@ class BentoHttpAPI:
     def _stream(
         self,
         url: str,
-        params: List[Tuple[str, str]],
+        params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
         bento: Bento,
     ) -> None:
@@ -185,7 +179,7 @@ class BentoHttpAPI:
     async def _stream_async(
         self,
         url: str,
-        params: List[Tuple[str, Optional[str]]],
+        params: Sequence[Tuple[str, Optional[str]]],
         basic_auth: bool,
         bento: Bento,
     ) -> None:

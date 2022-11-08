@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 from databento.common.parsing import int_to_compression, int_to_schema, int_to_stype
 from dbz_python import decode_metadata
@@ -25,7 +25,7 @@ class MetadataDecoder:
 
         """
 
-        def enum_value(fn):
+        def enum_value(fn: Callable[[Any], Any]) -> Any:
             return lambda x: fn(x).value
 
         metadata = decode_metadata(raw_metadata)

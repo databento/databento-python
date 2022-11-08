@@ -1,6 +1,8 @@
 import datetime as dt
+from dataclasses import dataclass
 
 
+@dataclass(frozen=True)
 class ProductIdMappingInterval:
     """
     Represents a product ID to native symbol mapping over a start and end date
@@ -18,23 +20,7 @@ class ProductIdMappingInterval:
         The product ID value.
     """
 
-    def __init__(
-        self,
-        start_date: dt.date,
-        end_date: dt.date,
-        native: str,
-        product_id: int,
-    ):
-        self.start_date = start_date
-        self.end_date = end_date
-        self.native = native
-        self.product_id = product_id
-
-    def __repr__(self):
-        return (
-            f"{type(self).__name__}("
-            f"start_date={self.start_date}, "
-            f"end_date={self.end_date}, "
-            f"native='{self.native}', "
-            f"product_id={self.product_id})"
-        )
+    start_date: dt.date
+    end_date: dt.date
+    native: str
+    product_id: int

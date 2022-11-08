@@ -1,3 +1,6 @@
+from typing import Any, Dict, Optional, Union
+
+
 class BentoError(Exception):
     """
     Represents a Databento specific error.
@@ -13,18 +16,18 @@ class BentoHttpError(BentoError):
 
     def __init__(
         self,
-        http_status=None,
-        http_body=None,
-        json_body=None,
-        message=None,
-        headers=None,
-    ):
+        http_status: int,
+        http_body: Optional[Union[bytes, str]] = None,
+        json_body: Optional[Dict[str, Any]] = None,
+        message: Optional[str] = None,
+        headers: Optional[Any] = None,
+    ) -> None:
         super(BentoHttpError, self).__init__(message)
 
-        if http_body and hasattr(http_body, "decode"):
+        if http_body and isinstance(http_body, bytes):
             try:
                 http_body = http_body.decode("utf-8")
-            except BaseException:
+            except UnicodeDecodeError:
                 http_body = (
                     "<Could not decode body as utf-8. "
                     "Please report to support@databento.com>"
@@ -37,7 +40,7 @@ class BentoHttpError(BentoError):
         self.headers = headers or {}
         self.request_id = self.headers.get("request-id", None)
 
-    def __str__(self):
+    def __str__(self) -> str:
         msg = self.message or "<empty message>"
         msg = f"{self.http_status} {msg}"
         if self.request_id is not None:
@@ -45,7 +48,7 @@ class BentoHttpError(BentoError):
         else:
             return msg
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{type(self).__name__}("
             f"request_id={self.request_id}, "
@@ -61,15 +64,15 @@ class BentoServerError(BentoHttpError):
 
     def __init__(
         self,
-        http_status=None,
-        http_body=None,
-        json_body=None,
-        message=None,
-        headers=None,
-    ):
+        http_status: int,
+        http_body: Optional[Union[bytes, str]] = None,
+        json_body: Optional[Dict[str, Any]] = None,
+        message: Optional[str] = None,
+        headers: Optional[Any] = None,
+    ) -> None:
         super().__init__(
-            http_body=http_body,
             http_status=http_status,
+            http_body=http_body,
             json_body=json_body,
             message=message,
             headers=headers,
@@ -83,15 +86,15 @@ class BentoClientError(BentoHttpError):
 
     def __init__(
         self,
-        http_status=None,
-        http_body=None,
-        json_body=None,
-        message=None,
-        headers=None,
-    ):
+        http_status: int,
+        http_body: Optional[Union[bytes, str]] = None,
+        json_body: Optional[Dict[str, Any]] = None,
+        message: Optional[str] = None,
+        headers: Optional[Any] = None,
+    ) -> None:
         super().__init__(
-            http_body=http_body,
             http_status=http_status,
+            http_body=http_body,
             json_body=json_body,
             message=message,
             headers=headers,

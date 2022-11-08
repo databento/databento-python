@@ -3,10 +3,11 @@ import sys
 import databento as db
 import pytest
 import requests
+from pytest_mock import MockerFixture
 
 
 class TestHistoricalTimeSeries:
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
@@ -46,7 +47,7 @@ class TestHistoricalTimeSeries:
             )
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_stream_sends_expected_request(self, mocker) -> None:
+    def test_stream_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -72,10 +73,10 @@ class TestHistoricalTimeSeries:
         )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("symbols", "ESH1"),
-            ("schema", "trades"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
+            ("symbols", "ESH1"),
+            ("schema", "trades"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("encoding", "dbz"),
@@ -84,7 +85,9 @@ class TestHistoricalTimeSeries:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_stream_with_limit_sends_expected_request(self, mocker) -> None:
+    def test_stream_with_limit_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -111,10 +114,10 @@ class TestHistoricalTimeSeries:
         )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("symbols", "ESH1"),
-            ("schema", "trades"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
+            ("symbols", "ESH1"),
+            ("schema", "trades"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("limit", "1000000"),

@@ -1,22 +1,26 @@
 import datetime as dt
 import io
 import os.path
-from typing import Any, BinaryIO, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import DBZ_COLUMNS, DBZ_STRUCT_MAP, DERIV_SCHEMAS
+from databento.common.data import COLUMNS, DERIV_SCHEMAS, STRUCT_MAP
 from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import ProductIdMappingInterval
 
 
+if TYPE_CHECKING:
+    from databento.historical.client import Historical
+
+
 class Bento:
     """The abstract base class for all Bento I/O classes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._metadata: Dict[str, Any] = {}
         self._dtype: Optional[np.dtype] = None
         self._product_id_index: Dict[dt.date, Dict[int, str]] = {}
@@ -31,7 +35,7 @@ class Bento:
         self._limit: Optional[int] = None
         self._encoding: Optional[Encoding] = None
         self._compression: Optional[Compression] = None
-        self._shape: Optional[Tuple] = None
+        self._record_count: Optional[int] = None
 
     def _check_metadata(self) -> None:
         if not self._metadata:
@@ -155,7 +159,7 @@ class Bento:
         """
         if self._dtype is None:
             self._check_metadata()
-            self._dtype = np.dtype(DBZ_STRUCT_MAP[self.schema])
+            self._dtype = np.dtype(STRUCT_MAP[self.schema])
 
         return self._dtype
 
@@ -336,24 +340,20 @@ class Bento:
         return self._compression
 
     @property
-    def shape(self) -> Tuple:
+    def record_count(self) -> int:
         """
-        Return the shape of the data.
+        Return the record count.
 
         Returns
         -------
-        Tuple
-            The data shape.
+        int
 
         """
-        if self._shape is None:
+        if self._record_count is None:
             self._check_metadata()
-            self._shape = (
-                self._metadata["record_count"],
-                len(DBZ_STRUCT_MAP[self.schema]),
-            )
+            self._record_count = self._metadata["record_count"]
 
-        return self._shape
+        return self._record_count
 
     @property
     def mappings(self) -> Dict[str, List[Dict[str, Any]]]:
@@ -404,7 +404,7 @@ class Bento:
 
         """
         data: bytes = self.reader(decompress=True).read()
-        return np.frombuffer(data, dtype=DBZ_STRUCT_MAP[self.schema])
+        return np.frombuffer(data, dtype=STRUCT_MAP[self.schema])
 
     def to_df(
         self,
@@ -437,20 +437,12 @@ class Bento:
         df.set_index(self._get_index_column(), inplace=True)
 
         # Cleanup dataframe
-        if self.schema == Schema.MBO:
-            df.drop("channel_id", axis=1, inplace=True)
-            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
+        df.drop(["length", "rtype"], axis=1, inplace=True)
+        if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
+            df = df.reindex(columns=COLUMNS[self.schema])
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
             df["action"] = df["action"].str.decode("utf-8")
-        elif self.schema in DERIV_SCHEMAS:
-            df.drop(["nwords", "type", "depth"], axis=1, inplace=True)
-            df = df.reindex(columns=DBZ_COLUMNS[self.schema])
-            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
-            df["side"] = df["side"].str.decode("utf-8")
-            df["action"] = df["action"].str.decode("utf-8")
-        else:
-            df.drop(["nwords", "type"], axis=1, inplace=True)
 
         if pretty_ts:
             df.index = pd.to_datetime(df.index, utc=True)
@@ -493,7 +485,7 @@ class Bento:
             The callback to the data handler.
 
         """
-        dtype = DBZ_STRUCT_MAP[self.schema]
+        dtype = STRUCT_MAP[self.schema]
         reader: BinaryIO = self.reader(decompress=True)
         while True:
             raw: bytes = reader.read(self.struct_size)
@@ -590,7 +582,7 @@ class Bento:
         """
         self.to_df().to_json(path, orient="records", lines=True)
 
-    def request_symbology(self, client) -> Dict[str, Any]:
+    def request_symbology(self, client: "Historical") -> Dict[str, Any]:
         """
         Request symbology resolution based on the metadata properties.
 
@@ -622,7 +614,7 @@ class Bento:
 
     def request_full_definitions(
         self,
-        client,
+        client: "Historical",
         path: Optional[str] = None,
     ) -> "Bento":
         """

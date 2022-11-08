@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from typing import Optional
 
 import databento
 
@@ -14,7 +15,7 @@ _INFO = "INFO"
 _ERROR = "ERROR"
 
 
-def _console_log_level():
+def _console_log_level() -> Optional[str]:
     if databento.log:
         databento.log = databento.log.upper()
 
@@ -26,7 +27,7 @@ def _console_log_level():
         return None
 
 
-def log_debug(msg: str):
+def log_debug(msg: str) -> None:
     """Log the given message with DEBUG level."""
     log_level = _console_log_level()
     if log_level == [_DEBUG, _INFO, _ERROR]:
@@ -34,7 +35,7 @@ def log_debug(msg: str):
     logger.debug(msg)
 
 
-def log_info(msg: str):
+def log_info(msg: str) -> None:
     """Log the given message with INFO level."""
     log_level = _console_log_level()
     if log_level in [_INFO, _ERROR]:
@@ -42,7 +43,7 @@ def log_info(msg: str):
     logger.info(msg)
 
 
-def log_error(msg: str):
+def log_error(msg: str) -> None:
     """Log the given message with ERROR level."""
     log_level = _console_log_level()
     if log_level in [_ERROR]:

@@ -5,7 +5,6 @@ from enum import Enum, unique
 class HistoricalGateway(Enum):
     """Represents a historical data center gateway location."""
 
-    NEAREST = "nearest"
     BO1 = "bo1"
 
 
@@ -14,7 +13,6 @@ class LiveGateway(Enum):
     """Represents a live data center gateway location."""
 
     ORIGIN = "origin"
-    NEAREST = "nearest"
     NY4 = "ny4"
     DC3 = "dc3"
 
@@ -72,8 +70,8 @@ class Compression(Enum):
 
 
 @unique
-class Duration(Enum):
-    """Represents the duration interval for each batch data file."""
+class SplitDuration(Enum):
+    """Represents the duration before splitting for each batched data file."""
 
     DAY = "day"
     WEEK = "week"
@@ -92,7 +90,7 @@ class Packaging(Enum):
 
 @unique
 class Delivery(Enum):
-    """Represents the delivery mechanism for batch data."""
+    """Represents the delivery mechanism for batched data."""
 
     DOWNLOAD = "download"
     S3 = "s3"

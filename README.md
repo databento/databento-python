@@ -45,8 +45,8 @@ To install the latest stable version of the package from PyPI:
 ## Usage
 The library needs to be configured with an API key from your account.
 [Sign up](https://databento.com/signup) for free and you will automatically
-receive a set of API keys to start with. Each API key is a 28-character
-string that can be found on the API Keys page of your [Databento user portal](https://databento.com/platform/keys).
+receive a set of API keys to start with. Each API key is a 32-character
+string starting with `db-`, that can be found on the API Keys page of your [Databento user portal](https://databento.com/platform/keys).
 
 A simple Databento application looks like this:
 
@@ -75,7 +75,7 @@ array = data.to_ndarray()  # to ndarray
 ```
 
 Note that the API key was also passed as a parameter, which is
-[not recommended for production applications](https://docs0.databento.com/knowledge-base/new-users/securing-your-api-keys?historical=python&live=python).
+[not recommended for production applications](https://docs.databento.com/knowledge-base/kb-new-users/kb-new-security-managing-api-keys?historical=python&live=python).
 Instead, you can leave out this parameter to pass your API key via the `DATABENTO_API_KEY` environment variable:
 
 ```python

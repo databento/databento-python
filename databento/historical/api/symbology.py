@@ -14,7 +14,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
     Provides request methods for the symbology HTTP API endpoints.
     """
 
-    def __init__(self, key, gateway):
+    def __init__(self, key: str, gateway: str) -> None:
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/symbology"
 
@@ -57,20 +57,13 @@ class SymbologyHttpAPI(BentoHttpAPI):
             date range.
 
         """
-        dataset = enum_or_str_lowercase(dataset, "dataset")
-        symbols = maybe_symbols_list_to_string(symbols)
-        stype_in = enum_or_str_lowercase(stype_in, "stype_in")
-        stype_out = enum_or_str_lowercase(stype_out, "stype_out")
-        start_date = str(pd.to_datetime(start_date).date())
-        end_date = str(pd.to_datetime(end_date).date())
-
-        params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
-            ("symbols", symbols),
-            ("stype_in", stype_in),
-            ("stype_out", stype_out),
-            ("start_date", start_date),
-            ("end_date", end_date),
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("symbols", maybe_symbols_list_to_string(symbols)),
+            ("stype_in", enum_or_str_lowercase(stype_in, "stype_in")),
+            ("stype_out", enum_or_str_lowercase(stype_out, "stype_out")),
+            ("start_date", str(pd.to_datetime(start_date).date())),
+            ("end_date", str(pd.to_datetime(end_date).date())),
             ("default_value", default_value),
         ]
 

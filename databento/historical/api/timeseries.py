@@ -15,17 +15,17 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
     Provides request methods for the time series HTTP API endpoints.
     """
 
-    def __init__(self, key, gateway):
+    def __init__(self, key: str, gateway: str) -> None:
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/timeseries"
 
     def stream(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -36,22 +36,28 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         Makes a `GET /timeseries.stream` HTTP request.
 
+        Primary method for getting historical intraday market data, daily data,
+        instrument definitions and market status data directly into your application.
+
+        This method only returns after all of the data has been downloaded,
+        which can take a long time. For large requests, consider using a batch download.
+
         Parameters
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime (UTC) of the request time range (inclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int
+            The end datetime (UTC) of the request time range (exclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime (UTC) of the request time range (inclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime (UTC) of the request time range (exclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
@@ -79,18 +85,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
-        schema = Schema(schema)
-        stype_in = SType(stype_in)
-        stype_out = SType(stype_out)
-
-        params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
+        params: List[Tuple[str, Optional[str]]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
-            symbols=symbols,
-            schema=schema,
             start=start,
             end=end,
-            stype_in=stype_in,
-            stype_out=stype_out,
+            symbols=symbols,
+            schema=Schema(schema),
+            stype_in=SType(stype_in),
+            stype_out=SType(stype_out),
             limit=limit,
         )
 
@@ -98,7 +100,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         self._pre_check_data_size(
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
             limit=limit,
@@ -118,10 +120,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
     async def stream_async(
         self,
         dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        start: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
@@ -132,22 +134,28 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         Makes a `GET /timeseries.stream` HTTP request.
 
+        Primary method for getting historical intraday market data, daily data,
+        instrument definitions and market status data directly into your application.
+
+        This coroutine will complete once all of the data has been downloaded,
+        which can take a long time. For large requests, consider using a batch download.
+
         Parameters
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime (UTC) of the request time range (inclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+        end : pd.Timestamp or date or str or int
+            The end datetime (UTC) of the request time range (exclusive).
+            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime (UTC) of the request time range (inclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
-            The end datetime (UTC) of the request time range (exclusive).
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'product_id'
@@ -175,18 +183,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         validate_enum(stype_in, SType, "stype_in")
         validate_enum(stype_out, SType, "stype_out")
 
-        schema = Schema(schema)
-        stype_in = SType(stype_in)
-        stype_out = SType(stype_out)
-
-        params: List[Tuple[str, str]] = BentoHttpAPI._timeseries_params(
+        params: List[Tuple[str, Optional[str]]] = BentoHttpAPI._timeseries_params(
             dataset=dataset,
-            symbols=symbols,
-            schema=schema,
             start=start,
             end=end,
-            stype_in=stype_in,
-            stype_out=stype_out,
+            symbols=symbols,
+            schema=Schema(schema),
+            stype_in=SType(stype_in),
+            stype_out=SType(stype_out),
             limit=limit,
         )
 
@@ -194,7 +198,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         self._pre_check_data_size(
             symbols=symbols,
-            schema=schema,
+            schema=Schema(schema),
             start=start,
             end=end,
             limit=limit,
@@ -211,14 +215,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         return bento
 
-    def _pre_check_data_size(
+    def _pre_check_data_size(  # noqa (prefer not to make static)
         self,
         symbols: Optional[Union[List[str], str]],
         schema: Schema,
         start: Optional[Union[pd.Timestamp, date, str, int]],
         end: Optional[Union[pd.Timestamp, date, str, int]],
         limit: Optional[int],
-    ):
+    ) -> None:
         if limit and limit < 10**7:
             return
 
@@ -232,7 +236,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
                 "\nThe size of the current streaming request is estimated "
                 "to be 5 GB or greater. We recommend smaller "
                 "individual streaming request sizes, or alternatively "
-                "submit a batch data request."
+                "submit a batch download request."
                 "\nYou can check the uncompressed binary size of a request "
                 "through the metadata API (from the client library, or over "
                 "HTTP).\nThis warning can be suppressed "
@@ -240,7 +244,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             )
 
 
-def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]):
+def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]) -> bool:
     if not symbols:
         return True  # All symbols
 
@@ -253,11 +257,14 @@ def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]):
     return False
 
 
-def _is_large_data_size_schema(schema: Schema):
+def _is_large_data_size_schema(schema: Schema) -> bool:
     return schema in (Schema.MBO, Schema.MBP_10)
 
 
-def _is_greater_than_one_day(start, end):
+def _is_greater_than_one_day(
+    start: Optional[Union[pd.Timestamp, date, str, int]],
+    end: Optional[Union[pd.Timestamp, date, str, int]],
+) -> bool:
     if start is None or end is None:
         return True
 

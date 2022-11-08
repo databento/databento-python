@@ -3,10 +3,11 @@ import sys
 import databento as db
 import pytest
 import requests
+from pytest_mock import MockerFixture
 
 
 class TestHistoricalBatch:
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
@@ -49,7 +50,9 @@ class TestHistoricalBatch:
             )
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_batch_submit_job_sends_expected_request(self, mocker) -> None:
+    def test_batch_submit_job_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.post")
 
@@ -81,24 +84,26 @@ class TestHistoricalBatch:
         )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("symbols", "ESH1"),
-            ("schema", "trades"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
+            ("symbols", "ESH1"),
+            ("schema", "trades"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("encoding", "csv"),
             ("compression", "zstd"),
             ("split_duration", "day"),
+            ("split_size", "10000000000"),
             ("packaging", "none"),
             ("delivery", "download"),
-            ("split_size", "10000000000"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_batch_list_jobs_sends_expected_request(self, mocker) -> None:
+    def test_batch_list_jobs_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 

@@ -1,18 +1,22 @@
 import sys
+from typing import Union
 
 import databento as db
 import pytest
 import requests
 from databento.common.enums import Dataset, FeedMode, Schema
+from pytest_mock import MockerFixture
 
 
 class TestHistoricalMetadata:
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_publishers_sends_expected_request(self, mocker) -> None:
+    def test_list_publishers_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -34,7 +38,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_datasets_sends_expected_request(self, mocker) -> None:
+    def test_list_datasets_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -61,7 +65,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_schemas_sends_expected_request(self, mocker) -> None:
+    def test_list_schemas_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -89,7 +93,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_fields_sends_expected_request(self, mocker) -> None:
+    def test_list_fields_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -117,7 +121,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_encodings_sends_expected_request(self, mocker) -> None:
+    def test_list_encodings_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -139,7 +143,9 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_compressions_sends_expected_request(self, mocker) -> None:
+    def test_list_compressions_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -169,7 +175,11 @@ class TestHistoricalMetadata:
         ],
     )
     def test_list_unit_price_sends_expected_request(
-        self, dataset, schema, mode, mocker
+        self,
+        dataset: Union[str, Dataset],
+        schema: Union[str, Schema],
+        mode: Union[str, FeedMode],
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -201,12 +211,14 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_shape_sends_expected_request(self, mocker) -> None:
+    def test_get_record_count_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.get_shape(
+        self.client.metadata.get_record_count(
             dataset="GLBX.MDP3",
             symbols=["ESH1"],
             schema="mbo",
@@ -219,7 +231,7 @@ class TestHistoricalMetadata:
         call = mocked_get.call_args.kwargs
         assert (
             call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_shape"
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_record_count"
         )
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"
@@ -240,7 +252,9 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_billable_size_sends_expected_request(self, mocker) -> None:
+    def test_get_billable_size_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -267,10 +281,10 @@ class TestHistoricalMetadata:
         )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("symbols", "ESH1"),
-            ("schema", "mbo"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
+            ("symbols", "ESH1"),
+            ("schema", "mbo"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("limit", "1000000"),
@@ -279,7 +293,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_cost_sends_expected_request(self, mocker) -> None:
+    def test_get_cost_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
@@ -306,10 +320,10 @@ class TestHistoricalMetadata:
         )
         assert call["params"] == [
             ("dataset", "glbx.mdp3"),
-            ("symbols", "ESH1"),
-            ("schema", "mbo"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
+            ("symbols", "ESH1"),
+            ("schema", "mbo"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("limit", "1000000"),
