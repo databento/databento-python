@@ -3,7 +3,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.enums import SType
-from databento.common.parsing import enum_or_str_lowercase, maybe_symbols_list_to_string
+from databento.common.parsing import (
+    enum_or_str_lowercase,
+    enum_or_str_uppercase,
+    maybe_symbols_list_to_string,
+)
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from requests import Response
@@ -58,7 +62,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
             ("symbols", maybe_symbols_list_to_string(symbols)),
             ("stype_in", enum_or_str_lowercase(stype_in, "stype_in")),
             ("stype_out", enum_or_str_lowercase(stype_out, "stype_out")),

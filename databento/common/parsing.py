@@ -11,7 +11,7 @@ def enum_or_str_lowercase(
     param: str,
 ) -> str:
     """
-    Return the given value parsed to a lowercase string if possible.
+    Return the given value parsed to a lowercase string.
 
     Parameters
     ----------
@@ -44,7 +44,7 @@ def maybe_enum_or_str_lowercase(
     param: str,
 ) -> Optional[str]:
     """
-    Return the given value parsed to a lowercase string if possible.
+    Return the given value parsed to a lowercase string (if not `None`).
 
     Parameters
     ----------
@@ -66,6 +66,68 @@ def maybe_enum_or_str_lowercase(
     if value is None:
         return value
     return enum_or_str_lowercase(value, param)
+
+
+def enum_or_str_uppercase(
+    value: Union[Enum, str],
+    param: str,
+) -> str:
+    """
+    Return the given value parsed to an uppercase string.
+
+    Parameters
+    ----------
+    value : Enum or str
+        The value to parse.
+    param : str
+        The name of the parameter being validated (for any error message).
+
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    TypeError
+        If value is not of type NoneType, Enum or str.
+
+    """
+    if isinstance(value, Enum):
+        return value.value.upper()
+    elif isinstance(value, str):
+        if not value.isspace():
+            return value.upper()
+
+    raise TypeError(f"invalid `{param}` type, was {type(value)}.")
+
+
+def maybe_enum_or_str_uppercase(
+    value: Optional[Union[Enum, str]],
+    param: str,
+) -> Optional[str]:
+    """
+    Return the given value parsed to an uppercase string (if not `None`).
+
+    Parameters
+    ----------
+    value : Enum or str, optional
+        The value to parse.
+    param : str
+        The name of the parameter being validated (for any error message).
+
+    Returns
+    -------
+    str or ``None``
+
+    Raises
+    ------
+    TypeError
+        If value is not of type NoneType, Enum or str.
+
+    """
+    if value is None:
+        return value
+    return enum_or_str_uppercase(value, param)
 
 
 def values_list_to_string(

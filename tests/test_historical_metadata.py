@@ -65,6 +65,37 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_list_dataset_conditions_sends_expected_request(
+        self, mocker: MockerFixture
+    ) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+
+        # Act
+        self.client.metadata.list_dataset_conditions(
+            dataset="GLBX.MDP3",
+            start_date="2018-01-01",
+            end_date="2020-01-01",
+        )
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_dataset_conditions"  # noqa
+        )
+        assert ("dataset", "GLBX.MDP3") in call["params"]
+        assert ("start_date", "2018-01-01") in call["params"]
+        assert ("end_date", "2020-01-01") in call["params"]
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_schemas_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -82,6 +113,7 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_schemas"
         )
+        assert ("dataset", "GLBX.MDP3") in call["params"]
         assert ("start_date", "2018-01-01") in call["params"]
         assert ("end_date", "2021-01-01") in call["params"]
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
@@ -110,6 +142,7 @@ class TestHistoricalMetadata:
             call["url"]
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_fields"
         )
+        assert ("dataset", "GLBX.MDP3") in call["params"]
         assert ("schema", "mbo") in call["params"]
         assert ("encoding", "dbz") in call["params"]
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
@@ -203,7 +236,7 @@ class TestHistoricalMetadata:
             v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("mode", "live"),
             ("schema", "mbo"),
         ]
@@ -239,7 +272,7 @@ class TestHistoricalMetadata:
             v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("symbols", "ESH1"),
             ("schema", "mbo"),
             ("start", "2020-12-28T12:00:00"),
@@ -280,7 +313,7 @@ class TestHistoricalMetadata:
             v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
             ("symbols", "ESH1"),
@@ -319,7 +352,7 @@ class TestHistoricalMetadata:
             v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
             ("symbols", "ESH1"),

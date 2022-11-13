@@ -79,7 +79,7 @@ class TestHistoricalClient:
             == f"https://hist.databento.com/v{db.API_VERSION}/symbology.resolve"
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("symbols", "ESH1"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
@@ -117,7 +117,7 @@ class TestHistoricalClient:
             == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("start", "2020-12-28T13:00:00+00:00"),
             ("end", "2020-12-29T00:00:00+00:00"),
             ("symbols", "ESH1"),

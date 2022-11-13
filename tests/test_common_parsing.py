@@ -8,9 +8,11 @@ import pytest
 from databento.common.enums import Dataset, Flags
 from databento.common.parsing import (
     enum_or_str_lowercase,
+    enum_or_str_uppercase,
     maybe_date_to_string,
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
+    maybe_enum_or_str_uppercase,
     maybe_symbols_list_to_string,
     maybe_values_list_to_string,
     parse_flags,
@@ -68,6 +70,52 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         assert maybe_enum_or_str_lowercase(value, "param") == expected
+
+    def test_enum_or_str_uppercase_given_none_raises_type_error(self) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            enum_or_str_uppercase(None, "param")  # noqa (passing None for test)
+
+    def test_enum_or_str_uppercase_given_incorrect_type_raises_type_error(self) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            enum_or_str_uppercase(INCORRECT_TYPE, "param")
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ["abc", "ABC"],
+            ["ABC", "ABC"],
+            [Dataset.GLBX_MDP3, "GLBX.MDP3"],
+        ],
+    )
+    def test_enum_or_str_uppercase_returns_expected_outputs(
+        self, value: Union[Enum, str], expected: str
+    ) -> None:
+        # Arrange, Act, Assert
+        assert enum_or_str_uppercase(value, "param") == expected
+
+    def test_maybe_enum_or_str_uppercase_given_incorrect_types_raises_error(
+        self,
+    ) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            maybe_enum_or_str_lowercase(INCORRECT_TYPE, "param")
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            [None, None],
+            ["abc", "ABC"],
+            ["ABC", "ABC"],
+            [Dataset.GLBX_MDP3, "GLBX.MDP3"],
+        ],
+    )
+    def test_maybe_enum_or_str_uppercase_returns_expected_outputs(
+        self, value: Optional[Union[Enum, str]], expected: Optional[str]
+    ) -> None:
+        # Arrange, Act, Assert
+        assert maybe_enum_or_str_uppercase(value, "param") == expected
 
     def test_maybe_values_list_to_string_given_invalid_input_raises_type_error(
         self,

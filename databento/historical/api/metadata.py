@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import pandas as pd
 from databento.common.enums import Dataset, Encoding, FeedMode, Schema, SType
 from databento.common.parsing import (
-    enum_or_str_lowercase,
+    enum_or_str_uppercase,
     maybe_date_to_string,
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
@@ -81,6 +81,46 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
+    def list_dataset_conditions(
+        self,
+        dataset: Union[Dataset, str],
+        start_date: Union[date, str],
+        end_date: Union[date, str],
+    ) -> List[str]:
+        """
+        Request the dataset conditions per date from Databento.
+
+        Makes a `GET /metadata.list_dataset_conditions` HTTP request.
+
+        Use this method to discover data availability and qualility.
+
+        Parameters
+        ----------
+        dataset : Dataset or str
+            The dataset code (string identifier) for the request.
+        start_date : date or str
+            The start date (UTC) for the request range.
+        end_date : date or str
+            The end date (UTC) for the request range.
+
+        Returns
+        -------
+        List[str]
+
+        """
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
+            ("start_date", str(pd.to_datetime(start_date).date())),
+            ("end_date", str(pd.to_datetime(end_date).date())),
+        ]
+
+        response: Response = self._get(
+            url=self._base_url + ".list_dataset_conditions",
+            params=params,
+            basic_auth=True,
+        )
+        return response.json()
+
     def list_schemas(
         self,
         dataset: Optional[Union[Dataset, str]] = None,
@@ -107,7 +147,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
             ("start_date", maybe_date_to_string(start_date)),
             ("end_date", maybe_date_to_string(end_date)),
         ]
@@ -152,7 +192,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_maybe_enum(encoding, Encoding, "encoding")
 
         params: List[Tuple[str, str]] = [
-            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
             ("schema", maybe_enum_or_str_lowercase(schema, "schema")),
             ("encoding", maybe_enum_or_str_lowercase(encoding, "encoding")),
         ]
@@ -229,7 +269,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_maybe_enum(mode, FeedMode, "mode")
 
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
             ("mode", maybe_enum_or_str_lowercase(mode, "mode")),
             ("schema", maybe_enum_or_str_lowercase(schema, "schema")),
         ]
@@ -290,7 +330,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         validate_enum(stype_in, SType, "stype_in")
 
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_lowercase(dataset, "dataset")),
+            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
             ("symbols", maybe_symbols_list_to_string(symbols)),
             ("schema", Schema(schema).value),
             ("start", maybe_datetime_to_string(start)),
