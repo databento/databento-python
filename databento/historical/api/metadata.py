@@ -86,7 +86,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Union[Dataset, str],
         start_date: Union[date, str],
         end_date: Union[date, str],
-    ) -> List[str]:
+    ) -> Dict[str, Any]:
         """
         Request the dataset conditions per date from Databento.
 
@@ -105,7 +105,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        List[str]
+        Dict[str, Any]
 
         """
         params: List[Tuple[str, Optional[str]]] = [
