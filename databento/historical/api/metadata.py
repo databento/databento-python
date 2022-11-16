@@ -81,46 +81,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
-    def list_dataset_conditions(
-        self,
-        dataset: Union[Dataset, str],
-        start_date: Union[date, str],
-        end_date: Union[date, str],
-    ) -> Dict[str, Any]:
-        """
-        Request the dataset conditions per date from Databento.
-
-        Makes a `GET /metadata.list_dataset_conditions` HTTP request.
-
-        Use this method to discover data availability and qualility.
-
-        Parameters
-        ----------
-        dataset : Dataset or str
-            The dataset code (string identifier) for the request.
-        start_date : date or str
-            The start date (UTC) for the request range.
-        end_date : date or str
-            The end date (UTC) for the request range.
-
-        Returns
-        -------
-        Dict[str, Any]
-
-        """
-        params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("start_date", str(pd.to_datetime(start_date).date())),
-            ("end_date", str(pd.to_datetime(end_date).date())),
-        ]
-
-        response: Response = self._get(
-            url=self._base_url + ".list_dataset_conditions",
-            params=params,
-            basic_auth=True,
-        )
-        return response.json()
-
     def list_schemas(
         self,
         dataset: Optional[Union[Dataset, str]] = None,
@@ -276,6 +236,46 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         response: Response = self._get(
             url=self._base_url + ".list_unit_prices",
+            params=params,
+            basic_auth=True,
+        )
+        return response.json()
+
+    def get_dataset_condition(
+        self,
+        dataset: Union[Dataset, str],
+        start_date: Union[date, str],
+        end_date: Union[date, str],
+    ) -> Dict[str, Any]:
+        """
+        Get the dataset condition from Databento.
+
+        Makes a `GET /metadata.get_dataset_condition` HTTP request.
+
+        Use this method to discover data availability and qualility.
+
+        Parameters
+        ----------
+        dataset : Dataset or str
+            The dataset code (string identifier) for the request.
+        start_date : date or str
+            The start date (UTC) for the request range.
+        end_date : date or str
+            The end date (UTC) for the request range.
+
+        Returns
+        -------
+        Dict[str, Any]
+
+        """
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
+            ("start_date", str(pd.to_datetime(start_date).date())),
+            ("end_date", str(pd.to_datetime(end_date).date())),
+        ]
+
+        response: Response = self._get(
+            url=self._base_url + ".get_dataset_condition",
             params=params,
             basic_auth=True,
         )
