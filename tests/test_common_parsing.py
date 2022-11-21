@@ -44,7 +44,9 @@ class TestParsing:
         ],
     )
     def test_enum_or_str_lowercase_returns_expected_outputs(
-        self, value: Union[Enum, str], expected: str
+        self,
+        value: Union[Enum, str],
+        expected: str,
     ) -> None:
         # Arrange, Act, Assert
         assert enum_or_str_lowercase(value, "param") == expected
@@ -66,7 +68,9 @@ class TestParsing:
         ],
     )
     def test_maybe_enum_or_str_lowercase_returns_expected_outputs(
-        self, value: Optional[Union[Enum, str]], expected: Optional[str]
+        self,
+        value: Optional[Union[Enum, str]],
+        expected: Optional[str],
     ) -> None:
         # Arrange, Act, Assert
         assert maybe_enum_or_str_lowercase(value, "param") == expected
@@ -90,7 +94,9 @@ class TestParsing:
         ],
     )
     def test_enum_or_str_uppercase_returns_expected_outputs(
-        self, value: Union[Enum, str], expected: str
+        self,
+        value: Union[Enum, str],
+        expected: str,
     ) -> None:
         # Arrange, Act, Assert
         assert enum_or_str_uppercase(value, "param") == expected
@@ -112,7 +118,9 @@ class TestParsing:
         ],
     )
     def test_maybe_enum_or_str_uppercase_returns_expected_outputs(
-        self, value: Optional[Union[Enum, str]], expected: Optional[str]
+        self,
+        value: Optional[Union[Enum, str]],
+        expected: Optional[str],
     ) -> None:
         # Arrange, Act, Assert
         assert maybe_enum_or_str_uppercase(value, "param") == expected

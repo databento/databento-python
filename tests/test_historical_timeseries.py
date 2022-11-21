@@ -86,7 +86,8 @@ class TestHistoricalTimeSeries:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_stream_with_limit_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")

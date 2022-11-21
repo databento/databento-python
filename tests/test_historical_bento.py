@@ -70,7 +70,7 @@ class TestBento:
                         "end_date": dt.date(2020, 12, 29),
                         "symbol": "5482",
                     },
-                ]
+                ],
             },
         }
         assert data.metadata == metadata
@@ -114,7 +114,7 @@ class TestBento:
                 ("ts_recv", "<u8"),
                 ("ts_in_delta", "<i4"),
                 ("sequence", "<u4"),
-            ]
+            ],
         )
         assert data.struct_size == 56
         assert data.nbytes == 245
@@ -135,7 +135,7 @@ class TestBento:
                     "start_date": dt.date(2020, 12, 28),
                     "end_date": dt.date(2020, 12, 29),
                 },
-            ]
+            ],
         }
         assert data.symbology == {
             "symbols": ["ESH1"],
@@ -152,7 +152,7 @@ class TestBento:
                         "start_date": dt.date(2020, 12, 28),
                         "end_date": dt.date(2020, 12, 29),
                     },
-                ]
+                ],
             },
         }
 
@@ -229,7 +229,8 @@ class TestBento:
         ],
     )
     def test_to_df_across_schemas_returns_identical_dimension_dfs(
-        self, schema: Schema
+        self,
+        schema: Schema,
     ) -> None:
         # Arrange
         stub_data = get_test_data(schema=schema)

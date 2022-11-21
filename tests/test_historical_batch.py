@@ -51,7 +51,8 @@ class TestHistoricalBatch:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_submit_job_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.post")
@@ -102,7 +103,8 @@ class TestHistoricalBatch:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_list_jobs_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")

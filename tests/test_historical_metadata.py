@@ -15,7 +15,8 @@ class TestHistoricalMetadata:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_publishers_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -146,7 +147,8 @@ class TestHistoricalMetadata:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_compressions_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -214,7 +216,8 @@ class TestHistoricalMetadata:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_dataset_condition_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -245,7 +248,8 @@ class TestHistoricalMetadata:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_record_count_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -286,7 +290,8 @@ class TestHistoricalMetadata:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_billable_size_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")

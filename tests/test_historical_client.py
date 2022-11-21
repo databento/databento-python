@@ -59,7 +59,8 @@ class TestHistoricalClient:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_re_request_symbology_makes_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -97,7 +98,8 @@ class TestHistoricalClient:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_request_full_definitions_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
