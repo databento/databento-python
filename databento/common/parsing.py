@@ -178,6 +178,7 @@ def maybe_values_list_to_string(
 
 def maybe_symbols_list_to_string(
     symbols: Optional[Union[Iterable[str], str]],
+    stype_in: SType,
 ) -> Optional[str]:
     """
     Concatenate a symbols string or iterable of symbol strings (if not None).
@@ -186,6 +187,8 @@ def maybe_symbols_list_to_string(
     ----------
     symbols : iterable of str or str, optional
         The symbols to concatenate.
+    stype_in : SType
+        The input symbology type for the request.
 
     Returns
     -------
@@ -193,14 +196,22 @@ def maybe_symbols_list_to_string(
 
     """
     if symbols is None:
-        return None  # All symbols
+        return None  # Full universe
 
-    if isinstance(symbols, str):
-        return symbols.strip().rstrip(",").upper()
-    elif isinstance(symbols, Iterable):
-        return ",".join(symbols).strip().upper()
-    else:
-        raise TypeError(f"invalid symbols type, was {type(symbols)}")
+    symbols_list = symbols.split(",") if isinstance(symbols, str) else list(symbols)
+    cleaned_symbols: List[str] = []
+    for symbol in symbols_list:
+        if not symbol:
+            continue
+        symbol = symbol.strip().upper()
+        if stype_in == SType.SMART:
+            pieces: List[str] = symbol.split(".")
+            if len(pieces) == 3:
+                symbol = f"{pieces[0]}.{pieces[1].lower()}.{pieces[2]}"
+
+        cleaned_symbols.append(symbol)
+
+    return ",".join(cleaned_symbols)
 
 
 def maybe_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:

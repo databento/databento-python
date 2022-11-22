@@ -5,7 +5,7 @@ from typing import Any, List, Optional, Union
 import numpy as np
 import pandas as pd
 import pytest
-from databento.common.enums import Dataset, Flags
+from databento.common.enums import Dataset, Flags, SType
 from databento.common.parsing import (
     enum_or_str_lowercase,
     enum_or_str_uppercase,
@@ -159,17 +159,19 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_symbols_list_to_string(INCORRECT_TYPE)
+            maybe_symbols_list_to_string(INCORRECT_TYPE, SType.NATIVE)
 
     @pytest.mark.parametrize(
         "symbols, expected",
         [
             [None, None],
+            ["ES.fut", "ES.FUT"],
             ["ES,CL", "ES,CL"],
             ["ES,CL,", "ES,CL"],
             ["es,cl,", "ES,CL"],
             [["ES", "CL"], "ES,CL"],
             [["es", "cl"], "ES,CL"],
+            [["ES.N.0", "CL.n.0"], "ES.n.0,CL.n.0"],
         ],
     )
     def test_maybe_symbols_list_to_string_given_valid_inputs_returns_expected(
@@ -178,7 +180,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_symbols_list_to_string(symbols)
+        result: Optional[str] = maybe_symbols_list_to_string(symbols, SType.SMART)
 
         # Assert
         assert result == expected

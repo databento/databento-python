@@ -331,7 +331,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("symbols", maybe_symbols_list_to_string(symbols)),
+            ("symbols", maybe_symbols_list_to_string(symbols, SType(stype_in))),
             ("schema", Schema(schema).value),
             ("start", maybe_datetime_to_string(start)),
             ("end", maybe_datetime_to_string(end)),

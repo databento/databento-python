@@ -1,7 +1,7 @@
 import sys
 from datetime import date
 from json.decoder import JSONDecodeError
-from typing import Any, BinaryIO, List, Optional, Sequence, Tuple, Union
+from typing import Any, BinaryIO, List, Optional, Tuple, Union
 
 import aiohttp
 import pandas as pd
@@ -54,7 +54,7 @@ class BentoHttpAPI:
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
-            ("symbols", maybe_symbols_list_to_string(symbols) or "*"),
+            ("symbols", maybe_symbols_list_to_string(symbols, SType(stype_in)) or "*"),
             ("schema", schema.value),
             ("stype_in", stype_in.value),
             ("stype_out", stype_out.value),
@@ -179,7 +179,7 @@ class BentoHttpAPI:
     async def _stream_async(
         self,
         url: str,
-        params: Sequence[Tuple[str, Optional[str]]],
+        params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
         bento: Bento,
     ) -> None:

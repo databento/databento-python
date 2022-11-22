@@ -63,7 +63,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         """
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("symbols", maybe_symbols_list_to_string(symbols)),
+            ("symbols", maybe_symbols_list_to_string(symbols, SType(stype_in))),
             ("stype_in", enum_or_str_lowercase(stype_in, "stype_in")),
             ("stype_out", enum_or_str_lowercase(stype_out, "stype_out")),
             ("start_date", str(pd.to_datetime(start_date).date())),
