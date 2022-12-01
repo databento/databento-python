@@ -134,11 +134,9 @@ class SymbologyResolution(Enum):
 class Flags(Enum):
     """Represents record flags."""
 
-    F_LAST = 1 << 7  # 128  Last msg in packet (flags < 0)
-    F_HALT = 1 << 6  # 64  Exchange-independent HALT signal
-    F_RESET = 1 << 5  # 32  Drop book, reset symbol for this exchange
-    F_DUPID = 1 << 4  # 16  This OrderID has valid fresh duplicate (Iceberg, etc)
-    F_MBP = 1 << 3  # 8  This is SIP/MBP ADD message, single per price level
-    F_RESERVED2 = 1 << 2  # 4 Reserved for future use
-    F_RESERVED1 = 1 << 1  # 2 Reserved for future use
-    F_RESERVED0 = 1  # Reserved for future use
+    # Last message in the packet from the venue for a given `product_id`
+    F_LAST = 1 << 7
+    # Aggregated price level message, not an individual order
+    F_MBP = 1 << 4
+    # The `ts_recv` value is inaccurate (clock issues or reordering)
+    F_BAD_TS_RECV = 1 << 3

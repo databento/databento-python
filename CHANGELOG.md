@@ -1,5 +1,8 @@
 # Changelog
 
+## TBD
+- Updated `Flags` enum
+
 ## 0.6.0 - 2022-12-02
 - Added `metadata.get_dataset_condition` method to `Historical` client
 - Upgraded `dbz-python` to `0.2.0`

@@ -283,14 +283,11 @@ def parse_flags(value: int, apply_bitmask: bool = False) -> List[str]:
     flag represented by a single integer.
 
     Possible values include:
-     - F_LAST: Last msg in packet (flags < 0).
-     - F_HALT: Exchange-independent HALT signal.
-     - F_RESET: Drop book, reset symbol for this exchange.
-     - F_DUPID: This OrderID has valid fresh duplicate (Iceberg, etc).
-     - F_MBP: This is SIP/MBP ADD message, single per price level.
-     - F_RESERVED2: Reserved for future use (no current meaning).
-     - F_RESERVED1: Reserved for future use (no current meaning).
-     - F_RESERVED0: Reserved for future use (no current meaning).
+     - F_LAST: Last message in the packet from the venue for a given `product_id`
+     - F_MBP: Aggregated price level message, not an individual order
+     - F_BAD_TS_RECV: The `ts_recv` value is inaccurate (clock issues or reordering)
+
+    Other bits are reserved and have no current meaning.
 
     Parameters
     ----------
