@@ -51,7 +51,8 @@ class TestHistoricalBatch:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_submit_job_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.post")
@@ -83,7 +84,7 @@ class TestHistoricalBatch:
             v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
             ("symbols", "ESH1"),
@@ -102,7 +103,8 @@ class TestHistoricalBatch:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_list_jobs_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")

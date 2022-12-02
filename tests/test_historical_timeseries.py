@@ -54,7 +54,8 @@ class TestHistoricalTimeSeries:
         # Act
         self.client.timeseries.stream(
             dataset="GLBX.MDP3",
-            symbols="ESH1",
+            symbols="ES.c.0",
+            stype_in="smart",
             schema="trades",
             start="2020-12-28T12:00",
             end="2020-12-29",
@@ -72,12 +73,12 @@ class TestHistoricalTimeSeries:
             v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
-            ("symbols", "ESH1"),
+            ("symbols", "ES.c.0"),
             ("schema", "trades"),
-            ("stype_in", "native"),
+            ("stype_in", "smart"),
             ("stype_out", "product_id"),
             ("encoding", "dbz"),
         ]
@@ -86,7 +87,8 @@ class TestHistoricalTimeSeries:
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_stream_with_limit_sends_expected_request(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -113,7 +115,7 @@ class TestHistoricalTimeSeries:
             v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
         )
         assert call["params"] == [
-            ("dataset", "glbx.mdp3"),
+            ("dataset", "GLBX.MDP3"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
             ("symbols", "ESH1"),

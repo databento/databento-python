@@ -662,7 +662,7 @@ class Bento:
                         end_date=row["end_date"],
                         native=native,
                         product_id=int(row["symbol"]),
-                    )
+                    ),
                 )
 
         product_id_index: Dict[dt.date, Dict[int, str]] = {}

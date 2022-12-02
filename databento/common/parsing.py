@@ -11,7 +11,7 @@ def enum_or_str_lowercase(
     param: str,
 ) -> str:
     """
-    Return the given value parsed to a lowercase string if possible.
+    Return the given value parsed to a lowercase string.
 
     Parameters
     ----------
@@ -44,7 +44,7 @@ def maybe_enum_or_str_lowercase(
     param: str,
 ) -> Optional[str]:
     """
-    Return the given value parsed to a lowercase string if possible.
+    Return the given value parsed to a lowercase string (if not `None`).
 
     Parameters
     ----------
@@ -66,6 +66,68 @@ def maybe_enum_or_str_lowercase(
     if value is None:
         return value
     return enum_or_str_lowercase(value, param)
+
+
+def enum_or_str_uppercase(
+    value: Union[Enum, str],
+    param: str,
+) -> str:
+    """
+    Return the given value parsed to an uppercase string.
+
+    Parameters
+    ----------
+    value : Enum or str
+        The value to parse.
+    param : str
+        The name of the parameter being validated (for any error message).
+
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    TypeError
+        If value is not of type NoneType, Enum or str.
+
+    """
+    if isinstance(value, Enum):
+        return value.value.upper()
+    elif isinstance(value, str):
+        if not value.isspace():
+            return value.upper()
+
+    raise TypeError(f"invalid `{param}` type, was {type(value)}.")
+
+
+def maybe_enum_or_str_uppercase(
+    value: Optional[Union[Enum, str]],
+    param: str,
+) -> Optional[str]:
+    """
+    Return the given value parsed to an uppercase string (if not `None`).
+
+    Parameters
+    ----------
+    value : Enum or str, optional
+        The value to parse.
+    param : str
+        The name of the parameter being validated (for any error message).
+
+    Returns
+    -------
+    str or ``None``
+
+    Raises
+    ------
+    TypeError
+        If value is not of type NoneType, Enum or str.
+
+    """
+    if value is None:
+        return value
+    return enum_or_str_uppercase(value, param)
 
 
 def values_list_to_string(
@@ -116,6 +178,7 @@ def maybe_values_list_to_string(
 
 def maybe_symbols_list_to_string(
     symbols: Optional[Union[Iterable[str], str]],
+    stype_in: SType,
 ) -> Optional[str]:
     """
     Concatenate a symbols string or iterable of symbol strings (if not None).
@@ -124,6 +187,8 @@ def maybe_symbols_list_to_string(
     ----------
     symbols : iterable of str or str, optional
         The symbols to concatenate.
+    stype_in : SType
+        The input symbology type for the request.
 
     Returns
     -------
@@ -131,14 +196,22 @@ def maybe_symbols_list_to_string(
 
     """
     if symbols is None:
-        return None  # All symbols
+        return None  # Full universe
 
-    if isinstance(symbols, str):
-        return symbols.strip().rstrip(",").upper()
-    elif isinstance(symbols, Iterable):
-        return ",".join(symbols).strip().upper()
-    else:
-        raise TypeError(f"invalid symbols type, was {type(symbols)}")
+    symbols_list = symbols.split(",") if isinstance(symbols, str) else list(symbols)
+    cleaned_symbols: List[str] = []
+    for symbol in symbols_list:
+        if not symbol:
+            continue
+        symbol = symbol.strip().upper()
+        if stype_in == SType.SMART:
+            pieces: List[str] = symbol.split(".")
+            if len(pieces) == 3:
+                symbol = f"{pieces[0]}.{pieces[1].lower()}.{pieces[2]}"
+
+        cleaned_symbols.append(symbol)
+
+    return ",".join(cleaned_symbols)
 
 
 def maybe_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:

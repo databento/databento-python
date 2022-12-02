@@ -5,12 +5,14 @@ from typing import Any, List, Optional, Union
 import numpy as np
 import pandas as pd
 import pytest
-from databento.common.enums import Dataset, Flags
+from databento.common.enums import Dataset, Flags, SType
 from databento.common.parsing import (
     enum_or_str_lowercase,
+    enum_or_str_uppercase,
     maybe_date_to_string,
     maybe_datetime_to_string,
     maybe_enum_or_str_lowercase,
+    maybe_enum_or_str_uppercase,
     maybe_symbols_list_to_string,
     maybe_values_list_to_string,
     parse_flags,
@@ -42,7 +44,9 @@ class TestParsing:
         ],
     )
     def test_enum_or_str_lowercase_returns_expected_outputs(
-        self, value: Union[Enum, str], expected: str
+        self,
+        value: Union[Enum, str],
+        expected: str,
     ) -> None:
         # Arrange, Act, Assert
         assert enum_or_str_lowercase(value, "param") == expected
@@ -64,10 +68,62 @@ class TestParsing:
         ],
     )
     def test_maybe_enum_or_str_lowercase_returns_expected_outputs(
-        self, value: Optional[Union[Enum, str]], expected: Optional[str]
+        self,
+        value: Optional[Union[Enum, str]],
+        expected: Optional[str],
     ) -> None:
         # Arrange, Act, Assert
         assert maybe_enum_or_str_lowercase(value, "param") == expected
+
+    def test_enum_or_str_uppercase_given_none_raises_type_error(self) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            enum_or_str_uppercase(None, "param")  # noqa (passing None for test)
+
+    def test_enum_or_str_uppercase_given_incorrect_type_raises_type_error(self) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            enum_or_str_uppercase(INCORRECT_TYPE, "param")
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            ["abc", "ABC"],
+            ["ABC", "ABC"],
+            [Dataset.GLBX_MDP3, "GLBX.MDP3"],
+        ],
+    )
+    def test_enum_or_str_uppercase_returns_expected_outputs(
+        self,
+        value: Union[Enum, str],
+        expected: str,
+    ) -> None:
+        # Arrange, Act, Assert
+        assert enum_or_str_uppercase(value, "param") == expected
+
+    def test_maybe_enum_or_str_uppercase_given_incorrect_types_raises_error(
+        self,
+    ) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            maybe_enum_or_str_lowercase(INCORRECT_TYPE, "param")
+
+    @pytest.mark.parametrize(
+        "value, expected",
+        [
+            [None, None],
+            ["abc", "ABC"],
+            ["ABC", "ABC"],
+            [Dataset.GLBX_MDP3, "GLBX.MDP3"],
+        ],
+    )
+    def test_maybe_enum_or_str_uppercase_returns_expected_outputs(
+        self,
+        value: Optional[Union[Enum, str]],
+        expected: Optional[str],
+    ) -> None:
+        # Arrange, Act, Assert
+        assert maybe_enum_or_str_uppercase(value, "param") == expected
 
     def test_maybe_values_list_to_string_given_invalid_input_raises_type_error(
         self,
@@ -103,17 +159,19 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_symbols_list_to_string(INCORRECT_TYPE)
+            maybe_symbols_list_to_string(INCORRECT_TYPE, SType.NATIVE)
 
     @pytest.mark.parametrize(
         "symbols, expected",
         [
             [None, None],
+            ["ES.fut", "ES.FUT"],
             ["ES,CL", "ES,CL"],
             ["ES,CL,", "ES,CL"],
             ["es,cl,", "ES,CL"],
             [["ES", "CL"], "ES,CL"],
             [["es", "cl"], "ES,CL"],
+            [["ES.N.0", "CL.n.0"], "ES.n.0,CL.n.0"],
         ],
     )
     def test_maybe_symbols_list_to_string_given_valid_inputs_returns_expected(
@@ -122,7 +180,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_symbols_list_to_string(symbols)
+        result: Optional[str] = maybe_symbols_list_to_string(symbols, SType.SMART)
 
         # Assert
         assert result == expected

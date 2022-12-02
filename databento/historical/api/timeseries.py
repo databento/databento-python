@@ -246,7 +246,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
 def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]) -> bool:
     if not symbols:
-        return True  # All symbols
+        return True  # Full universe
 
     if isinstance(symbols, str):
         symbols = symbols.split(",")

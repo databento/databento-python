@@ -6,7 +6,7 @@ on:
   workflow_run:
     workflows:
       - test
-    branches: [ main ]
+    branches: [main]
     types:
       - completed
 
@@ -25,7 +25,7 @@ jobs:
 
       # Python setup
       - name: Set up Python environment
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
@@ -64,7 +64,7 @@ jobs:
           prerelease: false
 
   publish-sdist:
-    needs: [ tag-release ]
+    needs: [tag-release]
     name: publish-sdist - Python 3.10 (ubuntu-latest)
     runs-on: ubuntu-latest
 
@@ -73,7 +73,7 @@ jobs:
 
       # Python setup
       - name: Set up Python environment
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
@@ -119,7 +119,7 @@ jobs:
         run: twine upload dist/*
 
   publish-wheel:
-    needs: [ tag-release ]
+    needs: [tag-release]
     name: publish-wheel - Python 3.10 (ubuntu-latest)
     runs-on: ubuntu-latest
 
@@ -128,7 +128,7 @@ jobs:
 
       # Python setup
       - name: Set up Python environment
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
