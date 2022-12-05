@@ -284,6 +284,7 @@ def parse_flags(value: int, apply_bitmask: bool = False) -> List[str]:
 
     Possible values include:
      - F_LAST: Last message in the packet from the venue for a given `product_id`
+     - F_SNAPSHOT: Message sourced from a replay, such as a snapshot server
      - F_MBP: Aggregated price level message, not an individual order
      - F_BAD_TS_RECV: The `ts_recv` value is inaccurate (clock issues or reordering)
 

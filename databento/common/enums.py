@@ -136,6 +136,8 @@ class Flags(Enum):
 
     # Last message in the packet from the venue for a given `product_id`
     F_LAST = 1 << 7
+    # Message sourced from a replay, such as a snapshot server
+    F_SNAPSHOT = 1 << 5
     # Aggregated price level message, not an individual order
     F_MBP = 1 << 4
     # The `ts_recv` value is inaccurate (clock issues or reordering)
