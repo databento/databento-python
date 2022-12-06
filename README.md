@@ -10,13 +10,13 @@ The official Python client library for [Databento](https://databento.com).
 
 Key features include:
 - Fast, lightweight access to both live and historical data from [multiple markets](https://docs.databento.com/knowledge-base/new-users/venues-and-publishers?historical=python&live=python).
-- [Multiple schemas](https://docs.databento.com/knowledge-base/new-users/list-of-supported-market-data-schemas?historical=python&live=python) such as MBO, MBP, top of book, OHLCV, last sale, and more.
+- [Multiple schemas](https://docs.databento.com/knowledge-base/new-users/market-data-schemas?historical=python&live=python) such as MBO, MBP, top of book, OHLCV, last sale, and more.
 - [Fully normalized](https://docs.databento.com/knowledge-base/new-users/normalization?historical=python&live=python), i.e. identical message schemas for both live and historical data, across multiple asset classes.
 - Provides mappings between different symbology systems, including [smart symbology](https://docs.databento.com/reference-historical/basics/symbology?historical=python&live=python) for futures rollovers.
 - [Point-in-time]() instrument definitions, free of look-ahead bias and retroactive adjustments.
 - Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://docs.databento.com/knowledge-base/new-users/dbz-format?historical=python&live=python).
 - Event-driven [market replay](https://docs.databento.com/reference-historical/helpers/bento-replay?historical=python&live=python), including at high-frequency order book granularity.
-- Support for [batch download](https://docs.databento.com/knowledge-base/new-users/historical-data-streaming-vs-batch-download?historical=python&live=python) of flat files.
+- Support for [batch download](https://docs.databento.com/knowledge-base/new-users/stream-vs-batch?historical=python&live=python) of flat files.
 - Support for [pandas](https://pandas.pydata.org/docs/), CSV, and JSON.
 
 ## Documentation
@@ -75,7 +75,7 @@ array = data.to_ndarray()  # to ndarray
 ```
 
 Note that the API key was also passed as a parameter, which is
-[not recommended for production applications](https://docs.databento.com/knowledge-base/kb-new-users/kb-new-security-managing-api-keys?historical=python&live=python).
+[not recommended for production applications](https://docs.databento.com/knowledge-base/new-users/security-managing-api-keys?historical=python&live=python).
 Instead, you can leave out this parameter to pass your API key via the `DATABENTO_API_KEY` environment variable:
 
 ```python
