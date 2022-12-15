@@ -50,6 +50,7 @@ class Schema(Enum):
     DEFINITION = "definition"
     STATISTICS = "statistics"
     STATUS = "status"
+    GATEWAY_ERROR = "gateway_error"
 
 
 @unique

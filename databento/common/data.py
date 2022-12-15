@@ -172,6 +172,10 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("tick_rule", np.uint8),
         ("dummy", "S1"),  # 1 byte chararray
     ],
+    Schema.GATEWAY_ERROR: RECORD_HEADER
+    + [
+        ("error", "S64"),
+    ],
 }
 
 

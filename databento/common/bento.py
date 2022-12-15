@@ -52,6 +52,7 @@ class Bento:
                 Schema.OHLCV_1M,
                 Schema.OHLCV_1H,
                 Schema.OHLCV_1D,
+                Schema.GATEWAY_ERROR,
             )
             else "ts_recv"
         )

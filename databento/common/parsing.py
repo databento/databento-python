@@ -340,6 +340,8 @@ def schema_to_int(schema: Schema) -> int:
         return 10
     elif schema == Schema.STATUS:
         return 11
+    elif schema == Schema.GATEWAY_ERROR:
+        return 12
     else:
         raise NotImplementedError(
             f"The enum value '{schema.value}' "
@@ -372,6 +374,8 @@ def int_to_schema(value: int) -> Schema:
         return Schema.STATISTICS
     elif value == 11:
         return Schema.STATUS
+    elif value == 12:
+        return Schema.GATEWAY_ERROR
     else:
         raise NotImplementedError(
             f"The int value '{value}' " f"cannot be represented with the enum",
