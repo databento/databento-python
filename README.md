@@ -81,8 +81,11 @@ Instead, you can leave out this parameter to pass your API key via the `DATABENT
 ```python
 import databento as db
 
-client = db.Historical('YOUR_API_KEY')  # pass as parameter
-client = db.Historical()  # pass as `DATABENTO_API_KEY` environment variable
+# Pass as parameter
+client = db.Historical('YOUR_API_KEY')
+
+# Or, pass as `DATABENTO_API_KEY` environment variable
+client = db.Historical()
 ```
 
 ## License
