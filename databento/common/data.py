@@ -140,9 +140,9 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("related_security_id", np.uint32),
         ("trading_reference_date", np.uint16),
         ("appl_id", np.int16),
-        ("maturity_month_year", np.uint16),
+        ("maturity_year", np.uint16),
         ("decay_start_date", np.uint16),
-        ("chan", np.uint16),
+        ("channel_id", np.uint16),
         ("currency", "S1"),  # 1 byte chararray
         ("settl_currency", "S1"),  # 1 byte chararray
         ("secsubtype", "S1"),  # 1 byte chararray
@@ -163,9 +163,9 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("sub_fraction", np.uint8),
         ("underlying_product", np.uint8),
         ("security_update_action", "S1"),  # 1 byte chararray
-        ("maturity_month_month", np.uint8),
-        ("maturity_month_day", np.uint8),
-        ("maturity_month_week", np.uint8),
+        ("maturity_month", np.uint8),
+        ("maturity_day", np.uint8),
+        ("maturity_week", np.uint8),
         ("user_defined_instrument", "S1"),  # 1 byte chararray
         ("contract_multiplier_unit", np.int8),
         ("flow_schedule_type", np.int8),
