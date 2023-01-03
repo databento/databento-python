@@ -176,6 +176,14 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     + [
         ("error", "S64"),
     ],
+    Schema.SYMBOL_MAPPING: RECORD_HEADER
+    + [
+        ("stype_in_symbol", "S22"),
+        ("stype_out_symbol", "S22"),
+        ("dummy", "S4"),
+        ("start_ts", np.uint64),
+        ("end_ts", np.uint64),
+    ],
 }
 
 

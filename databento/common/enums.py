@@ -51,6 +51,7 @@ class Schema(Enum):
     STATISTICS = "statistics"
     STATUS = "status"
     GATEWAY_ERROR = "gateway_error"
+    SYMBOL_MAPPING = "symbol_mapping"
 
 
 @unique
