@@ -6,7 +6,12 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import COLUMNS, DERIV_SCHEMAS, STRUCT_MAP
+from databento.common.data import (
+    COLUMNS,
+    DEFINITION_CHARARRAY_COLUMNS,
+    DERIV_SCHEMAS,
+    STRUCT_MAP,
+)
 from databento.common.enums import Compression, Encoding, Schema, SType
 from databento.common.logging import log_debug
 from databento.common.metadata import MetadataDecoder
@@ -445,12 +450,19 @@ class Bento:
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
             df["action"] = df["action"].str.decode("utf-8")
+        elif self.schema == Schema.DEFINITION:
+            for column in DEFINITION_CHARARRAY_COLUMNS:
+                df[column] = df[column].str.decode("utf-8")
 
         if pretty_ts:
             df.index = pd.to_datetime(df.index, utc=True)
             for column in df.columns:
                 if column.startswith("ts_") and "delta" not in column:
                     df[column] = pd.to_datetime(df[column], utc=True)
+
+            if self.schema == Schema.DEFINITION:
+                df["expiration"] = pd.to_datetime(df["expiration"], utc=True)
+                df["activation"] = pd.to_datetime(df["activation"], utc=True)
 
         if pretty_px:
             for column in list(df.columns):

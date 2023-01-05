@@ -143,18 +143,18 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("maturity_year", np.uint16),
         ("decay_start_date", np.uint16),
         ("channel_id", np.uint16),
-        ("currency", "S1"),  # 1 byte chararray
-        ("settl_currency", "S1"),  # 1 byte chararray
-        ("secsubtype", "S1"),  # 1 byte chararray
-        ("symbol", "S1"),  # 1 byte chararray
-        ("group", "S1"),  # 1 byte chararray
-        ("exchange", "S1"),  # 1 byte chararray
-        ("asset", "S1"),  # 1 byte chararray
-        ("cfi", "S1"),  # 1 byte chararray
-        ("security_type", "S1"),  # 1 byte chararray
-        ("unit_of_measure", "S1"),  # 1 byte chararray
-        ("underlying", "S1"),  # 1 byte chararray
-        ("related", "S1"),  # 1 byte chararray
+        ("currency", "S4"),  # 4 byte chararray
+        ("settl_currency", "S4"),  # 4 byte chararray
+        ("secsubtype", "S6"),  # 6 byte chararray
+        ("symbol", "S22"),  # 22 byte chararray
+        ("group", "S21"),  # 21 byte chararray
+        ("exchange", "S5"),  # 5 byte chararray
+        ("asset", "S7"),  # 7 byte chararray
+        ("cfi", "S7"),  # 7 byte chararray
+        ("security_type", "S7"),  # 7 byte chararray
+        ("unit_of_measure", "S31"),  # 31 byte chararray
+        ("underlying", "S21"),  # 21 byte chararray
+        ("related", "S21"),  # 21 byte chararray
         ("match_algorithm", "S1"),  # 1 byte chararray
         ("md_security_trading_status", np.uint8),
         ("main_fraction", np.uint8),
@@ -170,7 +170,7 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
         ("contract_multiplier_unit", np.int8),
         ("flow_schedule_type", np.int8),
         ("tick_rule", np.uint8),
-        ("dummy", "S1"),  # 1 byte chararray
+        ("dummy", "S3"),  # 3 byte chararray (Adjustment filler for 8-bytes alignment)
     ],
     Schema.GATEWAY_ERROR: RECORD_HEADER
     + [
@@ -186,6 +186,23 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     ],
 }
 
+DEFINITION_CHARARRAY_COLUMNS = [
+    "currency",
+    "settl_currency",
+    "secsubtype",
+    "symbol",
+    "group",
+    "exchange",
+    "asset",
+    "cfi",
+    "security_type",
+    "unit_of_measure",
+    "underlying",
+    "related",
+    "match_algorithm",
+    "security_update_action",
+    "user_defined_instrument",
+]
 
 ################################################################################
 # DBZ fields
