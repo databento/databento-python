@@ -8,7 +8,7 @@ if __name__ == "__main__":
     client = db.Historical(key=key)
 
     for schema in Schema:
-        if schema in (Schema.DEFINITION, Schema.STATISTICS, Schema.STATUS):
+        if schema in (Schema.STATISTICS, Schema.STATUS):
             continue
 
         print(schema.value)
