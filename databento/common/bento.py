@@ -9,6 +9,8 @@ import zstandard
 from databento.common.data import (
     COLUMNS,
     DEFINITION_CHARARRAY_COLUMNS,
+    DEFINITION_PRICE_COLUMNS,
+    DEFINITION_TYPE_MAX_MAP,
     DERIV_SCHEMAS,
     STRUCT_MAP,
 )
@@ -442,8 +444,20 @@ class Bento:
         """
         df = pd.DataFrame(self.to_ndarray())
         df.set_index(self._get_index_column(), inplace=True)
+        df = self._cleanup_dataframe(df)
 
-        # Cleanup dataframe
+        if pretty_ts:
+            df = self._apply_pretty_ts(df)
+
+        if pretty_px:
+            df = self._apply_pretty_px(df)
+
+        if map_symbols and self.schema != Schema.DEFINITION:
+            df = self._map_symbols(df, pretty_ts)
+
+        return df
+
+    def _cleanup_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         df.drop(["length", "rtype"], axis=1, inplace=True)
         if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
             df = df.reindex(columns=COLUMNS[self.schema])
@@ -453,39 +467,52 @@ class Bento:
         elif self.schema == Schema.DEFINITION:
             for column in DEFINITION_CHARARRAY_COLUMNS:
                 df[column] = df[column].str.decode("utf-8")
+            for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
+                if column in df.columns:
+                    df[column] = df[column].where(df[column] != type_max, np.nan)
 
-        if pretty_ts:
-            df.index = pd.to_datetime(df.index, utc=True)
-            for column in df.columns:
-                if column.startswith("ts_") and "delta" not in column:
-                    df[column] = pd.to_datetime(df[column], utc=True)
+        return df
 
-            if self.schema == Schema.DEFINITION:
-                df["expiration"] = pd.to_datetime(df["expiration"], utc=True)
-                df["activation"] = pd.to_datetime(df["activation"], utc=True)
+    def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
+        df.index = pd.to_datetime(df.index, utc=True)
+        for column in df.columns:
+            if column.startswith("ts_") and "delta" not in column:
+                df[column] = pd.to_datetime(df[column], utc=True)
 
-        if pretty_px:
-            for column in list(df.columns):
-                if (
-                    column in ("price", "open", "high", "low", "close")
-                    or column.startswith("bid_px")  # MBP
-                    or column.startswith("ask_px")  # MBP
-                ):
-                    df[column] = df[column] * 1e-9
+        if self.schema == Schema.DEFINITION:
+            df["expiration"] = pd.to_datetime(df["expiration"], utc=True)
+            df["activation"] = pd.to_datetime(df["activation"], utc=True)
 
-        if map_symbols:
-            # Build product ID index
-            if not self._product_id_index:
-                self._product_id_index = self._build_product_id_index()
+        return df
 
-            # Map product IDs to native symbols
-            if self._product_id_index:
-                df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
-                dates = [ts.date() for ts in df_index]
-                df["symbol"] = [
-                    self._product_id_index[dates[i]][p]
-                    for i, p in enumerate(df["product_id"])
-                ]
+    def _apply_pretty_px(self, df: pd.DataFrame) -> pd.DataFrame:
+        for column in list(df.columns):
+            if (
+                column in ("price", "open", "high", "low", "close")
+                or column.startswith("bid_px")  # MBP
+                or column.startswith("ask_px")  # MBP
+            ):
+                df[column] = df[column] * 1e-9
+
+        if self.schema == Schema.DEFINITION:
+            for column in DEFINITION_PRICE_COLUMNS:
+                df[column] = df[column] * 1e-9
+
+        return df
+
+    def _map_symbols(self, df: pd.DataFrame, pretty_ts: bool) -> pd.DataFrame:
+        # Build product ID index
+        if not self._product_id_index:
+            self._product_id_index = self._build_product_id_index()
+
+        # Map product IDs to native symbols
+        if self._product_id_index:
+            df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
+            dates = [ts.date() for ts in df_index]
+            df["symbol"] = [
+                self._product_id_index[dates[i]][p]
+                for i, p in enumerate(df["product_id"])
+            ]
 
         return df
 

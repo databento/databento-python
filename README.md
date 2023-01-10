@@ -31,11 +31,11 @@ The library is fully compatible with the latest distribution of Anaconda 3.7 and
 The minimum dependencies as found in the `requirements.txt` are also listed below:
 - Python (>=3.7)
 - aiohttp (>=3.7.2)
-- dbz-python (>=0.2.0)
+- dbz-python (>=0.2.1)
 - numpy (>=1.17.0)
 - pandas (>=1.1.3)
 - requests (>=2.24.0)
-- zstandard (>=0.18.0)
+- zstandard (>=0.19.0)
 
 ## Installation
 To install the latest stable version of the package from PyPI:
@@ -56,6 +56,8 @@ import databento as db
 client = db.Historical('YOUR_API_KEY')
 data = client.timeseries.stream(
     dataset='GLBX.MDP3',
+    symbols='ES.FUT',
+    stype_in='smart',
     start='2022-06-10T14:30',
     end='2022-06-10T14:40',
 )

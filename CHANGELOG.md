@@ -1,7 +1,10 @@
 # Changelog
 
-## TBD
+## 0.7.0 - 2023-01-10
+- Added support for `definition` schema
 - Updated `Flags` enum
+- Upgraded `dbz-python` to `0.2.1`
+- Upgraded `zstandard` to `0.19.0`
 
 ## 0.6.0 - 2022-12-02
 - Added `metadata.get_dataset_condition` method to `Historical` client

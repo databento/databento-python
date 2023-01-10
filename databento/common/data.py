@@ -204,6 +204,22 @@ DEFINITION_CHARARRAY_COLUMNS = [
     "user_defined_instrument",
 ]
 
+DEFINITION_PRICE_COLUMNS = [
+    "min_price_increment",
+    "display_factor",
+    "high_limit_price",
+    "low_limit_price",
+    "max_price_variation",
+    "trading_reference_price",
+    "min_price_increment_amount",
+]
+
+DEFINITION_TYPE_MAX_MAP = {
+    x[0]: np.iinfo(x[1]).max
+    for x in STRUCT_MAP[Schema.DEFINITION]
+    if not isinstance(x[1], str)
+}
+
 ################################################################################
 # DBZ fields
 ################################################################################
