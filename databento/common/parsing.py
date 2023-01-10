@@ -283,14 +283,12 @@ def parse_flags(value: int, apply_bitmask: bool = False) -> List[str]:
     flag represented by a single integer.
 
     Possible values include:
-     - F_LAST: Last msg in packet (flags < 0).
-     - F_HALT: Exchange-independent HALT signal.
-     - F_RESET: Drop book, reset symbol for this exchange.
-     - F_DUPID: This OrderID has valid fresh duplicate (Iceberg, etc).
-     - F_MBP: This is SIP/MBP ADD message, single per price level.
-     - F_RESERVED2: Reserved for future use (no current meaning).
-     - F_RESERVED1: Reserved for future use (no current meaning).
-     - F_RESERVED0: Reserved for future use (no current meaning).
+     - F_LAST: Last message in the packet from the venue for a given `product_id`
+     - F_SNAPSHOT: Message sourced from a replay, such as a snapshot server
+     - F_MBP: Aggregated price level message, not an individual order
+     - F_BAD_TS_RECV: The `ts_recv` value is inaccurate (clock issues or reordering)
+
+    Other bits are reserved and have no current meaning.
 
     Parameters
     ----------
@@ -342,6 +340,10 @@ def schema_to_int(schema: Schema) -> int:
         return 10
     elif schema == Schema.STATUS:
         return 11
+    elif schema == Schema.GATEWAY_ERROR:
+        return 12
+    elif schema == Schema.SYMBOL_MAPPING:
+        return 13
     else:
         raise NotImplementedError(
             f"The enum value '{schema.value}' "
@@ -374,6 +376,10 @@ def int_to_schema(value: int) -> Schema:
         return Schema.STATISTICS
     elif value == 11:
         return Schema.STATUS
+    elif value == 12:
+        return Schema.GATEWAY_ERROR
+    elif value == 13:
+        return Schema.SYMBOL_MAPPING
     else:
         raise NotImplementedError(
             f"The int value '{value}' " f"cannot be represented with the enum",

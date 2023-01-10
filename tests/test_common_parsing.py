@@ -229,9 +229,12 @@ class TestParsing:
         "value, expected",
         [
             [Flags.F_LAST.value, ["F_LAST"]],
-            [Flags.F_DUPID.value | Flags.F_LAST.value, ["F_LAST", "F_DUPID"]],
+            [
+                Flags.F_BAD_TS_RECV.value | Flags.F_LAST.value,
+                ["F_LAST", "F_BAD_TS_RECV"],
+            ],
             [128, ["F_LAST"]],
-            [129, ["F_LAST", "F_RESERVED0"]],
+            [136, ["F_LAST", "F_BAD_TS_RECV"]],
         ],
     )
     def test_parse_flags_given_valid_values_returns_expected_results(

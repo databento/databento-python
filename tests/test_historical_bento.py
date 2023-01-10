@@ -225,6 +225,8 @@ class TestBento:
                 Schema.STATUS,
                 Schema.STATISTICS,
                 Schema.DEFINITION,
+                Schema.GATEWAY_ERROR,
+                Schema.SYMBOL_MAPPING,
             )
         ],
     )

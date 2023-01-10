@@ -10,13 +10,13 @@ The official Python client library for [Databento](https://databento.com).
 
 Key features include:
 - Fast, lightweight access to both live and historical data from [multiple markets](https://docs.databento.com/knowledge-base/new-users/venues-and-publishers?historical=python&live=python).
-- [Multiple schemas](https://docs.databento.com/knowledge-base/new-users/list-of-supported-market-data-schemas?historical=python&live=python) such as MBO, MBP, top of book, OHLCV, last sale, and more.
+- [Multiple schemas](https://docs.databento.com/knowledge-base/new-users/market-data-schemas?historical=python&live=python) such as MBO, MBP, top of book, OHLCV, last sale, and more.
 - [Fully normalized](https://docs.databento.com/knowledge-base/new-users/normalization?historical=python&live=python), i.e. identical message schemas for both live and historical data, across multiple asset classes.
 - Provides mappings between different symbology systems, including [smart symbology](https://docs.databento.com/reference-historical/basics/symbology?historical=python&live=python) for futures rollovers.
 - [Point-in-time]() instrument definitions, free of look-ahead bias and retroactive adjustments.
 - Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://docs.databento.com/knowledge-base/new-users/dbz-format?historical=python&live=python).
 - Event-driven [market replay](https://docs.databento.com/reference-historical/helpers/bento-replay?historical=python&live=python), including at high-frequency order book granularity.
-- Support for [batch download](https://docs.databento.com/knowledge-base/new-users/historical-data-streaming-vs-batch-download?historical=python&live=python) of flat files.
+- Support for [batch download](https://docs.databento.com/knowledge-base/new-users/stream-vs-batch?historical=python&live=python) of flat files.
 - Support for [pandas](https://pandas.pydata.org/docs/), CSV, and JSON.
 
 ## Documentation
@@ -31,11 +31,11 @@ The library is fully compatible with the latest distribution of Anaconda 3.7 and
 The minimum dependencies as found in the `requirements.txt` are also listed below:
 - Python (>=3.7)
 - aiohttp (>=3.7.2)
-- dbz-python (>=0.2.0)
+- dbz-python (>=0.2.1)
 - numpy (>=1.17.0)
 - pandas (>=1.1.3)
 - requests (>=2.24.0)
-- zstandard (>=0.18.0)
+- zstandard (>=0.19.0)
 
 ## Installation
 To install the latest stable version of the package from PyPI:
@@ -56,6 +56,8 @@ import databento as db
 client = db.Historical('YOUR_API_KEY')
 data = client.timeseries.stream(
     dataset='GLBX.MDP3',
+    symbols='ES.FUT',
+    stype_in='smart',
     start='2022-06-10T14:30',
     end='2022-06-10T14:40',
 )
@@ -75,14 +77,17 @@ array = data.to_ndarray()  # to ndarray
 ```
 
 Note that the API key was also passed as a parameter, which is
-[not recommended for production applications](https://docs.databento.com/knowledge-base/kb-new-users/kb-new-security-managing-api-keys?historical=python&live=python).
+[not recommended for production applications](https://docs.databento.com/knowledge-base/new-users/security-managing-api-keys?historical=python&live=python).
 Instead, you can leave out this parameter to pass your API key via the `DATABENTO_API_KEY` environment variable:
 
 ```python
 import databento as db
 
-client = db.Historical('YOUR_API_KEY')  # pass as parameter
-client = db.Historical()  # pass as `DATABENTO_API_KEY` environment variable
+# Pass as parameter
+client = db.Historical('YOUR_API_KEY')
+
+# Or, pass as `DATABENTO_API_KEY` environment variable
+client = db.Historical()
 ```
 
 ## License
