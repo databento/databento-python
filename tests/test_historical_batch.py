@@ -44,7 +44,7 @@ class TestHistoricalBatch:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="dbz",
+                encoding="dbn",
                 compression="zstd",
                 stype_in="zzz",  # <--- invalid
             )

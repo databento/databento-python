@@ -58,7 +58,7 @@ class Schema(Enum):
 class Encoding(Enum):
     """Represents a data output encoding."""
 
-    DBZ = "dbz"
+    DBN = "dbn"
     CSV = "csv"
     JSON = "json"
 

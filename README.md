@@ -14,7 +14,7 @@ Key features include:
 - [Fully normalized](https://docs.databento.com/knowledge-base/new-users/normalization?historical=python&live=python), i.e. identical message schemas for both live and historical data, across multiple asset classes.
 - Provides mappings between different symbology systems, including [smart symbology](https://docs.databento.com/reference-historical/basics/symbology?historical=python&live=python) for futures rollovers.
 - [Point-in-time]() instrument definitions, free of look-ahead bias and retroactive adjustments.
-- Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://docs.databento.com/knowledge-base/new-users/dbz-format?historical=python&live=python).
+- Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://docs.databento.com/knowledge-base/new-users/dbn-format?historical=python&live=python).
 - Event-driven [market replay](https://docs.databento.com/reference-historical/helpers/bento-replay?historical=python&live=python), including at high-frequency order book granularity.
 - Support for [batch download](https://docs.databento.com/knowledge-base/new-users/stream-vs-batch?historical=python&live=python) of flat files.
 - Support for [pandas](https://pandas.pydata.org/docs/), CSV, and JSON.

@@ -417,22 +417,22 @@ class Bento:
 
     def to_df(
         self,
-        pretty_ts: bool = False,
-        pretty_px: bool = False,
-        map_symbols: bool = False,
+        pretty_ts: bool = True,
+        pretty_px: bool = True,
+        map_symbols: bool = True,
     ) -> pd.DataFrame:
         """
         Return the data as a `pd.DataFrame`.
 
         Parameters
         ----------
-        pretty_ts : bool, default False
+        pretty_ts : bool, default True
             If all timestamp columns should be converted from UNIX nanosecond
             `int` to `pd.Timestamp` tz-aware (UTC).
-        pretty_px : bool, default False
+        pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at
             the correct scale (using the fixed precision scalar 1e-9).
-        map_symbols : bool, default False
+        map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the product ID to its native symbol for
             every record.
@@ -538,7 +538,7 @@ class Bento:
     @staticmethod
     def from_file(path: str) -> "FileBento":
         """
-        Load the data from a DBZ file at the given path.
+        Load the data from a DBN file at the given path.
 
         Parameters
         ----------
@@ -571,7 +571,7 @@ class Bento:
 
     def to_file(self, path: str) -> "FileBento":
         """
-        Write the data to a DBZ file at the given path.
+        Write the data to a DBN file at the given path.
 
         Parameters
         ----------
@@ -605,7 +605,11 @@ class Bento:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        self.to_df().to_csv(path)
+        self.to_df(
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        ).to_csv(path)
 
     def to_json(self, path: str) -> None:
         """
@@ -621,7 +625,11 @@ class Bento:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        self.to_df().to_json(path, orient="records", lines=True)
+        self.to_df(
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        ).to_json(path, orient="records", lines=True)
 
     def request_symbology(self, client: "Historical") -> Dict[str, Any]:
         """

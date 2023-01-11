@@ -418,7 +418,7 @@ def int_to_stype(value: int) -> SType:
 def encoding_to_int(encoding: Encoding) -> int:
     assert isinstance(encoding, Encoding)
 
-    if encoding == Encoding.DBZ:
+    if encoding == Encoding.DBN:
         return 0
     elif encoding == Encoding.CSV:
         return 1
@@ -433,7 +433,7 @@ def encoding_to_int(encoding: Encoding) -> int:
 
 def int_to_encoding(value: int) -> Encoding:
     if value == 0:
-        return Encoding.DBZ
+        return Encoding.DBN
     elif value == 1:
         return Encoding.CSV
     elif value == 2:

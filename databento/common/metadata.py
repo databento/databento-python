@@ -6,7 +6,7 @@ from dbz_python import decode_metadata
 
 class MetadataDecoder:
     """
-    Provides a decoder for DBZ metadata headers.
+    Provides a decoder for DBN metadata headers.
     """
 
     @staticmethod

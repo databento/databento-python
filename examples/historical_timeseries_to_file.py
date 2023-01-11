@@ -19,7 +19,7 @@ if __name__ == "__main__":
         limit=1000,  # <-- limiting response to 1000 records only
     )  # -> MemoryBento
 
-    path = "my_data.dbz"
+    path = "my_data.dbn"
     data.to_file(path=path)  # -> FileBento
 
     data = Bento.from_file(path=path)  # -> FileBento

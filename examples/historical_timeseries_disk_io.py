@@ -10,7 +10,7 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    path = "my_data.dbz"
+    path = "my_data.dbn"
 
     # Execute request through client
     data: Bento = client.timeseries.stream(

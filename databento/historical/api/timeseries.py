@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.bento import Bento
-from databento.common.enums import Dataset, Encoding, Schema, SType
+from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -74,7 +74,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         Notes
         -----
-        The Databento Binary Encoding + Zstd Compression (DBZ) will be streamed.
+        The Databento Binary Encoding (DBN) will be streamed.
 
         Warnings
         --------
@@ -96,7 +96,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             limit=limit,
         )
 
-        params.append(("encoding", Encoding.DBZ.value))  # Always requests DBZ
+        params.append(("encoding", Encoding.DBN.value))  # Always requests DBN
+        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
 
         self._pre_check_data_size(
             symbols=symbols,
@@ -172,7 +173,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         Notes
         -----
-        The Databento Binary Encoding + Zstd Compression (DBZ) will be streamed.
+        The Databento Binary Encoding (DBN) will be streamed.
 
         Warnings
         --------
@@ -194,7 +195,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             limit=limit,
         )
 
-        params.append(("encoding", Encoding.DBZ.value))  # Always requests DBZ
+        params.append(("encoding", Encoding.DBN.value))  # Always requests DBN
+        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
 
         self._pre_check_data_size(
             symbols=symbols,

@@ -80,7 +80,8 @@ class TestHistoricalTimeSeries:
             ("schema", "trades"),
             ("stype_in", "smart"),
             ("stype_out", "product_id"),
-            ("encoding", "dbz"),
+            ("encoding", "dbn"),
+            ("compression", "zstd"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
@@ -123,7 +124,8 @@ class TestHistoricalTimeSeries:
             ("stype_in", "native"),
             ("stype_out", "product_id"),
             ("limit", "1000000"),
-            ("encoding", "dbz"),
+            ("encoding", "dbn"),
+            ("compression", "zstd"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

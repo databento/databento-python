@@ -37,7 +37,7 @@ class BatchHttpAPI(BentoHttpAPI):
         end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]],
         schema: Union[Schema, str],
-        encoding: Union[Encoding, str] = "dbz",
+        encoding: Union[Encoding, str] = "dbn",
         compression: Optional[Union[Compression, str]] = None,
         split_duration: Union[SplitDuration, str] = "day",
         split_size: Optional[int] = None,
@@ -70,11 +70,10 @@ class BatchHttpAPI(BentoHttpAPI):
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        encoding : Encoding or str {'dbz', 'csv', 'json'}, default 'dbz'
+        encoding : Encoding or str {'dbn', 'csv', 'json'}, default 'dbn'
             The data encoding.
         compression : Compression or str {'none', 'zstd'}, optional
             The data compression format (if any).
-            If encoding is 'dbz' then specifying a `compression` is invalid (already zstd compressed).
         split_duration : SplitDuration or str {'day', 'week', 'month', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
             A week starts on Sunday UTC.
@@ -125,11 +124,7 @@ class BatchHttpAPI(BentoHttpAPI):
         )
 
         params.append(("encoding", Encoding(encoding).value))
-        if (
-            Encoding(encoding) != Encoding.DBZ
-            or Compression(compression) != Compression.NONE
-        ):
-            params.append(("compression", Compression(compression).value))
+        params.append(("compression", Compression(compression).value))
         params.append(("split_duration", SplitDuration(split_duration).value))
         if split_size is not None:
             params.append(("split_size", str(split_size)))

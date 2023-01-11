@@ -139,7 +139,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset code (string identifier) for the request.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
             The data record schema for the request.
-        encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
+        encoding : Encoding or str {'dbn', 'csv', 'json'}, optional
             The data encoding.
 
         Returns
@@ -288,7 +288,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        encoding: Union[Encoding, str] = "dbz",
+        encoding: Union[Encoding, str] = "dbn",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> int:
@@ -312,7 +312,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        encoding : Encoding or str {'dbz', 'csv', 'json'}, optional
+        encoding : Encoding or str {'dbn', 'csv', 'json'}, optional
             The data encoding.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.

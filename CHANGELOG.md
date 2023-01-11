@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 - TBD
+- Renamed 'dbz' encoding to 'dbn'
+- Changed `.to_df(...)` `pretty_ts` default argument to `True`
+- Changed `.to_df(...)` `pretty_px` default argument to `True`
+- Changed `.to_df(...)` `map_symbols` default argument to `True`
+
 ## 0.7.0 - 2023-01-10
 - Added support for `definition` schema
 - Updated `Flags` enum

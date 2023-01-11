@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
         print(schema.value)
 
-        path = f"test_data.{schema.value}.dbz"
+        path = f"test_data.{schema.value}.dbn.zst"
 
         # Execute request through client
         data: Bento = client.timeseries.stream(

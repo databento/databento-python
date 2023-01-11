@@ -17,11 +17,11 @@ class TestBento:
     def test_from_file_when_not_exists_raises_expected_exception(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(FileNotFoundError):
-            Bento.from_file("my_data.dbz")
+            Bento.from_file("my_data.dbn")
 
     def test_from_file_when_file_empty_raises_expected_exception(self) -> None:
         # Arrange
-        path = "my_data.dbz"
+        path = "my_data.dbn"
         Path(path).touch()
 
         # Act, Assert
@@ -170,7 +170,7 @@ class TestBento:
         stub_data = get_test_data(schema=Schema.MBO)
         data = MemoryBento(initial_bytes=stub_data)
 
-        path = "test.my_mbo.dbz"
+        path = "test.my_mbo.dbn"
 
         # Act
         data.to_file(path=path)
@@ -251,7 +251,11 @@ class TestBento:
         data = MemoryBento(initial_bytes=stub_data)
 
         # Act
-        df = data.to_df()
+        df = data.to_df(
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        )
 
         # Assert
         assert len(df) == 2
@@ -273,7 +277,11 @@ class TestBento:
         data = MemoryBento(initial_bytes=stub_data)
 
         # Act
-        df = data.to_df()
+        df = data.to_df(
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        )
 
         # Assert
         assert len(df) == 2
@@ -359,15 +367,15 @@ class TestBento:
     @pytest.mark.parametrize(
         "expected_schema, expected_encoding, expected_compression",
         [
-            [Schema.MBO, Encoding.DBZ, Compression.ZSTD],
-            [Schema.MBP_1, Encoding.DBZ, Compression.ZSTD],
-            [Schema.MBP_10, Encoding.DBZ, Compression.ZSTD],
-            [Schema.TBBO, Encoding.DBZ, Compression.ZSTD],
-            [Schema.TRADES, Encoding.DBZ, Compression.ZSTD],
-            [Schema.OHLCV_1S, Encoding.DBZ, Compression.ZSTD],
-            [Schema.OHLCV_1M, Encoding.DBZ, Compression.ZSTD],
-            [Schema.OHLCV_1H, Encoding.DBZ, Compression.ZSTD],
-            [Schema.OHLCV_1D, Encoding.DBZ, Compression.ZSTD],
+            [Schema.MBO, Encoding.DBN, Compression.ZSTD],
+            [Schema.MBP_1, Encoding.DBN, Compression.ZSTD],
+            [Schema.MBP_10, Encoding.DBN, Compression.ZSTD],
+            [Schema.TBBO, Encoding.DBN, Compression.ZSTD],
+            [Schema.TRADES, Encoding.DBN, Compression.ZSTD],
+            [Schema.OHLCV_1S, Encoding.DBN, Compression.ZSTD],
+            [Schema.OHLCV_1M, Encoding.DBN, Compression.ZSTD],
+            [Schema.OHLCV_1H, Encoding.DBN, Compression.ZSTD],
+            [Schema.OHLCV_1D, Encoding.DBN, Compression.ZSTD],
         ],
     )
     def test_from_file_given_various_paths_returns_expected_metadata(
