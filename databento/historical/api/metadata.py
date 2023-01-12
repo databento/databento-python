@@ -288,7 +288,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Union[pd.Timestamp, date, str, int],
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        encoding: Union[Encoding, str] = "dbn",
         stype_in: Optional[Union[SType, str]] = "native",
         limit: Optional[int] = None,
     ) -> int:
@@ -312,8 +311,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             If `*` or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        encoding : Encoding or str {'dbn', 'csv', 'json'}, optional
-            The data encoding.
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
@@ -335,7 +332,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             ("schema", Schema(schema).value),
             ("start", maybe_datetime_to_string(start)),
             ("end", maybe_datetime_to_string(end)),
-            ("encoding", Encoding(encoding).value),
             ("stype_in", SType(stype_in).value),
         ]
         if limit is not None:

@@ -13,7 +13,6 @@ if __name__ == "__main__":
         schema="mbo",
         start="2022-06-10T12:00",
         end="2022-06-10T14:00",
-        encoding="csv",
     )
 
     print(count)
