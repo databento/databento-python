@@ -29,7 +29,7 @@ class Bento:
 
     def __init__(self) -> None:
         self._metadata: Dict[str, Any] = {}
-        self._dtype: Optional[np.dtype] = None
+        self._dtype: Optional[np.dtype[Any]] = None
         self._product_id_index: Dict[dt.date, Dict[int, str]] = {}
 
         self._dataset: Optional[str] = None
@@ -157,13 +157,13 @@ class Bento:
         raise NotImplementedError()  # pragma: no cover
 
     @property
-    def dtype(self) -> np.dtype:
+    def dtype(self) -> np.dtype[Any]:
         """
         Return the binary struct format for the data schema.
 
         Returns
         -------
-        np.dtype
+        np.dtype[Any]
 
         """
         if self._dtype is None:
@@ -403,13 +403,13 @@ class Bento:
 
         return symbology
 
-    def to_ndarray(self) -> np.ndarray:
+    def to_ndarray(self) -> np.ndarray[Any, Any]:
         """
         Return the data as a numpy `ndarray`.
 
         Returns
         -------
-        np.ndarray
+        np.ndarray[Any, Any]
 
         """
         data: bytes = self.reader(decompress=True).read()

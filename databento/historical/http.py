@@ -256,18 +256,20 @@ def check_http_error(response: Response) -> None:
 async def check_http_error_async(response: ClientResponse) -> None:
     if is_500_series_error(response.status):
         json_body = await response.json()
+        http_body = await response.read()
         raise BentoServerError(
             http_status=response.status,
-            http_body=response.content,
+            http_body=http_body,
             json_body=json_body,
             message=json_body["detail"],
             headers=response.headers,
         )
     elif is_400_series_error(response.status):
         json_body = await response.json()
+        http_body = await response.read()
         raise BentoClientError(
             http_status=response.status,
-            http_body=response.content,
+            http_body=http_body,
             json_body=json_body,
             message=json_body["detail"],
             headers=response.headers,
