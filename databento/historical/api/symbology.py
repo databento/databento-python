@@ -6,7 +6,7 @@ from databento.common.enums import SType
 from databento.common.parsing import (
     enum_or_str_lowercase,
     enum_or_str_uppercase,
-    maybe_symbols_list_to_string,
+    optional_symbols_list_to_string,
 )
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -63,7 +63,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         """
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("symbols", maybe_symbols_list_to_string(symbols, SType(stype_in))),
+            ("symbols", optional_symbols_list_to_string(symbols, SType(stype_in))),
             ("stype_in", enum_or_str_lowercase(stype_in, "stype_in")),
             ("stype_out", enum_or_str_lowercase(stype_out, "stype_out")),
             ("start_date", str(pd.to_datetime(start_date).date())),

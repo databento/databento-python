@@ -2,6 +2,9 @@ import datetime as dt
 from dataclasses import dataclass
 
 
+ALL_SYMBOLS = "ALL_SYMBOLS"
+
+
 @dataclass(frozen=True)
 class ProductIdMappingInterval:
     """

@@ -4,6 +4,7 @@ from typing import Iterable, List, Optional, Union
 
 import pandas as pd
 from databento.common.enums import Compression, Encoding, Flags, Schema, SType
+from databento.common.symbology import ALL_SYMBOLS
 
 
 def enum_or_str_lowercase(
@@ -39,7 +40,7 @@ def enum_or_str_lowercase(
     raise TypeError(f"invalid `{param}` type, was {type(value)}.")
 
 
-def maybe_enum_or_str_lowercase(
+def optional_enum_or_str_lowercase(
     value: Optional[Union[Enum, str]],
     param: str,
 ) -> Optional[str]:
@@ -101,7 +102,7 @@ def enum_or_str_uppercase(
     raise TypeError(f"invalid `{param}` type, was {type(value)}.")
 
 
-def maybe_enum_or_str_uppercase(
+def optional_enum_or_str_uppercase(
     value: Optional[Union[Enum, str]],
     param: str,
 ) -> Optional[str]:
@@ -154,7 +155,7 @@ def values_list_to_string(
         raise TypeError(f"invalid values type, was {type(values)}")
 
 
-def maybe_values_list_to_string(
+def optional_values_list_to_string(
     values: Optional[Union[Iterable[str], str]],
 ) -> Optional[str]:
     """
@@ -176,10 +177,10 @@ def maybe_values_list_to_string(
     return values_list_to_string(values)
 
 
-def maybe_symbols_list_to_string(
+def optional_symbols_list_to_string(
     symbols: Optional[Union[Iterable[str], str]],
     stype_in: SType,
-) -> Optional[str]:
+) -> str:
     """
     Concatenate a symbols string or iterable of symbol strings (if not None).
 
@@ -192,11 +193,11 @@ def maybe_symbols_list_to_string(
 
     Returns
     -------
-    str or ``None``
+    str
 
     """
     if symbols is None:
-        return None  # Full universe
+        return ALL_SYMBOLS
 
     symbols_list = symbols.split(",") if isinstance(symbols, str) else list(symbols)
     cleaned_symbols: List[str] = []
@@ -214,7 +215,7 @@ def maybe_symbols_list_to_string(
     return ",".join(cleaned_symbols)
 
 
-def maybe_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:
+def optional_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:
     """
     Return a valid date string from the given value (if not None).
 
@@ -251,7 +252,7 @@ def datetime_to_string(value: Union[pd.Timestamp, date, str, int]) -> str:
     return str(pd.to_datetime(value)).replace(" ", "T")
 
 
-def maybe_datetime_to_string(
+def optional_datetime_to_string(
     value: Optional[Union[pd.Timestamp, date, str, int]],
 ) -> Optional[str]:
     """

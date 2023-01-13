@@ -55,7 +55,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
-            If `*` or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'native'
@@ -154,7 +154,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
-            If `*` or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'native'

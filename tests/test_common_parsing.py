@@ -9,12 +9,12 @@ from databento.common.enums import Dataset, Flags, SType
 from databento.common.parsing import (
     enum_or_str_lowercase,
     enum_or_str_uppercase,
-    maybe_date_to_string,
-    maybe_datetime_to_string,
-    maybe_enum_or_str_lowercase,
-    maybe_enum_or_str_uppercase,
-    maybe_symbols_list_to_string,
-    maybe_values_list_to_string,
+    optional_date_to_string,
+    optional_datetime_to_string,
+    optional_enum_or_str_lowercase,
+    optional_enum_or_str_uppercase,
+    optional_symbols_list_to_string,
+    optional_values_list_to_string,
     parse_flags,
 )
 
@@ -56,7 +56,7 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_enum_or_str_lowercase(INCORRECT_TYPE, "param")
+            optional_enum_or_str_lowercase(INCORRECT_TYPE, "param")
 
     @pytest.mark.parametrize(
         "value, expected",
@@ -73,7 +73,7 @@ class TestParsing:
         expected: Optional[str],
     ) -> None:
         # Arrange, Act, Assert
-        assert maybe_enum_or_str_lowercase(value, "param") == expected
+        assert optional_enum_or_str_lowercase(value, "param") == expected
 
     def test_enum_or_str_uppercase_given_none_raises_type_error(self) -> None:
         # Arrange, Act, Assert
@@ -106,7 +106,7 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_enum_or_str_lowercase(INCORRECT_TYPE, "param")
+            optional_enum_or_str_lowercase(INCORRECT_TYPE, "param")
 
     @pytest.mark.parametrize(
         "value, expected",
@@ -123,14 +123,14 @@ class TestParsing:
         expected: Optional[str],
     ) -> None:
         # Arrange, Act, Assert
-        assert maybe_enum_or_str_uppercase(value, "param") == expected
+        assert optional_enum_or_str_uppercase(value, "param") == expected
 
     def test_maybe_values_list_to_string_given_invalid_input_raises_type_error(
         self,
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_values_list_to_string(INCORRECT_TYPE)
+            optional_values_list_to_string(INCORRECT_TYPE)
 
     @pytest.mark.parametrize(
         "values, expected",
@@ -149,7 +149,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_values_list_to_string(values)
+        result: Optional[str] = optional_values_list_to_string(values)
 
         # Assert
         assert result == expected
@@ -159,12 +159,12 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_symbols_list_to_string(INCORRECT_TYPE, SType.NATIVE)
+            optional_symbols_list_to_string(INCORRECT_TYPE, SType.NATIVE)
 
     @pytest.mark.parametrize(
         "symbols, expected",
         [
-            [None, None],
+            [None, "ALL_SYMBOLS"],
             ["ES.fut", "ES.FUT"],
             ["ES,CL", "ES,CL"],
             ["ES,CL,", "ES,CL"],
@@ -180,7 +180,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_symbols_list_to_string(symbols, SType.SMART)
+        result: str = optional_symbols_list_to_string(symbols, SType.SMART)
 
         # Assert
         assert result == expected
@@ -199,7 +199,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_date_to_string(value)
+        result: Optional[str] = optional_date_to_string(value)
 
         # Assert
         assert result == expected
@@ -220,7 +220,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_datetime_to_string(value)
+        result: Optional[str] = optional_datetime_to_string(value)
 
         # Assert
         assert result == expected

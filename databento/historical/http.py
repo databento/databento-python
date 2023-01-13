@@ -13,7 +13,7 @@ from databento.common.logging import log_info
 from databento.common.parsing import (
     datetime_to_string,
     enum_or_str_uppercase,
-    maybe_symbols_list_to_string,
+    optional_symbols_list_to_string,
 )
 from databento.historical.error import BentoClientError, BentoServerError
 from databento.version import __version__
@@ -54,7 +54,7 @@ class BentoHttpAPI:
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
-            ("symbols", maybe_symbols_list_to_string(symbols, SType(stype_in)) or "*"),
+            ("symbols", optional_symbols_list_to_string(symbols, SType(stype_in))),
             ("schema", schema.value),
             ("stype_in", stype_in.value),
             ("stype_out", stype_out.value),

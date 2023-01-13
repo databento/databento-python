@@ -13,8 +13,8 @@ from databento.common.enums import (
     SType,
 )
 from databento.common.parsing import (
-    maybe_datetime_to_string,
-    maybe_values_list_to_string,
+    optional_datetime_to_string,
+    optional_values_list_to_string,
 )
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
@@ -67,7 +67,7 @@ class BatchHttpAPI(BentoHttpAPI):
         symbols : List[Union[str, int]] or str
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
-            If `*` or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         encoding : Encoding or str {'dbn', 'csv', 'json'}, default 'dbn'
@@ -163,8 +163,8 @@ class BatchHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("states", maybe_values_list_to_string(states)),
-            ("since", maybe_datetime_to_string(since)),
+            ("states", optional_values_list_to_string(states)),
+            ("since", optional_datetime_to_string(since)),
         ]
 
         return self._get(

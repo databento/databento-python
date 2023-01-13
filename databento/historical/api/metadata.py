@@ -5,10 +5,10 @@ import pandas as pd
 from databento.common.enums import Dataset, Encoding, FeedMode, Schema, SType
 from databento.common.parsing import (
     enum_or_str_uppercase,
-    maybe_date_to_string,
-    maybe_datetime_to_string,
-    maybe_enum_or_str_lowercase,
-    maybe_symbols_list_to_string,
+    optional_date_to_string,
+    optional_datetime_to_string,
+    optional_enum_or_str_lowercase,
+    optional_symbols_list_to_string,
 )
 from databento.common.validation import validate_enum, validate_maybe_enum
 from databento.historical.api import API_VERSION
@@ -70,8 +70,8 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("start_date", maybe_date_to_string(start_date)),
-            ("end_date", maybe_date_to_string(end_date)),
+            ("start_date", optional_date_to_string(start_date)),
+            ("end_date", optional_date_to_string(end_date)),
         ]
 
         response: Response = self._get(
@@ -108,8 +108,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("start_date", maybe_date_to_string(start_date)),
-            ("end_date", maybe_date_to_string(end_date)),
+            ("start_date", optional_date_to_string(start_date)),
+            ("end_date", optional_date_to_string(end_date)),
         ]
 
         response: Response = self._get(
@@ -153,8 +153,8 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, str]] = [
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("schema", maybe_enum_or_str_lowercase(schema, "schema")),
-            ("encoding", maybe_enum_or_str_lowercase(encoding, "encoding")),
+            ("schema", optional_enum_or_str_lowercase(schema, "schema")),
+            ("encoding", optional_enum_or_str_lowercase(encoding, "encoding")),
         ]
 
         response: Response = self._get(
@@ -230,8 +230,8 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("mode", maybe_enum_or_str_lowercase(mode, "mode")),
-            ("schema", maybe_enum_or_str_lowercase(schema, "schema")),
+            ("mode", optional_enum_or_str_lowercase(mode, "mode")),
+            ("schema", optional_enum_or_str_lowercase(schema, "schema")),
         ]
 
         response: Response = self._get(
@@ -308,7 +308,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
-            If `*` or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'native'
@@ -328,10 +328,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("symbols", maybe_symbols_list_to_string(symbols, SType(stype_in))),
+            ("symbols", optional_symbols_list_to_string(symbols, SType(stype_in))),
             ("schema", Schema(schema).value),
-            ("start", maybe_datetime_to_string(start)),
-            ("end", maybe_datetime_to_string(end)),
+            ("start", optional_datetime_to_string(start)),
+            ("end", optional_datetime_to_string(end)),
             ("stype_in", SType(stype_in).value),
         ]
         if limit is not None:
@@ -373,7 +373,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
-            If `*` or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'native'
@@ -439,7 +439,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
-            If `*` or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'native'
