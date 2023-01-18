@@ -1,20 +1,12 @@
 import sys
-from datetime import date
 from json.decoder import JSONDecodeError
-from typing import Any, BinaryIO, List, Optional, Tuple, Union
+from typing import BinaryIO, List, Optional, Tuple, Union
 
 import aiohttp
-import pandas as pd
 import requests
 from aiohttp import ClientResponse
 from databento.common.bento import Bento, FileBento, MemoryBento
-from databento.common.enums import Dataset, Schema, SType
 from databento.common.logging import log_info
-from databento.common.parsing import (
-    datetime_to_string,
-    enum_or_str_uppercase,
-    optional_symbols_list_to_string,
-)
 from databento.historical.error import BentoClientError, BentoServerError
 from databento.version import __version__
 from requests import Response
@@ -37,33 +29,6 @@ class BentoHttpAPI:
         self._key = key
         self._gateway = gateway
         self._headers = {"accept": "application/json", "user-agent": user_agent}
-
-    @staticmethod
-    def _timeseries_params(
-        *,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Schema,
-        limit: Optional[int] = None,
-        stype_in: SType,
-        stype_out: SType = SType.PRODUCT_ID,
-    ) -> List[Tuple[str, Optional[str]]]:
-        params: List[Tuple[str, Any]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("start", datetime_to_string(start)),
-            ("end", datetime_to_string(end)),
-            ("symbols", optional_symbols_list_to_string(symbols, SType(stype_in))),
-            ("schema", schema.value),
-            ("stype_in", stype_in.value),
-            ("stype_out", stype_out.value),
-        ]
-
-        if limit is not None:
-            params.append(("limit", str(limit)))
-
-        return params
 
     @staticmethod
     def _create_bento(path: str) -> Union[MemoryBento, FileBento]:

@@ -13,7 +13,9 @@ from databento.common.enums import (
     SType,
 )
 from databento.common.parsing import (
+    datetime_to_string,
     optional_datetime_to_string,
+    optional_symbols_list_to_string,
     optional_values_list_to_string,
 )
 from databento.common.validation import validate_enum
@@ -38,7 +40,7 @@ class BatchHttpAPI(BentoHttpAPI):
         symbols: Optional[Union[List[str], str]],
         schema: Union[Schema, str],
         encoding: Union[Encoding, str] = "dbn",
-        compression: Optional[Union[Compression, str]] = None,
+        compression: Optional[Union[Compression, str]] = "none",
         split_duration: Union[SplitDuration, str] = "day",
         split_size: Optional[int] = None,
         packaging: Union[Packaging, str] = "none",
@@ -100,36 +102,34 @@ class BatchHttpAPI(BentoHttpAPI):
         Calling this method will incur a cost.
 
         """
-        if compression is None:
-            compression = Compression.NONE
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        params: List[Tuple[str, str]] = [
+            ("dataset", dataset),
+            ("start", datetime_to_string(start)),
+            ("end", datetime_to_string(end)),
+            ("symbols", str(symbols_list)),
+            ("schema", str(validate_enum(schema, Schema, "schema"))),
+            ("stype_in", str(stype_in_valid)),
+            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
+            ("encoding", str(validate_enum(encoding, Encoding, "encoding"))),
+            (
+                "compression",
+                str(validate_enum(compression, Compression, "compression")),
+            ),
+            (
+                "split_duration",
+                str(validate_enum(split_duration, SplitDuration, "split_duration")),
+            ),
+            ("packaging", str(validate_enum(packaging, Packaging, "packaging"))),
+            ("delivery", str(validate_enum(delivery, Delivery, "delivery"))),
+        ]
 
-        validate_enum(schema, Schema, "schema")
-        validate_enum(encoding, Encoding, "encoding")
-        validate_enum(compression, Compression, "compression")
-        validate_enum(split_duration, SplitDuration, "duration")
-        validate_enum(packaging, Packaging, "packaging")
-        validate_enum(delivery, Delivery, "delivery")
-        validate_enum(stype_in, SType, "stype_in")
-        validate_enum(stype_out, SType, "stype_out")
-
-        params: List[Tuple[str, Optional[str]]] = BentoHttpAPI._timeseries_params(
-            dataset=dataset,
-            start=start,
-            end=end,
-            symbols=symbols,
-            schema=Schema(schema),
-            limit=limit,
-            stype_in=SType(stype_in),
-            stype_out=SType(stype_out),
-        )
-
-        params.append(("encoding", Encoding(encoding).value))
-        params.append(("compression", Compression(compression).value))
-        params.append(("split_duration", SplitDuration(split_duration).value))
+        # Optional Parameters
+        if limit is not None:
+            params.append(("limit", str(limit)))
         if split_size is not None:
             params.append(("split_size", str(split_size)))
-        params.append(("packaging", Packaging(packaging).value))
-        params.append(("delivery", Delivery(delivery).value))
 
         return self._post(
             url=self._base_url + ".submit_job",

@@ -392,8 +392,8 @@ class Bento:
 
         symbology: Dict[str, Any] = {
             "symbols": self.symbols,
-            "stype_in": self.stype_in.value,
-            "stype_out": self.stype_out.value,
+            "stype_in": str(self.stype_in),
+            "stype_out": str(self.stype_out),
             "start_date": str(self.start.date()),
             "end_date": str(self.end.date()),
             "partial": self._metadata["partial"],

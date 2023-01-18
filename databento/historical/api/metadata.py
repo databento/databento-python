@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import pandas as pd
 from databento.common.enums import Dataset, Encoding, FeedMode, Schema, SType
 from databento.common.parsing import (
-    enum_or_str_uppercase,
+    datetime_to_date_string,
+    datetime_to_string,
     optional_date_to_string,
     optional_datetime_to_string,
-    optional_enum_or_str_lowercase,
     optional_symbols_list_to_string,
 )
 from databento.common.validation import validate_enum, validate_maybe_enum
@@ -107,7 +107,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
+            ("dataset", dataset),
             ("start_date", optional_date_to_string(start_date)),
             ("end_date", optional_date_to_string(end_date)),
         ]
@@ -148,13 +148,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             A mapping of dataset to encoding to schema to field to data type.
 
         """
-        validate_maybe_enum(schema, Schema, "schema")
-        validate_maybe_enum(encoding, Encoding, "encoding")
-
-        params: List[Tuple[str, str]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("schema", optional_enum_or_str_lowercase(schema, "schema")),
-            ("encoding", optional_enum_or_str_lowercase(encoding, "encoding")),
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", dataset),
+            ("schema", validate_maybe_enum(schema, Schema, "schema")),
+            ("encoding", validate_maybe_enum(encoding, Encoding, "encoding")),
         ]
 
         response: Response = self._get(
@@ -225,13 +222,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             Otherwise, return a map of feed mode to schema to unit price.
 
         """
-        validate_maybe_enum(schema, Schema, "schema")
-        validate_maybe_enum(mode, FeedMode, "mode")
-
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("mode", optional_enum_or_str_lowercase(mode, "mode")),
-            ("schema", optional_enum_or_str_lowercase(schema, "schema")),
+            ("dataset", dataset),
+            ("mode", validate_maybe_enum(mode, FeedMode, "mode")),
+            ("schema", validate_maybe_enum(schema, Schema, "schema")),
         ]
 
         response: Response = self._get(
@@ -269,9 +263,9 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("start_date", str(pd.to_datetime(start_date).date())),
-            ("end_date", str(pd.to_datetime(end_date).date())),
+            ("dataset", dataset),
+            ("start_date", datetime_to_date_string(start_date)),
+            ("end_date", datetime_to_date_string(end_date)),
         ]
 
         response: Response = self._get(
@@ -323,17 +317,18 @@ class MetadataHttpAPI(BentoHttpAPI):
             The count of records.
 
         """
-        validate_enum(schema, Schema, "schema")
-        validate_enum(stype_in, SType, "stype_in")
-
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("symbols", optional_symbols_list_to_string(symbols, SType(stype_in))),
-            ("schema", Schema(schema).value),
+            ("dataset", dataset),
+            ("symbols", symbols_list),
+            ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("start", optional_datetime_to_string(start)),
             ("end", optional_datetime_to_string(end)),
-            ("stype_in", SType(stype_in).value),
+            ("stype_in", str(stype_in_valid)),
         ]
+
+        # Optional Parameters
         if limit is not None:
             params.append(("limit", str(limit)))
 
@@ -387,18 +382,20 @@ class MetadataHttpAPI(BentoHttpAPI):
             The size in number of bytes used for billing.
 
         """
-        validate_enum(schema, Schema, "schema")
-        validate_enum(stype_in, SType, "stype_in")
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", dataset),
+            ("start", datetime_to_string(start)),
+            ("end", datetime_to_string(end)),
+            ("symbols", symbols_list),
+            ("schema", str(validate_enum(schema, Schema, "schema"))),
+            ("stype_in", str(stype_in_valid)),
+            ("stype_out", str(SType.PRODUCT_ID)),
+        ]
 
-        params: List[Tuple[str, Optional[str]]] = super()._timeseries_params(
-            dataset=dataset,
-            start=start,
-            end=end,
-            symbols=symbols,
-            schema=Schema(schema),
-            stype_in=SType(stype_in),
-            limit=limit,
-        )
+        if limit is not None:
+            params.append(("limit", str(limit)))
 
         response: Response = self._get(
             url=self._base_url + ".get_billable_size",
@@ -453,21 +450,21 @@ class MetadataHttpAPI(BentoHttpAPI):
             The cost in US Dollars.
 
         """
-        validate_enum(mode, FeedMode, "mode")
-        validate_enum(schema, Schema, "schema")
-        validate_enum(stype_in, SType, "stype_in")
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        params: List[Tuple[str, str]] = [
+            ("dataset", dataset),
+            ("start", datetime_to_string(start)),
+            ("end", datetime_to_string(end)),
+            ("symbols", symbols_list),
+            ("schema", str(validate_enum(schema, Schema, "schema"))),
+            ("stype_in", str(stype_in_valid)),
+            ("stype_out", str(SType.PRODUCT_ID)),
+            ("mode", validate_enum(mode, FeedMode, "mode")),
+        ]
 
-        params: List[Tuple[str, Optional[str]]] = super()._timeseries_params(
-            dataset=dataset,
-            start=start,
-            end=end,
-            symbols=symbols,
-            schema=Schema(schema),
-            stype_in=SType(stype_in),
-            limit=limit,
-        )
-
-        params.append(("mode", FeedMode(mode).value))
+        if limit is not None:
+            params.append(("limit", str(limit)))
 
         response: Response = self._get(
             url=self._base_url + ".get_cost",

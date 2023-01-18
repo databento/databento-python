@@ -2,23 +2,21 @@ from enum import Enum
 from typing import Any, Type, Union
 
 import pytest
-from databento.common.enums import Compression, Encoding
+from databento.common.enums import Encoding
 from databento.common.validation import validate_enum, validate_maybe_enum
 
 
 class TestValidation:
     @pytest.mark.parametrize(
-        "value, enum, param",
+        "value, enum",
         [
-            [None, Encoding, "encoding"],
-            [Compression.ZSTD, Encoding, "encoding"],
+            [None, Encoding],
         ],
     )
     def test_validate_enum_given_wrong_types_raises_type_error(
         self,
         value: Any,
         enum: Type[Enum],
-        param: str,
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
@@ -30,18 +28,17 @@ class TestValidation:
             validate_enum("invalid", Encoding, "encoding")
 
     @pytest.mark.parametrize(
-        "value, enum, param, expected",
+        "value, enum, expected",
         [
-            ["dbn", Encoding, "encoding", "dbn"],
-            ["DBN", Encoding, "encoding", "dbn"],
-            [Encoding.DBN, Encoding, "encoding", Encoding.DBN],
+            ["dbn", Encoding, "dbn"],
+            ["DBN", Encoding, "dbn"],
+            [Encoding.DBN, Encoding, "dbn"],
         ],
     )
     def test_validate_enum_given_valid_value_returns_expected_output(
         self,
         value: Union[str, Enum],
         enum: Type[Enum],
-        param: str,
         expected: Union[str, Enum],
     ) -> None:
         # Arrange, Act, Assert

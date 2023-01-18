@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 from databento.common.bento import Bento
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
+from databento.common.parsing import datetime_to_string, optional_symbols_list_to_string
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -81,27 +82,28 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Calling this method will incur a cost.
 
         """
-        validate_enum(schema, Schema, "schema")
-        validate_enum(stype_in, SType, "stype_in")
-        validate_enum(stype_out, SType, "stype_out")
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        schema_valid = validate_enum(schema, Schema, "schema")
+        params: List[Tuple[str, str]] = [
+            ("dataset", dataset),
+            ("start", datetime_to_string(start)),
+            ("end", datetime_to_string(end)),
+            ("symbols", symbols_list),
+            ("schema", str(schema_valid)),
+            ("stype_in", str(stype_in_valid)),
+            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
+            ("encoding", str(Encoding.DBN)),  # always request dbn
+            ("compression", str(Compression.ZSTD)),  # always request zstd
+        ]
 
-        params: List[Tuple[str, Optional[str]]] = BentoHttpAPI._timeseries_params(
-            dataset=dataset,
-            start=start,
-            end=end,
-            symbols=symbols,
-            schema=Schema(schema),
-            stype_in=SType(stype_in),
-            stype_out=SType(stype_out),
-            limit=limit,
-        )
-
-        params.append(("encoding", Encoding.DBN.value))  # Always requests DBN
-        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
+        # Optional Parameters
+        if limit is not None:
+            params.append(("limit", str(limit)))
 
         self._pre_check_data_size(
             symbols=symbols,
-            schema=Schema(schema),
+            schema=schema_valid,
             start=start,
             end=end,
             limit=limit,
@@ -180,27 +182,27 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Calling this method will incur a cost.
 
         """
-        validate_enum(schema, Schema, "schema")
-        validate_enum(stype_in, SType, "stype_in")
-        validate_enum(stype_out, SType, "stype_out")
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        schema_valid = validate_enum(schema, Schema, "schema")
+        params: List[Tuple[str, str]] = [
+            ("dataset", dataset),
+            ("start", datetime_to_string(start)),
+            ("end", datetime_to_string(end)),
+            ("symbols", symbols_list),
+            ("schema", str(schema_valid)),
+            ("stype_in", str(stype_in_valid)),
+            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
+            ("encoding", str(Encoding.DBN)),  # always request dbn
+            ("compression", str(Compression.ZSTD)),  # always request zstd
+        ]
 
-        params: List[Tuple[str, Optional[str]]] = BentoHttpAPI._timeseries_params(
-            dataset=dataset,
-            start=start,
-            end=end,
-            symbols=symbols,
-            schema=Schema(schema),
-            stype_in=SType(stype_in),
-            stype_out=SType(stype_out),
-            limit=limit,
-        )
-
-        params.append(("encoding", Encoding.DBN.value))  # Always requests DBN
-        params.append(("compression", Compression.ZSTD.value))  # Always requests ZSTD
+        if limit is not None:
+            params.append(("limit", str(limit)))
 
         self._pre_check_data_size(
             symbols=symbols,
-            schema=Schema(schema),
+            schema=schema_valid,
             start=start,
             end=end,
             limit=limit,

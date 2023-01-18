@@ -1,6 +1,6 @@
-from typing import Any, Callable, Dict
+from typing import Dict
 
-from databento.common.parsing import int_to_compression, int_to_schema, int_to_stype
+from databento.common.enums import Compression, Schema, SType
 from dbz_python import decode_metadata
 
 
@@ -10,7 +10,7 @@ class MetadataDecoder:
     """
 
     @staticmethod
-    def decode_to_json(raw_metadata: bytes) -> Dict[str, Any]:
+    def decode_to_json(raw_metadata: bytes) -> Dict[str, object]:
         """
         Decode the given metadata into a JSON object (as a Python dict).
 
@@ -24,18 +24,14 @@ class MetadataDecoder:
         Dict[str, Any]
 
         """
-
-        def enum_value(fn: Callable[[Any], Any]) -> Any:
-            return lambda x: fn(x).value
-
         metadata = decode_metadata(raw_metadata)
         conversion_mapping = {
-            "compression": enum_value(int_to_compression),
+            "compression": lambda c: str(Compression.from_int(c)),
             "limit": lambda lim: None if lim == 0 else lim,
             "mappings": lambda m: {i["native"]: i["intervals"] for i in m},
-            "schema": enum_value(int_to_schema),
-            "stype_in": enum_value(int_to_stype),
-            "stype_out": enum_value(int_to_stype),
+            "schema": lambda s: str(Schema.from_int(s)),
+            "stype_in": lambda s_in: str(SType.from_int(s_in)),
+            "stype_out": lambda s_out: str(SType.from_int(s_out)),
         }
 
         for key, conv_fn in conversion_mapping.items():

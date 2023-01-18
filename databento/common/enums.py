@@ -1,15 +1,113 @@
-from enum import Enum, unique
+from enum import Enum, Flag, IntFlag, unique
+from typing import Callable, Type, TypeVar, Union
+
+
+M = TypeVar("M", bound=Enum)
+
+
+def coercible(enum_type: Type[M]) -> Type[M]:
+    """Decorate coercible enumerations.
+
+    Decorating an Enum class with this function will intercept calls to
+    __new__ and perform a type coercion for the passed value. The type conversion
+    function is chosen based on the subclass of the Enum type.
+
+    Currently supported subclasses types:
+        int
+            values are passed to int()
+        str
+            values are passed to str(), the result is also lowercased
+
+    Parameters
+    ----------
+    enum_type : EnumMeta
+        The deocrated Enum type.
+
+    Returns
+    -------
+    EnumMeta
+
+    Raises
+    ------
+    ValueError
+        When an invalid value of the Enum is given.
+
+
+    Notes
+    -----
+    This decorator makes some assuptions about your Enum class.
+        1. Your attribute names are all UPPERCASE
+        2. Your attribute values are all lowercase
+
+    """
+    _new: Callable[[Type[M], object], M] = enum_type.__new__
+
+    def _cast_str(value: object) -> str:
+        return str(value).lower()
+
+    coerce_fn: Callable[[object], Union[str, int]]
+    if issubclass(enum_type, int):
+        coerce_fn = int
+    elif issubclass(enum_type, str):
+        coerce_fn = _cast_str
+    else:
+        raise TypeError(f"{enum_type} does not a subclass a coercible type.")
+
+    def coerced_new(enum: Type[M], value: object) -> M:
+        if value is None:
+            raise TypeError(
+                f"value `{value}` is not coercible to {enum_type.__name__}.",
+            )
+        try:
+            return _new(enum, coerce_fn(value))
+        except ValueError as ve:
+            name_to_try = str(value).replace(".", "_").replace("-", "_").upper()
+            named = enum._member_map_.get(name_to_try)
+            if named is not None:
+                return named
+            enum_values = tuple(value for value in enum._value2member_map_)
+
+            raise ValueError(
+                f"value `{value}` is not a member of {enum_type.__name__}. "
+                f"use one of {enum_values}.",
+            ) from ve
+
+    setattr(enum_type, "__new__", coerced_new)
+
+    return enum_type
+
+
+class StringyMixin:
+    """
+    Mixin class for overloading __str__ on Enum types.
+    This will use the Enumerations subclass, if any, to modify
+    the behavior of str().
+
+    For subclasses of enum.Flag a comma separated string of names is returned.
+    For integer enumerations, the lowercase member name is returned.
+    For string enumerations, the value is returned.
+
+    """
+
+    def __str__(self) -> str:
+        if isinstance(self, Flag):
+            return ", ".join(f.name.lower() for f in self.__class__ if f in self)
+        if isinstance(self, int):
+            return getattr(self, "name").lower()
+        return getattr(self, "value")
 
 
 @unique
-class HistoricalGateway(Enum):
+@coercible
+class HistoricalGateway(StringyMixin, str, Enum):
     """Represents a historical data center gateway location."""
 
     BO1 = "bo1"
 
 
 @unique
-class LiveGateway(Enum):
+@coercible
+class LiveGateway(StringyMixin, str, Enum):
     """Represents a live data center gateway location."""
 
     ORIGIN = "origin"
@@ -18,7 +116,8 @@ class LiveGateway(Enum):
 
 
 @unique
-class FeedMode(Enum):
+@coercible
+class FeedMode(StringyMixin, str, Enum):
     """Represents a data feed mode."""
 
     HISTORICAL = "historical"
@@ -27,7 +126,8 @@ class FeedMode(Enum):
 
 
 @unique
-class Dataset(Enum):
+@coercible
+class Dataset(StringyMixin, str, Enum):
     """Represents a dataset code (string identifier)."""
 
     GLBX_MDP3 = "GLBX.MDP3"
@@ -35,7 +135,8 @@ class Dataset(Enum):
 
 
 @unique
-class Schema(Enum):
+@coercible
+class Schema(StringyMixin, str, Enum):
     """Represents a data record schema."""
 
     MBO = "mbo"
@@ -53,9 +154,43 @@ class Schema(Enum):
     GATEWAY_ERROR = "gateway_error"
     SYMBOL_MAPPING = "symbol_mapping"
 
+    @classmethod
+    def from_int(cls, value: int) -> "Schema":
+        """ """
+        if value == 0:
+            return cls.MBO
+        if value == 1:
+            return cls.MBP_1
+        if value == 2:
+            return cls.MBP_10
+        if value == 3:
+            return cls.TBBO
+        if value == 4:
+            return cls.TRADES
+        if value == 5:
+            return cls.OHLCV_1S
+        if value == 6:
+            return cls.OHLCV_1M
+        if value == 7:
+            return cls.OHLCV_1H
+        if value == 8:
+            return cls.OHLCV_1D
+        if value == 9:
+            return cls.DEFINITION
+        if value == 10:
+            return cls.STATISTICS
+        if value == 11:
+            return cls.STATUS
+        if value == 12:
+            return cls.GATEWAY_ERROR
+        if value == 13:
+            return cls.SYMBOL_MAPPING
+        raise ValueError(f"value `{value}` is not a valid member of {cls.__name__}")
+
 
 @unique
-class Encoding(Enum):
+@coercible
+class Encoding(StringyMixin, str, Enum):
     """Represents a data output encoding."""
 
     DBN = "dbn"
@@ -64,15 +199,26 @@ class Encoding(Enum):
 
 
 @unique
-class Compression(Enum):
+@coercible
+class Compression(StringyMixin, str, Enum):
     """Represents a data compression format (if any)."""
 
     NONE = "none"
     ZSTD = "zstd"
 
+    @classmethod
+    def from_int(cls, value: int) -> "Compression":
+        """ """
+        if value == 0:
+            return cls.NONE
+        if value == 1:
+            return cls.ZSTD
+        raise ValueError(f"value `{value}` is not a valid member of {cls.__name__}")
+
 
 @unique
-class SplitDuration(Enum):
+@coercible
+class SplitDuration(StringyMixin, str, Enum):
     """Represents the duration before splitting for each batched data file."""
 
     DAY = "day"
@@ -82,7 +228,8 @@ class SplitDuration(Enum):
 
 
 @unique
-class Packaging(Enum):
+@coercible
+class Packaging(StringyMixin, str, Enum):
     """Represents the packaging method for batched data files."""
 
     NONE = "none"
@@ -91,7 +238,8 @@ class Packaging(Enum):
 
 
 @unique
-class Delivery(Enum):
+@coercible
+class Delivery(StringyMixin, str, Enum):
     """Represents the delivery mechanism for batched data."""
 
     DOWNLOAD = "download"
@@ -100,25 +248,39 @@ class Delivery(Enum):
 
 
 @unique
-class SType(Enum):
+@coercible
+class SType(StringyMixin, str, Enum):
     """Represents a symbology type."""
 
     PRODUCT_ID = "product_id"
     NATIVE = "native"
     SMART = "smart"
 
+    @classmethod
+    def from_int(cls, value: int) -> "SType":
+        """ """
+        if value == 0:
+            return cls.PRODUCT_ID
+        if value == 1:
+            return cls.NATIVE
+        if value == 2:
+            return cls.SMART
+        raise ValueError(f"value `{value}` is not a valid member of {cls.__name__}")
+
 
 @unique
-class RollRule(Enum):
+@coercible
+class RollRule(StringyMixin, str, Enum):
     """Represents a smart symbology roll rule."""
 
-    VOLUME = 0
-    OPEN_INTEREST = 1
-    CALENDAR = 2
+    VOLUME = "volume"
+    OPEN_INTEREST = "open_interst"
+    CALENDAR = "calendar"
 
 
 @unique
-class SymbologyResolution(Enum):
+@coercible
+class SymbologyResolution(StringyMixin, str, Enum):
     """
     Status code of symbology resolution.
 
@@ -127,20 +289,31 @@ class SymbologyResolution(Enum):
     - NOT_FOUND: One or more symbols where not found on any date in range.
     """
 
-    OK = 0
-    PARTIAL = 1
-    NOT_FOUND = 2
+    OK = "ok"
+    PARTIAL = "partial"
+    NOT_FOUND = "not_found"
 
 
 @unique
-class Flags(Enum):
-    """Represents record flags."""
+@coercible
+# Ignore type to work around mypy bug https://github.com/python/mypy/issues/9319
+class RecordFlags(StringyMixin, IntFlag):  # type: ignore
+    """Represents record flags.
 
-    # Last message in the packet from the venue for a given `product_id`
-    F_LAST = 1 << 7
-    # Message sourced from a replay, such as a snapshot server
-    F_SNAPSHOT = 1 << 5
-    # Aggregated price level message, not an individual order
-    F_MBP = 1 << 4
-    # The `ts_recv` value is inaccurate (clock issues or reordering)
-    F_BAD_TS_RECV = 1 << 3
+    F_LAST
+        Last message in the packet from the venue for a given `product_id`
+    F_SNAPSHOT
+        Message sourced from a replay, such as a snapshot server
+    F_MBP
+        Aggregated price level message, not an individual order
+    F_BAD_TS_RECV
+        The `ts_recv` value is inaccurate (clock issues or reordering)
+
+    Other bits are reserved and have no current meaning.
+
+    """
+
+    F_LAST = 128
+    F_SNAPSHOT = 32
+    F_MBP = 16
+    F_BAD_TS_RECV = 8

@@ -94,9 +94,9 @@ class TestHistoricalBatch:
             ("encoding", "csv"),
             ("compression", "zstd"),
             ("split_duration", "day"),
-            ("split_size", "10000000000"),
             ("packaging", "none"),
             ("delivery", "download"),
+            ("split_size", "10000000000"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

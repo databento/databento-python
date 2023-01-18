@@ -3,7 +3,6 @@ from typing import Optional, Union
 
 from databento.common.enums import HistoricalGateway
 from databento.common.logging import log_info
-from databento.common.parsing import enum_or_str_lowercase
 from databento.historical.api.batch import BatchHttpAPI
 from databento.historical.api.metadata import MetadataHttpAPI
 from databento.historical.api.symbology import SymbologyHttpAPI
@@ -41,7 +40,7 @@ class Historical:
             raise ValueError(f"invalid API key, was {key}")
 
         # Configure data access gateway
-        gateway = enum_or_str_lowercase(gateway, "gateway")
+        gateway = str(gateway)
         if gateway == "bo1":
             gateway = "https://hist.databento.com"
 
