@@ -3,6 +3,7 @@ from typing import Optional, Union
 
 from databento.common.enums import HistoricalGateway
 from databento.common.logging import log_info
+from databento.common.validation import validate_gateway
 from databento.historical.api.batch import BatchHttpAPI
 from databento.historical.api.metadata import MetadataHttpAPI
 from databento.historical.api.symbology import SymbologyHttpAPI
@@ -39,10 +40,10 @@ class Historical:
         if key is None or not isinstance(key, str) or key.isspace():
             raise ValueError(f"invalid API key, was {key}")
 
-        # Configure data access gateway
-        gateway = str(gateway)
-        if gateway == "bo1":
-            gateway = "https://hist.databento.com"
+        try:
+            gateway = HistoricalGateway(gateway)
+        except ValueError:
+            gateway = validate_gateway(str(gateway))
 
         self._key = key
         self._gateway = gateway

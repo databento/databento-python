@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional, Type, TypeVar, Union
+from urllib.parse import urlsplit, urlunsplit
 
 
 E = TypeVar("E", bound=Enum)
@@ -76,3 +77,37 @@ def validate_maybe_enum(
     if value is None:
         return None
     return validate_enum(value, enum, param)
+
+
+def validate_gateway(
+    url: str,
+) -> str:
+    """
+    Validate that the given value is a valid gateway URL.
+
+    Parameters
+    ----------
+    url : str
+        The URL to validate
+
+    Returns
+    -------
+    str
+        The gateway URL if it is valid.
+
+    Raises
+    ------
+    ValueError
+        If the URL is invalid.
+
+    """
+    url_chunks = urlsplit(url)
+
+    if not any([url_chunks.netloc, url_chunks.path]):
+        raise ValueError(f"`{url}` is not a valid URL")
+
+    if url_chunks.netloc:
+        return urlunsplit(
+            components=("https", url_chunks.netloc, url_chunks.path, "", ""),
+        )
+    return urlunsplit(components=("https", url_chunks.path, "", "", ""))

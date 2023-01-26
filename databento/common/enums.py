@@ -102,7 +102,7 @@ class StringyMixin:
 class HistoricalGateway(StringyMixin, str, Enum):
     """Represents a historical data center gateway location."""
 
-    BO1 = "bo1"
+    BO1 = "https://hist.databento.com"
 
 
 @unique

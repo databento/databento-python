@@ -3,7 +3,11 @@ from typing import Any, Type, Union
 
 import pytest
 from databento.common.enums import Encoding
-from databento.common.validation import validate_enum, validate_maybe_enum
+from databento.common.validation import (
+    validate_enum,
+    validate_gateway,
+    validate_maybe_enum,
+)
 
 
 class TestValidation:
@@ -47,3 +51,28 @@ class TestValidation:
     def test_validate_maybe_enum_give_none_returns_none(self) -> None:
         # Arrange, Act, Assert
         assert validate_maybe_enum(None, Encoding, "encoding") is None
+
+    @pytest.mark.parametrize(
+        "url, expected",
+        [
+            pytest.param("databento.com", "https://databento.com"),
+            pytest.param("hist.databento.com", "https://hist.databento.com"),
+            pytest.param("http://databento.com", "https://databento.com"),
+            pytest.param("http://hist.databento.com", "https://hist.databento.com"),
+            pytest.param("//", ValueError),
+            pytest.param("", ValueError),
+        ],
+    )
+    def test_validate_gateway(
+        self,
+        url: str,
+        expected: Union[str, Type[Exception]],
+    ) -> None:
+        """
+        Tests several correct and malformed URLs.
+        """
+        if isinstance(expected, str):
+            assert validate_gateway(url) == expected
+        else:
+            with pytest.raises(expected):
+                validate_gateway(url)

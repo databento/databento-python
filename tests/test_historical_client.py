@@ -55,7 +55,46 @@ class TestHistoricalClient:
         client = db.Historical(key="DUMMY_API_KEY", gateway=ny4_gateway)
 
         # Assert
-        assert client.gateway == ny4_gateway
+        assert client.gateway == "https://ny4.databento.com"
+
+    @pytest.mark.parametrize(
+        "gateway",
+        [
+            "//",
+            "",
+        ],
+    )
+    def test_custom_gateway_error(
+        self,
+        gateway: str,
+    ) -> None:
+        """
+        Test that setting a custom gateway to an invalid url raises an exception.
+        """
+        # Arrange, Act, Assert
+        with pytest.raises(ValueError):
+            db.Historical(key="DUMMY_API_KEY", gateway=gateway)
+
+    @pytest.mark.parametrize(
+        "gateway, expected",
+        [
+            ["hist.databento.com", "https://hist.databento.com"],
+            ["http://hist.databento.com", "https://hist.databento.com"],
+        ],
+    )
+    def test_custom_gateway_force_https(
+        self,
+        gateway: str,
+        expected: str,
+    ) -> None:
+        """
+        Test that custom gateways are forced to the https scheme.
+        """
+        # Arrange Act
+        client = db.Historical(key="DUMMY_API_KEY", gateway=gateway)
+
+        # Assert
+        assert client.gateway == expected
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_re_request_symbology_makes_expected_request(
