@@ -1,9 +1,12 @@
+from collections.abc import Iterable
 from datetime import date
-from typing import Iterable, List, Optional, Union
+from functools import partial, singledispatch
+from typing import Optional, Union
 
 import pandas as pd
 from databento.common.enums import SType
 from databento.common.symbology import ALL_SYMBOLS
+from databento.common.validation import validate_smart_symbol
 
 
 def values_list_to_string(
@@ -50,8 +53,9 @@ def optional_values_list_to_string(
     return values_list_to_string(values)
 
 
+@singledispatch
 def optional_symbols_list_to_string(
-    symbols: Optional[Union[Iterable[str], str]],
+    symbols: Optional[Union[Iterable[str], Iterable[int], str, int]],
     stype_in: SType,
 ) -> str:
     """
@@ -59,7 +63,7 @@ def optional_symbols_list_to_string(
 
     Parameters
     ----------
-    symbols : iterable of str or str, optional
+    symbols : iterable of str, iterable of int, str, or int optional
         The symbols to concatenate.
     stype_in : SType
         The input symbology type for the request.
@@ -68,24 +72,97 @@ def optional_symbols_list_to_string(
     -------
     str
 
+    Notes
+    -----
+    If None is given, ALL_SYMBOLS is returned.
+
     """
-    if symbols is None:
-        return ALL_SYMBOLS
+    raise TypeError(
+        f"`{symbols}` is not a valid type for symbol input; "
+        "allowed types are Iterable[str], Iterable[int], str, int, and None.",
+    )
 
-    symbols_list = symbols.split(",") if isinstance(symbols, str) else list(symbols)
-    cleaned_symbols: List[str] = []
-    for symbol in symbols_list:
-        if not symbol:
-            continue
-        symbol = symbol.strip().upper()
-        if stype_in == SType.SMART:
-            pieces: List[str] = symbol.split(".")
-            if len(pieces) == 3:
-                symbol = f"{pieces[0]}.{pieces[1].lower()}.{pieces[2]}"
 
-        cleaned_symbols.append(symbol)
+@optional_symbols_list_to_string.register
+def _(_: None, __: SType) -> str:
+    """
+    Dispatch method for optional_symbols_list_to_string.
+    Handles None which defaults to ALL_SYMBOLS.
 
-    return ",".join(cleaned_symbols)
+    See Also
+    --------
+    optional_symbols_list_to_string
+
+    """
+    return ALL_SYMBOLS
+
+
+@optional_symbols_list_to_string.register
+def _(symbols: int, stype_in: SType) -> str:
+    """
+    Dispatch method for optional_symbols_list_to_string.
+    Handles int, alerting when an integer is given for
+    STypes that expect strings.
+
+    See Also
+    --------
+    optional_symbols_list_to_string
+
+    """
+    if stype_in == SType.PRODUCT_ID:
+        return str(symbols)
+    raise ValueError(
+        f"value `{symbols}` is not a valid symbol for stype {stype_in}; "
+        "did you mean to use `product_id`?",
+    )
+
+
+@optional_symbols_list_to_string.register
+def _(symbols: str, stype_in: SType) -> str:
+    """
+    Dispatch method for optional_symbols_list_to_string.
+    Handles str, splitting on commas and validating smart symbology.
+
+    See Also
+    --------
+    optional_symbols_list_to_string
+
+    """
+    if not symbols:
+        raise ValueError(
+            f"value `{symbols}` is not a valid symbol for {stype_in}; "
+            "an empty string is not allowed",
+        )
+
+    if "," in symbols:
+        symbol_to_string = partial(
+            optional_symbols_list_to_string,
+            stype_in=stype_in,
+        )
+        symbol_list = symbols.strip().strip(",").split(",")
+        return ",".join(map(symbol_to_string, symbol_list))
+
+    if stype_in == SType.SMART:
+        return validate_smart_symbol(symbols)
+    return symbols.strip().upper()
+
+
+@optional_symbols_list_to_string.register(cls=Iterable)
+def _(symbols: Union[Iterable[str], Iterable[int]], stype_in: SType) -> str:
+    """
+    Dispatch method for optional_symbols_list_to_string.
+    Handles Iterables by dispatching the individual members.
+
+    See Also
+    --------
+    optional_symbols_list_to_string
+
+    """
+    symbol_to_string = partial(
+        optional_symbols_list_to_string,
+        stype_in=stype_in,
+    )
+    return ",".join(map(symbol_to_string, symbols))
 
 
 def optional_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:

@@ -7,6 +7,7 @@ from databento.common.validation import (
     validate_enum,
     validate_gateway,
     validate_maybe_enum,
+    validate_smart_symbol,
 )
 
 
@@ -76,3 +77,31 @@ class TestValidation:
         else:
             with pytest.raises(expected):
                 validate_gateway(url)
+
+    @pytest.mark.parametrize(
+        "symbol, expected",
+        [
+            pytest.param("ES", "ES"),
+            pytest.param("es", "ES"),
+            pytest.param("ES.FUT", "ES.FUT"),
+            pytest.param("es.opt", "ES.OPT"),
+            pytest.param("ES.C.0", "ES.c.0"),
+            pytest.param("es.c.5", "ES.c.5"),
+            pytest.param(".v.2", ValueError),
+            pytest.param("es..9", ValueError),
+            pytest.param("es.n.", ValueError),
+            pytest.param("es.c.5.0", ValueError),
+            pytest.param("", ValueError),
+        ],
+    )
+    def test_validate_smart_symbol(
+        self,
+        symbol: str,
+        expected: Union[str, Type[Exception]],
+    ) -> None:
+        """ """
+        if isinstance(expected, str):
+            assert validate_smart_symbol(symbol) == expected
+        else:
+            with pytest.raises(expected):
+                validate_smart_symbol(symbol)

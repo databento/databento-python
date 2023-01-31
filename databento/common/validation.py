@@ -38,7 +38,7 @@ def validate_enum(
     try:
         return enum(value)
     except ValueError as exc:
-        valid = tuple(map(str, enum))
+        valid = list(map(str, enum))
         raise ValueError(
             f"The `{param}` was not a valid value of {enum}, was '{value}'. "
             f"Use any of {valid}.",
@@ -111,3 +111,46 @@ def validate_gateway(
             components=("https", url_chunks.netloc, url_chunks.path, "", ""),
         )
     return urlunsplit(components=("https", url_chunks.path, "", "", ""))
+
+
+def validate_smart_symbol(symbol: str) -> str:
+    """
+    Validate whether symbol has a valid smart symbol format.
+
+    Parameters
+    ----------
+    symbol: str
+        The smart symbol to validate.
+
+    Raises
+    ------
+    ValueError
+        If symbol is not a valid smart symbol format.
+
+    Notes
+    -----
+    Valid smart symbols can have the following formats:
+        [ROOT]
+        [ROOT].[ASSET_CLASS]
+        [ROOT].[ROLL_RULE].[RANK]
+
+    e.x
+        ES
+        ES.OPT
+        ES.c.0
+
+    """
+    tokens = symbol.upper().split(".")
+
+    if len(tokens) > 3 or not all(tokens):
+        raise ValueError(
+            f"value `{symbol}` is not a valid smart symbol format; ",
+            "valid formats are [ROOT], [ROOT].[ASSET_CLASS], and "
+            "[ROOT].[ROLL_RULE].[RANK].",
+        )
+
+    if len(tokens) == 3:
+        # [ROOT].[ROLL_RULE].[RANK]
+        tokens[1] = tokens[1].lower()  # api expects lower case
+
+    return ".".join(tokens)
