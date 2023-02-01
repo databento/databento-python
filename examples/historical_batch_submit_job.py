@@ -4,7 +4,7 @@ import databento as db
 
 
 if __name__ == "__main__":
-    db.log = "debug"  # optional debug logging
+    db.log = "debug"  # Optional debug logging
 
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         schema="mbo",
         start="2022-06-10T12:00",
         end="2022-06-10T14:00",
-        limit=1000,  # <-- limiting batch request to 1000 records only
+        limit=1000,  # <-- Limiting batch request to 1000 records only
         encoding="csv",
         compression="zstd",
         delivery="download",

@@ -400,7 +400,12 @@ class TestBento:
         path = "test.my_mbo.csv"
 
         # Act
-        data.to_csv(path)
+        data.to_csv(
+            path,
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        )
 
         # Assert
         written = open(path, mode="rb").read()
@@ -419,7 +424,7 @@ class TestBento:
         # Cleanup
         os.remove(path)
 
-    def test_mbp_1_to_csv_writes_expected_file_to_disk(self) -> None:
+    def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBP_1)
         data = FileBento(path=test_data_path)
@@ -427,7 +432,12 @@ class TestBento:
         path = "test.my_mbo.csv"
 
         # Act
-        data.to_csv(path)
+        data.to_csv(
+            path,
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        )
 
         # Assert
         written = open(path, mode="rb").read()
@@ -447,7 +457,43 @@ class TestBento:
         # Cleanup
         os.remove(path)
 
-    def test_mbo_to_json_writes_expected_file_to_disk(self) -> None:
+    def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(self) -> None:
+        # Arrange
+        test_data_path = get_test_data_path(schema=Schema.MBP_1)
+        data = FileBento(path=test_data_path)
+
+        path = "test.my_mbo.csv"
+
+        # Act
+        data.to_csv(
+            path,
+            pretty_ts=True,
+            pretty_px=True,
+            map_symbols=True,
+        )
+
+        # Assert
+        written = open(path, mode="rb").read()
+        assert os.path.isfile(path)
+        expected = (
+            b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,action,si"
+            b"de,depth,flags,price,size,sequence,bid_px_00,ask_px_00,bid_sz_"
+            b"00,ask_sz_00,bid_oq_00,ask_oq_00,symbol\n2020-12-28 13:00:00.0"
+            b"06136329+00:00,2020-12-28 13:00:00.006001487+00:00,17214,1,548"
+            b"2,A,A,0,128,3720.5000000000005,1,1170362,3720.2500000000005,37"
+            b"20.5000000000005,24,11,15,9,ESH1\n2020-12-28 13:00:00.00624651"
+            b"3+00:00,2020-12-28 13:00:00.006146661+00:00,18858,1,5482,A,A,0"
+            b",128,3720.5000000000005,1,1170364,3720.2500000000005,3720.5000"
+            b"000000005,24,12,15,10,ESH1\n"
+        )
+        if sys.platform == "win32":
+            expected = expected.replace(b"\n", b"\r\n")
+        assert written == expected
+
+        # Cleanup
+        os.remove(path)
+
+    def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBO)
         data = FileBento(path=test_data_path)
@@ -455,7 +501,12 @@ class TestBento:
         path = "test.my_mbo.json"
 
         # Act
-        data.to_json(path)
+        data.to_json(
+            path,
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        )
 
         # Assert
         written = open(path, mode="rb").read()
@@ -472,7 +523,38 @@ class TestBento:
         # Cleanup
         os.remove(path)
 
-    def test_mbp_1_to_json_writes_expected_file_to_disk(self) -> None:
+    def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(self) -> None:
+        # Arrange
+        test_data_path = get_test_data_path(schema=Schema.MBO)
+        data = FileBento(path=test_data_path)
+
+        path = "test.my_mbo.json"
+
+        # Act
+        data.to_json(
+            path,
+            pretty_ts=True,
+            pretty_px=True,
+            map_symbols=True,
+        )
+
+        # Assert
+        written = open(path, mode="rb").read()
+        assert os.path.isfile(path)
+        assert written == (
+            b'{"ts_event":1609160400000,"ts_in_delta":22993,"publisher_id":1,"ch'
+            b'annel_id":0,"product_id":5482,"order_id":647784973705,"action":"C"'
+            b',"side":"A","flags":128,"price":3722.75,"size":1,"sequence":117035'
+            b'2,"symbol":"ESH1"}\n{"ts_event":1609160400000,"ts_in_delta":19621,'
+            b'"publisher_id":1,"channel_id":0,"product_id":5482,"order_id":64778'
+            b'4973631,"action":"C","side":"A","flags":128,"price":3723.0,"size":'
+            b'1,"sequence":1170353,"symbol":"ESH1"}\n'
+        )
+
+        # Cleanup
+        os.remove(path)
+
+    def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBP_1)
         data = FileBento(path=test_data_path)
@@ -480,7 +562,12 @@ class TestBento:
         path = "test.my_mbo.json"
 
         # Act
-        data.to_json(path)
+        data.to_json(
+            path,
+            pretty_ts=False,
+            pretty_px=False,
+            map_symbols=False,
+        )
 
         # Assert
         written = open(path, mode="rb").read()
@@ -494,6 +581,39 @@ class TestBento:
             b':5482,"action":"A","side":"A","depth":0,"flags":128,"price":3720500000000,"s'  # noqa
             b'ize":1,"sequence":1170364,"bid_px_00":3720250000000,"ask_px_00":372050000000'  # noqa
             b'0,"bid_sz_00":24,"ask_sz_00":12,"bid_oq_00":15,"ask_oq_00":10}\n'  # noqa
+        )
+
+        # Cleanup
+        os.remove(path)
+
+    def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(self) -> None:
+        # Arrange
+        test_data_path = get_test_data_path(schema=Schema.MBP_1)
+        data = FileBento(path=test_data_path)
+
+        path = "test.my_mbo.json"
+
+        # Act
+        data.to_json(
+            path,
+            pretty_ts=True,
+            pretty_px=True,
+            map_symbols=True,
+        )
+
+        # Assert
+        written = open(path, mode="rb").read()
+        assert os.path.isfile(path)
+        assert written == (
+            b'{"ts_event":1609160400006,"ts_in_delta":17214,"publisher_id":1,"pr'
+            b'oduct_id":5482,"action":"A","side":"A","depth":0,"flags":128,"pric'
+            b'e":3720.5,"size":1,"sequence":1170362,"bid_px_00":3720.25,"ask_px_'
+            b'00":3720.5,"bid_sz_00":24,"ask_sz_00":11,"bid_oq_00":15,"ask_oq_00'
+            b'":9,"symbol":"ESH1"}\n{"ts_event":1609160400006,"ts_in_delta":1885'
+            b'8,"publisher_id":1,"product_id":5482,"action":"A","side":"A","dept'
+            b'h":0,"flags":128,"price":3720.5,"size":1,"sequence":1170364,"bid_p'
+            b'x_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bi'
+            b'd_oq_00":15,"ask_oq_00":10,"symbol":"ESH1"}\n'
         )
 
         # Cleanup

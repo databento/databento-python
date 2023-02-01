@@ -592,7 +592,13 @@ class Bento:
 
         return bento
 
-    def to_csv(self, path: Union[Path, str]) -> None:
+    def to_csv(
+        self,
+        path: Union[Path, str],
+        pretty_ts: bool = True,
+        pretty_px: bool = True,
+        map_symbols: bool = True,
+    ) -> None:
         """
         Write the data to a file in CSV format.
 
@@ -600,6 +606,16 @@ class Bento:
         ----------
         path : Path or str
             The file path to write to.
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to `pd.Timestamp` tz-aware (UTC).
+        pretty_px : bool, default True
+            If all price columns should be converted from `int` to `float` at
+            the correct scale (using the fixed precision scalar 1e-9).
+        map_symbols : bool, default True
+            If symbology mappings from the metadata should be used to create
+            a 'symbol' column, mapping the product ID to its native symbol for
+            every record.
 
         Notes
         -----
@@ -607,12 +623,18 @@ class Bento:
 
         """
         self.to_df(
-            pretty_ts=False,
-            pretty_px=False,
-            map_symbols=False,
+            pretty_ts=pretty_ts,
+            pretty_px=pretty_px,
+            map_symbols=map_symbols,
         ).to_csv(path)
 
-    def to_json(self, path: Union[Path, str]) -> None:
+    def to_json(
+        self,
+        path: Union[Path, str],
+        pretty_ts: bool = True,
+        pretty_px: bool = True,
+        map_symbols: bool = True,
+    ) -> None:
         """
         Write the data to a file in JSON format.
 
@@ -620,6 +642,16 @@ class Bento:
         ----------
         path : Path or str
             The file path to write to.
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to `pd.Timestamp` tz-aware (UTC).
+        pretty_px : bool, default True
+            If all price columns should be converted from `int` to `float` at
+            the correct scale (using the fixed precision scalar 1e-9).
+        map_symbols : bool, default True
+            If symbology mappings from the metadata should be used to create
+            a 'symbol' column, mapping the product ID to its native symbol for
+            every record.
 
         Notes
         -----
@@ -627,9 +659,9 @@ class Bento:
 
         """
         self.to_df(
-            pretty_ts=False,
-            pretty_px=False,
-            map_symbols=False,
+            pretty_ts=pretty_ts,
+            pretty_px=pretty_px,
+            map_symbols=map_symbols,
         ).to_json(path, orient="records", lines=True)
 
     def request_symbology(self, client: "Historical") -> Dict[str, Any]:
