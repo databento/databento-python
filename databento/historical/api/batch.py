@@ -290,6 +290,7 @@ class BatchHttpAPI(BentoHttpAPI):
         ]
 
         headers: Dict[str, str] = self._headers.copy()
+        mode = "wb"
 
         # Check if file already exists in partially downloaded state
         if os.path.isfile(output_path):
@@ -298,6 +299,7 @@ class BatchHttpAPI(BentoHttpAPI):
                 # Make range request for partial download,
                 # will be from next byte to end of file.
                 headers["Range"] = f"bytes={existing_size}-{filesize - 1}"
+                mode = "ab"
 
         with requests.get(
             url=self._base_url + ".download",
@@ -309,6 +311,6 @@ class BatchHttpAPI(BentoHttpAPI):
         ) as response:
             check_http_error(response)
 
-            with open(output_path, mode="wb") as f:
+            with open(output_path, mode=mode) as f:
                 for chunk in response.iter_content():
                     f.write(chunk)
