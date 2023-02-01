@@ -19,10 +19,10 @@ class Historical:
     ----------
     key : str, optional
         The user API key for authentication.
-        If ``None`` then the `DATABENTO_API_KEY` environment variable is used.
+        If `None` then the `DATABENTO_API_KEY` environment variable is used.
     gateway : HistoricalGateway or str, default HistoricalGateway.BO1
         The API server gateway.
-        If ``None`` then the default gateway is used.
+        If `None` then the default gateway is used.
 
     Examples
     --------

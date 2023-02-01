@@ -2,6 +2,8 @@
 
 ## 0.8.0 - TBD
 - Renamed 'dbz' encoding to 'dbn'
+- Added `batch.list_files(...)` method
+- Added `batch.download(...)` method
 - Changed `.to_df(...)` `pretty_ts` default argument to `True`
 - Changed `.to_df(...)` `pretty_px` default argument to `True`
 - Changed `.to_df(...)` `map_symbols` default argument to `True`

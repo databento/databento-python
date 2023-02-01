@@ -1,7 +1,10 @@
+import os
 from datetime import date
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
+import requests
 from databento.common.enums import (
     Compression,
     Dataset,
@@ -12,6 +15,7 @@ from databento.common.enums import (
     SplitDuration,
     SType,
 )
+from databento.common.logging import log_error, log_info
 from databento.common.parsing import (
     datetime_to_string,
     optional_datetime_to_string,
@@ -20,7 +24,8 @@ from databento.common.parsing import (
 )
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
-from databento.historical.http import BentoHttpAPI
+from databento.historical.http import BentoHttpAPI, check_http_error
+from requests.auth import HTTPBasicAuth
 
 
 class BatchHttpAPI(BentoHttpAPI):
@@ -69,7 +74,7 @@ class BatchHttpAPI(BentoHttpAPI):
         symbols : List[Union[str, int]] or str
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
-            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         encoding : Encoding or str {'dbn', 'csv', 'json'}, default 'dbn'
@@ -90,7 +95,7 @@ class BatchHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
-            The maximum number of records for the request. If ``None`` then no limit.
+            The maximum number of records for the request. If `None` then no limit.
 
         Returns
         -------
@@ -172,3 +177,138 @@ class BatchHttpAPI(BentoHttpAPI):
             params=params,
             basic_auth=True,
         ).json()
+
+    def list_files(self, job_id: str) -> List[Dict[str, Any]]:
+        """
+        Request details of all files for a specific batch job.
+
+        Makes a `GET /batch.list_files` HTTP request.
+
+        Parameters
+        ----------
+        job_id : str
+            The batch job identifier.
+
+        Returns
+        -------
+        List[Dict[str, Any]]
+            The file details for the batch job.
+
+        """
+        params: List[Tuple[str, str]] = [
+            ("job_id", job_id),
+        ]
+
+        return self._get(
+            url=self._base_url + ".list_files",
+            params=params,
+            basic_auth=True,
+        ).json()
+
+    def download(
+        self,
+        output_dir: Union[Path, str],
+        job_id: str,
+        filename_to_download: Optional[str] = None,
+    ) -> None:
+        """
+        Download a batch job or a specific file to `{output_dir}/{job_id}/`.
+         - Creates the directories if any do not already exist
+         - Partially downloaded files will be retried using a range request
+
+        Makes one or many `GET /batch.download` HTTP request(s).
+
+        Parameters
+        ----------
+        output_dir: Path or str
+            The directory to download the file(s) to.
+        job_id : str
+            The batch job identifier.
+        filename_to_download : str, optional
+            The specific file to download.
+            If `None` then will download all files for the batch job.
+
+        """
+        params: List[Tuple[str, str]] = [
+            ("job_id", job_id),
+        ]
+
+        job_files: List[Dict[str, Union[str, int]]] = self._get(
+            url=self._base_url + ".list_files",
+            params=params,
+            basic_auth=True,
+        ).json()
+
+        if not job_files:
+            log_error(f"Cannot download batch job {job_id} (no files found).")
+            return
+
+        if filename_to_download:
+            # A specific file is being requested
+            is_file_found = False
+            for details in job_files:
+                if details["filename"] == filename_to_download:
+                    # Reduce files to download only the single file
+                    job_files = [details]
+                    is_file_found = True
+                    break
+            if not is_file_found:
+                log_error(
+                    f"Cannot download batch job {job_id} file "
+                    f"({filename_to_download} not found)",
+                )
+                return
+
+        # Prepare job directory
+        job_dir = os.path.join(output_dir, job_id)
+        os.makedirs(job_dir, exist_ok=True)
+
+        for details in job_files:
+            filename = str(details["filename"])
+            output_path = os.path.join(job_dir, filename)
+            log_info(
+                f"Downloading batch job file {filename} to {output_path} ...",
+            )
+
+            self._download_file(
+                job_id=job_id,
+                filename=filename,
+                filesize=int(details["size"]),
+                output_path=output_path,
+            )
+
+    def _download_file(
+        self,
+        job_id: str,
+        filename: str,
+        filesize: int,
+        output_path: str,
+    ) -> None:
+        params: List[Tuple[str, str]] = [
+            ("job_id", job_id),
+            ("filename", filename),
+        ]
+
+        headers: Dict[str, str] = self._headers.copy()
+
+        # Check if file already exists in partially downloaded state
+        if os.path.isfile(output_path):
+            existing_size = os.path.getsize(output_path)
+            if existing_size < filesize:
+                # Make range request for partial download,
+                # will be from next byte to end of file.
+                headers["Range"] = f"bytes={existing_size}-{filesize - 1}"
+
+        with requests.get(
+            url=self._base_url + ".download",
+            params=params,
+            headers=headers,
+            auth=HTTPBasicAuth(username=self._key, password=None),
+            allow_redirects=True,
+            stream=True,
+        ) as response:
+            check_http_error(response)
+
+            with open(output_path, mode="wb") as f:
+                for chunk in response.iter_content():
+                    f.write(chunk)

@@ -1,7 +1,8 @@
 import datetime as dt
 import io
 import os.path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -536,13 +537,13 @@ class Bento:
             callback(record[0])
 
     @staticmethod
-    def from_file(path: str) -> "FileBento":
+    def from_file(path: Union[Path, str]) -> "FileBento":
         """
         Load the data from a DBN file at the given path.
 
         Parameters
         ----------
-        path : str
+        path : Path or str
             The path to read from.
 
         Returns
@@ -569,7 +570,7 @@ class Bento:
 
         return bento
 
-    def to_file(self, path: str) -> "FileBento":
+    def to_file(self, path: Union[Path, str]) -> "FileBento":
         """
         Write the data to a DBN file at the given path.
 
@@ -591,13 +592,13 @@ class Bento:
 
         return bento
 
-    def to_csv(self, path: str) -> None:
+    def to_csv(self, path: Union[Path, str]) -> None:
         """
         Write the data to a file in CSV format.
 
         Parameters
         ----------
-        path : str
+        path : Path or str
             The file path to write to.
 
         Notes
@@ -611,13 +612,13 @@ class Bento:
             map_symbols=False,
         ).to_csv(path)
 
-    def to_json(self, path: str) -> None:
+    def to_json(self, path: Union[Path, str]) -> None:
         """
         Write the data to a file in JSON format.
 
         Parameters
         ----------
-        path : str
+        path : Path or str
             The file path to write to.
 
         Notes
@@ -664,7 +665,7 @@ class Bento:
     def request_full_definitions(
         self,
         client: "Historical",
-        path: Optional[str] = None,
+        path: Optional[Union[Path, str]] = None,
     ) -> "Bento":
         """
         Request full instrument definitions based on the metadata properties.
@@ -675,7 +676,7 @@ class Bento:
         ----------
         client : Historical
             The historical client to use for the request (contains the API key).
-        path : str, optional
+        path : Path or str, optional
             The path to stream the data to on disk (will then return a `FileBento`).
 
         Returns
@@ -771,11 +772,11 @@ class FileBento(Bento):
 
     Parameters
     ----------
-    path : str
+    path : Path or str
         The path to the data file.
     """
 
-    def __init__(self, path: str):
+    def __init__(self, path: Union[Path, str]):
         super().__init__()
 
         self._path = path
@@ -790,7 +791,7 @@ class FileBento(Bento):
         str
 
         """
-        return self._path
+        return str(self._path)
 
     @property
     def nbytes(self) -> int:

@@ -42,7 +42,7 @@ def optional_values_list_to_string(
 
     Returns
     -------
-    str or ``None``
+    str or `None`
 
     """
     if values is None:
@@ -99,7 +99,7 @@ def optional_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:
 
     Returns
     -------
-    str or ``None``
+    str or `None`
 
     """
     if value is None:
@@ -155,7 +155,7 @@ def optional_datetime_to_string(
 
     Returns
     -------
-    str or ``None``
+    str or `None`
 
     """
     if value is None:

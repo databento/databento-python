@@ -1,5 +1,6 @@
 import warnings
 from datetime import date
+from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
 import pandas as pd
@@ -30,7 +31,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
-        path: Optional[str] = None,
+        path: Optional[Union[Path, str]] = None,
     ) -> Bento:
         """
         Request a historical time series data stream from Databento.
@@ -56,7 +57,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
-            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'native'
@@ -64,8 +65,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
-            The maximum number of records to return. If ``None`` then no limit.
-        path : str, optional
+            The maximum number of records to return. If `None` then no limit.
+        path : Path or str, optional
             The path to stream the data to on disk (will then return a `FileBento`).
 
         Returns
@@ -130,7 +131,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
-        path: Optional[str] = None,
+        path: Optional[Union[Path, str]] = None,
     ) -> Bento:
         """
         Request a historical time series data stream from Databento asynchronously.
@@ -156,7 +157,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
-            If 'ALL_SYMBOLS' or ``None`` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'native'
@@ -164,8 +165,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
-            The maximum number of records to return. If ``None`` then no limit.
-        path : str, optional
+            The maximum number of records to return. If `None` then no limit.
+        path : Path or str, optional
             The path to stream the data to on disk (will then return a `FileBento`).
 
         Returns

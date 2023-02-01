@@ -1,5 +1,6 @@
 import sys
 from json.decoder import JSONDecodeError
+from pathlib import Path
 from typing import BinaryIO, List, Optional, Tuple, Union
 
 import aiohttp
@@ -31,7 +32,7 @@ class BentoHttpAPI:
         self._headers = {"accept": "application/json", "user-agent": user_agent}
 
     @staticmethod
-    def _create_bento(path: str) -> Union[MemoryBento, FileBento]:
+    def _create_bento(path: Union[Path, str]) -> Union[MemoryBento, FileBento]:
         if path is None:
             return MemoryBento()
         else:
