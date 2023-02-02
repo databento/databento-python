@@ -61,8 +61,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         start_date : date or str, optional
             The start date (UTC) for the request range.
+            If `None` then first date available.
         end_date : date or str, optional
             The end date (UTC) for the request range.
+            If `None` then last date available.
 
         Returns
         -------
@@ -98,8 +100,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset code (string identifier) for the request.
         start_date : date or str, optional
             The start date (UTC) for the request range.
+            If `None` then first date available.
         end_date : date or str, optional
             The end date (UTC) for the request range.
+            If `None` then last date available.
 
         Returns
         -------
@@ -238,24 +242,26 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_dataset_condition(
         self,
         dataset: Union[Dataset, str],
-        start_date: Union[date, str],
-        end_date: Union[date, str],
+        start_date: Union[date, str] = None,
+        end_date: Union[date, str] = None,
     ) -> Dict[str, Any]:
         """
         Get the dataset condition from Databento.
 
         Makes a `GET /metadata.get_dataset_condition` HTTP request.
 
-        Use this method to discover data availability and qualility.
+        Use this method to discover data availability and quality.
 
         Parameters
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        start_date : date or str
+        start_date : date or str, optional
             The start date (UTC) for the request range.
-        end_date : date or str
+            If `None` then first date available.
+        end_date : date or str, optional
             The end date (UTC) for the request range.
+            If `None` then last date available.
 
         Returns
         -------
