@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import pandas as pd
 from databento.common.enums import Dataset, Encoding, FeedMode, Schema, SType
 from databento.common.parsing import (
-    datetime_to_date_string,
     datetime_to_string,
     optional_date_to_string,
     optional_datetime_to_string,
@@ -270,8 +269,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", dataset),
-            ("start_date", datetime_to_date_string(start_date)),
-            ("end_date", datetime_to_date_string(end_date)),
+            ("start_date", optional_date_to_string(start_date)),
+            ("end_date", optional_date_to_string(end_date)),
         ]
 
         response: Response = self._get(
