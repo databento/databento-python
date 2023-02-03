@@ -280,7 +280,7 @@ class BatchHttpAPI(BentoHttpAPI):
                     )
             else:
                 # Handle legacy manifest.json without the 'urls' field
-                base_url = "https://api.databento.com/v0/batch/download/"
+                base_url = "https://api.databento.com/v0/batch/download"
                 url = f"{base_url}/{job_id}/{filename}"
 
             self._download_file(
