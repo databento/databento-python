@@ -216,7 +216,7 @@ class BatchHttpAPI(BentoHttpAPI):
          - Creates the directories if any do not already exist
          - Partially downloaded files will be retried using a range request
 
-        Makes one or many `GET /batch.download` HTTP request(s).
+        Makes one or many `GET /batch/download/{job_id}/{filename}` HTTP request(s).
 
         Parameters
         ----------
@@ -233,7 +233,7 @@ class BatchHttpAPI(BentoHttpAPI):
             ("job_id", job_id),
         ]
 
-        job_files: List[Dict[str, Union[str, int]]] = self._get(
+        job_files: List[Dict[str, Any]] = self._get(
             url=self._base_url + ".list_files",
             params=params,
             basic_auth=True,
@@ -267,28 +267,34 @@ class BatchHttpAPI(BentoHttpAPI):
             filename = str(details["filename"])
             output_path = os.path.join(job_dir, filename)
             log_info(
-                f"Downloading batch job file {filename} to {output_path} ...",
+                f"Downloading batch job file to {output_path} ...",
             )
 
+            urls = details.get("urls")
+            if urls:
+                url = urls.get("https")
+                if not url:
+                    raise ValueError(
+                        f"Cannot download {filename} over HTTPS "
+                        "('download' delivery is not available for this job).",
+                    )
+            else:
+                # Handle legacy manifest.json without the 'urls' field
+                base_url = "https://api.databento.com/v0/batch/download/"
+                url = f"{base_url}/{job_id}/{filename}"
+
             self._download_file(
-                job_id=job_id,
-                filename=filename,
+                url=url,
                 filesize=int(details["size"]),
                 output_path=output_path,
             )
 
     def _download_file(
         self,
-        job_id: str,
-        filename: str,
+        url: str,
         filesize: int,
         output_path: str,
     ) -> None:
-        params: List[Tuple[str, str]] = [
-            ("job_id", job_id),
-            ("filename", filename),
-        ]
-
         headers: Dict[str, str] = self._headers.copy()
         mode = "wb"
 
@@ -302,8 +308,7 @@ class BatchHttpAPI(BentoHttpAPI):
                 mode = "ab"
 
         with requests.get(
-            url=self._base_url + ".download",
-            params=params,
+            url=url,
             headers=headers,
             auth=HTTPBasicAuth(username=self._key, password=None),
             allow_redirects=True,
