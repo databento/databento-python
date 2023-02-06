@@ -1,7 +1,7 @@
-from collections.abc import Iterable
+from collections.abc import Iterable as IterableABC
 from datetime import date
 from functools import partial, singledispatch
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 import pandas as pd
 from databento.common.enums import SType
@@ -147,7 +147,7 @@ def _(symbols: str, stype_in: SType) -> str:
     return symbols.strip().upper()
 
 
-@optional_symbols_list_to_string.register(cls=Iterable)
+@optional_symbols_list_to_string.register(cls=IterableABC)
 def _(symbols: Union[Iterable[str], Iterable[int]], stype_in: SType) -> str:
     """
     Dispatch method for optional_symbols_list_to_string.
