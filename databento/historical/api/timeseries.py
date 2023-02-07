@@ -9,6 +9,7 @@ from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.parsing import datetime_to_string, optional_symbols_list_to_string
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
+from databento.historical.error import BentoWarning
 from databento.historical.http import BentoHttpAPI
 
 
@@ -238,14 +239,13 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             or _is_large_number_of_symbols(symbols)
         ):
             warnings.warn(
-                "\nThe size of the current streaming request is estimated "
-                "to be 5 GB or greater. We recommend smaller "
-                "individual streaming request sizes, or alternatively "
-                "submit a batch download request."
-                "\nYou can check the uncompressed binary size of a request "
-                "through the metadata API (from the client library, or over "
-                "HTTP).\nThis warning can be suppressed "
+                message="The size of this streaming request is estimated "
+                "to be 5 GB or greater.\nWe recommend breaking your request "
+                "into smaller requests, or submitting a batch download request.\n"
+                "This warning can be suppressed: "
                 "https://docs.python.org/3/library/warnings.html",
+                category=BentoWarning,
+                stacklevel=3,  # this makes the error happen in user code
             )
 
 

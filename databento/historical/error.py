@@ -99,3 +99,11 @@ class BentoClientError(BentoHttpError):
             message=message,
             headers=headers,
         )
+
+
+class BentoWarning(Warning):
+    """
+    Represents a Databento specific warning.
+    """
+
+    pass
