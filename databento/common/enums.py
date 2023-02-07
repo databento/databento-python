@@ -156,7 +156,6 @@ class Schema(StringyMixin, str, Enum):
 
     @classmethod
     def from_int(cls, value: int) -> "Schema":
-        """ """
         if value == 0:
             return cls.MBO
         if value == 1:
@@ -208,7 +207,6 @@ class Compression(StringyMixin, str, Enum):
 
     @classmethod
     def from_int(cls, value: int) -> "Compression":
-        """ """
         if value == 0:
             return cls.NONE
         if value == 1:
@@ -258,7 +256,6 @@ class SType(StringyMixin, str, Enum):
 
     @classmethod
     def from_int(cls, value: int) -> "SType":
-        """ """
         if value == 0:
             return cls.PRODUCT_ID
         if value == 1:
