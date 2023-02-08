@@ -54,3 +54,6 @@ __all__ = [
 
 # Set to either 'DEBUG' or 'INFO', controls console logging
 log: Optional[str] = None
+
+# Convenience imports
+from_dbn = Bento.from_file
