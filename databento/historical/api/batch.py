@@ -271,20 +271,20 @@ class BatchHttpAPI(BentoHttpAPI):
             )
 
             urls = details.get("urls")
-            if urls:
-                url = urls.get("https")
-                if not url:
-                    raise ValueError(
-                        f"Cannot download {filename} over HTTPS "
-                        "('download' delivery is not available for this job).",
-                    )
-            else:
-                # Handle legacy manifest.json without the 'urls' field
-                base_url = "https://api.databento.com/v0/batch/download"
-                url = f"{base_url}/{job_id}/{filename}"
+            if not urls:
+                raise ValueError(
+                    f"Cannot download {filename}, URLs were not found in manifest.",
+                )
+
+            https_url = urls.get("https")
+            if not https_url:
+                raise ValueError(
+                    f"Cannot download {filename} over HTTPS, "
+                    "'download' delivery is not available for this job.",
+                )
 
             self._download_file(
-                url=url,
+                url=https_url,
                 filesize=int(details["size"]),
                 output_path=output_path,
             )
