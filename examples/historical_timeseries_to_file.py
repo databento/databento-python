@@ -17,12 +17,12 @@ if __name__ == "__main__":
         start="2022-06-10T12:00",
         end="2022-06-10T14:00",
         limit=1000,  # <-- Limiting response to 1000 records only
-    )  # -> MemoryBento
+    )  # -> Bento
 
     path = "my_data.dbn"
-    data.to_file(path=path)  # -> FileBento
+    data.to_file(path=path)
 
-    data = Bento.from_file(path=path)  # -> FileBento
+    data = Bento.from_file(path=path)
 
     # Data now loaded into memory
     pprint(data.to_df())

@@ -1,12 +1,11 @@
 import sys
+from io import BufferedIOBase
 from json.decoder import JSONDecodeError
-from pathlib import Path
-from typing import Any, BinaryIO, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple
 
 import aiohttp
 import requests
 from aiohttp import ClientResponse
-from databento.common.bento import Bento, FileBento, MemoryBento
 from databento.common.logging import log_info
 from databento.historical.error import BentoClientError, BentoServerError
 from databento.version import __version__
@@ -30,15 +29,6 @@ class BentoHttpAPI:
         self._key = key
         self._gateway = gateway
         self._headers = {"accept": "application/json", "user-agent": user_agent}
-
-    @staticmethod
-    def _create_bento(
-        path: Optional[Union[Path, str]],
-    ) -> Union[MemoryBento, FileBento]:
-        if path is None:
-            return MemoryBento()
-        else:
-            return FileBento(path=path)
 
     def _check_api_key(self) -> None:
         if self._key == "YOUR_API_KEY":
@@ -109,7 +99,7 @@ class BentoHttpAPI:
         url: str,
         params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
-        bento: Bento,
+        writer: BufferedIOBase,
     ) -> None:
         self._check_api_key()
 
@@ -123,27 +113,18 @@ class BentoHttpAPI:
         ) as response:
             check_http_error(response)
 
-            # Setup bento I/O writer
-            writer: BinaryIO = bento.writer()
-
             for chunk in response.iter_content(chunk_size=_32KB):
                 if chunk == _NO_DATA_FOUND:
                     log_info("No data found for query.")
-                    return
+                    break
                 writer.write(chunk)
-
-            if isinstance(bento, FileBento):
-                writer.close()
-
-            metadata = bento.source_metadata()
-            bento.set_metadata(metadata)
 
     async def _stream_async(
         self,
         url: str,
         params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
-        bento: Bento,
+        writer: BufferedIOBase,
     ) -> None:
         self._check_api_key()
 
@@ -159,21 +140,12 @@ class BentoHttpAPI:
             ) as response:
                 await check_http_error_async(response)
 
-                # Setup bento I/O writer
-                writer: BinaryIO = bento.writer()
-
                 async for chunk in response.content.iter_chunks():
                     data: bytes = chunk[0]
                     if data == _NO_DATA_FOUND:
                         log_info("No data found for query.")
-                        return
+                        break
                     writer.write(data)
-
-                if isinstance(bento, FileBento):
-                    writer.close()
-
-                metadata = bento.source_metadata()
-                bento.set_metadata(metadata)
 
 
 def is_400_series_error(status: int) -> bool:

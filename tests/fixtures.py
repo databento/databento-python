@@ -1,13 +1,13 @@
-import os
+import pathlib
 
 from databento.common.enums import Schema
 
 
-TESTS_ROOT = os.path.dirname(os.path.abspath(__file__))
+TESTS_ROOT = pathlib.Path(__file__).absolute().parent
 
 
-def get_test_data_path(schema: Schema) -> str:
-    return os.path.join(TESTS_ROOT, "data", f"test_data.{schema}.dbn.zst")
+def get_test_data_path(schema: Schema) -> pathlib.Path:
+    return pathlib.Path(TESTS_ROOT) / "data" / f"test_data.{schema}.dbn.zst"
 
 
 def get_test_data(schema: Schema) -> bytes:

@@ -7,7 +7,7 @@ from typing import List, Tuple, Union
 import numpy as np
 import pandas as pd
 import pytest
-from databento.common.bento import Bento, FileBento, MemoryBento
+from databento.common.bento import Bento
 from databento.common.enums import Compression, Encoding, Schema, SType
 
 from tests.fixtures import get_test_data, get_test_data_path
@@ -31,25 +31,13 @@ class TestBento:
         # Cleanup
         os.remove(path)
 
-    def test_dataset_when_metadata_with_empty_bento_raises_runtime_error(self) -> None:
-        # Arrange
-        data = Bento()
-
-        # Act, Assert
-        with pytest.raises(RuntimeError):
-            data.dataset
-
     def test_sources_metadata_returns_expected_json_as_dict(self) -> None:
-        # Arrange
+        # Arrange, Act
         stub_data = get_test_data(schema=Schema.MBO)
-        data = MemoryBento(initial_bytes=stub_data)
-
-        # Act
-        metadata = data.source_metadata()
-        data.set_metadata(metadata)
+        bento = Bento.from_bytes(data=stub_data)
 
         # Assert
-        assert metadata == {
+        assert bento.metadata == {
             "version": 1,
             "dataset": "GLBX.MDP3",
             "schema": "mbo",
@@ -73,18 +61,14 @@ class TestBento:
                 ],
             },
         }
-        assert data.metadata == metadata
 
     def test_build_product_id_index(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
-        data = MemoryBento(initial_bytes=stub_data)
-
-        metadata = data.source_metadata()
-        data.set_metadata(metadata)
+        bento = Bento.from_bytes(data=stub_data)
 
         # Act
-        product_id_index = data._build_product_id_index()
+        product_id_index = bento._build_product_id_index()
 
         # Assert
         assert product_id_index == {dt.date(2020, 12, 28): {5482: "ESH1"}}
@@ -94,10 +78,10 @@ class TestBento:
         stub_data = get_test_data(schema=Schema.MBO)
 
         # Act
-        data = MemoryBento(initial_bytes=stub_data)
+        bento = Bento.from_bytes(data=stub_data)
 
         # Assert
-        assert data.dtype == np.dtype(
+        assert bento.dtype == np.dtype(
             [
                 ("length", "u1"),
                 ("rtype", "u1"),
@@ -116,19 +100,19 @@ class TestBento:
                 ("sequence", "<u4"),
             ],
         )
-        assert data.struct_size == 56
-        assert data.nbytes == 245
-        assert data.dataset == "GLBX.MDP3"
-        assert data.schema == Schema.MBO
-        assert data.symbols == ["ESH1"]
-        assert data.stype_in == SType.NATIVE
-        assert data.stype_out == SType.PRODUCT_ID
-        assert data.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
-        assert data.end == pd.Timestamp("2020-12-29 00:00:00+0000", tz="UTC")
-        assert data.limit == 2
-        assert data.compression == Compression.ZSTD
-        assert data.record_count == 2
-        assert data.mappings == {
+        assert bento.record_size == 56
+        assert bento.nbytes == 249
+        assert bento.dataset == "GLBX.MDP3"
+        assert bento.schema == Schema.MBO
+        assert bento.symbols == ["ESH1"]
+        assert bento.stype_in == SType.NATIVE
+        assert bento.stype_out == SType.PRODUCT_ID
+        assert bento.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
+        assert bento.end == pd.Timestamp("2020-12-29 00:00:00+0000", tz="UTC")
+        assert bento.limit == 2
+        assert bento.compression == Compression.ZSTD
+        assert bento.record_count == 2
+        assert bento.mappings == {
             "ESH1": [
                 {
                     "symbol": "5482",
@@ -137,7 +121,7 @@ class TestBento:
                 },
             ],
         }
-        assert data.symbology == {
+        assert bento.symbology == {
             "symbols": ["ESH1"],
             "stype_in": "native",
             "stype_out": "product_id",
@@ -159,33 +143,29 @@ class TestBento:
     def test_file_bento_given_valid_path_initialized_expected_data(self) -> None:
         # Arrange, Act
         path = get_test_data_path(schema=Schema.MBO)
-        data = FileBento(path=path)
+        bento = Bento.from_file(path=path)
 
         # Assert
-        assert data.dataset == "GLBX.MDP3"
-        assert data.nbytes == 245
+        assert bento.dataset == "GLBX.MDP3"
+        assert bento.nbytes == 249
 
-    def test_to_file_persists_to_disk(self) -> None:
+    def test_to_file_persists_to_disk(self, tmp_path: Path) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
-        data = MemoryBento(initial_bytes=stub_data)
-
-        path = "test.my_mbo.dbn"
+        bento = Bento.from_bytes(data=stub_data)
 
         # Act
-        data.to_file(path=path)
+        dbn_path = tmp_path / "my_test.dbn"
+        bento.to_file(path=dbn_path)
 
         # Assert
-        assert os.path.isfile(path)
-        assert os.path.getsize(path) == 245
-
-        # Cleanup
-        os.remove(path)
+        assert dbn_path.is_file()
+        assert dbn_path.stat().st_size == 249
 
     def test_to_ndarray_with_stub_data_returns_expected_array(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
-        data = MemoryBento(initial_bytes=stub_data)
+        data = Bento.from_bytes(data=stub_data)
 
         # Act
         array = data.to_ndarray()
@@ -200,7 +180,7 @@ class TestBento:
     def test_replay_with_stub_data_record_passes_to_callback(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
-        data = MemoryBento(initial_bytes=stub_data)
+        data = Bento.from_bytes(data=stub_data)
 
         handler: List[Tuple[Union[int, bytes], ...]] = []
 
@@ -236,7 +216,7 @@ class TestBento:
     ) -> None:
         # Arrange
         stub_data = get_test_data(schema=schema)
-        data = MemoryBento(initial_bytes=stub_data)
+        data = Bento.from_bytes(data=stub_data)
 
         # Act
         df = data.to_df()
@@ -248,7 +228,7 @@ class TestBento:
     def test_to_df_with_mbo_data_returns_expected_record(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
-        data = MemoryBento(initial_bytes=stub_data)
+        data = Bento.from_bytes(data=stub_data)
 
         # Act
         df = data.to_df(
@@ -274,7 +254,7 @@ class TestBento:
     def test_to_df_with_stub_ohlcv_data_returns_expected_record(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.OHLCV_1M)
-        data = MemoryBento(initial_bytes=stub_data)
+        data = Bento.from_bytes(data=stub_data)
 
         # Act
         df = data.to_df(
@@ -288,16 +268,16 @@ class TestBento:
         assert df.index.name == "ts_event"
         assert df.index.values[0] == 1609160400000000000
         assert df.iloc[0].product_id == 5482
-        assert df.iloc[0].open == 372025000000000
-        assert df.iloc[0].high == 372150000000000
-        assert df.iloc[0].low == 372025000000000
-        assert df.iloc[0].close == 372100000000000
+        assert df.iloc[0].open == 3_720_250_000_000
+        assert df.iloc[0].high == 3_721_500_000_000
+        assert df.iloc[0].low == 3_720_250_000_000
+        assert df.iloc[0].close == 3_721_000_000_000
         assert df.iloc[0].volume == 353
 
     def test_to_df_with_pretty_ts_converts_timestamps_as_expected(self) -> None:
         # Arrange
         stub_data = get_test_data(schema=Schema.MBO)
-        data = MemoryBento(initial_bytes=stub_data)
+        data = Bento.from_bytes(data=stub_data)
 
         # Act
         df = data.to_df(pretty_ts=True)
@@ -353,7 +333,7 @@ class TestBento:
     ) -> None:
         # Arrange
         stub_data = get_test_data(schema=schema)
-        data = MemoryBento(initial_bytes=stub_data)
+        data = Bento.from_bytes(data=stub_data)
 
         # Act
         df = data.to_df(pretty_px=True)
@@ -395,7 +375,7 @@ class TestBento:
     def test_mbo_to_csv_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        data = FileBento(path=test_data_path)
+        data = Bento.from_file(path=test_data_path)
 
         path = "test.my_mbo.csv"
 
@@ -427,7 +407,7 @@ class TestBento:
     def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBP_1)
-        data = FileBento(path=test_data_path)
+        data = Bento.from_file(path=test_data_path)
 
         path = "test.my_mbo.csv"
 
@@ -460,7 +440,7 @@ class TestBento:
     def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBP_1)
-        data = FileBento(path=test_data_path)
+        data = Bento.from_file(path=test_data_path)
 
         path = "test.my_mbo.csv"
 
@@ -496,7 +476,7 @@ class TestBento:
     def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        data = FileBento(path=test_data_path)
+        data = Bento.from_file(path=test_data_path)
 
         path = "test.my_mbo.json"
 
@@ -526,7 +506,7 @@ class TestBento:
     def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        data = FileBento(path=test_data_path)
+        data = Bento.from_file(path=test_data_path)
 
         path = "test.my_mbo.json"
 
@@ -557,7 +537,7 @@ class TestBento:
     def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBP_1)
-        data = FileBento(path=test_data_path)
+        data = Bento.from_file(path=test_data_path)
 
         path = "test.my_mbo.json"
 
@@ -589,7 +569,7 @@ class TestBento:
     def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(self) -> None:
         # Arrange
         test_data_path = get_test_data_path(schema=Schema.MBP_1)
-        data = FileBento(path=test_data_path)
+        data = Bento.from_file(path=test_data_path)
 
         path = "test.my_mbo.json"
 

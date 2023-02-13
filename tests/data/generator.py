@@ -8,7 +8,12 @@ if __name__ == "__main__":
     client = db.Historical(key=key)
 
     for schema in Schema:
-        if schema in (Schema.STATISTICS, Schema.STATUS):
+        if schema in (
+            Schema.STATISTICS,
+            Schema.STATUS,
+            Schema.GATEWAY_ERROR,
+            Schema.SYMBOL_MAPPING,
+        ):
             continue
 
         print(schema.value)
@@ -24,7 +29,7 @@ if __name__ == "__main__":
             end="2020-12-29",
             limit=2,  # <-- limiting response to 2 records only (for test cases)
             path=path,
-        )  # -> FileBento
+        )  # -> Bento
 
         written = open(path, mode="rb").read()
         print(written)

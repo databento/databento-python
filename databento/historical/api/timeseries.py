@@ -1,5 +1,6 @@
 import warnings
 from datetime import date
+from io import BufferedIOBase, BytesIO
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
 
@@ -98,12 +99,11 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
         path : Path or str, optional
-            The path to stream the data to on disk (will then return a `FileBento`).
+            The path to stream the data to on disk (will then return a `Bento`).
 
         Returns
         -------
         Bento
-            If `path` provided then `FileBento`, otherwise `MemoryBento`.
 
         Notes
         -----
@@ -141,16 +141,23 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             limit=limit,
         )
 
-        bento: Bento = self._create_bento(path=path)
+        if path is not None:
+            writer: BufferedIOBase = open(path, "x+b")
+        else:
+            writer = BytesIO()
 
         self._stream(
             url=self._base_url + ".get_range",
             params=params,
             basic_auth=True,
-            bento=bento,
+            writer=writer,
         )
 
-        return bento
+        if path is not None:
+            writer.close()
+            return Bento.from_file(path)
+        writer.seek(0)  # rewind for read
+        return Bento.from_bytes(writer.read())
 
     @deprecated
     async def stream_async(
@@ -228,12 +235,11 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
         path : Path or str, optional
-            The path to stream the data to on disk (will then return a `FileBento`).
+            The path to stream the data to on disk (will then return a `Bento`).
 
         Returns
         -------
         Bento
-            If `path` provided then `FileBento`, otherwise `MemoryBento`.
 
         Notes
         -----
@@ -270,16 +276,23 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             limit=limit,
         )
 
-        bento: Bento = self._create_bento(path=path)
+        if path is not None:
+            writer: BufferedIOBase = open(path, "x+b")
+        else:
+            writer = BytesIO()
 
         await self._stream_async(
             url=self._base_url + ".get_range",
             params=params,
             basic_auth=True,
-            bento=bento,
+            writer=writer,
         )
 
-        return bento
+        if path is not None:
+            writer.close()
+            return Bento.from_file(path)
+        writer.seek(0)  # rewind for read
+        return Bento.from_bytes(writer.read())
 
     def _pre_check_data_size(  # noqa (prefer not to make static)
         self,

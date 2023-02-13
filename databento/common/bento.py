@@ -1,8 +1,8 @@
+import abc
 import datetime as dt
-import io
-import os.path
+from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Callable, Dict, List, Optional, Union
+from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -15,8 +15,7 @@ from databento.common.data import (
     DERIV_SCHEMAS,
     STRUCT_MAP,
 )
-from databento.common.enums import Compression, Encoding, Schema, SType
-from databento.common.logging import log_debug
+from databento.common.enums import Compression, Schema, SType
 from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import ProductIdMappingInterval
 
@@ -25,31 +24,326 @@ if TYPE_CHECKING:
     from databento.historical.client import Historical
 
 
+class DataSource(abc.ABC):
+    """Abstract base class for backing Bento classes with data."""
+
+    def __init__(self, source: object) -> None:
+        ...
+
+    @property
+    def name(self) -> str:
+        ...
+
+    @property
+    def nbytes(self) -> int:
+        ...
+
+    @property
+    def reader(self) -> IO[bytes]:
+        ...
+
+
+class FileDataSource(DataSource):
+    """
+    A file-backed data source for a Bento object.
+
+    Attributes
+    ----------
+    name : str
+        The name of the file.
+    nbytes : int
+        The size of the data in bytes; equal to the file size.
+    path : Path
+        The path of the file.
+    reader : IO[bytes]
+        A `BufferedReader` for this file-backed data.
+
+    """
+
+    def __init__(self, source: Union[Path, str]):
+        self._path = Path(source)
+
+        if not self._path.is_file() or not self._path.exists():
+            raise FileNotFoundError(source)
+
+        self._name = self._path.name
+        self.__buffer: Optional[IO[bytes]] = None
+
+    @property
+    def name(self) -> str:
+        """
+        Return the name of the file.
+
+        Returns
+        -------
+        str
+
+        """
+        return self._name
+
+    @property
+    def nbytes(self) -> int:
+        """
+        Return the size of the file in bytes.
+
+        Returns
+        -------
+        int
+
+        """
+        return self._path.stat().st_size
+
+    @property
+    def path(self) -> Path:
+        """
+        Return the path to the file.
+
+        Returns
+        -------
+        pathlib.Path
+
+        """
+        return self._path
+
+    @property
+    def reader(self) -> IO[bytes]:
+        """
+        Return a reader for this file.
+
+        Returns
+        -------
+        IO
+
+        """
+        if self.__buffer is None:
+            self.__buffer = open(self._path, "rb")
+        self.__buffer.seek(0)
+        return self.__buffer
+
+
+class MemoryDataSource(DataSource):
+    """
+    A memory-backed data source for a Bento object.
+
+    Attributes
+    ----------
+    name : str
+        The repr of the source object.
+    nbytes : int
+        The size of the data in bytes.
+    reader : IO[bytes]
+        A `BytesIO` for this in-memory buffer.
+
+    """
+
+    def __init__(self, source: Union[BytesIO, bytes]):
+        initial_data = source if isinstance(source, bytes) else source.read()
+        if len(initial_data) == 0:
+            raise ValueError(
+                f"Cannot create data source from empty {type(source).__name__}",
+            )
+        self.__buffer = BytesIO(initial_data)
+        self._name = repr(source)
+
+    @property
+    def name(self) -> str:
+        """
+        Return the name of the source buffer.
+        Equivelant to `repr` of the input.
+
+        Returns
+        -------
+        str
+
+        """
+        return self._name
+
+    @property
+    def nbytes(self) -> int:
+        """
+        Return the size of the memory buffer in bytes.
+
+        Returns
+        -------
+        int
+
+        """
+        return self.__buffer.getbuffer().nbytes
+
+    @property
+    def reader(self) -> IO[bytes]:
+        """
+        Return a reader for this buffer.
+        The reader beings at the start of the buffer.
+
+        Returns
+        -------
+        IO
+
+        """
+        self.__buffer.seek(0)
+        return self.__buffer
+
+
 class Bento:
-    """The abstract base class for all Bento I/O classes."""
+    """
+    A container for Databento Binary Encoding (DBN) data.
 
-    def __init__(self) -> None:
-        self._metadata: Dict[str, Any] = {}
-        self._dtype: Optional[np.dtype] = None  # type: ignore
-        self._product_id_index: Dict[dt.date, Dict[int, str]] = {}
+    Attributes
+    ----------
+    compression : Compression
+        The data compression format (if any).
+    dataset : str
+        The dataset code.
+    dtype : np.dtype
+        The binary struct format for the data schema.
+    end : pd.Timestamp
+        The query end for the data.
+    limit : int | None
+        The query limit for the data.
+    mappings : Dict[str, List[Dict[str, Any]]]:
+        The symbology mappings for the data.
+    metadata : Dict[str, Any]
+        The metadata for the data.
+    nbytes : int
+        The size of the data in bytes.
+    raw : bytes
+        The raw compressed data in bytes.
+    reader : IO[bytes]
+        A zstd decompression stream.
+    record_count : int
+        The record count.
+    schema : Schema
+        The data record schema.
+    start : pd.Timestamp
+        The query start for the data.
+    record_size : int
+        The binary record size in bytes.
+    stype_in : SType
+        The query input symbology type for the data.
+    stype_out : SType
+        The query output symbology type for the data.
+    symbology : Dict[str, Any]
+        The symbology resolution mappings for the data.
+    symbols : List[str]
+        The query symbols for the data.
 
-        self._dataset: Optional[str] = None
-        self._schema: Optional[Schema] = None
-        self._symbols: Optional[List[str]] = None
-        self._stype_in: Optional[SType] = None
-        self._stype_out: Optional[SType] = None
-        self._start: Optional[pd.Timestamp] = None
-        self._end: Optional[pd.Timestamp] = None
-        self._limit: Optional[int] = None
-        self._encoding: Optional[Encoding] = None
-        self._compression: Optional[Compression] = None
-        self._record_count: Optional[int] = None
+    Methods
+    -------
+    to_csv
+        Write the data to a file in CSV format.
+    to_df : pd.DataFrame
+        The data as a `pd.DataFrame`.
+    to_file
+        Write the data to a DBN file at the given path.
+    to_json
+        Write the data to a file in JSON format.
+    to_ndarray : np.ndarray
+        The data as a numpy `ndarray`.
 
-    def _check_metadata(self) -> None:
-        if not self._metadata:
-            self._metadata = self.source_metadata()
-            if not self._metadata:
-                raise RuntimeError("invalid metadata")
+    See Also
+    --------
+    https://docs.databento.com/knowledge-base/new-users/dbn-encoding
+
+    """
+
+    def __init__(self, data_source: DataSource) -> None:
+        self._data_source = data_source
+
+        # Check for zstd skippable frame
+        buffer = self._data_source.reader
+        if not buffer.read(4).startswith(b"P*M\x18"):
+            raise RuntimeError(f"{self._data_source.name} is not a valid DBN format")
+        metadata_length = int.from_bytes(
+            buffer.read(4),
+            byteorder="little",
+        )
+
+        buffer.seek(0)  # rewind to read the entire header
+
+        self._metadata: Dict[str, Any] = MetadataDecoder.decode_to_json(
+            raw_metadata=buffer.read(8 + metadata_length),
+        )
+
+        self._product_id_index: Dict[
+            dt.date,
+            Dict[int, str],
+        ] = self._build_product_id_index()
+
+    def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
+        df.index = pd.to_datetime(df.index, utc=True)
+        for column in df.columns:
+            if column.startswith("ts_") and "delta" not in column:
+                df[column] = pd.to_datetime(df[column], utc=True)
+
+        if self.schema == Schema.DEFINITION:
+            df["expiration"] = pd.to_datetime(df["expiration"], utc=True)
+            df["activation"] = pd.to_datetime(df["activation"], utc=True)
+
+        return df
+
+    def _apply_pretty_px(self, df: pd.DataFrame) -> pd.DataFrame:
+        for column in list(df.columns):
+            if (
+                column in ("price", "open", "high", "low", "close")
+                or column.startswith("bid_px")  # MBP
+                or column.startswith("ask_px")  # MBP
+            ):
+                df[column] = df[column] * 1e-9
+
+        if self.schema == Schema.DEFINITION:
+            for column in DEFINITION_PRICE_COLUMNS:
+                df[column] = df[column] * 1e-9
+
+        return df
+
+    def _build_product_id_index(self) -> Dict[dt.date, Dict[int, str]]:
+        intervals: List[ProductIdMappingInterval] = []
+        for native, i in self.mappings.items():
+            for row in i:
+                symbol = row["symbol"]
+                if symbol == "":
+                    continue
+                intervals.append(
+                    ProductIdMappingInterval(
+                        start_date=row["start_date"],
+                        end_date=row["end_date"],
+                        native=native,
+                        product_id=int(row["symbol"]),
+                    ),
+                )
+
+        product_id_index: Dict[dt.date, Dict[int, str]] = {}
+        for interval in intervals:
+            for ts in pd.date_range(
+                start=interval.start_date,
+                end=interval.end_date,
+                # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
+                **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
+            ):
+                d: dt.date = ts.date()
+                date_map: Dict[int, str] = product_id_index.get(d, {})
+                if not date_map:
+                    product_id_index[d] = date_map
+                date_map[interval.product_id] = interval.native
+
+        return product_id_index
+
+    def _cleanup_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        df.drop(["length", "rtype"], axis=1, inplace=True)
+        if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
+            df = df.reindex(columns=COLUMNS[self.schema])
+            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
+            df["side"] = df["side"].str.decode("utf-8")
+            df["action"] = df["action"].str.decode("utf-8")
+        elif self.schema == Schema.DEFINITION:
+            for column in DEFINITION_CHARARRAY_COLUMNS:
+                df[column] = df[column].str.decode("utf-8")
+            for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
+                if column in df.columns:
+                    df[column] = df[column].where(df[column] != type_max, np.nan)
+
+        return df
 
     def _get_index_column(self) -> str:
         return (
@@ -66,136 +360,33 @@ class Bento:
             else "ts_recv"
         )
 
-    def source_metadata(self) -> Dict[str, Any]:
-        """
-        Return the metadata parsed from the data header.
+    def _map_symbols(self, df: pd.DataFrame, pretty_ts: bool) -> pd.DataFrame:
+        # Build product ID index
+        if not self._product_id_index:
+            self._product_id_index = self._build_product_id_index()
 
-        Returns
-        -------
-        Dict[str, Any
+        # Map product IDs to native symbols
+        if self._product_id_index:
+            df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
+            dates = [ts.date() for ts in df_index]
+            df["symbol"] = [
+                self._product_id_index[dates[i]][p]
+                for i, p in enumerate(df["product_id"])
+            ]
 
-        """
-        log_debug("Decoding metadata...")
-        metadata_initial: bytes = self.reader().read(8)
-        magic_bin = metadata_initial[:4]
-        frame_size_bin = metadata_initial[4:]
-
-        if not metadata_initial.startswith(b"P*M\x18"):
-            return {}
-
-        metadata_magic = int.from_bytes(bytes=magic_bin, byteorder="little")
-        metadata_frame_size = int.from_bytes(bytes=frame_size_bin, byteorder="little")
-        log_debug(f"magic={metadata_magic}, frame_size={metadata_frame_size}")
-
-        metadata_raw = self.reader().read(8 + metadata_frame_size)
-        return MetadataDecoder.decode_to_json(metadata_raw)
-
-    def set_metadata(self, metadata: Dict[str, Any]) -> None:
-        """
-        Set metadata from a JSON object.
-
-        Parameters
-        ----------
-        metadata : Dict[str, Any]
-            The metadata to set.
-
-        Warnings
-        --------
-        This is not intended to be called by users.
-
-        """
-        self._metadata = metadata
-
-    def reader(self, decompress: bool = False) -> BinaryIO:
-        """
-        Return an I/O reader for the data.
-
-        Parameters
-        ----------
-        decompress : bool
-            If data should be decompressed.
-
-        Returns
-        -------
-        BinaryIO
-
-        """
-        raise NotImplementedError()  # pragma: no cover
-
-    def writer(self) -> BinaryIO:
-        """
-        Return an I/O writer for the data.
-
-        Returns
-        -------
-        BinaryIO
-
-        """
-        raise NotImplementedError()  # pragma: no cover
+        return df
 
     @property
-    def nbytes(self) -> int:
+    def compression(self) -> Compression:
         """
-        Return the size of the data in bytes.
+        Return the data compression format (if any).
 
         Returns
         -------
-        int
+        Compression
 
         """
-        raise NotImplementedError()  # pragma: no cover
-
-    @property
-    def raw(self) -> bytes:
-        """
-        Return the raw data from the I/O stream.
-
-        Returns
-        -------
-        bytes
-
-        """
-        raise NotImplementedError()  # pragma: no cover
-
-    @property
-    def dtype(self) -> np.dtype:  # type: ignore
-        """
-        Return the binary struct format for the data schema.
-
-        Returns
-        -------
-        np.dtype
-
-        """
-        if self._dtype is None:
-            self._check_metadata()
-            self._dtype = np.dtype(STRUCT_MAP[self.schema])
-
-        return self._dtype
-
-    @property
-    def struct_size(self) -> int:
-        """
-        Return the binary struct size in bytes.
-
-        Returns
-        -------
-        int
-
-        """
-        return self.dtype.itemsize
-
-    @property
-    def metadata(self) -> Dict[str, Any]:
-        """
-        Return the metadata for the data.
-
-        Returns
-        -------
-        Dict[str, Any]
-
-        """
-        return self._metadata
+        return Compression(self._metadata["compression"])
 
     @property
     def dataset(self) -> str:
@@ -207,95 +398,19 @@ class Bento:
         str
 
         """
-        if self._dataset is None:
-            self._check_metadata()
-            self._dataset = self._metadata["dataset"]
-
-        return self._dataset
+        return str(self._metadata["dataset"])
 
     @property
-    def schema(self) -> Schema:
+    def dtype(self) -> np.dtype:  # type: ignore
         """
-        Return the data record schema.
+        Return the binary struct format for the data schema.
 
         Returns
         -------
-        Schema
+        np.dtype
 
         """
-        if self._schema is None:
-            self._check_metadata()
-            self._schema = Schema(self._metadata["schema"])
-
-        return self._schema
-
-    @property
-    def symbols(self) -> List[str]:
-        """
-        Return the query symbols for the data.
-
-        Returns
-        -------
-        List[str]
-
-        """
-        if self._symbols is None:
-            self._check_metadata()
-            self._symbols = self._metadata["symbols"]
-
-        return self._symbols
-
-    @property
-    def stype_in(self) -> SType:
-        """
-        Return the query input symbology type for the data.
-
-        Returns
-        -------
-        SType
-
-        """
-        if self._stype_in is None:
-            self._check_metadata()
-            self._stype_in = SType(self._metadata["stype_in"])
-
-        return self._stype_in
-
-    @property
-    def stype_out(self) -> SType:
-        """
-        Return the query output symbology type for the data.
-
-        Returns
-        -------
-        SType
-
-        """
-        if self._stype_out is None:
-            self._check_metadata()
-            self._stype_out = SType(self._metadata["stype_out"])
-
-        return self._stype_out
-
-    @property
-    def start(self) -> pd.Timestamp:
-        """
-        Return the query start for the data.
-
-        Returns
-        -------
-        pd.Timestamp
-
-        Notes
-        -----
-        The data timestamps will not occur prior to `start`.
-
-        """
-        if self._start is None:
-            self._check_metadata()
-            self._start = pd.Timestamp(self._metadata["start"], tz="UTC")
-
-        return self._start
+        return np.dtype(STRUCT_MAP[self.schema])
 
     @property
     def end(self) -> pd.Timestamp:
@@ -311,11 +426,7 @@ class Bento:
         The data timestamps will not occur after `end`.
 
         """
-        if self._end is None:
-            self._check_metadata()
-            self._end = pd.Timestamp(self._metadata["end"], tz="UTC")
-
-        return self._end
+        return pd.Timestamp(self._metadata["end"], tz="UTC")
 
     @property
     def limit(self) -> Optional[int]:
@@ -327,43 +438,19 @@ class Bento:
         int or None
 
         """
-        if self._limit is None:
-            self._check_metadata()
-            self._limit = self._metadata["limit"]
-
-        return self._limit
+        return self._metadata["limit"]
 
     @property
-    def compression(self) -> Compression:
+    def nbytes(self) -> int:
         """
-        Return the data compression format (if any).
-
-        Returns
-        -------
-        Compression
-
-        """
-        if self._compression is None:
-            self._check_metadata()
-            self._compression = Compression(self._metadata["compression"])
-
-        return self._compression
-
-    @property
-    def record_count(self) -> int:
-        """
-        Return the record count.
+        Return the size of the data in bytes.
 
         Returns
         -------
         int
 
         """
-        if self._record_count is None:
-            self._check_metadata()
-            self._record_count = self._metadata["record_count"]
-
-        return self._record_count
+        return self._data_source.nbytes
 
     @property
     def mappings(self) -> Dict[str, List[Dict[str, Any]]]:
@@ -375,9 +462,124 @@ class Bento:
         Dict[str, List[Dict[str, Any]]]
 
         """
-        self._check_metadata()
-
         return self._metadata["mappings"]
+
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        """
+        Return the metadata for the data.
+
+        Returns
+        -------
+        Dict[str, Any]
+
+        """
+        return self._metadata
+
+    @property
+    def raw(self) -> bytes:
+        """
+        Return the raw data from the I/O stream.
+
+        Returns
+        -------
+        bytes
+
+        """
+        return self._data_source.reader.read()
+
+    @property
+    def reader(self) -> IO[bytes]:
+        """
+        Return an I/O reader for the data.
+
+        Parameters
+        ----------
+        decompress : bool
+            If data should be decompressed.
+
+        Returns
+        -------
+        BinaryIO
+
+        """
+        return zstandard.ZstdDecompressor().stream_reader(self._data_source.reader)
+
+    @property
+    def record_count(self) -> int:
+        """
+        Return the record count.
+
+        Returns
+        -------
+        int
+
+        """
+        return self._metadata["record_count"]
+
+    @property
+    def schema(self) -> Schema:
+        """
+        Return the data record schema.
+
+        Returns
+        -------
+        Schema
+
+        """
+        return Schema(self._metadata["schema"])
+
+    @property
+    def start(self) -> pd.Timestamp:
+        """
+        Return the query start for the data.
+
+        Returns
+        -------
+        pd.Timestamp
+
+        Notes
+        -----
+        The data timestamps will not occur prior to `start`.
+
+        """
+        return pd.Timestamp(self._metadata["start"], tz="UTC")
+
+    @property
+    def record_size(self) -> int:
+        """
+        Return the binary record size in bytes.
+
+        Returns
+        -------
+        int
+
+        """
+        return self.dtype.itemsize
+
+    @property
+    def stype_in(self) -> SType:
+        """
+        Return the query input symbology type for the data.
+
+        Returns
+        -------
+        SType
+
+        """
+        return SType(self._metadata["stype_in"])
+
+    @property
+    def stype_out(self) -> SType:
+        """
+        Return the query output symbology type for the data.
+
+        Returns
+        -------
+        SType
+
+        """
+        return SType(self._metadata["stype_out"])
 
     @property
     def symbology(self) -> Dict[str, Any]:
@@ -389,9 +591,7 @@ class Bento:
         Dict[str, Any]
 
         """
-        self._check_metadata()
-
-        symbology: Dict[str, Any] = {
+        return {
             "symbols": self.symbols,
             "stype_in": str(self.stype_in),
             "stype_out": str(self.stype_out),
@@ -402,19 +602,183 @@ class Bento:
             "mappings": self.mappings,
         }
 
-        return symbology
-
-    def to_ndarray(self) -> np.ndarray:  # type: ignore
+    @property
+    def symbols(self) -> List[str]:
         """
-        Return the data as a numpy `ndarray`.
+        Return the query symbols for the data.
 
         Returns
         -------
-        np.ndarray
+        List[str]
 
         """
-        data: bytes = self.reader(decompress=True).read()
-        return np.frombuffer(data, dtype=STRUCT_MAP[self.schema])
+        return self._metadata["symbols"]
+
+    @classmethod
+    def from_file(cls, path: Union[Path, str]) -> "Bento":
+        """
+        Load the data from a DBN file at the given path.
+
+        Parameters
+        ----------
+        path : Path or str
+            The path to read from.
+
+        Returns
+        -------
+        Bento
+
+        Raises
+        ------
+        FileNotFoundError
+            If a empty or non-existant file is specified.
+
+        """
+        return cls(FileDataSource(path))
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> "Bento":
+        """
+        Load the data from a raw bytes.
+
+        Parameters
+        ----------
+        data : bytes
+            The bytes to read from.
+
+        Returns
+        -------
+        Bento
+
+        Raises
+        ------
+        FileNotFoundError
+            If a empty or non-existant file is specified.
+
+        """
+        return cls(MemoryDataSource(data))
+
+    def replay(self, callback: Callable[[Any], None]) -> None:
+        """
+        Replay data by passing records sequentially to the given callback.
+
+        Parameters
+        ----------
+        callback : callable
+            The callback to the data handler.
+
+        """
+        dtype = STRUCT_MAP[self.schema]
+        reader: IO[bytes] = self.reader
+        while True:
+            raw: bytes = reader.read(self.record_size)
+            record = np.frombuffer(raw, dtype=dtype)
+            if record.size == 0:
+                break
+            callback(record[0])
+
+    def request_full_definitions(
+        self,
+        client: "Historical",
+        path: Optional[Union[Path, str]] = None,
+    ) -> "Bento":
+        """
+        Request full instrument definitions based on the metadata properties.
+
+        Makes a `GET /timeseries.stream` HTTP request.
+
+        Parameters
+        ----------
+        client : Historical
+            The historical client to use for the request (contains the API key).
+        path : Path or str, optional
+            The path to stream the data to on disk (will then return a `Bento`).
+
+        Returns
+        -------
+        Bento
+
+        Warnings
+        --------
+        Calling this method will incur a cost.
+
+        """
+        return client.timeseries.stream(
+            dataset=self.dataset,
+            symbols=self.symbols,
+            schema=Schema.DEFINITION,
+            start=self.start,
+            end=self.end,
+            stype_in=self.stype_in,
+            stype_out=self.stype_out,
+            path=path,
+        )
+
+    def request_symbology(self, client: "Historical") -> Dict[str, Any]:
+        """
+        Request symbology resolution based on the metadata properties.
+
+        Makes a `GET /symbology.resolve` HTTP request.
+
+        Current symbology mappings from the metadata are also available by
+        calling the `.symbology` or `.mappings` properties.
+
+        Parameters
+        ----------
+        client : Historical
+            The historical client to use for the request.
+
+        Returns
+        -------
+        Dict[str, Any]
+            A result including a map of input symbol to output symbol across a
+            date range.
+
+        """
+        return client.symbology.resolve(
+            dataset=self.dataset,
+            symbols=self.symbols,
+            stype_in=self.stype_in,
+            stype_out=self.stype_out,
+            start_date=self.start.date(),
+            end_date=self.end.date(),
+        )
+
+    def to_csv(
+        self,
+        path: Union[Path, str],
+        pretty_ts: bool = True,
+        pretty_px: bool = True,
+        map_symbols: bool = True,
+    ) -> None:
+        """
+        Write the data to a file in CSV format.
+
+        Parameters
+        ----------
+        path : Path or str
+            The file path to write to.
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to `pd.Timestamp` tz-aware (UTC).
+        pretty_px : bool, default True
+            If all price columns should be converted from `int` to `float` at
+            the correct scale (using the fixed precision scalar 1e-9).
+        map_symbols : bool, default True
+            If symbology mappings from the metadata should be used to create
+            a 'symbol' column, mapping the product ID to its native symbol for
+            every record.
+
+        Notes
+        -----
+        Requires all the data to be brought up into memory to then be written.
+
+        """
+        self.to_df(
+            pretty_ts=pretty_ts,
+            pretty_px=pretty_px,
+            map_symbols=map_symbols,
+        ).to_csv(path)
 
     def to_df(
         self,
@@ -458,119 +822,7 @@ class Bento:
 
         return df
 
-    def _cleanup_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        df.drop(["length", "rtype"], axis=1, inplace=True)
-        if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
-            df = df.reindex(columns=COLUMNS[self.schema])
-            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
-            df["side"] = df["side"].str.decode("utf-8")
-            df["action"] = df["action"].str.decode("utf-8")
-        elif self.schema == Schema.DEFINITION:
-            for column in DEFINITION_CHARARRAY_COLUMNS:
-                df[column] = df[column].str.decode("utf-8")
-            for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
-                if column in df.columns:
-                    df[column] = df[column].where(df[column] != type_max, np.nan)
-
-        return df
-
-    def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
-        df.index = pd.to_datetime(df.index, utc=True)
-        for column in df.columns:
-            if column.startswith("ts_") and "delta" not in column:
-                df[column] = pd.to_datetime(df[column], utc=True)
-
-        if self.schema == Schema.DEFINITION:
-            df["expiration"] = pd.to_datetime(df["expiration"], utc=True)
-            df["activation"] = pd.to_datetime(df["activation"], utc=True)
-
-        return df
-
-    def _apply_pretty_px(self, df: pd.DataFrame) -> pd.DataFrame:
-        for column in list(df.columns):
-            if (
-                column in ("price", "open", "high", "low", "close")
-                or column.startswith("bid_px")  # MBP
-                or column.startswith("ask_px")  # MBP
-            ):
-                df[column] = df[column] * 1e-9
-
-        if self.schema == Schema.DEFINITION:
-            for column in DEFINITION_PRICE_COLUMNS:
-                df[column] = df[column] * 1e-9
-
-        return df
-
-    def _map_symbols(self, df: pd.DataFrame, pretty_ts: bool) -> pd.DataFrame:
-        # Build product ID index
-        if not self._product_id_index:
-            self._product_id_index = self._build_product_id_index()
-
-        # Map product IDs to native symbols
-        if self._product_id_index:
-            df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
-            dates = [ts.date() for ts in df_index]
-            df["symbol"] = [
-                self._product_id_index[dates[i]][p]
-                for i, p in enumerate(df["product_id"])
-            ]
-
-        return df
-
-    def replay(self, callback: Callable[[Any], None]) -> None:
-        """
-        Replay data by passing records sequentially to the given callback.
-
-        Parameters
-        ----------
-        callback : callable
-            The callback to the data handler.
-
-        """
-        dtype = STRUCT_MAP[self.schema]
-        reader: BinaryIO = self.reader(decompress=True)
-        while True:
-            raw: bytes = reader.read(self.struct_size)
-            record = np.frombuffer(raw, dtype=dtype)
-            if record.size == 0:
-                break
-            callback(record[0])
-
-    @staticmethod
-    def from_file(path: Union[Path, str]) -> "FileBento":
-        """
-        Load the data from a DBN file at the given path.
-
-        Parameters
-        ----------
-        path : Path or str
-            The path to read from.
-
-        Returns
-        -------
-        FileBento
-
-        Raises
-        ------
-        FileNotFoundError
-            If no file is found at the given path.
-        RuntimeError
-            If an empty file exists at the given path.
-
-        """
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"no file found at `path` '{path}'")
-        if os.stat(path).st_size == 0:
-            raise RuntimeError(f"the file at `path` '{path}' was empty")
-
-        bento = FileBento(path=path)
-
-        metadata = bento.source_metadata()
-        bento.set_metadata(metadata)
-
-        return bento
-
-    def to_file(self, path: Union[Path, str]) -> "FileBento":
+    def to_file(self, path: Union[Path, str]) -> None:
         """
         Write the data to a DBN file at the given path.
 
@@ -579,54 +831,10 @@ class Bento:
         path : str
             The file path to write to.
 
-        Returns
-        -------
-        FileBento
-
         """
-        with open(path, mode="wb") as f:
-            f.write(self.reader().read())
-
-        bento = FileBento(path=path)
-        bento.set_metadata(self._metadata)
-
-        return bento
-
-    def to_csv(
-        self,
-        path: Union[Path, str],
-        pretty_ts: bool = True,
-        pretty_px: bool = True,
-        map_symbols: bool = True,
-    ) -> None:
-        """
-        Write the data to a file in CSV format.
-
-        Parameters
-        ----------
-        path : Path or str
-            The file path to write to.
-        pretty_ts : bool, default True
-            If all timestamp columns should be converted from UNIX nanosecond
-            `int` to `pd.Timestamp` tz-aware (UTC).
-        pretty_px : bool, default True
-            If all price columns should be converted from `int` to `float` at
-            the correct scale (using the fixed precision scalar 1e-9).
-        map_symbols : bool, default True
-            If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the product ID to its native symbol for
-            every record.
-
-        Notes
-        -----
-        Requires all the data to be brought up into memory to then be written.
-
-        """
-        self.to_df(
-            pretty_ts=pretty_ts,
-            pretty_px=pretty_px,
-            map_symbols=map_symbols,
-        ).to_csv(path)
+        with open(path, mode="xb") as f:
+            f.write(self._data_source.reader.read())
+        self._data_source = FileDataSource(path)
 
     def to_json(
         self,
@@ -664,181 +872,14 @@ class Bento:
             map_symbols=map_symbols,
         ).to_json(path, orient="records", lines=True)
 
-    def request_symbology(self, client: "Historical") -> Dict[str, Any]:
+    def to_ndarray(self) -> np.ndarray:  # type: ignore
         """
-        Request symbology resolution based on the metadata properties.
-
-        Makes a `GET /symbology.resolve` HTTP request.
-
-        Current symbology mappings from the metadata are also available by
-        calling the `.symbology` or `.mappings` properties.
-
-        Parameters
-        ----------
-        client : Historical
-            The historical client to use for the request.
+        Return the data as a numpy `ndarray`.
 
         Returns
         -------
-        Dict[str, Any]
-            A result including a map of input symbol to output symbol across a
-            date range.
+        np.ndarray
 
         """
-        return client.symbology.resolve(
-            dataset=self.dataset,
-            symbols=self.symbols,
-            stype_in=self.stype_in,
-            stype_out=self.stype_out,
-            start_date=self.start.date(),
-            end_date=self.end.date(),
-        )
-
-    def request_full_definitions(
-        self,
-        client: "Historical",
-        path: Optional[Union[Path, str]] = None,
-    ) -> "Bento":
-        """
-        Request full instrument definitions based on the metadata properties.
-
-        Makes a `GET /timeseries.get_range` HTTP request.
-
-        Parameters
-        ----------
-        client : Historical
-            The historical client to use for the request (contains the API key).
-        path : Path or str, optional
-            The path to stream the data to on disk (will then return a `FileBento`).
-
-        Returns
-        -------
-        Bento
-
-        Warnings
-        --------
-        Calling this method will incur a cost.
-
-        """
-        return client.timeseries.get_range(
-            dataset=self.dataset,
-            symbols=self.symbols,
-            schema=Schema.DEFINITION,
-            start=self.start,
-            end=self.end,
-            stype_in=self.stype_in,
-            stype_out=self.stype_out,
-            path=path,
-        )
-
-    def _build_product_id_index(self) -> Dict[dt.date, Dict[int, str]]:
-        intervals: List[ProductIdMappingInterval] = []
-        for native, i in self.mappings.items():
-            for row in i:
-                symbol = row["symbol"]
-                if symbol == "":
-                    continue
-                intervals.append(
-                    ProductIdMappingInterval(
-                        start_date=row["start_date"],
-                        end_date=row["end_date"],
-                        native=native,
-                        product_id=int(row["symbol"]),
-                    ),
-                )
-
-        product_id_index: Dict[dt.date, Dict[int, str]] = {}
-        for interval in intervals:
-            for ts in pd.date_range(
-                start=interval.start_date,
-                end=interval.end_date,
-                # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
-                **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
-            ):
-                d: dt.date = ts.date()
-                date_map: Dict[int, str] = product_id_index.get(d, {})
-                if not date_map:
-                    product_id_index[d] = date_map
-                date_map[interval.product_id] = interval.native
-
-        return product_id_index
-
-
-class MemoryBento(Bento):
-    """
-    Provides data streaming I/O operations backed by an in-memory buffer.
-
-    Parameters
-    ----------
-    initial_bytes : bytes, optional
-        The initial data for the memory buffer.
-    """
-
-    def __init__(self, initial_bytes: Optional[bytes] = None):
-        super().__init__()
-
-        self._buffer = io.BytesIO(initial_bytes=initial_bytes or b"")
-
-    @property
-    def nbytes(self) -> int:
-        return self._buffer.getbuffer().nbytes
-
-    @property
-    def raw(self) -> bytes:
-        return self._buffer.getvalue()
-
-    def reader(self, decompress: bool = False) -> BinaryIO:
-        self._buffer.seek(0)  # Ensure reader at start of stream
-        if decompress:
-            return zstandard.ZstdDecompressor().stream_reader(self._buffer.getbuffer())
-        else:
-            return self._buffer
-
-    def writer(self) -> BinaryIO:
-        return self._buffer
-
-
-class FileBento(Bento):
-    """
-    Provides data streaming I/O operations backed by a file on disk.
-
-    Parameters
-    ----------
-    path : Path or str
-        The path to the data file.
-    """
-
-    def __init__(self, path: Union[Path, str]):
-        super().__init__()
-
-        self._path = path
-
-    @property
-    def path(self) -> str:
-        """
-        Return the path to the backing data file.
-
-        Returns
-        -------
-        str
-
-        """
-        return str(self._path)
-
-    @property
-    def nbytes(self) -> int:
-        return os.path.getsize(self._path)
-
-    @property
-    def raw(self) -> bytes:
-        return self.reader().read()
-
-    def reader(self, decompress: bool = False) -> BinaryIO:
-        f = open(self._path, mode="rb")
-        if decompress:
-            return zstandard.ZstdDecompressor().stream_reader(f)
-        else:
-            return f
-
-    def writer(self) -> BinaryIO:
-        return open(self._path, mode="wb")
+        data: bytes = self.reader.read()
+        return np.frombuffer(data, dtype=STRUCT_MAP[self.schema])

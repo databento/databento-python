@@ -1,9 +1,14 @@
 import sys
+from unittest.mock import MagicMock
 
 import databento as db
 import pytest
 import requests
+from databento import Bento
+from databento.common.enums import Schema
 from pytest_mock import MockerFixture
+
+from tests.fixtures import get_test_data
 
 
 class TestHistoricalTimeSeries:
@@ -47,9 +52,21 @@ class TestHistoricalTimeSeries:
             )
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_get_range_sends_expected_request(self, mocker: MockerFixture) -> None:
+    def test_get_range_sends_expected_request(
+        self,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
+
+        # Mock from_bytes with the definition stub
+        stream_bytes = get_test_data(Schema.TRADES)
+        monkeypatch.setattr(
+            Bento,
+            "from_bytes",
+            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+        )
 
         # Act
         self.client.timeseries.get_range(
@@ -90,9 +107,18 @@ class TestHistoricalTimeSeries:
     def test_get_range_with_limit_sends_expected_request(
         self,
         mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
+
+        # Mock from_bytes with the definition stub
+        stream_bytes = get_test_data(Schema.TRADES)
+        monkeypatch.setattr(
+            Bento,
+            "from_bytes",
+            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+        )
 
         # Act
         self.client.timeseries.get_range(

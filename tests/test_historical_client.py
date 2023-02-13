@@ -1,14 +1,15 @@
 import sys
 from typing import Union
+from unittest.mock import MagicMock
 
 import databento as db
 import pytest
 import requests
-from databento import FileBento, Historical
+from databento import Bento, Historical
 from databento.common.enums import HistoricalGateway, Schema
 from pytest_mock import MockerFixture
 
-from tests.fixtures import get_test_data_path
+from tests.fixtures import get_test_data, get_test_data_path
 
 
 class TestHistoricalClient:
@@ -107,7 +108,7 @@ class TestHistoricalClient:
         client = Historical(key="DUMMY_API_KEY")
 
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = FileBento(path=test_data_path)
+        bento = Bento.from_file(path=test_data_path)
 
         # Act
         bento.request_symbology(client)
@@ -139,17 +140,26 @@ class TestHistoricalClient:
     def test_request_full_definitions_expected_request(
         self,
         mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
-
         client = Historical(key="DUMMY_API_KEY")
 
+        # Create an MBO bento
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = FileBento(path=test_data_path)
+        bento = Bento.from_file(path=test_data_path)
+
+        # Mock from_bytes with the definition stub
+        stream_bytes = get_test_data(Schema.DEFINITION)
+        monkeypatch.setattr(
+            Bento,
+            "from_bytes",
+            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+        )
 
         # Act
-        bento.request_full_definitions(client)
+        definition_bento = bento.request_full_definitions(client)
 
         # Assert
         call = mocked_get.call_args.kwargs
@@ -175,3 +185,4 @@ class TestHistoricalClient:
         )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+        assert len(stream_bytes) == definition_bento.nbytes
