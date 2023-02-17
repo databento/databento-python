@@ -13,7 +13,7 @@ if __name__ == "__main__":
     path = "my_data.dbn"
 
     # Execute request through client
-    data: Bento = client.timeseries.stream(
+    data: Bento = client.timeseries.get_range(
         dataset="GLBX.MDP3",
         symbols=["ESM2"],
         schema="mbo",

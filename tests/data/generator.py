@@ -16,7 +16,7 @@ if __name__ == "__main__":
         path = f"test_data.{schema.value}.dbn.zst"
 
         # Execute request through client
-        data: Bento = client.timeseries.stream(
+        data: Bento = client.timeseries.get_range(
             dataset="GLBX.MDP3",
             symbols=["ESH1"],
             schema=schema,

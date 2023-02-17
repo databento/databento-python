@@ -155,7 +155,7 @@ class TestHistoricalClient:
         call = mocked_get.call_args.kwargs
         assert (
             call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
+            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.get_range"
         )
         assert call["params"] == [
             ("dataset", "GLBX.MDP3"),

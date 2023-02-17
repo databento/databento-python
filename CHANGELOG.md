@@ -2,6 +2,7 @@
 
 ## 0.8.0 - TBD
 - Renamed 'dbz' encoding to 'dbn'
+- Renamed `timeseries.stream` to `timeseries.get_range`
 - Added `batch.list_files(...)` method
 - Added `batch.download(...)` method
 - Changed `.to_df(...)` `pretty_ts` default argument to `True`

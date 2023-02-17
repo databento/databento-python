@@ -8,7 +8,7 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    data: Bento = client.timeseries.stream(
+    data: Bento = client.timeseries.get_range(
         dataset="GLBX.MDP3",
         symbols=["ESM2"],
         schema="trades",

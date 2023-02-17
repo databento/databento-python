@@ -702,7 +702,7 @@ class Bento:
         """
         Request full instrument definitions based on the metadata properties.
 
-        Makes a `GET /timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.get_range` HTTP request.
 
         Parameters
         ----------
@@ -720,7 +720,7 @@ class Bento:
         Calling this method will incur a cost.
 
         """
-        return client.timeseries.stream(
+        return client.timeseries.get_range(
             dataset=self.dataset,
             symbols=self.symbols,
             schema=Schema.DEFINITION,

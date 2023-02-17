@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 from databento.common.bento import Bento
+from databento.common.deprecated import deprecated
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.parsing import datetime_to_string, optional_symbols_list_to_string
 from databento.common.validation import validate_enum
@@ -22,7 +23,36 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/timeseries"
 
+    @deprecated
     def stream(
+        self,
+        dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
+        symbols: Optional[Union[List[str], str]] = None,
+        schema: Union[Schema, str] = "trades",
+        stype_in: Union[SType, str] = "native",
+        stype_out: Union[SType, str] = "product_id",
+        limit: Optional[int] = None,
+        path: Optional[Union[Path, str]] = None,
+    ) -> Bento:
+        """
+        The `.stream` method is deprecated and will be removed in a future version.
+        The method has been renamed to `.get_range`, which you can now use.
+        """
+        return self.get_range(
+            dataset=dataset,
+            start=start,
+            end=end,
+            symbols=symbols,
+            schema=schema,
+            stype_in=stype_in,
+            stype_out=stype_out,
+            limit=limit,
+            path=path,
+        )
+
+    def get_range(
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
@@ -37,7 +67,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         """
         Request a historical time series data stream from Databento.
 
-        Makes a `GET /timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.get_range` HTTP request.
 
         Primary method for getting historical intraday market data, daily data,
         instrument definitions and market status data directly into your application.
@@ -114,7 +144,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         bento: Bento = self._create_bento(path=path)
 
         self._stream(
-            url=self._base_url + ".stream",
+            url=self._base_url + ".get_range",
             params=params,
             basic_auth=True,
             bento=bento,
@@ -122,7 +152,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         return bento
 
-    async def stream_async(
+    async def get_range_async(
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
@@ -137,7 +167,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         """
         Request a historical time series data stream from Databento asynchronously.
 
-        Makes a `GET /timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.get_range` HTTP request.
 
         Primary method for getting historical intraday market data, daily data,
         instrument definitions and market status data directly into your application.
@@ -213,7 +243,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         bento: Bento = self._create_bento(path=path)
 
         await self._stream_async(
-            url=self._base_url + ".stream",
+            url=self._base_url + ".get_range",
             params=params,
             basic_auth=True,
             bento=bento,

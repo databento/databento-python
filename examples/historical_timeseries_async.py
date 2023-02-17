@@ -11,7 +11,7 @@ async def request_stream_async() -> None:
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    data: Bento = await client.timeseries.stream_async(
+    data: Bento = await client.timeseries.get_range_async(
         dataset="GLBX.MDP3",
         symbols=["ESM2"],
         schema="mbo",

@@ -54,7 +54,7 @@ A simple Databento application looks like this:
 import databento as db
 
 client = db.Historical('YOUR_API_KEY')
-data = client.timeseries.stream(
+data = client.timeseries.get_range(
     dataset='GLBX.MDP3',
     symbols='ES.FUT',
     stype_in='smart',
