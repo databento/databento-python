@@ -3,6 +3,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import aiohttp
 import pandas as pd
 import requests
 from databento.common.enums import (
@@ -24,7 +25,11 @@ from databento.common.parsing import (
 )
 from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
-from databento.historical.http import BentoHttpAPI, check_http_error
+from databento.historical.http import (
+    BentoHttpAPI,
+    check_http_error,
+    check_http_error_async,
+)
 from requests.auth import HTTPBasicAuth
 
 
@@ -109,7 +114,7 @@ class BatchHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("dataset", dataset),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
@@ -195,7 +200,7 @@ class BatchHttpAPI(BentoHttpAPI):
             The file details for the batch job.
 
         """
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("job_id", job_id),
         ]
 
@@ -210,11 +215,13 @@ class BatchHttpAPI(BentoHttpAPI):
         output_dir: Union[Path, str],
         job_id: str,
         filename_to_download: Optional[str] = None,
+        enable_partial_downloads: bool = True,
     ) -> None:
         """
         Download a batch job or a specific file to `{output_dir}/{job_id}/`.
-         - Creates the directories if any do not already exist
-         - Partially downloaded files will be retried using a range request
+
+        Will automatically generate any necessary directories if they do not
+        already exist.
 
         Makes one or many `GET /batch/download/{job_id}/{filename}` HTTP request(s).
 
@@ -227,9 +234,13 @@ class BatchHttpAPI(BentoHttpAPI):
         filename_to_download : str, optional
             The specific file to download.
             If `None` then will download all files for the batch job.
+        enable_partial_downloads : bool, default True
+            If partially downloaded files will be resumed using range request(s).
 
         """
-        params: List[Tuple[str, str]] = [
+        self._check_api_key()
+
+        params: List[Tuple[str, Optional[str]]] = [
             ("job_id", job_id),
         ]
 
@@ -287,6 +298,7 @@ class BatchHttpAPI(BentoHttpAPI):
                 url=https_url,
                 filesize=int(details["size"]),
                 output_path=output_path,
+                enable_partial_downloads=enable_partial_downloads,
             )
 
     def _download_file(
@@ -294,23 +306,18 @@ class BatchHttpAPI(BentoHttpAPI):
         url: str,
         filesize: int,
         output_path: str,
+        enable_partial_downloads: bool,
     ) -> None:
-        headers: Dict[str, str] = self._headers.copy()
-        mode = "wb"
-
-        # Check if file already exists in partially downloaded state
-        if os.path.isfile(output_path):
-            existing_size = os.path.getsize(output_path)
-            if existing_size < filesize:
-                # Make range request for partial download,
-                # will be from next byte to end of file.
-                headers["Range"] = f"bytes={existing_size}-{filesize - 1}"
-                mode = "ab"
+        headers, mode = self._get_file_download_headers_and_mode(
+            filesize=filesize,
+            output_path=output_path,
+            enable_partial_downloads=enable_partial_downloads,
+        )
 
         with requests.get(
             url=url,
             headers=headers,
-            auth=HTTPBasicAuth(username=self._key, password=None),
+            auth=HTTPBasicAuth(username=self._key, password=""),
             allow_redirects=True,
             stream=True,
         ) as response:
@@ -319,3 +326,144 @@ class BatchHttpAPI(BentoHttpAPI):
             with open(output_path, mode=mode) as f:
                 for chunk in response.iter_content():
                     f.write(chunk)
+
+    async def download_async(
+        self,
+        output_dir: Union[Path, str],
+        job_id: str,
+        filename_to_download: Optional[str] = None,
+        enable_partial_downloads: bool = True,
+    ) -> None:
+        """
+        Asynchronously download a batch job or a specific file to
+        `{output_dir}/{job_id}/`.
+
+        Will automatically generate any necessary directories if they do not
+        already exist.
+
+        Makes one or many `GET /batch/download/{job_id}/{filename}` HTTP request(s).
+
+        Parameters
+        ----------
+        output_dir: Path or str
+            The directory to download the file(s) to.
+        job_id : str
+            The batch job identifier.
+        filename_to_download : str, optional
+            The specific file to download.
+            If `None` then will download all files for the batch job.
+        enable_partial_downloads : bool, default True
+            If partially downloaded files will be resumed using range request(s).
+
+        """
+        self._check_api_key()
+
+        params: List[Tuple[str, Optional[str]]] = [
+            ("job_id", job_id),
+        ]
+
+        response: aiohttp.ClientResponse = await self._get_async(
+            url=self._base_url + ".list_files",
+            params=params,
+            basic_auth=True,
+        )
+
+        job_files: List[Dict[str, Any]] = await response.json()
+
+        if not job_files:
+            log_error(f"Cannot download batch job {job_id} (no files found).")
+            return
+
+        if filename_to_download:
+            # A specific file is being requested
+            is_file_found = False
+            for details in job_files:
+                if details["filename"] == filename_to_download:
+                    # Reduce files to download only the single file
+                    job_files = [details]
+                    is_file_found = True
+                    break
+            if not is_file_found:
+                log_error(
+                    f"Cannot download batch job {job_id} file "
+                    f"({filename_to_download} not found)",
+                )
+                return
+
+        # Prepare job directory
+        job_dir = os.path.join(output_dir, job_id)
+        os.makedirs(job_dir, exist_ok=True)
+
+        for details in job_files:
+            filename = str(details["filename"])
+            output_path = os.path.join(job_dir, filename)
+            log_info(
+                f"Downloading batch job file to {output_path} ...",
+            )
+
+            urls = details.get("urls")
+            if not urls:
+                raise ValueError(
+                    f"Cannot download {filename}, URLs were not found in manifest.",
+                )
+
+            https_url = urls.get("https")
+            if not https_url:
+                raise ValueError(
+                    f"Cannot download {filename} over HTTPS, "
+                    "'download' delivery is not available for this job.",
+                )
+
+            await self._download_file_async(
+                url=https_url,
+                filesize=int(details["size"]),
+                output_path=output_path,
+                enable_partial_downloads=enable_partial_downloads,
+            )
+
+    async def _download_file_async(
+        self,
+        url: str,
+        filesize: int,
+        output_path: str,
+        enable_partial_downloads: bool,
+    ) -> None:
+        headers, mode = self._get_file_download_headers_and_mode(
+            filesize=filesize,
+            output_path=output_path,
+            enable_partial_downloads=enable_partial_downloads,
+        )
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url=url,
+                headers=headers,
+                auth=aiohttp.BasicAuth(login=self._key, password="", encoding="utf-8"),
+                timeout=self.TIMEOUT,
+            ) as response:
+                await check_http_error_async(response)
+
+                with open(output_path, mode=mode) as f:
+                    async for chunk in response.content.iter_chunks():
+                        data: bytes = chunk[0]
+                        f.write(data)
+
+    def _get_file_download_headers_and_mode(
+        self,
+        filesize: int,
+        output_path: str,
+        enable_partial_downloads: bool,
+    ) -> Tuple[Dict[str, str], str]:
+        headers: Dict[str, str] = self._headers.copy()
+        mode = "wb"
+
+        # Check if file already exists in partially downloaded state
+        if enable_partial_downloads and os.path.isfile(output_path):
+            existing_size = os.path.getsize(output_path)
+            if existing_size < filesize:
+                # Make range request for partial download,
+                # will be from next byte to end of file.
+                headers["Range"] = f"bytes={existing_size}-{filesize - 1}"
+                mode = "ab"
+
+        return headers, mode

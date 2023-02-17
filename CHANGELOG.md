@@ -3,8 +3,12 @@
 ## 0.8.0 - TBD
 - Renamed 'dbz' encoding to 'dbn'
 - Renamed `timeseries.stream` to `timeseries.get_range`
+- Renamed `timeseries.stream_async` to `timeseries.get_range_async`
+- Deprecated `timeseries.stream(...)` method
+- Deprecated `timeseries.stream_async(...)` method
 - Added `batch.list_files(...)` method
 - Added `batch.download(...)` method
+- Added `batch.download_async(...)` method
 - Changed `.to_df(...)` `pretty_ts` default argument to `True`
 - Changed `.to_df(...)` `pretty_px` default argument to `True`
 - Changed `.to_df(...)` `map_symbols` default argument to `True`

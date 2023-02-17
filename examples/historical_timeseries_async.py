@@ -5,7 +5,7 @@ import databento as db
 from databento import Bento
 
 
-async def request_stream_async() -> None:
+async def example_get_range_async() -> None:
     db.log = "debug"  # Optional debug logging
 
     key = "YOUR_API_KEY"
@@ -23,4 +23,4 @@ async def request_stream_async() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(request_stream_async())
+    asyncio.run(example_get_range_async())

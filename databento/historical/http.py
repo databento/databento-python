@@ -32,7 +32,9 @@ class BentoHttpAPI:
         self._headers = {"accept": "application/json", "user-agent": user_agent}
 
     @staticmethod
-    def _create_bento(path: Union[Path, str]) -> Union[MemoryBento, FileBento]:
+    def _create_bento(
+        path: Optional[Union[Path, str]],
+    ) -> Union[MemoryBento, FileBento]:
         if path is None:
             return MemoryBento()
         else:
@@ -58,9 +60,7 @@ class BentoHttpAPI:
             url=url,
             params=params,
             headers=self._headers,
-            auth=HTTPBasicAuth(username=self._key, password=None)
-            if basic_auth
-            else None,
+            auth=HTTPBasicAuth(username=self._key, password="") if basic_auth else None,
             timeout=(self.TIMEOUT, self.TIMEOUT),
         ) as response:
             check_http_error(response)
@@ -98,9 +98,7 @@ class BentoHttpAPI:
             url=url,
             params=params,
             headers=self._headers,
-            auth=HTTPBasicAuth(username=self._key, password=None)
-            if basic_auth
-            else None,
+            auth=HTTPBasicAuth(username=self._key, password="") if basic_auth else None,
             timeout=(self.TIMEOUT, self.TIMEOUT),
         ) as response:
             check_http_error(response)
@@ -119,9 +117,7 @@ class BentoHttpAPI:
             url=url,
             params=params,
             headers=self._headers,
-            auth=HTTPBasicAuth(username=self._key, password=None)
-            if basic_auth
-            else None,
+            auth=HTTPBasicAuth(username=self._key, password="") if basic_auth else None,
             timeout=(self.TIMEOUT, self.TIMEOUT),
             stream=True,
         ) as response:

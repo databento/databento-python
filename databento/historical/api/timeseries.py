@@ -117,7 +117,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("dataset", dataset),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
@@ -151,6 +151,36 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         )
 
         return bento
+
+    @deprecated
+    async def stream_async(
+        self,
+        dataset: Union[Dataset, str],
+        start: Union[pd.Timestamp, date, str, int],
+        end: Union[pd.Timestamp, date, str, int],
+        symbols: Optional[Union[List[str], str]] = None,
+        schema: Union[Schema, str] = "trades",
+        stype_in: Union[SType, str] = "native",
+        stype_out: Union[SType, str] = "product_id",
+        limit: Optional[int] = None,
+        path: Optional[Union[Path, str]] = None,
+    ) -> Bento:
+        """
+        The `.stream_async` method is deprecated and will be removed in a future
+        version.
+        The method has been renamed to `.get_range_async`, which you can now use.
+        """
+        return await self.get_range_async(
+            dataset=dataset,
+            start=start,
+            end=end,
+            symbols=symbols,
+            schema=schema,
+            stype_in=stype_in,
+            stype_out=stype_out,
+            limit=limit,
+            path=path,
+        )
 
     async def get_range_async(
         self,
@@ -217,7 +247,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("dataset", dataset),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
@@ -275,7 +305,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
                 "This warning can be suppressed: "
                 "https://docs.python.org/3/library/warnings.html",
                 category=BentoWarning,
-                stacklevel=3,  # this makes the error happen in user code
+                stacklevel=3,  # This makes the error happen in user code
             )
 
 
