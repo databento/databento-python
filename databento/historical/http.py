@@ -1,7 +1,7 @@
 import sys
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import BinaryIO, List, Optional, Tuple, Union
+from typing import Any, BinaryIO, List, Optional, Tuple, Union
 
 import aiohttp
 import requests
@@ -66,12 +66,12 @@ class BentoHttpAPI:
             check_http_error(response)
             return response
 
-    async def _get_async(
+    async def _get_json_async(
         self,
         url: str,
         params: Optional[List[Tuple[str, Optional[str]]]] = None,
         basic_auth: bool = False,
-    ) -> ClientResponse:
+    ) -> Any:
         self._check_api_key()
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -84,7 +84,7 @@ class BentoHttpAPI:
                 timeout=self.TIMEOUT,
             ) as response:
                 await check_http_error_async(response)
-                return response
+                return await response.json()
 
     def _post(
         self,

@@ -362,13 +362,11 @@ class BatchHttpAPI(BentoHttpAPI):
             ("job_id", job_id),
         ]
 
-        response: aiohttp.ClientResponse = await self._get_async(
+        job_files: List[Dict[str, Any]] = await self._get_json_async(
             url=self._base_url + ".list_files",
             params=params,
             basic_auth=True,
         )
-
-        job_files: List[Dict[str, Any]] = await response.json()
 
         if not job_files:
             log_error(f"Cannot download batch job {job_id} (no files found).")
