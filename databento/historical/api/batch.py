@@ -1,5 +1,6 @@
 import os
 from datetime import date
+from os import PathLike
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -23,7 +24,7 @@ from databento.common.parsing import (
     optional_symbols_list_to_string,
     optional_values_list_to_string,
 )
-from databento.common.validation import validate_enum
+from databento.common.validation import validate_enum, validate_path
 from databento.historical.api import API_VERSION
 from databento.historical.http import (
     BentoHttpAPI,
@@ -212,7 +213,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def download(
         self,
-        output_dir: Union[Path, str],
+        output_dir: Union[PathLike[str], str],
         job_id: str,
         filename_to_download: Optional[str] = None,
         enable_partial_downloads: bool = True,
@@ -227,7 +228,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        output_dir: Path or str
+        output_dir: PathLike or str
             The directory to download the file(s) to.
         job_id : str
             The batch job identifier.
@@ -238,6 +239,7 @@ class BatchHttpAPI(BentoHttpAPI):
             If partially downloaded files will be resumed using range request(s).
 
         """
+        output_dir = validate_path(output_dir, "output_dir")
         self._check_api_key()
 
         params: List[Tuple[str, Optional[str]]] = [
@@ -271,12 +273,12 @@ class BatchHttpAPI(BentoHttpAPI):
                 return
 
         # Prepare job directory
-        job_dir = os.path.join(output_dir, job_id)
+        job_dir = Path(output_dir) / job_id
         os.makedirs(job_dir, exist_ok=True)
 
         for details in job_files:
             filename = str(details["filename"])
-            output_path = os.path.join(job_dir, filename)
+            output_path = job_dir / filename
             log_info(
                 f"Downloading batch job file to {output_path} ...",
             )
@@ -305,7 +307,7 @@ class BatchHttpAPI(BentoHttpAPI):
         self,
         url: str,
         filesize: int,
-        output_path: str,
+        output_path: Path,
         enable_partial_downloads: bool,
     ) -> None:
         headers, mode = self._get_file_download_headers_and_mode(
@@ -329,7 +331,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
     async def download_async(
         self,
-        output_dir: Union[Path, str],
+        output_dir: Union[PathLike[str], str],
         job_id: str,
         filename_to_download: Optional[str] = None,
         enable_partial_downloads: bool = True,
@@ -345,7 +347,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        output_dir: Path or str
+        output_dir: PathLike or str
             The directory to download the file(s) to.
         job_id : str
             The batch job identifier.
@@ -356,6 +358,7 @@ class BatchHttpAPI(BentoHttpAPI):
             If partially downloaded files will be resumed using range request(s).
 
         """
+        output_dir = validate_path(output_dir, "output_dir")
         self._check_api_key()
 
         params: List[Tuple[str, Optional[str]]] = [
@@ -389,12 +392,12 @@ class BatchHttpAPI(BentoHttpAPI):
                 return
 
         # Prepare job directory
-        job_dir = os.path.join(output_dir, job_id)
+        job_dir = Path(output_dir) / job_id
         os.makedirs(job_dir, exist_ok=True)
 
         for details in job_files:
             filename = str(details["filename"])
-            output_path = os.path.join(job_dir, filename)
+            output_path = job_dir / filename
             log_info(
                 f"Downloading batch job file to {output_path} ...",
             )
@@ -423,7 +426,7 @@ class BatchHttpAPI(BentoHttpAPI):
         self,
         url: str,
         filesize: int,
-        output_path: str,
+        output_path: Path,
         enable_partial_downloads: bool,
     ) -> None:
         headers, mode = self._get_file_download_headers_and_mode(
@@ -449,15 +452,15 @@ class BatchHttpAPI(BentoHttpAPI):
     def _get_file_download_headers_and_mode(
         self,
         filesize: int,
-        output_path: str,
+        output_path: Path,
         enable_partial_downloads: bool,
     ) -> Tuple[Dict[str, str], str]:
         headers: Dict[str, str] = self._headers.copy()
         mode = "wb"
 
         # Check if file already exists in partially downloaded state
-        if enable_partial_downloads and os.path.isfile(output_path):
-            existing_size = os.path.getsize(output_path)
+        if enable_partial_downloads and output_path.is_file():
+            existing_size = output_path.stat().st_size
             if existing_size < filesize:
                 # Make range request for partial download,
                 # will be from next byte to end of file.

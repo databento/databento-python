@@ -1,6 +1,7 @@
 import abc
 import datetime as dt
 from io import BytesIO
+from os import PathLike
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
@@ -53,14 +54,14 @@ class FileDataSource(DataSource):
         The name of the file.
     nbytes : int
         The size of the data in bytes; equal to the file size.
-    path : Path
+    path : PathLike or str
         The path of the file.
     reader : IO[bytes]
         A `BufferedReader` for this file-backed data.
 
     """
 
-    def __init__(self, source: Union[Path, str]):
+    def __init__(self, source: Union[PathLike[str], str]):
         self._path = Path(source)
 
         if not self._path.is_file() or not self._path.exists():
@@ -615,7 +616,7 @@ class Bento:
         return self._metadata["symbols"]
 
     @classmethod
-    def from_file(cls, path: Union[Path, str]) -> "Bento":
+    def from_file(cls, path: Union[PathLike[str], str]) -> "Bento":
         """
         Load the data from a DBN file at the given path.
 

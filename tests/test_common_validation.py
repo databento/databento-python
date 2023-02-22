@@ -7,11 +7,26 @@ from databento.common.validation import (
     validate_enum,
     validate_gateway,
     validate_maybe_enum,
+    validate_path,
     validate_smart_symbol,
 )
 
 
 class TestValidation:
+    @pytest.mark.parametrize(
+        "value",
+        [
+            [None, 0],
+        ],
+    )
+    def test_validate_path_given_wrong_types_raises_type_error(
+        self,
+        value: Any,
+    ) -> None:
+        # Arrange, Act, Assert
+        with pytest.raises(TypeError):
+            validate_path(value, "param")
+
     @pytest.mark.parametrize(
         "value, enum",
         [

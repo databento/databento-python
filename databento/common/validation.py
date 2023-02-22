@@ -1,9 +1,37 @@
 from enum import Enum
+from os import PathLike
+from pathlib import Path
 from typing import Optional, Type, TypeVar, Union
 from urllib.parse import urlsplit, urlunsplit
 
 
 E = TypeVar("E", bound=Enum)
+
+
+def validate_path(value: Union[PathLike[str], str], param: str) -> Path:
+    """
+    Validate whether the given value is a valid path.
+
+    Parameters
+    ----------
+    value: PathLike or str
+        The value to validate.
+    param : str
+        The name of the parameter being validated (for any error message).
+
+    Returns
+    -------
+    Path
+        A valid path.
+
+    """
+    try:
+        return Path(value)
+    except TypeError as e:
+        raise TypeError(
+            f"The `{param}` was not a valid path type. "
+            "Use any of [str, bytes, os.PathLike].",
+        ) from e
 
 
 def validate_enum(
@@ -37,12 +65,12 @@ def validate_enum(
     """
     try:
         return enum(value)
-    except ValueError as exc:
+    except ValueError as e:
         valid = list(map(str, enum))
         raise ValueError(
             f"The `{param}` was not a valid value of {enum}, was '{value}'. "
             f"Use any of {valid}.",
-        ) from exc
+        ) from e
 
 
 def validate_maybe_enum(

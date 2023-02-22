@@ -1,7 +1,7 @@
 import warnings
 from datetime import date
 from io import BufferedIOBase, BytesIO
-from pathlib import Path
+from os import PathLike
 from typing import List, Optional, Tuple, Union
 
 import pandas as pd
@@ -35,7 +35,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
-        path: Optional[Union[Path, str]] = None,
+        path: Optional[Union[PathLike[str], str]] = None,
     ) -> Bento:
         """
         The `.stream` method is deprecated and will be removed in a future version.
@@ -63,7 +63,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
-        path: Optional[Union[Path, str]] = None,
+        path: Optional[Union[PathLike[str], str]] = None,
     ) -> Bento:
         """
         Request a historical time series data stream from Databento.
@@ -98,7 +98,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
-        path : Path or str, optional
+        path : PathLike or str, optional
             The path to stream the data to on disk (will then return a `Bento`).
 
         Returns
@@ -170,7 +170,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
-        path: Optional[Union[Path, str]] = None,
+        path: Optional[Union[PathLike[str], str]] = None,
     ) -> Bento:
         """
         The `.stream_async` method is deprecated and will be removed in a future
@@ -199,10 +199,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
-        path: Optional[Union[Path, str]] = None,
+        path: Optional[Union[PathLike[str], str]] = None,
     ) -> Bento:
         """
-        Request a historical time series data stream from Databento asynchronously.
+        Asynchronously request a historical time series data stream from Databento.
 
         Makes a `GET /timeseries.get_range` HTTP request.
 
@@ -234,7 +234,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
-        path : Path or str, optional
+        path : PathLike or str, optional
             The path to stream the data to on disk (will then return a `Bento`).
 
         Returns
