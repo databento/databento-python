@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import datetime as dt
 from io import BytesIO
@@ -402,7 +404,7 @@ class Bento:
         return str(self._metadata["dataset"])
 
     @property
-    def dtype(self) -> np.dtype:  # type: ignore
+    def dtype(self) -> np.dtype[Any]:
         """
         Return the binary struct format for the data schema.
 
@@ -873,7 +875,7 @@ class Bento:
             map_symbols=map_symbols,
         ).to_json(path, orient="records", lines=True)
 
-    def to_ndarray(self) -> np.ndarray:  # type: ignore
+    def to_ndarray(self) -> np.ndarray[Any, Any]:
         """
         Return the data as a numpy `ndarray`.
 
