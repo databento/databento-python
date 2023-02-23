@@ -313,8 +313,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
-            The maximum number of records to include in the query.
-            If `None` then no limit.
+            The maximum number of records to return. If `None` then no limit.
 
         Returns
         -------
@@ -379,7 +378,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
-            The maximum number of records to include in the query. If `None` then no limit.
+            The maximum number of records to return. If `None` then no limit.
 
         Returns
         -------
@@ -447,7 +446,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in : SType or str, default 'native'
             The input symbology type to resolve from.
         limit : int, optional
-            The maximum number of records to include in the query. If `None` then no limit.
+            The maximum number of records to return. If `None` then no limit.
 
         Returns
         -------

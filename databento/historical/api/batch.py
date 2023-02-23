@@ -103,7 +103,7 @@ class BatchHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'product_id'
             The output symbology type to resolve to.
         limit : int, optional
-            The maximum number of records for the request. If `None` then no limit.
+            The maximum number of records to return. If `None` then no limit.
 
         Returns
         -------
