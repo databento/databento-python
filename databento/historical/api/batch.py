@@ -51,10 +51,10 @@ class BatchHttpAPI(BentoHttpAPI):
         symbols: Optional[Union[List[str], str]],
         schema: Union[Schema, str],
         encoding: Union[Encoding, str] = "dbn",
-        compression: Optional[Union[Compression, str]] = "none",
+        compression: Optional[Union[Compression, str]] = "zstd",
         split_duration: Union[SplitDuration, str] = "day",
         split_size: Optional[int] = None,
-        packaging: Union[Packaging, str] = "none",
+        packaging: Optional[Union[Packaging, str]] = None,
         delivery: Union[Delivery, str] = "download",
         stype_in: Union[SType, str] = "native",
         stype_out: Union[SType, str] = "product_id",
@@ -85,14 +85,14 @@ class BatchHttpAPI(BentoHttpAPI):
             The data record schema for the request.
         encoding : Encoding or str {'dbn', 'csv', 'json'}, default 'dbn'
             The data encoding.
-        compression : Compression or str {'none', 'zstd'}, optional
+        compression : Compression or str {'none', 'zstd'}, default 'zstd'
             The data compression format (if any).
         split_duration : SplitDuration or str {'day', 'week', 'month', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
             A week starts on Sunday UTC.
         split_size : int, optional
             The maximum size (bytes) of each batched data file before being split.
-        packaging : Packaging or str {'none', 'zip', 'tar'}, default 'none'
+        packaging : Packaging or str {'none', 'zip', 'tar'}, optional
             The archive type to package all batched data files in.
         delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
             The delivery mechanism for the processed batched data files.
@@ -126,13 +126,20 @@ class BatchHttpAPI(BentoHttpAPI):
             ("encoding", str(validate_enum(encoding, Encoding, "encoding"))),
             (
                 "compression",
-                str(validate_enum(compression, Compression, "compression")),
+                str(validate_enum(compression, Compression, "compression"))
+                if compression
+                else None,
             ),
             (
                 "split_duration",
                 str(validate_enum(split_duration, SplitDuration, "split_duration")),
             ),
-            ("packaging", str(validate_enum(packaging, Packaging, "packaging"))),
+            (
+                "packaging",
+                str(validate_enum(packaging, Packaging, "packaging"))
+                if packaging
+                else None,
+            ),
             ("delivery", str(validate_enum(delivery, Delivery, "delivery"))),
         ]
 
