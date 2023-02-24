@@ -268,10 +268,11 @@ class Bento:
             raw_metadata=buffer.read(8 + metadata_length),
         )
 
+        # This is populated when _map_symbols is called.
         self._product_id_index: Dict[
             dt.date,
             Dict[int, str],
-        ] = self._build_product_id_index()
+        ] = {}
 
     def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
         df.index = pd.to_datetime(df.index, utc=True)
