@@ -2,10 +2,21 @@ from __future__ import annotations
 
 import abc
 import datetime as dt
+import logging
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+from typing import (
+    IO,
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Union,
+)
 
 import numpy as np
 import pandas as pd
@@ -22,6 +33,8 @@ from databento.common.enums import Compression, Schema, SType
 from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import ProductIdMappingInterval
 
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from databento.historical.client import Historical
@@ -273,6 +286,14 @@ class Bento:
             dt.date,
             Dict[int, str],
         ] = {}
+
+    def __iter__(self) -> Generator[np.void, None, None]:
+        for _ in range(self.record_count):
+            raw = self.reader.read(self.record_size)
+            rec = np.frombuffer(raw, dtype=STRUCT_MAP[self.schema])
+            if rec.size == 0:
+                raise StopIteration
+            yield rec[0]
 
     def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
         df.index = pd.to_datetime(df.index, utc=True)
@@ -672,14 +693,15 @@ class Bento:
             The callback to the data handler.
 
         """
-        dtype = STRUCT_MAP[self.schema]
-        reader: IO[bytes] = self.reader
-        while True:
-            raw: bytes = reader.read(self.record_size)
-            record = np.frombuffer(raw, dtype=dtype)
-            if record.size == 0:
-                break
-            callback(record[0])
+        for record in self:
+            try:
+                callback(record)
+            except Exception as exc:
+                logger.exception(
+                    "exception while replaying to user callback",
+                    exc_info=exc,
+                )
+                raise
 
     def request_full_definitions(
         self,

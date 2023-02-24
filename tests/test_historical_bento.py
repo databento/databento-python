@@ -598,3 +598,62 @@ class TestBento:
 
         # Cleanup
         os.remove(path)
+
+    def test_bento_iterable(self) -> None:
+        """
+        Tests the Bento iterable implementation to ensure records
+        can be accessed by iteration.
+        """
+        # Arrange
+        stub_data = get_test_data(schema=Schema.MBO)
+        bento = Bento.from_bytes(data=stub_data)
+
+        record_list = list(bento)
+        assert (
+            str(record_list[0])
+            == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
+            "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
+            "22993, 1170352)"
+        )
+        assert (
+            str(record_list[1])
+            == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
+            "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
+            "22993, 1170352)"
+        )
+
+    def test_bento_iterable_parallel(self) -> None:
+        """
+        Tests the Bento iterable implementation to ensure iterators are
+        not stateful. For example, calling next() on one iterator does
+        not affect another.
+        """
+        # Arrange
+        stub_data = get_test_data(schema=Schema.MBO)
+        bento = Bento.from_bytes(data=stub_data)
+
+        first = iter(bento)
+        second = iter(bento)
+
+        assert (
+            str(next(first)) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
+            "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
+            "22993, 1170352)"
+        )
+        assert (
+            str(next(second))
+            == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
+            "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
+            "22993, 1170352)"
+        )
+        assert (
+            str(next(second))
+            == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
+            "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
+            "22993, 1170352)"
+        )
+        assert (
+            str(next(first)) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
+            "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
+            "22993, 1170352)"
+        )
