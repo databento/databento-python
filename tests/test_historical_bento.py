@@ -44,7 +44,7 @@ class TestBento:
             "stype_in": "native",
             "stype_out": "product_id",
             "start": 1609160400000000000,
-            "end": 1609200000000000000,
+            "end": 1609246800000000000,
             "limit": 2,
             "compression": "zstd",
             "record_count": 2,
@@ -55,7 +55,7 @@ class TestBento:
                 "ESH1": [
                     {
                         "start_date": dt.date(2020, 12, 28),
-                        "end_date": dt.date(2020, 12, 29),
+                        "end_date": dt.date(2020, 12, 30),
                         "symbol": "5482",
                     },
                 ],
@@ -71,7 +71,10 @@ class TestBento:
         product_id_index = bento._build_product_id_index()
 
         # Assert
-        assert product_id_index == {dt.date(2020, 12, 28): {5482: "ESH1"}}
+        assert product_id_index == {
+            dt.date(2020, 12, 28): {5482: "ESH1"},
+            dt.date(2020, 12, 29): {5482: "ESH1"},
+        }
 
     def test_bento_given_initial_nbytes_returns_expected_metadata(self) -> None:
         # Arrange
@@ -108,7 +111,7 @@ class TestBento:
         assert bento.stype_in == SType.NATIVE
         assert bento.stype_out == SType.PRODUCT_ID
         assert bento.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
-        assert bento.end == pd.Timestamp("2020-12-29 00:00:00+0000", tz="UTC")
+        assert bento.end == pd.Timestamp("2020-12-29 13:00:00+0000", tz="UTC")
         assert bento.limit == 2
         assert bento.compression == Compression.ZSTD
         assert bento.record_count == 2
@@ -117,7 +120,7 @@ class TestBento:
                 {
                     "symbol": "5482",
                     "start_date": dt.date(2020, 12, 28),
-                    "end_date": dt.date(2020, 12, 29),
+                    "end_date": dt.date(2020, 12, 30),
                 },
             ],
         }
@@ -134,7 +137,7 @@ class TestBento:
                     {
                         "symbol": "5482",
                         "start_date": dt.date(2020, 12, 28),
-                        "end_date": dt.date(2020, 12, 29),
+                        "end_date": dt.date(2020, 12, 30),
                     },
                 ],
             },
