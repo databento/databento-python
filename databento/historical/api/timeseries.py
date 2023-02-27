@@ -127,8 +127,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             ("schema", str(schema_valid)),
             ("stype_in", str(stype_in_valid)),
             ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
-            ("encoding", str(Encoding.DBN)),  # always request dbn
-            ("compression", str(Compression.ZSTD)),  # always request zstd
+            ("encoding", str(Encoding.DBN)),  # Always request dbn
+            ("compression", str(Compression.ZSTD)),  # Always request zstd
         ]
 
         # Optional Parameters
@@ -263,8 +263,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             ("schema", str(schema_valid)),
             ("stype_in", str(stype_in_valid)),
             ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
-            ("encoding", str(Encoding.DBN)),  # always request dbn
-            ("compression", str(Compression.ZSTD)),  # always request zstd
+            ("encoding", str(Encoding.DBN)),  # Always request dbn
+            ("compression", str(Compression.ZSTD)),  # Always request zstd
         ]
 
         if limit is not None:

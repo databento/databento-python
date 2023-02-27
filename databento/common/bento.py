@@ -275,13 +275,13 @@ class Bento:
             byteorder="little",
         )
 
-        buffer.seek(0)  # rewind to read the entire header
+        buffer.seek(0)  # Rewind to read the entire header
 
         self._metadata: Dict[str, Any] = MetadataDecoder.decode_to_json(
             raw_metadata=buffer.read(8 + metadata_length),
         )
 
-        # This is populated when _map_symbols is called.
+        # This is populated when _map_symbols is called
         self._product_id_index: Dict[
             dt.date,
             Dict[int, str],
@@ -354,10 +354,10 @@ class Bento:
 
         return product_id_index
 
-    def _cleanup_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _prepare_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        df.set_index(self._get_index_column(), inplace=True)
         df.drop(["length", "rtype"], axis=1, inplace=True)
         if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
-            df = df.reindex(columns=COLUMNS[self.schema])
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
             df["action"] = df["action"].str.decode("utf-8")
@@ -367,6 +367,9 @@ class Bento:
             for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
                 if column in df.columns:
                     df[column] = df[column].where(df[column] != type_max, np.nan)
+
+        # Reorder columns
+        df = df.reindex(columns=COLUMNS[self.schema])
 
         return df
 
@@ -834,8 +837,7 @@ class Bento:
 
         """
         df = pd.DataFrame(self.to_ndarray())
-        df.set_index(self._get_index_column(), inplace=True)
-        df = self._cleanup_dataframe(df)
+        df = self._prepare_dataframe(df)
 
         if pretty_ts:
             df = self._apply_pretty_ts(df)
@@ -908,4 +910,4 @@ class Bento:
 
         """
         data: bytes = self.reader.read()
-        return np.frombuffer(data, dtype=STRUCT_MAP[self.schema])
+        return np.frombuffer(data, dtype=self.dtype)
