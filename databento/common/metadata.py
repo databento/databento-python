@@ -1,7 +1,6 @@
 from typing import Dict
 
-from databento.common.enums import Compression, Schema, SType
-from dbz_python import decode_metadata
+from databento_dbn import decode_metadata
 
 
 class MetadataDecoder:
@@ -26,15 +25,17 @@ class MetadataDecoder:
         """
         metadata = decode_metadata(raw_metadata)
         conversion_mapping = {
-            "compression": lambda c: str(Compression.from_int(c)),
             "limit": lambda lim: None if lim == 0 else lim,
-            "mappings": lambda m: {i["native"]: i["intervals"] for i in m},
-            "schema": lambda s: str(Schema.from_int(s)),
-            "stype_in": lambda s_in: str(SType.from_int(s_in)),
-            "stype_out": lambda s_out: str(SType.from_int(s_out)),
         }
 
-        for key, conv_fn in conversion_mapping.items():
-            metadata[key] = conv_fn(metadata[key])
+        metadata_dict = {}
 
-        return metadata
+        for field in dir(metadata):
+            if field.startswith("__"):
+                continue
+            value = getattr(metadata, field)
+            if field in conversion_mapping:
+                value = conversion_mapping[field](value)
+            metadata_dict[field] = value
+
+        return metadata_dict

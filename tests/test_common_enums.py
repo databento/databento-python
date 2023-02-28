@@ -136,20 +136,6 @@ def test_str_enum_stringy_mixin(enum_type: Type[Enum]) -> None:
 
 @pytest.mark.parametrize(
     "enum_type",
-    (pytest.param(enum) for enum in DATABENTO_ENUMS if hasattr(enum, "from_int")),
-)
-def test_enum_from_int(enum_type: Type[Enum]) -> None:
-    """
-    Test enumerations that implement from_int.
-    """
-    for value, _ in enumerate(enum_type):
-        enum_type.from_int(value)  # type: ignore
-    with pytest.raises(ValueError):
-        enum_type.from_int(len(enum_type))  # type: ignore
-
-
-@pytest.mark.parametrize(
-    "enum_type",
     (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, Flag)),
 )
 def test_int_flags_stringy_mixin(enum_type: Type[Flag]) -> None:

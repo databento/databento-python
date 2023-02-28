@@ -40,6 +40,48 @@ if TYPE_CHECKING:
     from databento.historical.client import Historical
 
 
+def is_zstandard(reader: IO[bytes]) -> bool:
+    """
+    Determine if an `IO[bytes]` reader contains zstandard compressed
+    data.
+
+    Parameters
+    ----------
+    reader : IO[bytes]
+        The data to check.
+
+    Returns
+    -------
+    bool
+
+    """
+    reader.seek(0)  # ensure we read from the beginning
+    try:
+        zstandard.get_frame_parameters(reader.read(18))
+    except zstandard.ZstdError:
+        return False
+    else:
+        return True
+
+
+def is_dbn(reader: IO[bytes]) -> bool:
+    """
+    Determine if an `IO[bytes]` reader contains dbn data.
+
+    Parameters
+    ----------
+    reader : IO[bytes]
+        The data to check.
+
+    Returns
+    -------
+    bool
+
+    """
+    reader.seek(0)  # ensure we read from the beginning
+    return reader.read(3) == b"DBN"
+
+
 class DataSource(abc.ABC):
     """Abstract base class for backing Bento classes with data."""
 
@@ -266,19 +308,35 @@ class Bento:
     def __init__(self, data_source: DataSource) -> None:
         self._data_source = data_source
 
-        # Check for zstd skippable frame
+        # Check compression
         buffer = self._data_source.reader
-        if not buffer.read(4).startswith(b"P*M\x18"):
-            raise RuntimeError(f"{self._data_source.name} is not a valid DBN format")
+
+        if is_zstandard(buffer):
+            self._compression = Compression.ZSTD
+            buffer = zstandard.ZstdDecompressor().stream_reader(data_source.reader)
+        elif is_dbn(buffer):
+            self._compression = Compression.NONE
+            buffer = data_source.reader
+        else:
+            # We don't know how to read this file
+            raise RuntimeError(
+                f"Could not determine compression format of {self._data_source.name}",
+            )
+
+        # Get metadata length
+        metadata_bytes = BytesIO(buffer.read(8))
+        metadata_bytes.seek(4)
         metadata_length = int.from_bytes(
-            buffer.read(4),
+            metadata_bytes.read(4),
             byteorder="little",
         )
+        self._metadata_length = metadata_length + 8
 
-        buffer.seek(0)  # Rewind to read the entire header
+        metadata_bytes.write(buffer.read(metadata_length))
 
-        self._metadata: Dict[str, Any] = MetadataDecoder.decode_to_json(
-            raw_metadata=buffer.read(8 + metadata_length),
+        # Read metadata
+        self._metadata: Dict[str, Any] = MetadataDecoder().decode_to_json(
+            metadata_bytes.getvalue(),
         )
 
         # This is populated when _map_symbols is called
@@ -408,13 +466,14 @@ class Bento:
     def compression(self) -> Compression:
         """
         Return the data compression format (if any).
+        This is determined by inspecting the data.
 
         Returns
         -------
         Compression
 
         """
-        return Compression(self._metadata["compression"])
+        return self._compression
 
     @property
     def dataset(self) -> str:
@@ -513,25 +572,37 @@ class Bento:
         -------
         bytes
 
+        See Also
+        --------
+        Bento.reader
+
         """
         return self._data_source.reader.read()
 
     @property
     def reader(self) -> IO[bytes]:
         """
-        Return an I/O reader for the data.
-
-        Parameters
-        ----------
-        decompress : bool
-            If data should be decompressed.
+        Return an I/O reader for the DBN records.
 
         Returns
         -------
         BinaryIO
 
+        See Also
+        --------
+        Bento.raw
+
         """
-        return zstandard.ZstdDecompressor().stream_reader(self._data_source.reader)
+        if self.compression == Compression.ZSTD:
+            reader: IO[bytes] = zstandard.ZstdDecompressor().stream_reader(
+                self._data_source.reader,
+            )
+        else:
+            reader = self._data_source.reader
+
+        # Seek past the metadata to read records
+        reader.seek(self._metadata_length)
+        return reader
 
     @property
     def record_count(self) -> int:

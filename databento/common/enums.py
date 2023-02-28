@@ -154,38 +154,6 @@ class Schema(StringyMixin, str, Enum):
     GATEWAY_ERROR = "gateway_error"
     SYMBOL_MAPPING = "symbol_mapping"
 
-    @classmethod
-    def from_int(cls, value: int) -> "Schema":
-        if value == 0:
-            return cls.MBO
-        if value == 1:
-            return cls.MBP_1
-        if value == 2:
-            return cls.MBP_10
-        if value == 3:
-            return cls.TBBO
-        if value == 4:
-            return cls.TRADES
-        if value == 5:
-            return cls.OHLCV_1S
-        if value == 6:
-            return cls.OHLCV_1M
-        if value == 7:
-            return cls.OHLCV_1H
-        if value == 8:
-            return cls.OHLCV_1D
-        if value == 9:
-            return cls.DEFINITION
-        if value == 10:
-            return cls.STATISTICS
-        if value == 11:
-            return cls.STATUS
-        if value == 12:
-            return cls.GATEWAY_ERROR
-        if value == 13:
-            return cls.SYMBOL_MAPPING
-        raise ValueError(f"value `{value}` is not a valid member of {cls.__name__}")
-
 
 @unique
 @coercible
@@ -204,14 +172,6 @@ class Compression(StringyMixin, str, Enum):
 
     NONE = "none"
     ZSTD = "zstd"
-
-    @classmethod
-    def from_int(cls, value: int) -> "Compression":
-        if value == 0:
-            return cls.NONE
-        if value == 1:
-            return cls.ZSTD
-        raise ValueError(f"value `{value}` is not a valid member of {cls.__name__}")
 
 
 @unique
@@ -253,16 +213,6 @@ class SType(StringyMixin, str, Enum):
     PRODUCT_ID = "product_id"
     NATIVE = "native"
     SMART = "smart"
-
-    @classmethod
-    def from_int(cls, value: int) -> "SType":
-        if value == 0:
-            return cls.PRODUCT_ID
-        if value == 1:
-            return cls.NATIVE
-        if value == 2:
-            return cls.SMART
-        raise ValueError(f"value `{value}` is not a valid member of {cls.__name__}")
 
 
 @unique
