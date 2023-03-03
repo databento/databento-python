@@ -1,7 +1,7 @@
 # Changelog
 
-## 0.8.0 - TBD
-- Renamed 'dbz' encoding to 'dbn'
+## 0.8.0 - 2023-03-03
+- Integrate DBN encoding `0.3.2`
 - Renamed `timeseries.stream` to `timeseries.get_range`
 - Renamed `timeseries.stream_async` to `timeseries.get_range_async`
 - Deprecated `timeseries.stream(...)` method
@@ -12,6 +12,7 @@
 - Changed `.to_df(...)` `pretty_ts` default argument to `True`
 - Changed `.to_df(...)` `pretty_px` default argument to `True`
 - Changed `.to_df(...)` `map_symbols` default argument to `True`
+- Drop support for DBZ encoding
 
 ## 0.7.0 - 2023-01-10
 - Added support for `definition` schema

@@ -6,14 +6,12 @@ from typing import Any, List, Optional, Tuple
 import aiohttp
 import requests
 from aiohttp import ClientResponse
-from databento.common.logging import log_info
 from databento.historical.error import BentoClientError, BentoServerError
 from databento.version import __version__
 from requests import Response
 from requests.auth import HTTPBasicAuth
 
 
-_NO_DATA_FOUND = b"No data found for query."
 _32KB = 1024 * 32  # 32_768
 
 
@@ -114,9 +112,6 @@ class BentoHttpAPI:
             check_http_error(response)
 
             for chunk in response.iter_content(chunk_size=_32KB):
-                if chunk == _NO_DATA_FOUND:
-                    log_info("No data found for query.")
-                    break
                 writer.write(chunk)
 
     async def _stream_async(
@@ -141,11 +136,7 @@ class BentoHttpAPI:
                 await check_http_error_async(response)
 
                 async for chunk in response.content.iter_chunks():
-                    data: bytes = chunk[0]
-                    if data == _NO_DATA_FOUND:
-                        log_info("No data found for query.")
-                        break
-                    writer.write(data)
+                    writer.write(chunk[0])
 
 
 def is_400_series_error(status: int) -> bool:
