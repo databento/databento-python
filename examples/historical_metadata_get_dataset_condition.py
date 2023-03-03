@@ -9,9 +9,6 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    unit_prices = client.metadata.list_unit_prices(
-        dataset="GLBX.MDP3",
-        mode="historical-streaming",
-    )
+    condition = client.metadata.get_dataset_condition(dataset="XNAS.ITCH")
 
-    pprint(unit_prices)
+    pprint(condition)

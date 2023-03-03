@@ -9,9 +9,8 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    unit_prices = client.metadata.list_unit_prices(
-        dataset="GLBX.MDP3",
-        mode="historical-streaming",
+    response = client.batch.list_files(
+        job_id="YOUR_JOB_ID",  # <-- Discover this from `.list_jobs(...)`
     )
 
-    pprint(unit_prices)
+    pprint(response)

@@ -30,7 +30,7 @@ def _console_log_level() -> Optional[str]:
 def log_debug(msg: str) -> None:
     """Log the given message with DEBUG level."""
     log_level = _console_log_level()
-    if log_level == [_DEBUG, _INFO, _ERROR]:
+    if log_level in [_DEBUG, _INFO, _ERROR]:
         print(f"DEBUG: {msg}", file=sys.stderr)
     logger.debug(msg)
 

@@ -41,7 +41,7 @@ setup(
     zip_safe=False,
     install_requires=install_requires,
     tests_require=tests_require,
-    python_requires=">=3.7.*",
+    python_requires=">=3.7",
     project_urls={
         "Bug Tracker": "https://github.com/databento/databento-python/issues",
         "Documentation": "https://docs.databento.com/",

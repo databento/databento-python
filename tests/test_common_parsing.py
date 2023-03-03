@@ -1,21 +1,15 @@
 import datetime as dt
-from enum import Enum
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Type, Union
 
 import numpy as np
 import pandas as pd
 import pytest
-from databento.common.enums import Dataset, Flags, SType
+from databento.common.enums import SType
 from databento.common.parsing import (
-    enum_or_str_lowercase,
-    enum_or_str_uppercase,
-    maybe_date_to_string,
-    maybe_datetime_to_string,
-    maybe_enum_or_str_lowercase,
-    maybe_enum_or_str_uppercase,
-    maybe_symbols_list_to_string,
-    maybe_values_list_to_string,
-    parse_flags,
+    optional_date_to_string,
+    optional_datetime_to_string,
+    optional_symbols_list_to_string,
+    optional_values_list_to_string,
 )
 
 
@@ -25,112 +19,12 @@ INCORRECT_TYPE: Any = type
 
 
 class TestParsing:
-    def test_enum_or_str_lowercase_given_none_raises_type_error(self) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(TypeError):
-            enum_or_str_lowercase(None, "param")
-
-    def test_enum_or_str_lowercase_given_incorrect_type_raises_type_error(self) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(TypeError):
-            enum_or_str_lowercase(INCORRECT_TYPE, "param")
-
-    @pytest.mark.parametrize(
-        "value, expected",
-        [
-            ["abc", "abc"],
-            ["ABC", "abc"],
-            [Dataset.GLBX_MDP3, "glbx.mdp3"],
-        ],
-    )
-    def test_enum_or_str_lowercase_returns_expected_outputs(
-        self,
-        value: Union[Enum, str],
-        expected: str,
-    ) -> None:
-        # Arrange, Act, Assert
-        assert enum_or_str_lowercase(value, "param") == expected
-
-    def test_maybe_enum_or_str_lowercase_given_incorrect_types_raises_error(
-        self,
-    ) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(TypeError):
-            maybe_enum_or_str_lowercase(INCORRECT_TYPE, "param")
-
-    @pytest.mark.parametrize(
-        "value, expected",
-        [
-            [None, None],
-            ["abc", "abc"],
-            ["ABC", "abc"],
-            [Dataset.GLBX_MDP3, "glbx.mdp3"],
-        ],
-    )
-    def test_maybe_enum_or_str_lowercase_returns_expected_outputs(
-        self,
-        value: Optional[Union[Enum, str]],
-        expected: Optional[str],
-    ) -> None:
-        # Arrange, Act, Assert
-        assert maybe_enum_or_str_lowercase(value, "param") == expected
-
-    def test_enum_or_str_uppercase_given_none_raises_type_error(self) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(TypeError):
-            enum_or_str_uppercase(None, "param")  # noqa (passing None for test)
-
-    def test_enum_or_str_uppercase_given_incorrect_type_raises_type_error(self) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(TypeError):
-            enum_or_str_uppercase(INCORRECT_TYPE, "param")
-
-    @pytest.mark.parametrize(
-        "value, expected",
-        [
-            ["abc", "ABC"],
-            ["ABC", "ABC"],
-            [Dataset.GLBX_MDP3, "GLBX.MDP3"],
-        ],
-    )
-    def test_enum_or_str_uppercase_returns_expected_outputs(
-        self,
-        value: Union[Enum, str],
-        expected: str,
-    ) -> None:
-        # Arrange, Act, Assert
-        assert enum_or_str_uppercase(value, "param") == expected
-
-    def test_maybe_enum_or_str_uppercase_given_incorrect_types_raises_error(
-        self,
-    ) -> None:
-        # Arrange, Act, Assert
-        with pytest.raises(TypeError):
-            maybe_enum_or_str_lowercase(INCORRECT_TYPE, "param")
-
-    @pytest.mark.parametrize(
-        "value, expected",
-        [
-            [None, None],
-            ["abc", "ABC"],
-            ["ABC", "ABC"],
-            [Dataset.GLBX_MDP3, "GLBX.MDP3"],
-        ],
-    )
-    def test_maybe_enum_or_str_uppercase_returns_expected_outputs(
-        self,
-        value: Optional[Union[Enum, str]],
-        expected: Optional[str],
-    ) -> None:
-        # Arrange, Act, Assert
-        assert maybe_enum_or_str_uppercase(value, "param") == expected
-
     def test_maybe_values_list_to_string_given_invalid_input_raises_type_error(
         self,
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_values_list_to_string(INCORRECT_TYPE)
+            optional_values_list_to_string(INCORRECT_TYPE)
 
     @pytest.mark.parametrize(
         "values, expected",
@@ -149,7 +43,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_values_list_to_string(values)
+        result: Optional[str] = optional_values_list_to_string(values)
 
         # Assert
         assert result == expected
@@ -159,31 +53,102 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            maybe_symbols_list_to_string(INCORRECT_TYPE, SType.NATIVE)
+            optional_symbols_list_to_string(INCORRECT_TYPE, SType.NATIVE)
 
     @pytest.mark.parametrize(
         "symbols, expected",
         [
-            [None, None],
-            ["ES.fut", "ES.FUT"],
-            ["ES,CL", "ES,CL"],
-            ["ES,CL,", "ES,CL"],
-            ["es,cl,", "ES,CL"],
-            [["ES", "CL"], "ES,CL"],
-            [["es", "cl"], "ES,CL"],
-            [["ES.N.0", "CL.n.0"], "ES.n.0,CL.n.0"],
+            pytest.param(None, "ALL_SYMBOLS"),
+            pytest.param("ES.fut", "ES.FUT"),
+            pytest.param("ES,CL", "ES,CL"),
+            pytest.param("ES,CL,", "ES,CL"),
+            pytest.param("es,cl,", "ES,CL"),
+            pytest.param(["ES", "CL"], "ES,CL"),
+            pytest.param(["es", "cl"], "ES,CL"),
+            pytest.param(["ES.N.0", "CL.n.0"], "ES.n.0,CL.n.0"),
+            pytest.param(["ES.N.0", ["ES,cl"]], "ES.n.0,ES,CL"),
+            pytest.param(["ES.N.0", "ES,cl"], "ES.n.0,ES,CL"),
+            pytest.param("", ValueError),
+            pytest.param([""], ValueError),
+            pytest.param(["ES.N.0", ""], ValueError),
+            pytest.param(["ES.N.0", "CL..0"], ValueError),
+            pytest.param(123458, ValueError),
         ],
     )
-    def test_maybe_symbols_list_to_string_given_valid_inputs_returns_expected(
+    def test_optional_symbols_list_to_string_given_valid_inputs_returns_expected(
         self,
         symbols: Optional[List[str]],
-        expected: str,
+        expected: Union[str, Type[Exception]],
     ) -> None:
-        # Arrange, Act
-        result: Optional[str] = maybe_symbols_list_to_string(symbols, SType.SMART)
+        # Arrange, Act, Assert
+        if isinstance(expected, str):
+            assert optional_symbols_list_to_string(symbols, SType.SMART) == expected
+        else:
+            with pytest.raises(expected):
+                optional_symbols_list_to_string(symbols, SType.SMART)
 
-        # Assert
-        assert result == expected
+    @pytest.mark.parametrize(
+        "symbols, stype, expected",
+        [
+            pytest.param(12345, SType.PRODUCT_ID, "12345"),
+            pytest.param("67890", SType.PRODUCT_ID, "67890"),
+            pytest.param([12345, "  67890"], SType.PRODUCT_ID, "12345,67890"),
+            pytest.param([12345, [67890, 66]], SType.PRODUCT_ID, "12345,67890,66"),
+            pytest.param([12345, "67890,66"], SType.PRODUCT_ID, "12345,67890,66"),
+            pytest.param("", SType.PRODUCT_ID, ValueError),
+            pytest.param([12345, ""], SType.PRODUCT_ID, ValueError),
+            pytest.param([12345, [""]], SType.PRODUCT_ID, ValueError),
+            pytest.param(12345, SType.NATIVE, ValueError),
+            pytest.param(12345, SType.SMART, ValueError),
+        ],
+    )
+    def test_optional_symbols_list_to_string_int(
+        self,
+        symbols: Optional[Union[List[int], int]],
+        stype: SType,
+        expected: Union[str, Type[Exception]],
+    ) -> None:
+        """
+        Test that integers are allowed for SType.PRODUCT_ID.
+        If integers are given for a different SType we expect
+        a ValueError.
+        """
+        if isinstance(expected, str):
+            assert optional_symbols_list_to_string(symbols, stype) == expected
+        else:
+            with pytest.raises(expected):
+                optional_symbols_list_to_string(symbols, stype)
+
+    @pytest.mark.parametrize(
+        "symbols, stype, expected",
+        [
+            pytest.param("NVDA", SType.NATIVE, "NVDA"),
+            pytest.param(" nvda  ", SType.NATIVE, "NVDA"),
+            pytest.param("NVDA,amd", SType.NATIVE, "NVDA,AMD"),
+            pytest.param("NVDA,amd,NOC,", SType.NATIVE, "NVDA,AMD,NOC"),
+            pytest.param("NVDA,  amd,NOC, ", SType.NATIVE, "NVDA,AMD,NOC"),
+            pytest.param(["NVDA", ["NOC", "AMD"]], SType.NATIVE, "NVDA,NOC,AMD"),
+            pytest.param(["NVDA", "NOC,AMD"], SType.NATIVE, "NVDA,NOC,AMD"),
+            pytest.param("", SType.NATIVE, ValueError),
+            pytest.param([""], SType.NATIVE, ValueError),
+            pytest.param(["NVDA", ""], SType.NATIVE, ValueError),
+            pytest.param(["NVDA", [""]], SType.NATIVE, ValueError),
+        ],
+    )
+    def test_optional_symbols_list_to_string_native(
+        self,
+        symbols: Optional[Union[List[int], int]],
+        stype: SType,
+        expected: Union[str, Type[Exception]],
+    ) -> None:
+        """
+        Test that str are allowed for SType.NATIVE.
+        """
+        if isinstance(expected, str):
+            assert optional_symbols_list_to_string(symbols, stype) == expected
+        else:
+            with pytest.raises(expected):
+                optional_symbols_list_to_string(symbols, stype)
 
     @pytest.mark.parametrize(
         "value, expected",
@@ -199,7 +164,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_date_to_string(value)
+        result: Optional[str] = optional_date_to_string(value)
 
         # Assert
         assert result == expected
@@ -220,30 +185,7 @@ class TestParsing:
         expected: str,
     ) -> None:
         # Arrange, Act
-        result: Optional[str] = maybe_datetime_to_string(value)
-
-        # Assert
-        assert result == expected
-
-    @pytest.mark.parametrize(
-        "value, expected",
-        [
-            [Flags.F_LAST.value, ["F_LAST"]],
-            [
-                Flags.F_BAD_TS_RECV.value | Flags.F_LAST.value,
-                ["F_LAST", "F_BAD_TS_RECV"],
-            ],
-            [128, ["F_LAST"]],
-            [136, ["F_LAST", "F_BAD_TS_RECV"]],
-        ],
-    )
-    def test_parse_flags_given_valid_values_returns_expected_results(
-        self,
-        value: int,
-        expected: List[str],
-    ) -> None:
-        # Arrange, Act
-        result: List[str] = parse_flags(value)
+        result: Optional[str] = optional_datetime_to_string(value)
 
         # Assert
         assert result == expected

@@ -1,14 +1,15 @@
 import sys
 from typing import Union
+from unittest.mock import MagicMock
 
 import databento as db
 import pytest
 import requests
-from databento import FileBento, Historical
+from databento import Bento, Historical
 from databento.common.enums import HistoricalGateway, Schema
 from pytest_mock import MockerFixture
 
-from tests.fixtures import get_test_data_path
+from tests.fixtures import get_test_data, get_test_data_path
 
 
 class TestHistoricalClient:
@@ -55,7 +56,46 @@ class TestHistoricalClient:
         client = db.Historical(key="DUMMY_API_KEY", gateway=ny4_gateway)
 
         # Assert
-        assert client.gateway == ny4_gateway
+        assert client.gateway == "https://ny4.databento.com"
+
+    @pytest.mark.parametrize(
+        "gateway",
+        [
+            "//",
+            "",
+        ],
+    )
+    def test_custom_gateway_error(
+        self,
+        gateway: str,
+    ) -> None:
+        """
+        Test that setting a custom gateway to an invalid url raises an exception.
+        """
+        # Arrange, Act, Assert
+        with pytest.raises(ValueError):
+            db.Historical(key="DUMMY_API_KEY", gateway=gateway)
+
+    @pytest.mark.parametrize(
+        "gateway, expected",
+        [
+            ["hist.databento.com", "https://hist.databento.com"],
+            ["http://hist.databento.com", "https://hist.databento.com"],
+        ],
+    )
+    def test_custom_gateway_force_https(
+        self,
+        gateway: str,
+        expected: str,
+    ) -> None:
+        """
+        Test that custom gateways are forced to the https scheme.
+        """
+        # Arrange Act
+        client = db.Historical(key="DUMMY_API_KEY", gateway=gateway)
+
+        # Assert
+        assert client.gateway == expected
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_re_request_symbology_makes_expected_request(
@@ -68,7 +108,7 @@ class TestHistoricalClient:
         client = Historical(key="DUMMY_API_KEY")
 
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = FileBento(path=test_data_path)
+        bento = Bento.from_file(path=test_data_path)
 
         # Act
         bento.request_symbology(client)
@@ -100,33 +140,43 @@ class TestHistoricalClient:
     def test_request_full_definitions_expected_request(
         self,
         mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
-
         client = Historical(key="DUMMY_API_KEY")
 
+        # Create an MBO bento
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = FileBento(path=test_data_path)
+        bento = Bento.from_file(path=test_data_path)
+
+        # Mock from_bytes with the definition stub
+        stream_bytes = get_test_data(Schema.DEFINITION)
+        monkeypatch.setattr(
+            Bento,
+            "from_bytes",
+            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+        )
 
         # Act
-        bento.request_full_definitions(client)
+        definition_bento = bento.request_full_definitions(client)
 
         # Assert
         call = mocked_get.call_args.kwargs
         assert (
             call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
+            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.get_range"
         )
         assert call["params"] == [
             ("dataset", "GLBX.MDP3"),
             ("start", "2020-12-28T13:00:00+00:00"),
-            ("end", "2020-12-29T00:00:00+00:00"),
+            ("end", "2020-12-29T13:00:00+00:00"),
             ("symbols", "ESH1"),
             ("schema", "definition"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
-            ("encoding", "dbz"),
+            ("encoding", "dbn"),
+            ("compression", "zstd"),
         ]
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"
@@ -135,3 +185,4 @@ class TestHistoricalClient:
         )
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+        assert len(stream_bytes) == definition_bento.nbytes

@@ -1,13 +1,12 @@
 from datetime import date
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import pandas as pd
 from databento.common.enums import SType
 from databento.common.parsing import (
-    enum_or_str_lowercase,
-    enum_or_str_uppercase,
-    maybe_symbols_list_to_string,
+    datetime_to_date_string,
+    optional_symbols_list_to_string,
 )
+from databento.common.validation import validate_enum
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from requests import Response
@@ -61,13 +60,15 @@ class SymbologyHttpAPI(BentoHttpAPI):
             date range.
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", enum_or_str_uppercase(dataset, "dataset")),
-            ("symbols", maybe_symbols_list_to_string(symbols, SType(stype_in))),
-            ("stype_in", enum_or_str_lowercase(stype_in, "stype_in")),
-            ("stype_out", enum_or_str_lowercase(stype_out, "stype_out")),
-            ("start_date", str(pd.to_datetime(start_date).date())),
-            ("end_date", str(pd.to_datetime(end_date).date())),
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        params: List[Tuple[str, str]] = [
+            ("dataset", dataset),
+            ("symbols", symbols_list),
+            ("stype_in", str(stype_in_valid)),
+            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
+            ("start_date", datetime_to_date_string(start_date)),
+            ("end_date", datetime_to_date_string(end_date)),
             ("default_value", default_value),
         ]
 

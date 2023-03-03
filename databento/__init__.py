@@ -1,16 +1,16 @@
 from typing import Optional
 
-from databento.common.bento import Bento, FileBento, MemoryBento
+from databento.common.bento import Bento
 from databento.common.enums import (
     Compression,
     Dataset,
     Delivery,
     Encoding,
     FeedMode,
-    Flags,
     HistoricalGateway,
     LiveGateway,
     Packaging,
+    RecordFlags,
     RollRule,
     Schema,
     SplitDuration,
@@ -40,12 +40,10 @@ __all__ = [
     "Delivery",
     "Encoding",
     "FeedMode",
-    "FileBento",
-    "Flags",
+    "RecordFlags",
     "Historical",
     "HistoricalGateway",
     "LiveGateway",
-    "MemoryBento",
     "Packaging",
     "RollRule",
     "Schema",

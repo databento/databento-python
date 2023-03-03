@@ -44,7 +44,7 @@ class TestHistoricalBatch:
                 schema="mbo",
                 start="2020-12-28",
                 end="2020-12-28T23:00",
-                encoding="dbz",
+                encoding="dbn",
                 compression="zstd",
                 stype_in="zzz",  # <--- invalid
             )
@@ -94,9 +94,9 @@ class TestHistoricalBatch:
             ("encoding", "csv"),
             ("compression", "zstd"),
             ("split_duration", "day"),
-            ("split_size", "10000000000"),
             ("packaging", "none"),
             ("delivery", "download"),
+            ("split_size", "10000000000"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
@@ -126,6 +126,69 @@ class TestHistoricalBatch:
         assert call["params"] == [
             ("states", "received,queued,processing,done"),
             ("since", "2022-01-01T00:00:00"),
+        ]
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_batch_list_files_sends_expected_request(
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+        job_id = "GLBX-20220610-5DEFXVTMSM"
+
+        # Act
+        self.client.batch.list_files(job_id=job_id)
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/batch.list_files"
+        )
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
+        assert call["params"] == [
+            ("job_id", job_id),
+        ]
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_batch_download_single_file_sends_expected_request(
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+        job_id = "GLBX-20220610-5DEFXVTMSM"
+        filename = "glbx-mdp3-20220610.mbo.csv.zst"
+
+        # Act
+        self.client.batch.download(
+            job_id=job_id,
+            output_dir="my_data",
+            filename_to_download=filename,
+        )
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/batch.list_files"
+        )
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
+        assert call["params"] == [
+            ("job_id", job_id),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

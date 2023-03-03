@@ -1,9 +1,14 @@
 import sys
+from unittest.mock import MagicMock
 
 import databento as db
 import pytest
 import requests
+from databento import Bento
+from databento.common.enums import Schema
 from pytest_mock import MockerFixture
+
+from tests.fixtures import get_test_data
 
 
 class TestHistoricalTimeSeries:
@@ -11,10 +16,10 @@ class TestHistoricalTimeSeries:
         key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
-    def test_stream_given_invalid_schema_raises_error(self) -> None:
+    def test_get_range_given_invalid_schema_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.timeseries.stream(
+            self.client.timeseries.get_range(
                 dataset="GLBX.MDP3",
                 symbols="ESH1",
                 schema="ticks",  # <--- invalid
@@ -22,10 +27,10 @@ class TestHistoricalTimeSeries:
                 end="2020-12-28T23:00",
             )
 
-    def test_stream_given_invalid_stype_in_raises_error(self) -> None:
+    def test_get_range_given_invalid_stype_in_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.timeseries.stream(
+            self.client.timeseries.get_range(
                 dataset="GLBX.MDP3",
                 symbols="ESH1",
                 schema="mbo",
@@ -34,10 +39,10 @@ class TestHistoricalTimeSeries:
                 stype_in="zzz",  # <--- invalid
             )
 
-    def test_stream_given_invalid_stype_out_raises_error(self) -> None:
+    def test_get_range_given_invalid_stype_out_raises_error(self) -> None:
         # Arrange, Act, Assert
         with pytest.raises(ValueError):
-            self.client.timeseries.stream(
+            self.client.timeseries.get_range(
                 dataset="GLBX.MDP3",
                 symbols="ESH1",
                 schema="mbo",
@@ -47,12 +52,24 @@ class TestHistoricalTimeSeries:
             )
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_stream_sends_expected_request(self, mocker: MockerFixture) -> None:
+    def test_get_range_sends_expected_request(
+        self,
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
+        # Mock from_bytes with the definition stub
+        stream_bytes = get_test_data(Schema.TRADES)
+        monkeypatch.setattr(
+            Bento,
+            "from_bytes",
+            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+        )
+
         # Act
-        self.client.timeseries.stream(
+        self.client.timeseries.get_range(
             dataset="GLBX.MDP3",
             symbols="ES.c.0",
             stype_in="smart",
@@ -65,7 +82,7 @@ class TestHistoricalTimeSeries:
         call = mocked_get.call_args.kwargs
         assert (
             call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
+            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.get_range"
         )
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"
@@ -80,21 +97,31 @@ class TestHistoricalTimeSeries:
             ("schema", "trades"),
             ("stype_in", "smart"),
             ("stype_out", "product_id"),
-            ("encoding", "dbz"),
+            ("encoding", "dbn"),
+            ("compression", "zstd"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_stream_with_limit_sends_expected_request(
+    def test_get_range_with_limit_sends_expected_request(
         self,
         mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
 
+        # Mock from_bytes with the definition stub
+        stream_bytes = get_test_data(Schema.TRADES)
+        monkeypatch.setattr(
+            Bento,
+            "from_bytes",
+            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+        )
+
         # Act
-        self.client.timeseries.stream(
+        self.client.timeseries.get_range(
             dataset="GLBX.MDP3",
             symbols="ESH1",
             schema="trades",
@@ -107,7 +134,7 @@ class TestHistoricalTimeSeries:
         call = mocked_get.call_args.kwargs
         assert (
             call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.stream"
+            == f"https://hist.databento.com/v{db.API_VERSION}/timeseries.get_range"
         )
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"
@@ -122,8 +149,9 @@ class TestHistoricalTimeSeries:
             ("schema", "trades"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
+            ("encoding", "dbn"),
+            ("compression", "zstd"),
             ("limit", "1000000"),
-            ("encoding", "dbz"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

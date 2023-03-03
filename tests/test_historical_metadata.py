@@ -103,7 +103,7 @@ class TestHistoricalMetadata:
         self.client.metadata.list_fields(
             dataset="GLBX.MDP3",
             schema="mbo",
-            encoding="dbz",
+            encoding="dbn",
         )
 
         # Assert
@@ -114,7 +114,7 @@ class TestHistoricalMetadata:
         )
         assert ("dataset", "GLBX.MDP3") in call["params"]
         assert ("schema", "mbo") in call["params"]
-        assert ("encoding", "dbz") in call["params"]
+        assert ("encoding", "dbn") in call["params"]
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"
         assert all(
@@ -281,7 +281,6 @@ class TestHistoricalMetadata:
             ("schema", "mbo"),
             ("start", "2020-12-28T12:00:00"),
             ("end", "2020-12-29T00:00:00"),
-            ("encoding", "dbz"),
             ("stype_in", "native"),
             ("limit", "1000000"),
         ]
@@ -364,8 +363,8 @@ class TestHistoricalMetadata:
             ("schema", "mbo"),
             ("stype_in", "native"),
             ("stype_out", "product_id"),
-            ("limit", "1000000"),
             ("mode", "historical-streaming"),
+            ("limit", "1000000"),
         ]
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

@@ -5,7 +5,7 @@ from databento.common.enums import Schema
 
 
 ################################################################################
-# DBZ struct schema
+# DBN struct schema
 ################################################################################
 
 
@@ -44,8 +44,20 @@ RECORD_HEADER: List[Tuple[str, Union[type, str]]] = [
     ("ts_event", np.uint64),
 ]
 
+MBO_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+    ("order_id", np.uint64),
+    ("price", np.int64),
+    ("size", np.uint32),
+    ("flags", np.int8),
+    ("channel_id", np.uint8),
+    ("action", "S1"),  # 1 byte chararray
+    ("side", "S1"),  # 1 byte chararray
+    ("ts_recv", np.uint64),
+    ("ts_in_delta", np.int32),
+    ("sequence", np.uint32),
+]
 
-MBP_MSG: List[Tuple[str, Union[type, str]]] = [
+MBP_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("price", np.int64),
     ("size", np.uint32),
     ("action", "S1"),  # 1 byte chararray
@@ -58,7 +70,7 @@ MBP_MSG: List[Tuple[str, Union[type, str]]] = [
 ]
 
 
-OHLCV_MSG: List[Tuple[str, Union[type, str]]] = [
+OHLCV_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("open", np.int64),
     ("high", np.int64),
     ("low", np.int64),
@@ -66,24 +78,83 @@ OHLCV_MSG: List[Tuple[str, Union[type, str]]] = [
     ("volume", np.int64),
 ]
 
+STATUS_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+    ("ts_recv", np.uint64),
+    ("group", "S1"),  # 1 byte chararray
+    ("trading_status", np.uint8),
+    ("halt_reason", np.uint8),
+    ("trading_event", np.uint8),
+]
+
+DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+    ("ts_recv", np.uint64),
+    ("min_price_increment", np.int64),
+    ("display_factor", np.int64),
+    ("expiration", np.uint64),
+    ("activation", np.uint64),
+    ("high_limit_price", np.int64),
+    ("low_limit_price", np.int64),
+    ("max_price_variation", np.int64),
+    ("trading_reference_price", np.int64),
+    ("unit_of_measure_qty", np.int64),
+    ("min_price_increment_amount", np.int64),
+    ("price_ratio", np.int64),
+    ("inst_attrib_value", np.int32),
+    ("underlying_id", np.uint32),
+    ("cleared_volume", np.int32),
+    ("market_depth_implied", np.int32),
+    ("market_depth", np.int32),
+    ("market_segment_id", np.uint32),
+    ("max_trade_vol", np.uint32),
+    ("min_lot_size", np.int32),
+    ("min_lot_size_block", np.int32),
+    ("min_lot_size_round_lot", np.int32),
+    ("min_trade_vol", np.uint32),
+    ("open_interest_qty", np.int32),
+    ("contract_multiplier", np.int32),
+    ("decay_quantity", np.int32),
+    ("original_contract_size", np.int32),
+    ("related_security_id", np.uint32),
+    ("trading_reference_date", np.uint16),
+    ("appl_id", np.int16),
+    ("maturity_year", np.uint16),
+    ("decay_start_date", np.uint16),
+    ("channel_id", np.uint16),
+    ("currency", "S4"),  # 4 byte chararray
+    ("settl_currency", "S4"),  # 4 byte chararray
+    ("secsubtype", "S6"),  # 6 byte chararray
+    ("symbol", "S22"),  # 22 byte chararray
+    ("group", "S21"),  # 21 byte chararray
+    ("exchange", "S5"),  # 5 byte chararray
+    ("asset", "S7"),  # 7 byte chararray
+    ("cfi", "S7"),  # 7 byte chararray
+    ("security_type", "S7"),  # 7 byte chararray
+    ("unit_of_measure", "S31"),  # 31 byte chararray
+    ("underlying", "S21"),  # 21 byte chararray
+    ("related", "S21"),  # 21 byte chararray
+    ("match_algorithm", "S1"),  # 1 byte chararray
+    ("md_security_trading_status", np.uint8),
+    ("main_fraction", np.uint8),
+    ("price_display_format", np.uint8),
+    ("settl_price_type", np.uint8),
+    ("sub_fraction", np.uint8),
+    ("underlying_product", np.uint8),
+    ("security_update_action", "S1"),  # 1 byte chararray
+    ("maturity_month", np.uint8),
+    ("maturity_day", np.uint8),
+    ("maturity_week", np.uint8),
+    ("user_defined_instrument", "S1"),  # 1 byte chararray
+    ("contract_multiplier_unit", np.int8),
+    ("flow_schedule_type", np.int8),
+    ("tick_rule", np.uint8),
+    ("dummy", "S3"),  # 3 byte chararray (Adjustment filler for 8-bytes alignment)
+]
+
 
 STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
-    Schema.MBO: RECORD_HEADER
-    + [
-        ("order_id", np.uint64),
-        ("price", np.int64),
-        ("size", np.uint32),
-        ("flags", np.int8),
-        ("channel_id", np.uint8),
-        ("action", "S1"),  # 1 byte chararray
-        ("side", "S1"),  # 1 byte chararray
-        ("ts_recv", np.uint64),
-        ("ts_in_delta", np.int32),
-        ("sequence", np.uint32),
-    ],
-    Schema.MBP_1: RECORD_HEADER + MBP_MSG + get_deriv_ba_types(0),  # 1
-    Schema.MBP_10: RECORD_HEADER
-    + MBP_MSG
+    Schema.MBO: MBO_MSG,
+    Schema.MBP_1: MBP_MSG + get_deriv_ba_types(0),  # 1
+    Schema.MBP_10: MBP_MSG
     + get_deriv_ba_types(0)  # 1
     + get_deriv_ba_types(1)  # 2
     + get_deriv_ba_types(2)  # 3
@@ -94,84 +165,14 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     + get_deriv_ba_types(7)  # 8
     + get_deriv_ba_types(8)  # 9
     + get_deriv_ba_types(9),  # 10
-    Schema.TBBO: RECORD_HEADER + MBP_MSG + get_deriv_ba_types(0),
-    Schema.TRADES: RECORD_HEADER + MBP_MSG,
-    Schema.OHLCV_1S: RECORD_HEADER + OHLCV_MSG,
-    Schema.OHLCV_1M: RECORD_HEADER + OHLCV_MSG,
-    Schema.OHLCV_1H: RECORD_HEADER + OHLCV_MSG,
-    Schema.OHLCV_1D: RECORD_HEADER + OHLCV_MSG,
-    Schema.STATUS: RECORD_HEADER
-    + [
-        ("ts_recv", np.uint64),
-        ("group", "S1"),  # 1 byte chararray
-        ("trading_status", np.uint8),
-        ("halt_reason", np.uint8),
-        ("trading_event", np.uint8),
-    ],
-    Schema.DEFINITION: RECORD_HEADER
-    + [
-        ("ts_recv", np.uint64),
-        ("min_price_increment", np.int64),
-        ("display_factor", np.int64),
-        ("expiration", np.uint64),
-        ("activation", np.uint64),
-        ("high_limit_price", np.int64),
-        ("low_limit_price", np.int64),
-        ("max_price_variation", np.int64),
-        ("trading_reference_price", np.int64),
-        ("unit_of_measure_qty", np.int64),
-        ("min_price_increment_amount", np.int64),
-        ("price_ratio", np.int64),
-        ("inst_attrib_value", np.int32),
-        ("underlying_id", np.uint32),
-        ("cleared_volume", np.int32),
-        ("market_depth_implied", np.int32),
-        ("market_depth", np.int32),
-        ("market_segment_id", np.uint32),
-        ("max_trade_vol", np.uint32),
-        ("min_lot_size", np.int32),
-        ("min_lot_size_block", np.int32),
-        ("min_lot_size_round_lot", np.int32),
-        ("min_trade_vol", np.uint32),
-        ("open_interest_qty", np.int32),
-        ("contract_multiplier", np.int32),
-        ("decay_quantity", np.int32),
-        ("original_contract_size", np.int32),
-        ("related_security_id", np.uint32),
-        ("trading_reference_date", np.uint16),
-        ("appl_id", np.int16),
-        ("maturity_year", np.uint16),
-        ("decay_start_date", np.uint16),
-        ("channel_id", np.uint16),
-        ("currency", "S4"),  # 4 byte chararray
-        ("settl_currency", "S4"),  # 4 byte chararray
-        ("secsubtype", "S6"),  # 6 byte chararray
-        ("symbol", "S22"),  # 22 byte chararray
-        ("group", "S21"),  # 21 byte chararray
-        ("exchange", "S5"),  # 5 byte chararray
-        ("asset", "S7"),  # 7 byte chararray
-        ("cfi", "S7"),  # 7 byte chararray
-        ("security_type", "S7"),  # 7 byte chararray
-        ("unit_of_measure", "S31"),  # 31 byte chararray
-        ("underlying", "S21"),  # 21 byte chararray
-        ("related", "S21"),  # 21 byte chararray
-        ("match_algorithm", "S1"),  # 1 byte chararray
-        ("md_security_trading_status", np.uint8),
-        ("main_fraction", np.uint8),
-        ("price_display_format", np.uint8),
-        ("settl_price_type", np.uint8),
-        ("sub_fraction", np.uint8),
-        ("underlying_product", np.uint8),
-        ("security_update_action", "S1"),  # 1 byte chararray
-        ("maturity_month", np.uint8),
-        ("maturity_day", np.uint8),
-        ("maturity_week", np.uint8),
-        ("user_defined_instrument", "S1"),  # 1 byte chararray
-        ("contract_multiplier_unit", np.int8),
-        ("flow_schedule_type", np.int8),
-        ("tick_rule", np.uint8),
-        ("dummy", "S3"),  # 3 byte chararray (Adjustment filler for 8-bytes alignment)
-    ],
+    Schema.TBBO: MBP_MSG + get_deriv_ba_types(0),
+    Schema.TRADES: MBP_MSG,
+    Schema.OHLCV_1S: OHLCV_MSG,
+    Schema.OHLCV_1M: OHLCV_MSG,
+    Schema.OHLCV_1H: OHLCV_MSG,
+    Schema.OHLCV_1D: OHLCV_MSG,
+    Schema.STATUS: STATUS_MSG,
+    Schema.DEFINITION: DEFINITION_MSG,
     Schema.GATEWAY_ERROR: RECORD_HEADER
     + [
         ("error", "S64"),
@@ -221,7 +222,7 @@ DEFINITION_TYPE_MAX_MAP = {
 }
 
 ################################################################################
-# DBZ fields
+# DBN fields
 ################################################################################
 
 
@@ -236,7 +237,7 @@ def get_deriv_ba_fields(level: int) -> List[str]:
     ]
 
 
-DERIV_HEADER_FIELDS = [
+DERIV_HEADER_COLUMNS = [
     "ts_event",
     "ts_in_delta",
     "publisher_id",
@@ -249,6 +250,23 @@ DERIV_HEADER_FIELDS = [
     "size",
     "sequence",
 ]
+
+OHLCV_HEADER_COLUMNS = [
+    "publisher_id",
+    "product_id",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+]
+
+STATUS_COLUMNS = [x for x in np.dtype(STATUS_MSG).names or ()]
+STATUS_COLUMNS.remove("ts_recv")  # Index
+
+DEFINITION_COLUMNS = [x for x in np.dtype(DEFINITION_MSG).names or ()]
+DEFINITION_COLUMNS.remove("ts_recv")  # Index
+
 
 COLUMNS = {
     Schema.MBO: [
@@ -265,8 +283,8 @@ COLUMNS = {
         "size",
         "sequence",
     ],
-    Schema.MBP_1: DERIV_HEADER_FIELDS + get_deriv_ba_fields(0),
-    Schema.MBP_10: DERIV_HEADER_FIELDS
+    Schema.MBP_1: DERIV_HEADER_COLUMNS + get_deriv_ba_fields(0),
+    Schema.MBP_10: DERIV_HEADER_COLUMNS
     + get_deriv_ba_fields(0)
     + get_deriv_ba_fields(1)
     + get_deriv_ba_fields(2)
@@ -277,6 +295,12 @@ COLUMNS = {
     + get_deriv_ba_fields(7)
     + get_deriv_ba_fields(8)
     + get_deriv_ba_fields(9),
-    Schema.TBBO: DERIV_HEADER_FIELDS + get_deriv_ba_fields(0),
-    Schema.TRADES: DERIV_HEADER_FIELDS,
+    Schema.TBBO: DERIV_HEADER_COLUMNS + get_deriv_ba_fields(0),
+    Schema.TRADES: DERIV_HEADER_COLUMNS,
+    Schema.OHLCV_1S: OHLCV_HEADER_COLUMNS,
+    Schema.OHLCV_1M: OHLCV_HEADER_COLUMNS,
+    Schema.OHLCV_1H: OHLCV_HEADER_COLUMNS,
+    Schema.OHLCV_1D: OHLCV_HEADER_COLUMNS,
+    Schema.STATUS: STATUS_COLUMNS,
+    Schema.DEFINITION: DEFINITION_COLUMNS,
 }

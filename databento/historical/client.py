@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 from databento.common.enums import HistoricalGateway
 from databento.common.logging import log_info
-from databento.common.parsing import enum_or_str_lowercase
+from databento.common.validation import validate_gateway
 from databento.historical.api.batch import BatchHttpAPI
 from databento.historical.api.metadata import MetadataHttpAPI
 from databento.historical.api.symbology import SymbologyHttpAPI
@@ -19,10 +19,10 @@ class Historical:
     ----------
     key : str, optional
         The user API key for authentication.
-        If ``None`` then the `DATABENTO_API_KEY` environment variable is used.
+        If `None` then the `DATABENTO_API_KEY` environment variable is used.
     gateway : HistoricalGateway or str, default HistoricalGateway.BO1
         The API server gateway.
-        If ``None`` then the default gateway is used.
+        If `None` then the default gateway is used.
 
     Examples
     --------
@@ -40,10 +40,10 @@ class Historical:
         if key is None or not isinstance(key, str) or key.isspace():
             raise ValueError(f"invalid API key, was {key}")
 
-        # Configure data access gateway
-        gateway = enum_or_str_lowercase(gateway, "gateway")
-        if gateway == "bo1":
-            gateway = "https://hist.databento.com"
+        try:
+            gateway = HistoricalGateway(gateway)
+        except ValueError:
+            gateway = validate_gateway(str(gateway))
 
         self._key = key
         self._gateway = gateway

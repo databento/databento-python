@@ -2,8 +2,8 @@
 
 [![test](https://github.com/databento/databento-python/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/databento/databento-python/actions/workflows/test.yml)
 ![python](https://img.shields.io/badge/python-3.7+-blue.svg)
-![pypi-version](https://img.shields.io/pypi/v/databento)
-![license](https://img.shields.io/github/license/databento/databento-python?color=blue)
+[![pypi-version](https://img.shields.io/pypi/v/databento)](https://pypi.org/project/databento)
+[![license](https://img.shields.io/github/license/databento/databento-python?color=blue)](./LICENSE)
 [![code-style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 The official Python client library for [Databento](https://databento.com).
@@ -12,17 +12,17 @@ Key features include:
 - Fast, lightweight access to both live and historical data from [multiple markets](https://docs.databento.com/knowledge-base/new-users/venues-and-publishers?historical=python&live=python).
 - [Multiple schemas](https://docs.databento.com/knowledge-base/new-users/market-data-schemas?historical=python&live=python) such as MBO, MBP, top of book, OHLCV, last sale, and more.
 - [Fully normalized](https://docs.databento.com/knowledge-base/new-users/normalization?historical=python&live=python), i.e. identical message schemas for both live and historical data, across multiple asset classes.
-- Provides mappings between different symbology systems, including [smart symbology](https://docs.databento.com/reference-historical/basics/symbology?historical=python&live=python) for futures rollovers.
+- Provides mappings between different symbology systems, including [smart symbology](https://docs.databento.com/api-reference-historical/basics/symbology?historical=python&live=python) for futures rollovers.
 - [Point-in-time]() instrument definitions, free of look-ahead bias and retroactive adjustments.
-- Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://docs.databento.com/knowledge-base/new-users/dbz-format?historical=python&live=python).
-- Event-driven [market replay](https://docs.databento.com/reference-historical/helpers/bento-replay?historical=python&live=python), including at high-frequency order book granularity.
+- Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://docs.databento.com/knowledge-base/new-users/dbn-encoding?historical=python&live=python).
+- Event-driven [market replay](https://docs.databento.com/api-reference-historical/helpers/bento-replay?historical=python&live=python), including at high-frequency order book granularity.
 - Support for [batch download](https://docs.databento.com/knowledge-base/new-users/stream-vs-batch?historical=python&live=python) of flat files.
 - Support for [pandas](https://pandas.pydata.org/docs/), CSV, and JSON.
 
 ## Documentation
 The best place to begin is with our [Getting started](https://docs.databento.com/getting-started?historical=python&live=python) guide.
 
-You can find our full client API reference on the [Historical Reference](https://docs.databento.com/reference-historical?historical=python&live=python) and
+You can find our full client API reference on the [Historical Reference](https://docs.databento.com/api-reference-historical?historical=python&live=python) and
 [Live Reference](https://docs.databento.com/reference-live?historical=python&live=python) sections of our documentation. See also the
 [Examples](https://docs.databento.com/examples?historical=python&live=python) section for various tutorials and code samples.
 
@@ -31,7 +31,7 @@ The library is fully compatible with the latest distribution of Anaconda 3.7 and
 The minimum dependencies as found in the `requirements.txt` are also listed below:
 - Python (>=3.7)
 - aiohttp (>=3.7.2)
-- dbz-python (>=0.2.1)
+- databento-dbn (>=0.3.2)
 - numpy (>=1.17.0)
 - pandas (>=1.1.3)
 - requests (>=2.24.0)
@@ -54,7 +54,7 @@ A simple Databento application looks like this:
 import databento as db
 
 client = db.Historical('YOUR_API_KEY')
-data = client.timeseries.stream(
+data = client.timeseries.get_range(
     dataset='GLBX.MDP3',
     symbols='ES.FUT',
     stype_in='smart',

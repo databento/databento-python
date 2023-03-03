@@ -1,16 +1,15 @@
-from typing import Any, Callable, Dict
+from typing import Dict
 
-from databento.common.parsing import int_to_compression, int_to_schema, int_to_stype
-from dbz_python import decode_metadata
+from databento_dbn import decode_metadata
 
 
 class MetadataDecoder:
     """
-    Provides a decoder for DBZ metadata headers.
+    Provides a decoder for DBN metadata headers.
     """
 
     @staticmethod
-    def decode_to_json(raw_metadata: bytes) -> Dict[str, Any]:
+    def decode_to_json(raw_metadata: bytes) -> Dict[str, object]:
         """
         Decode the given metadata into a JSON object (as a Python dict).
 
@@ -24,21 +23,19 @@ class MetadataDecoder:
         Dict[str, Any]
 
         """
-
-        def enum_value(fn: Callable[[Any], Any]) -> Any:
-            return lambda x: fn(x).value
-
         metadata = decode_metadata(raw_metadata)
         conversion_mapping = {
-            "compression": enum_value(int_to_compression),
             "limit": lambda lim: None if lim == 0 else lim,
-            "mappings": lambda m: {i["native"]: i["intervals"] for i in m},
-            "schema": enum_value(int_to_schema),
-            "stype_in": enum_value(int_to_stype),
-            "stype_out": enum_value(int_to_stype),
         }
 
-        for key, conv_fn in conversion_mapping.items():
-            metadata[key] = conv_fn(metadata[key])
+        metadata_dict = {}
 
-        return metadata
+        for field in dir(metadata):
+            if field.startswith("__"):
+                continue
+            value = getattr(metadata, field)
+            if field in conversion_mapping:
+                value = conversion_mapping[field](value)
+            metadata_dict[field] = value
+
+        return metadata_dict
