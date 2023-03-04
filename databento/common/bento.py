@@ -346,11 +346,10 @@ class Bento:
         ] = {}
 
     def __iter__(self) -> Generator[np.void, None, None]:
+        reader = self.reader
         for _ in range(self.record_count):
-            raw = self.reader.read(self.record_size)
+            raw = reader.read(self.record_size)
             rec = np.frombuffer(raw, dtype=STRUCT_MAP[self.schema])
-            if rec.size == 0:
-                raise StopIteration
             yield rec[0]
 
     def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
