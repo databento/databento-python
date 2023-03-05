@@ -1,8 +1,10 @@
+import collections
 import datetime as dt
 import sys
 from pathlib import Path
 from typing import List, Tuple, Union
 
+import databento
 import numpy as np
 import pandas as pd
 import pytest
@@ -182,6 +184,18 @@ def test_to_ndarray_with_stub_data_returns_expected_array() -> None:
         str(array)
         == "[(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)\n (14, 160, 1, 5482, 1609160400000431665, 647784973631, 3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, 19621, 1170353)]"  # noqa
     )
+
+
+def test_iterator_produces_expected_data() -> None:
+    # Arrange
+    stub_data = get_test_data(schema=Schema.MBO)
+    data = Bento.from_bytes(data=stub_data)
+
+    # Act (consume iterator)
+    handler = collections.deque(data)
+
+    # Assert
+    assert len(handler) == 2
 
 
 def test_replay_with_stub_data_record_passes_to_callback() -> None:
@@ -372,12 +386,26 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
 def test_from_file_given_various_paths_returns_expected_metadata(
     expected_schema: Schema,
 ) -> None:
-    # Arrange, Act
+    # Arrange
     path = get_test_data_path(schema=expected_schema)
+
+    # Act
     data = Bento.from_file(path=path)
 
     # Assert
     assert data.schema == expected_schema
+
+
+def test_from_dbn_alias() -> None:
+    # Arrange
+    path = get_test_data_path(schema=Schema.MBO)
+
+    # Act
+    data = databento.from_dbn(path=path)
+
+    # Assert
+    assert data.schema == Schema.MBO
+    assert data.record_count == 2
 
 
 def test_mbo_to_csv_writes_expected_file_to_disk(tmp_path: Path) -> None:
