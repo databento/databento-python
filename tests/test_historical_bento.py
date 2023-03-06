@@ -247,6 +247,44 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
     assert len(df) == 2
 
 
+@pytest.mark.parametrize(
+    "schema",
+    [
+        pytest.param(schema, id=str(schema))
+        for schema in (
+            Schema.MBO,
+            Schema.MBP_1,
+            Schema.MBP_10,
+            Schema.TBBO,
+            Schema.TRADES,
+            Schema.OHLCV_1S,
+            Schema.OHLCV_1M,
+            Schema.OHLCV_1H,
+            Schema.OHLCV_1D,
+            Schema.DEFINITION,
+        )
+    ],
+)
+def test_to_df_drop_columns(
+    schema: Schema,
+) -> None:
+    """
+    Test that rtype, length, and dummy columns are dropped when
+    calling to_df().
+    """
+    # Arrange
+    stub_data = get_test_data(schema=schema)
+    data = Bento.from_bytes(data=stub_data)
+
+    # Act
+    df = data.to_df()
+
+    # Assert
+    assert "length" not in df
+    assert "rtype" not in df
+    assert "dummy" not in df
+
+
 def test_to_df_with_mbo_data_returns_expected_record() -> None:
     # Arrange
     stub_data = get_test_data(schema=Schema.MBO)

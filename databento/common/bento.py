@@ -412,8 +412,10 @@ class Bento:
         return product_id_index
 
     def _prepare_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Setup column ordering and index
         df.set_index(self._get_index_column(), inplace=True)
-        df.drop(["length", "rtype"], axis=1, inplace=True)
+        df = df.reindex(columns=COLUMNS[self.schema])
+
         if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
@@ -424,10 +426,6 @@ class Bento:
             for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
                 if column in df.columns:
                     df[column] = df[column].where(df[column] != type_max, np.nan)
-
-        # Reorder columns
-        df = df.reindex(columns=COLUMNS[self.schema])
-
         return df
 
     def _get_index_column(self) -> str:

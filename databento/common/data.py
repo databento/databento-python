@@ -266,6 +266,9 @@ STATUS_COLUMNS.remove("ts_recv")  # Index
 
 DEFINITION_COLUMNS = [x for x in np.dtype(DEFINITION_MSG).names or ()]
 DEFINITION_COLUMNS.remove("ts_recv")  # Index
+DEFINITION_COLUMNS.remove("length")
+DEFINITION_COLUMNS.remove("rtype")
+DEFINITION_COLUMNS.remove("dummy")
 
 
 COLUMNS = {
