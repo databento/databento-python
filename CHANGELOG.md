@@ -1,7 +1,11 @@
 # Changelog
 
+## 0.8.1 - 2023-03-05
+- Fixed bug in `Bento` iteration where multiple readers were created
+- Added `from_dbn` convenience alias for loading DBN files
+
 ## 0.8.0 - 2023-03-03
-- Integrate DBN encoding `0.3.2`
+- Integrated DBN encoding `0.3.2`
 - Renamed `timeseries.stream` to `timeseries.get_range`
 - Renamed `timeseries.stream_async` to `timeseries.get_range_async`
 - Deprecated `timeseries.stream(...)` method
