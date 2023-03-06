@@ -9,6 +9,6 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = db.Historical(key=key)
 
-    condition = client.metadata.get_dataset_condition(dataset="XNAS.ITCH")
+    conditions = client.metadata.list_dataset_conditions(dataset="XNAS.ITCH")
 
-    pprint(condition)
+    pprint(conditions)

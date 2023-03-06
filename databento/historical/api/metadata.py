@@ -238,16 +238,16 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
-    def get_dataset_condition(
+    def list_dataset_conditions(
         self,
         dataset: Union[Dataset, str],
         start_date: Optional[Union[date, str]] = None,
         end_date: Optional[Union[date, str]] = None,
     ) -> Dict[str, Any]:
         """
-        Get the dataset condition from Databento.
+        Get the per date dataset conditions from Databento.
 
-        Makes a `GET /metadata.get_dataset_condition` HTTP request.
+        Makes a `GET /metadata.list_dataset_conditions` HTTP request.
 
         Use this method to discover data availability and quality.
 
@@ -274,10 +274,42 @@ class MetadataHttpAPI(BentoHttpAPI):
         ]
 
         response: Response = self._get(
-            url=self._base_url + ".get_dataset_condition",
+            url=self._base_url + ".list_dataset_conditions",
             params=params,
             basic_auth=True,
         )
+        return response.json()
+
+    def get_dataset_range(
+        self,
+        dataset: Union[Dataset, str],
+    ) -> Dict[str, str]:
+        """
+        Request the available range for the dataset from Databento.
+
+        Makes a GET `/metadata.get_dataset_range` HTTP request.
+
+        Parameters
+        ----------
+        dataset : Dataset or str
+            The dataset code for the request.
+
+        Returns
+        -------
+        Dict[str, str]
+            The available range for the dataset.
+
+        """
+        params: List[Tuple[str, Optional[str]]] = [
+            ("dataset", dataset),
+        ]
+
+        response: Response = self._get(
+            url=self._base_url + ".get_dataset_range",
+            params=params,
+            basic_auth=True,
+        )
+
         return response.json()
 
     def get_record_count(
