@@ -84,7 +84,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_schemas(
         self,
-        dataset: Optional[Union[Dataset, str]] = None,
+        dataset: Union[Dataset, str],
         start_date: Optional[Union[date, str]] = None,
         end_date: Optional[Union[date, str]] = None,
     ) -> List[str]:
@@ -95,7 +95,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        dataset : Dataset or str, optional
+        dataset : Dataset or str
             The dataset code (string identifier) for the request.
         start_date : date or str, optional
             The start date (UTC) for the request range.
@@ -241,8 +241,8 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_dataset_condition(
         self,
         dataset: Union[Dataset, str],
-        start_date: Union[date, str] = None,
-        end_date: Union[date, str] = None,
+        start_date: Optional[Union[date, str]] = None,
+        end_date: Optional[Union[date, str]] = None,
     ) -> Dict[str, Any]:
         """
         Get the dataset condition from Databento.
