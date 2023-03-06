@@ -1,13 +1,16 @@
+import logging
 import os
 from typing import Optional, Union
 
 from databento.common.enums import HistoricalGateway
-from databento.common.logging import log_info
 from databento.common.validation import validate_gateway
 from databento.historical.api.batch import BatchHttpAPI
 from databento.historical.api.metadata import MetadataHttpAPI
 from databento.historical.api.symbology import SymbologyHttpAPI
 from databento.historical.api.timeseries import TimeSeriesHttpAPI
+
+
+logger = logging.getLogger(__name__)
 
 
 class Historical:
@@ -54,7 +57,7 @@ class Historical:
         self.timeseries = TimeSeriesHttpAPI(key=key, gateway=gateway)
 
         # Not logging security sensitive `key`
-        log_info(f"Initialized {type(self).__name__}(gateway={self._gateway})")
+        logger.info("Initialized %s(gateway=%s)", type(self).__name__, self.gateway)
 
     @property
     def key(self) -> str:

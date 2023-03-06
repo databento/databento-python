@@ -1,11 +1,9 @@
-import databento as db
+from databento import Historical
 
 
 if __name__ == "__main__":
-    db.log = "debug"  # Optional debug logging
-
     key = "YOUR_API_KEY"
-    client = db.Historical(key=key)
+    client = Historical(key=key)
 
     # Will download all job files to a `my_data/YOUR_JOB_ID/` directory
     client.batch.download(

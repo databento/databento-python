@@ -1,15 +1,12 @@
 import asyncio
 from pprint import pprint
 
-import databento as db
-from databento import Bento
+from databento import Bento, Historical
 
 
 async def example_get_range_async() -> None:
-    db.log = "debug"  # Optional debug logging
-
     key = "YOUR_API_KEY"
-    client = db.Historical(key=key)
+    client = Historical(key=key)
 
     data: Bento = await client.timeseries.get_range_async(
         dataset="GLBX.MDP3",

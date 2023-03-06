@@ -1,11 +1,9 @@
 import datetime
 
-import databento as db
 from databento import Bento
 
 
 if __name__ == "__main__":
-    db.log = "debug"  # Optional debug logging
     ts_start = datetime.datetime.utcnow()
 
     # Can load from file path (if exists)

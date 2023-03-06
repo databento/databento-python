@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from datetime import date
 from os import PathLike
@@ -19,7 +20,6 @@ from databento.common.enums import (
     SplitDuration,
     SType,
 )
-from databento.common.logging import log_error, log_info
 from databento.common.parsing import (
     datetime_to_string,
     optional_datetime_to_string,
@@ -34,6 +34,9 @@ from databento.historical.http import (
     check_http_error_async,
 )
 from requests.auth import HTTPBasicAuth
+
+
+logger = logging.getLogger(__name__)
 
 
 class BatchHttpAPI(BentoHttpAPI):
@@ -262,7 +265,7 @@ class BatchHttpAPI(BentoHttpAPI):
         ).json()
 
         if not job_files:
-            log_error(f"Cannot download batch job {job_id} (no files found).")
+            logger.error("Cannot download batch job %s (no files found).", job_id)
             return
 
         if filename_to_download:
@@ -275,9 +278,10 @@ class BatchHttpAPI(BentoHttpAPI):
                     is_file_found = True
                     break
             if not is_file_found:
-                log_error(
-                    f"Cannot download batch job {job_id} file "
-                    f"({filename_to_download} not found)",
+                logger.error(
+                    "Cannot download batch job %s file (%s not found)",
+                    job_id,
+                    filename_to_download,
                 )
                 return
 
@@ -288,8 +292,9 @@ class BatchHttpAPI(BentoHttpAPI):
         for details in job_files:
             filename = str(details["filename"])
             output_path = job_dir / filename
-            log_info(
-                f"Downloading batch job file to {output_path} ...",
+            logger.info(
+                "Downloading batch job file to %s ...",
+                output_path,
             )
 
             urls = details.get("urls")
@@ -381,7 +386,7 @@ class BatchHttpAPI(BentoHttpAPI):
         )
 
         if not job_files:
-            log_error(f"Cannot download batch job {job_id} (no files found).")
+            logger.error("Cannot download batch job %s (no files found).", job_id)
             return
 
         if filename_to_download:
@@ -394,9 +399,10 @@ class BatchHttpAPI(BentoHttpAPI):
                     is_file_found = True
                     break
             if not is_file_found:
-                log_error(
-                    f"Cannot download batch job {job_id} file "
-                    f"({filename_to_download} not found)",
+                logger.error(
+                    "Cannot download batch job %s file " "(%s not found)",
+                    job_id,
+                    filename_to_download,
                 )
                 return
 
@@ -407,8 +413,9 @@ class BatchHttpAPI(BentoHttpAPI):
         for details in job_files:
             filename = str(details["filename"])
             output_path = job_dir / filename
-            log_info(
-                f"Downloading batch job file to {output_path} ...",
+            logger.info(
+                "Downloading batch job file to %s ...",
+                output_path,
             )
 
             urls = details.get("urls")

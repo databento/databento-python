@@ -1,11 +1,9 @@
-import databento as db
+from databento import Historical
 
 
 if __name__ == "__main__":
-    db.log = "debug"  # Optional debug logging
-
     key = "YOUR_API_KEY"
-    client = db.Historical(key=key)
+    client = Historical(key=key)
 
     print(client.metadata.list_publishers())
     print(client.metadata.list_datasets())

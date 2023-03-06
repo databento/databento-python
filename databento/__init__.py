@@ -1,4 +1,4 @@
-from typing import Optional
+import logging
 
 from databento.common.bento import Bento
 from databento.common.enums import (
@@ -52,8 +52,8 @@ __all__ = [
     "SymbologyResolution",
 ]
 
-# Set to either 'DEBUG' or 'INFO', controls console logging
-log: Optional[str] = None
+# Setup logging
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 # Convenience imports
 from_dbn = Bento.from_file
