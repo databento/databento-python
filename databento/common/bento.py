@@ -352,6 +352,13 @@ class Bento:
             rec = np.frombuffer(raw, dtype=STRUCT_MAP[self.schema])
             yield rec[0]
 
+    def __len__(self) -> int:
+        return self.record_count
+
+    def __repr__(self) -> str:
+        name = self.__class__.__name__
+        return f"<{name}(schema={self.schema}, record_count={self.record_count})>"
+
     def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
         df.index = pd.to_datetime(df.index, utc=True)
         for column in df.columns:

@@ -671,6 +671,70 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     )
 
 
+@pytest.mark.parametrize(
+    "schema",
+    [
+        s
+        for s in Schema
+        if s
+        not in (
+            Schema.OHLCV_1H,
+            Schema.OHLCV_1D,
+            Schema.STATUS,
+            Schema.STATISTICS,
+            Schema.DEFINITION,
+            Schema.GATEWAY_ERROR,
+            Schema.SYMBOL_MAPPING,
+        )
+    ],
+)
+def test_bento_len(schema: Schema) -> None:
+    """
+    Check that calling `len()` on a Bento returns
+    the record count.
+    """
+    # Arrange
+    stub_data = get_test_data(schema=schema)
+
+    # Act
+    bento = Bento.from_bytes(data=stub_data)
+
+    # Assert
+    assert len(bento) == bento.record_count
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        s
+        for s in Schema
+        if s
+        not in (
+            Schema.OHLCV_1H,
+            Schema.OHLCV_1D,
+            Schema.STATUS,
+            Schema.STATISTICS,
+            Schema.DEFINITION,
+            Schema.GATEWAY_ERROR,
+            Schema.SYMBOL_MAPPING,
+        )
+    ],
+)
+def test_bento_repr(schema: Schema) -> None:
+    """
+    Check that a more meaningful string is returned
+    when calling `repr()` on a Bento.
+    """
+    # Arrange
+    stub_data = get_test_data(schema=schema)
+
+    # Act
+    bento = Bento.from_bytes(data=stub_data)
+
+    # Assert
+    assert repr(bento) == f"<Bento(schema={schema}, record_count={bento.record_count})>"
+
+
 def test_bento_iterable() -> None:
     """
     Tests the Bento iterable implementation to ensure records
