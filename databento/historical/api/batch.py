@@ -77,11 +77,11 @@ class BatchHttpAPI(BentoHttpAPI):
         start : pd.Timestamp or date or str or int
             The start datetime of the request time range (inclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp or date or str or int
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         symbols : List[Union[str, int]] or str
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.

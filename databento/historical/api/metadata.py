@@ -333,10 +333,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset code for the request.
         start : pd.Timestamp or date or str or int
             The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp or date or str or int
             The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
@@ -398,10 +398,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset code for the request.
         start : pd.Timestamp or date or str or int, optional
             The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
             The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
@@ -464,10 +464,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             The dataset code for the request.
         start : pd.Timestamp or date or str or int
             The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp or date or str or int
             The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
-            If an integer is passed, then this represents nanoseconds since UNIX epoch.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional
