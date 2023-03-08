@@ -339,9 +339,11 @@ class BatchHttpAPI(BentoHttpAPI):
         ) as response:
             check_http_error(response)
 
+            logger.debug("Starting download of file %s", output_path.name)
             with open(output_path, mode=mode) as f:
                 for chunk in response.iter_content():
                     f.write(chunk)
+            logger.debug("Download of %s completed", output_path.name)
 
     async def download_async(
         self,
@@ -460,10 +462,12 @@ class BatchHttpAPI(BentoHttpAPI):
             ) as response:
                 await check_http_error_async(response)
 
+                logger.debug("Starting async download of file %s", output_path.name)
                 with open(output_path, mode=mode) as f:
                     async for chunk in response.content.iter_chunks():
                         data: bytes = chunk[0]
                         f.write(data)
+                logger.debug("Download of %s completed", output_path.name)
 
     def _get_file_download_headers_and_mode(
         self,
