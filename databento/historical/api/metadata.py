@@ -9,7 +9,11 @@ from databento.common.parsing import (
     optional_datetime_to_string,
     optional_symbols_list_to_string,
 )
-from databento.common.validation import validate_enum, validate_maybe_enum
+from databento.common.validation import (
+    validate_enum,
+    validate_maybe_enum,
+    validate_semantic_string,
+)
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from requests import Response
@@ -110,7 +114,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start_date", optional_date_to_string(start_date)),
             ("end_date", optional_date_to_string(end_date)),
         ]
@@ -152,7 +156,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("schema", validate_maybe_enum(schema, Schema, "schema")),
             ("encoding", validate_maybe_enum(encoding, Encoding, "encoding")),
         ]
@@ -226,7 +230,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("mode", validate_maybe_enum(mode, FeedMode, "mode")),
             ("schema", validate_maybe_enum(schema, Schema, "schema")),
         ]
@@ -268,7 +272,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start_date", optional_date_to_string(start_date)),
             ("end_date", optional_date_to_string(end_date)),
         ]
@@ -301,7 +305,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
         ]
 
         response: Response = self._get(
@@ -356,7 +360,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("symbols", symbols_list),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("start", optional_datetime_to_string(start)),
@@ -421,7 +425,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
             ("symbols", symbols_list),
@@ -489,7 +493,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
             ("symbols", symbols_list),

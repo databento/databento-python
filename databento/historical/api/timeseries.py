@@ -11,7 +11,7 @@ from databento.common.bento import Bento
 from databento.common.deprecated import deprecated
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.parsing import datetime_to_string, optional_symbols_list_to_string
-from databento.common.validation import validate_enum
+from databento.common.validation import validate_enum, validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.error import BentoWarning
 from databento.historical.http import BentoHttpAPI
@@ -120,7 +120,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
             ("symbols", symbols_list),
@@ -256,7 +256,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
             ("symbols", symbols_list),

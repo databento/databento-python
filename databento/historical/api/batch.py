@@ -26,7 +26,11 @@ from databento.common.parsing import (
     optional_symbols_list_to_string,
     optional_values_list_to_string,
 )
-from databento.common.validation import validate_enum, validate_path
+from databento.common.validation import (
+    validate_enum,
+    validate_path,
+    validate_semantic_string,
+)
 from databento.historical.api import API_VERSION
 from databento.historical.http import (
     BentoHttpAPI,
@@ -121,7 +125,7 @@ class BatchHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         params: List[Tuple[str, Optional[str]]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", datetime_to_string(end)),
             ("symbols", str(symbols_list)),
