@@ -233,7 +233,7 @@ class BatchHttpAPI(BentoHttpAPI):
         job_id: str,
         filename_to_download: Optional[str] = None,
         enable_partial_downloads: bool = True,
-    ) -> None:
+    ) -> List[Path]:
         """
         Download a batch job or a specific file to `{output_dir}/{job_id}/`.
 
@@ -254,6 +254,18 @@ class BatchHttpAPI(BentoHttpAPI):
         enable_partial_downloads : bool, default True
             If partially downloaded files will be resumed using range request(s).
 
+        Returns
+        -------
+        List[Path]
+            A list of paths to the downloaded files.
+
+        Raises
+        ------
+        RuntimeError
+            When no files were found for the batch job.
+        ValueError
+            When a file fails to download.
+
         """
         output_dir = validate_path(output_dir, "output_dir")
         self._check_api_key()
@@ -270,7 +282,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         if not job_files:
             logger.error("Cannot download batch job %s (no files found).", job_id)
-            return
+            raise RuntimeError(f"no files for batch job {job_id}")
 
         if filename_to_download:
             # A specific file is being requested
@@ -287,12 +299,15 @@ class BatchHttpAPI(BentoHttpAPI):
                     job_id,
                     filename_to_download,
                 )
-                return
+                raise ValueError(
+                    f"{filename_to_download} is not a file for batch job {job_id}",
+                )
 
         # Prepare job directory
         job_dir = Path(output_dir) / job_id
         os.makedirs(job_dir, exist_ok=True)
 
+        file_paths = []
         for details in job_files:
             filename = str(details["filename"])
             output_path = job_dir / filename
@@ -320,6 +335,9 @@ class BatchHttpAPI(BentoHttpAPI):
                 output_path=output_path,
                 enable_partial_downloads=enable_partial_downloads,
             )
+            file_paths.append(output_path)
+
+        return file_paths
 
     def _download_file(
         self,
@@ -355,7 +373,7 @@ class BatchHttpAPI(BentoHttpAPI):
         job_id: str,
         filename_to_download: Optional[str] = None,
         enable_partial_downloads: bool = True,
-    ) -> None:
+    ) -> List[Path]:
         """
         Asynchronously download a batch job or a specific file to
         `{output_dir}/{job_id}/`.
@@ -377,6 +395,18 @@ class BatchHttpAPI(BentoHttpAPI):
         enable_partial_downloads : bool, default True
             If partially downloaded files will be resumed using range request(s).
 
+        Returns
+        -------
+        List[Path]
+            A list of paths to the downloaded files.
+
+        Raises
+        ------
+        RuntimeError
+            When no files were found for the batch job.
+        ValueError
+            When a file fails to download.
+
         """
         output_dir = validate_path(output_dir, "output_dir")
         self._check_api_key()
@@ -393,7 +423,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         if not job_files:
             logger.error("Cannot download batch job %s (no files found).", job_id)
-            return
+            raise RuntimeError(f"no files for batch job {job_id}")
 
         if filename_to_download:
             # A specific file is being requested
@@ -406,16 +436,19 @@ class BatchHttpAPI(BentoHttpAPI):
                     break
             if not is_file_found:
                 logger.error(
-                    "Cannot download batch job %s file " "(%s not found)",
+                    "Cannot download batch job %s file (%s not found)",
                     job_id,
                     filename_to_download,
                 )
-                return
+                raise ValueError(
+                    f"{filename_to_download} is not a file for batch job {job_id}",
+                )
 
         # Prepare job directory
         job_dir = Path(output_dir) / job_id
         os.makedirs(job_dir, exist_ok=True)
 
+        file_paths = []
         for details in job_files:
             filename = str(details["filename"])
             output_path = job_dir / filename
@@ -443,6 +476,9 @@ class BatchHttpAPI(BentoHttpAPI):
                 output_path=output_path,
                 enable_partial_downloads=enable_partial_downloads,
             )
+            file_paths.append(output_path)
+
+        return file_paths
 
     async def _download_file_async(
         self,
