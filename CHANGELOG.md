@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.2 - 2023-03-10
+## 0.9.0 - 2023-03-10
 - Removed `record_count` property from Bento class
 - Fixed bug in `Bento` where invalid metadata would prevent iteration
 - Improved use of the logging module
