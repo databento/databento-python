@@ -143,6 +143,36 @@ def validate_gateway(
     return urlunsplit(components=("https", url_chunks.path, "", "", ""))
 
 
+def validate_semantic_string(value: str, param: str) -> str:
+    """
+    Validate whether a string contains a semantic value.
+    A string is considered absent of meaning if:
+        - It is empty.
+        - It contains only whitespace.
+        - It contains unprintable characters.
+
+    Parameters
+    ----------
+    value: str
+        The string to validate.
+    param : str
+        The name of the parameter being validated (for any error message).
+
+    Raises
+    ------
+    ValueError
+        If the string is not meaningful.
+
+    """
+    if not value:
+        raise ValueError(f"The `{param}` cannot be an empty string.")
+    if str.isspace(value):
+        raise ValueError(f"The `{param}` cannot contain only whitepsace.")
+    if not str.isprintable(value):
+        raise ValueError(f"The `{param}` cannot contain unprintable characters.")
+    return value
+
+
 def validate_smart_symbol(symbol: str) -> str:
     """
     Validate whether symbol has a valid smart symbol format.

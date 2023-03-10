@@ -269,8 +269,6 @@ class Bento:
         The raw compressed data in bytes.
     reader : IO[bytes]
         A zstd decompression stream.
-    record_count : int
-        The record count.
     schema : Schema
         The data record schema.
     start : pd.Timestamp
@@ -347,10 +345,17 @@ class Bento:
 
     def __iter__(self) -> Generator[np.void, None, None]:
         reader = self.reader
-        for _ in range(self.record_count):
+        while True:
             raw = reader.read(self.record_size)
-            rec = np.frombuffer(raw, dtype=STRUCT_MAP[self.schema])
-            yield rec[0]
+            if raw:
+                rec = np.frombuffer(raw, dtype=STRUCT_MAP[self.schema])
+                yield rec[0]
+            else:
+                break
+
+    def __repr__(self) -> str:
+        name = self.__class__.__name__
+        return f"<{name}(schema={self.schema})>"
 
     def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
         df.index = pd.to_datetime(df.index, utc=True)
@@ -412,8 +417,10 @@ class Bento:
         return product_id_index
 
     def _prepare_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Setup column ordering and index
         df.set_index(self._get_index_column(), inplace=True)
-        df.drop(["length", "rtype"], axis=1, inplace=True)
+        df = df.reindex(columns=COLUMNS[self.schema])
+
         if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
@@ -424,10 +431,6 @@ class Bento:
             for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
                 if column in df.columns:
                     df[column] = df[column].where(df[column] != type_max, np.nan)
-
-        # Reorder columns
-        df = df.reindex(columns=COLUMNS[self.schema])
-
         return df
 
     def _get_index_column(self) -> str:
@@ -602,18 +605,6 @@ class Bento:
         # Seek past the metadata to read records
         reader.seek(self._metadata_length)
         return reader
-
-    @property
-    def record_count(self) -> int:
-        """
-        Return the record count.
-
-        Returns
-        -------
-        int
-
-        """
-        return self._metadata["record_count"]
 
     @property
     def schema(self) -> Schema:

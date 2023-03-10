@@ -8,6 +8,7 @@ from databento.common.validation import (
     validate_gateway,
     validate_maybe_enum,
     validate_path,
+    validate_semantic_string,
     validate_smart_symbol,
 )
 
@@ -120,3 +121,29 @@ class TestValidation:
         else:
             with pytest.raises(expected):
                 validate_smart_symbol(symbol)
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        pytest.param("nick", "nick"),
+        pytest.param("", ValueError, id="empty"),
+        pytest.param(" ", ValueError, id="whitespace"),
+        pytest.param("foo\x00", ValueError, id="unprintable"),
+    ],
+)
+def test_validate_semantic_string(
+    value: str,
+    expected: Union[str, Type[Exception]],
+) -> None:
+    """
+    Test that validate_semantic_string rejects string which are:
+        - empty
+        - whitespace
+        - contain unprintable characters
+    """
+    if isinstance(expected, str):
+        assert validate_semantic_string(value, "unittest") == expected
+    else:
+        with pytest.raises(expected):
+            assert validate_semantic_string(value, "")

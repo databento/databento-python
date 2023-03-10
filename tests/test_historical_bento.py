@@ -116,7 +116,7 @@ def test_bento_given_initial_nbytes_returns_expected_metadata() -> None:
     assert bento.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
     assert bento.end == pd.Timestamp("2020-12-29 13:00:00+0000", tz="UTC")
     assert bento.limit == 2
-    assert bento.record_count == 2
+    assert len(bento.to_ndarray()) == 2
     assert bento.mappings == {
         "ESH1": [
             {
@@ -245,6 +245,44 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
     # Assert
     assert list(df.columns) == list(df.columns)
     assert len(df) == 2
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        pytest.param(schema, id=str(schema))
+        for schema in (
+            Schema.MBO,
+            Schema.MBP_1,
+            Schema.MBP_10,
+            Schema.TBBO,
+            Schema.TRADES,
+            Schema.OHLCV_1S,
+            Schema.OHLCV_1M,
+            Schema.OHLCV_1H,
+            Schema.OHLCV_1D,
+            Schema.DEFINITION,
+        )
+    ],
+)
+def test_to_df_drop_columns(
+    schema: Schema,
+) -> None:
+    """
+    Test that rtype, length, and dummy columns are dropped when
+    calling to_df().
+    """
+    # Arrange
+    stub_data = get_test_data(schema=schema)
+    data = Bento.from_bytes(data=stub_data)
+
+    # Act
+    df = data.to_df()
+
+    # Assert
+    assert "length" not in df
+    assert "rtype" not in df
+    assert "dummy" not in df
 
 
 def test_to_df_with_mbo_data_returns_expected_record() -> None:
@@ -405,7 +443,7 @@ def test_from_dbn_alias() -> None:
 
     # Assert
     assert data.schema == Schema.MBO
-    assert data.record_count == 2
+    assert len(data.to_ndarray()) == 2
 
 
 def test_mbo_to_csv_writes_expected_file_to_disk(tmp_path: Path) -> None:
@@ -633,6 +671,38 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     )
 
 
+@pytest.mark.parametrize(
+    "schema",
+    [
+        s
+        for s in Schema
+        if s
+        not in (
+            Schema.OHLCV_1H,
+            Schema.OHLCV_1D,
+            Schema.STATUS,
+            Schema.STATISTICS,
+            Schema.DEFINITION,
+            Schema.GATEWAY_ERROR,
+            Schema.SYMBOL_MAPPING,
+        )
+    ],
+)
+def test_bento_repr(schema: Schema) -> None:
+    """
+    Check that a more meaningful string is returned
+    when calling `repr()` on a Bento.
+    """
+    # Arrange
+    stub_data = get_test_data(schema=schema)
+
+    # Act
+    bento = Bento.from_bytes(data=stub_data)
+
+    # Assert
+    assert repr(bento) == f"<Bento(schema={schema})>"
+
+
 def test_bento_iterable() -> None:
     """
     Tests the Bento iterable implementation to ensure records
@@ -718,6 +788,6 @@ def test_bento_compression_equality(schema: Schema) -> None:
     zstd_bento = Bento.from_bytes(zstd_stub_data)
     dbn_bento = Bento.from_bytes(dbn_stub_data)
 
-    assert zstd_bento.record_count == dbn_bento.record_count
+    assert len(zstd_bento.to_ndarray()) == len(dbn_bento.to_ndarray())
     assert zstd_bento.metadata == dbn_bento.metadata
     assert zstd_bento.reader.read() == dbn_bento.reader.read()

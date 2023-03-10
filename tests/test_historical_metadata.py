@@ -247,6 +247,34 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
+    def test_get_dataset_range_sends_expected_request(
+        self,
+        mocker: MockerFixture,
+    ) -> None:
+        # Arrange
+        mocked_get = mocker.patch("requests.get")
+
+        # Act
+        self.client.metadata.get_dataset_range(dataset="GLBX.MDP3")
+
+        # Assert
+        call = mocked_get.call_args.kwargs
+        assert (
+            call["url"]
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_dataset_range"  # noqa
+        )
+        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+        assert call["headers"]["accept"] == "application/json"
+        assert all(
+            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
+        )
+        assert call["params"] == [
+            ("dataset", "GLBX.MDP3"),
+        ]
+        assert call["timeout"] == (100, 100)
+        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_record_count_sends_expected_request(
         self,
         mocker: MockerFixture,

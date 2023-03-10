@@ -7,9 +7,6 @@ if __name__ == "__main__":
     key = "YOUR_API_KEY"
     client = Historical(key=key)
 
-    unit_prices = client.metadata.list_unit_prices(
-        dataset="GLBX.MDP3",
-        mode="historical-streaming",
-    )
+    available_range = client.metadata.get_dataset_range(dataset="GLBX.MDP3")
 
-    pprint(unit_prices)
+    pprint(available_range)

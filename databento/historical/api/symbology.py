@@ -6,7 +6,7 @@ from databento.common.parsing import (
     datetime_to_date_string,
     optional_symbols_list_to_string,
 )
-from databento.common.validation import validate_enum
+from databento.common.validation import validate_enum, validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from requests import Response
@@ -63,7 +63,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         params: List[Tuple[str, str]] = [
-            ("dataset", dataset),
+            ("dataset", validate_semantic_string(dataset, "dataset")),
             ("symbols", symbols_list),
             ("stype_in", str(stype_in_valid)),
             ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),

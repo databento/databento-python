@@ -170,11 +170,13 @@ class TestHistoricalBatch:
         filename = "glbx-mdp3-20220610.mbo.csv.zst"
 
         # Act
-        self.client.batch.download(
-            job_id=job_id,
-            output_dir="my_data",
-            filename_to_download=filename,
-        )
+        with pytest.raises(ValueError):
+            # We expect this to fail since this is not a real batch job.
+            self.client.batch.download(
+                job_id=job_id,
+                output_dir="my_data",
+                filename_to_download=filename,
+            )
 
         # Assert
         call = mocked_get.call_args.kwargs
