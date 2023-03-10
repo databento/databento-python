@@ -215,7 +215,7 @@ class TestHistoricalMetadata:
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_dataset_conditions_sends_expected_request(
+    def test_get_dataset_condition_sends_expected_request(
         self,
         mocker: MockerFixture,
     ) -> None:
@@ -223,7 +223,7 @@ class TestHistoricalMetadata:
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.list_dataset_conditions(
+        self.client.metadata.get_dataset_condition(
             dataset="GLBX.MDP3",
             start_date="2018-01-01",
             end_date="2020-01-01",
@@ -233,7 +233,7 @@ class TestHistoricalMetadata:
         call = mocked_get.call_args.kwargs
         assert (
             call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_dataset_conditions"  # noqa
+            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.get_dataset_condition"  # noqa
         )
         assert ("dataset", "GLBX.MDP3") in call["params"]
         assert ("start_date", "2018-01-01") in call["params"]

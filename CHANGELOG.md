@@ -1,7 +1,7 @@
 # Changelog
 
 ## 0.9.0 - TBD
-- Renamed `metadata.get_dataset_condition` to `metadata.list_dataset_conditions`
+- Changed `metadata.get_dataset_condition` response to a list of condition per date
 
 ## 0.8.1 - 2023-03-05
 - Fixed bug in `Bento` iteration where multiple readers were created

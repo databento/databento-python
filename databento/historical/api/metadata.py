@@ -242,7 +242,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
-    def list_dataset_conditions(
+    def get_dataset_condition(
         self,
         dataset: Union[Dataset, str],
         start_date: Optional[Union[date, str]] = None,
@@ -251,7 +251,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         Get the per date dataset conditions from Databento.
 
-        Makes a `GET /metadata.list_dataset_conditions` HTTP request.
+        Makes a `GET /metadata.get_dataset_condition` HTTP request.
 
         Use this method to discover data availability and quality.
 
@@ -278,7 +278,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         ]
 
         response: Response = self._get(
-            url=self._base_url + ".list_dataset_conditions",
+            url=self._base_url + ".get_dataset_condition",
             params=params,
             basic_auth=True,
         )
