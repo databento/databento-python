@@ -1,5 +1,5 @@
 import pytest
-from databento.common.bento import FileDataSource, MemoryDataSource
+from databento.common.dbnstore import FileDataSource, MemoryDataSource
 from databento.common.enums import Schema
 
 from tests.fixtures import get_test_data, get_test_data_path

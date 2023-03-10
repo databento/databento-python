@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import databento as db
 import pytest
 import requests
-from databento import Bento, Historical
+from databento import DBNStore, Historical
 from databento.common.enums import HistoricalGateway, Schema
 from pytest_mock import MockerFixture
 
@@ -108,7 +108,7 @@ class TestHistoricalClient:
         client = Historical(key="DUMMY_API_KEY")
 
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = Bento.from_file(path=test_data_path)
+        bento = DBNStore.from_file(path=test_data_path)
 
         # Act
         bento.request_symbology(client)
@@ -148,14 +148,14 @@ class TestHistoricalClient:
 
         # Create an MBO bento
         test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = Bento.from_file(path=test_data_path)
+        bento = DBNStore.from_file(path=test_data_path)
 
         # Mock from_bytes with the definition stub
         stream_bytes = get_test_data(Schema.DEFINITION)
         monkeypatch.setattr(
-            Bento,
+            DBNStore,
             "from_bytes",
-            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+            MagicMock(return_value=DBNStore.from_bytes(stream_bytes)),
         )
 
         # Act

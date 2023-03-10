@@ -7,7 +7,7 @@ from os import PathLike
 from typing import List, Optional, Tuple, Union
 
 import pandas as pd
-from databento.common.bento import Bento
+from databento.common.dbnstore import DBNStore
 from databento.common.deprecated import deprecated
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.parsing import datetime_to_string, optional_symbols_list_to_string
@@ -38,7 +38,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
-    ) -> Bento:
+    ) -> DBNStore:
         """
         The `.stream` method is deprecated and will be removed in a future version.
         The method has been renamed to `.get_range`, which you can now use.
@@ -66,7 +66,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
-    ) -> Bento:
+    ) -> DBNStore:
         """
         Request a historical time series data stream from Databento.
 
@@ -101,11 +101,11 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
         path : PathLike or str, optional
-            The path to stream the data to on disk (will then return a `Bento`).
+            The path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns
         -------
-        Bento
+        DBNStore
 
         Notes
         -----
@@ -157,9 +157,9 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         if path is not None:
             writer.close()
-            return Bento.from_file(path)
+            return DBNStore.from_file(path)
         writer.seek(0)  # rewind for read
-        return Bento.from_bytes(writer.read())
+        return DBNStore.from_bytes(writer.read())
 
     @deprecated
     async def stream_async(
@@ -173,7 +173,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
-    ) -> Bento:
+    ) -> DBNStore:
         """
         The `.stream_async` method is deprecated and will be removed in a future
         version.
@@ -202,7 +202,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_out: Union[SType, str] = "product_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
-    ) -> Bento:
+    ) -> DBNStore:
         """
         Asynchronously request a historical time series data stream from Databento.
 
@@ -237,11 +237,11 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
         path : PathLike or str, optional
-            The path to stream the data to on disk (will then return a `Bento`).
+            The path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns
         -------
-        Bento
+        DBNStore
 
         Notes
         -----
@@ -292,9 +292,9 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         if path is not None:
             writer.close()
-            return Bento.from_file(path)
+            return DBNStore.from_file(path)
         writer.seek(0)  # rewind for read
-        return Bento.from_bytes(writer.read())
+        return DBNStore.from_bytes(writer.read())
 
     def _pre_check_data_size(  # noqa (prefer not to make static)
         self,

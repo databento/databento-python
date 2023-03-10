@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import databento as db
 import pytest
 import requests
-from databento import Bento
+from databento import DBNStore
 from databento.common.enums import Schema
 from pytest_mock import MockerFixture
 
@@ -63,9 +63,9 @@ class TestHistoricalTimeSeries:
         # Mock from_bytes with the definition stub
         stream_bytes = get_test_data(Schema.TRADES)
         monkeypatch.setattr(
-            Bento,
+            DBNStore,
             "from_bytes",
-            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+            MagicMock(return_value=DBNStore.from_bytes(stream_bytes)),
         )
 
         # Act
@@ -115,9 +115,9 @@ class TestHistoricalTimeSeries:
         # Mock from_bytes with the definition stub
         stream_bytes = get_test_data(Schema.TRADES)
         monkeypatch.setattr(
-            Bento,
+            DBNStore,
             "from_bytes",
-            MagicMock(return_value=Bento.from_bytes(stream_bytes)),
+            MagicMock(return_value=DBNStore.from_bytes(stream_bytes)),
         )
 
         # Act

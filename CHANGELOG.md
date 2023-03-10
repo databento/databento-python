@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.0 - TBD
+- Renamed `Bento` class to `DBNStore`
+
 ## 0.9.0 - 2023-03-10
 - Removed `record_count` property from Bento class
 - Fixed bug in `Bento` where invalid metadata would prevent iteration
