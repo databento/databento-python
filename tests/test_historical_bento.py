@@ -116,7 +116,7 @@ def test_bento_given_initial_nbytes_returns_expected_metadata() -> None:
     assert bento.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
     assert bento.end == pd.Timestamp("2020-12-29 13:00:00+0000", tz="UTC")
     assert bento.limit == 2
-    assert bento.record_count == 2
+    assert len(bento.to_ndarray()) == 2
     assert bento.mappings == {
         "ESH1": [
             {
@@ -443,7 +443,7 @@ def test_from_dbn_alias() -> None:
 
     # Assert
     assert data.schema == Schema.MBO
-    assert data.record_count == 2
+    assert len(data.to_ndarray()) == 2
 
 
 def test_mbo_to_csv_writes_expected_file_to_disk(tmp_path: Path) -> None:
@@ -688,38 +688,6 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
         )
     ],
 )
-def test_bento_len(schema: Schema) -> None:
-    """
-    Check that calling `len()` on a Bento returns
-    the record count.
-    """
-    # Arrange
-    stub_data = get_test_data(schema=schema)
-
-    # Act
-    bento = Bento.from_bytes(data=stub_data)
-
-    # Assert
-    assert len(bento) == bento.record_count
-
-
-@pytest.mark.parametrize(
-    "schema",
-    [
-        s
-        for s in Schema
-        if s
-        not in (
-            Schema.OHLCV_1H,
-            Schema.OHLCV_1D,
-            Schema.STATUS,
-            Schema.STATISTICS,
-            Schema.DEFINITION,
-            Schema.GATEWAY_ERROR,
-            Schema.SYMBOL_MAPPING,
-        )
-    ],
-)
 def test_bento_repr(schema: Schema) -> None:
     """
     Check that a more meaningful string is returned
@@ -732,7 +700,7 @@ def test_bento_repr(schema: Schema) -> None:
     bento = Bento.from_bytes(data=stub_data)
 
     # Assert
-    assert repr(bento) == f"<Bento(schema={schema}, record_count={bento.record_count})>"
+    assert repr(bento) == f"<Bento(schema={schema})>"
 
 
 def test_bento_iterable() -> None:
@@ -820,6 +788,6 @@ def test_bento_compression_equality(schema: Schema) -> None:
     zstd_bento = Bento.from_bytes(zstd_stub_data)
     dbn_bento = Bento.from_bytes(dbn_stub_data)
 
-    assert zstd_bento.record_count == dbn_bento.record_count
+    assert len(zstd_bento.to_ndarray()) == len(dbn_bento.to_ndarray())
     assert zstd_bento.metadata == dbn_bento.metadata
     assert zstd_bento.reader.read() == dbn_bento.reader.read()

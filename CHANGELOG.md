@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.9.0 - TBD
+## 0.8.2 - 2023-03-10
+- Removed `record_count` property from Bento class
+- Fixed bug in `Bento` where invalid metadata would prevent iteration
+- Improved use of the logging module
 - Changed `metadata.get_dataset_condition` response to a list of condition per date
 
 ## 0.8.1 - 2023-03-05
