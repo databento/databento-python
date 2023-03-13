@@ -2,6 +2,9 @@
 
 ## 0.10.0 - TBD
 - Renamed `Bento` class to `DBNStore`
+- Removed `metadata.list_compressions` (redundant with docs)
+- Removed `metadata.list_encodings` (redundant with docs)
+- Removed optional `start` and `end` params from `metadata.list_schemas` (redundant)
 
 ## 0.9.0 - 2023-03-10
 - Removed `record_count` property from Bento class

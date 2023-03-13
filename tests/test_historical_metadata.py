@@ -71,11 +71,7 @@ class TestHistoricalMetadata:
         mocked_get = mocker.patch("requests.get")
 
         # Act
-        self.client.metadata.list_schemas(
-            dataset="GLBX.MDP3",
-            start_date="2018-01-01",
-            end_date="2021-01-01",
-        )
+        self.client.metadata.list_schemas(dataset="GLBX.MDP3")
 
         # Assert
         call = mocked_get.call_args.kwargs
@@ -84,8 +80,6 @@ class TestHistoricalMetadata:
             == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_schemas"
         )
         assert ("dataset", "GLBX.MDP3") in call["params"]
-        assert ("start_date", "2018-01-01") in call["params"]
-        assert ("end_date", "2021-01-01") in call["params"]
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"
         assert all(
@@ -115,53 +109,6 @@ class TestHistoricalMetadata:
         assert ("dataset", "GLBX.MDP3") in call["params"]
         assert ("schema", "mbo") in call["params"]
         assert ("encoding", "dbn") in call["params"]
-        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
-        assert call["headers"]["accept"] == "application/json"
-        assert all(
-            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
-        )
-        assert call["timeout"] == (100, 100)
-        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
-
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_encodings_sends_expected_request(self, mocker: MockerFixture) -> None:
-        # Arrange
-        mocked_get = mocker.patch("requests.get")
-
-        # Act
-        self.client.metadata.list_encodings()
-
-        # Assert
-        call = mocked_get.call_args.kwargs
-        assert (
-            call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_encodings"
-        )
-        assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
-        assert call["headers"]["accept"] == "application/json"
-        assert all(
-            v in call["headers"]["user-agent"] for v in ("Databento/", "Python/")
-        )
-        assert call["timeout"] == (100, 100)
-        assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
-
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
-    def test_list_compressions_sends_expected_request(
-        self,
-        mocker: MockerFixture,
-    ) -> None:
-        # Arrange
-        mocked_get = mocker.patch("requests.get")
-
-        # Act
-        self.client.metadata.list_compressions()
-
-        # Assert
-        call = mocked_get.call_args.kwargs
-        assert (
-            call["url"]
-            == f"https://hist.databento.com/v{db.API_VERSION}/metadata.list_compressions"  # noqa
-        )
         assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
         assert call["headers"]["accept"] == "application/json"
         assert all(
