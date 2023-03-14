@@ -1,5 +1,6 @@
+import pathlib
 import sys
-from typing import Union
+from typing import Callable, Union
 from unittest.mock import MagicMock
 
 import databento as db
@@ -8,8 +9,6 @@ import requests
 from databento import DBNStore, Historical
 from databento.common.enums import HistoricalGateway, Schema
 from pytest_mock import MockerFixture
-
-from tests.fixtures import get_test_data, get_test_data_path
 
 
 class TestHistoricalClient:
@@ -100,6 +99,7 @@ class TestHistoricalClient:
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_re_request_symbology_makes_expected_request(
         self,
+        test_data_path: Callable[[Schema], pathlib.Path],
         mocker: MockerFixture,
     ) -> None:
         # Arrange
@@ -107,8 +107,7 @@ class TestHistoricalClient:
 
         client = Historical(key="DUMMY_API_KEY")
 
-        test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = DBNStore.from_file(path=test_data_path)
+        bento = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
         # Act
         bento.request_symbology(client)
@@ -139,6 +138,8 @@ class TestHistoricalClient:
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_request_full_definitions_expected_request(
         self,
+        test_data: Callable[[Schema], bytes],
+        test_data_path: Callable[[Schema], pathlib.Path],
         mocker: MockerFixture,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -147,11 +148,10 @@ class TestHistoricalClient:
         client = Historical(key="DUMMY_API_KEY")
 
         # Create an MBO bento
-        test_data_path = get_test_data_path(schema=Schema.MBO)
-        bento = DBNStore.from_file(path=test_data_path)
+        bento = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
         # Mock from_bytes with the definition stub
-        stream_bytes = get_test_data(Schema.DEFINITION)
+        stream_bytes = test_data(Schema.DEFINITION)
         monkeypatch.setattr(
             DBNStore,
             "from_bytes",

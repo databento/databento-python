@@ -2,7 +2,7 @@ import collections
 import datetime as dt
 import sys
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 import databento
 import numpy as np
@@ -11,8 +11,6 @@ import pytest
 import zstandard
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
-
-from tests.fixtures import get_test_data, get_test_data_path
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:
@@ -33,9 +31,11 @@ def test_from_file_when_file_empty_raises_expected_exception(
         DBNStore.from_file(path)
 
 
-def test_sources_metadata_returns_expected_json_as_dict() -> None:
+def test_sources_metadata_returns_expected_json_as_dict(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange, Act
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
@@ -64,9 +64,11 @@ def test_sources_metadata_returns_expected_json_as_dict() -> None:
     }
 
 
-def test_build_product_id_index() -> None:
+def test_build_product_id_index(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -79,9 +81,11 @@ def test_build_product_id_index() -> None:
     }
 
 
-def test_dbnstore_given_initial_nbytes_returns_expected_metadata() -> None:
+def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
 
     # Act
     dbnstore = DBNStore.from_bytes(data=stub_data)
@@ -146,9 +150,11 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata() -> None:
     }
 
 
-def test_file_dbnstore_given_valid_path_initialized_expected_data() -> None:
+def test_file_dbnstore_given_valid_path_initialized_expected_data(
+    test_data_path: Callable[[Schema], Path],
+) -> None:
     # Arrange, Act
-    path = get_test_data_path(schema=Schema.MBO)
+    path = test_data_path(Schema.MBO)
     dbnstore = DBNStore.from_file(path=path)
 
     # Assert
@@ -156,9 +162,12 @@ def test_file_dbnstore_given_valid_path_initialized_expected_data() -> None:
     assert dbnstore.nbytes == 172
 
 
-def test_to_file_persists_to_disk(tmp_path: Path) -> None:
+def test_to_file_persists_to_disk(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -170,9 +179,11 @@ def test_to_file_persists_to_disk(tmp_path: Path) -> None:
     assert dbn_path.stat().st_size == 172
 
 
-def test_to_ndarray_with_stub_data_returns_expected_array() -> None:
+def test_to_ndarray_with_stub_data_returns_expected_array(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -186,9 +197,11 @@ def test_to_ndarray_with_stub_data_returns_expected_array() -> None:
     )
 
 
-def test_iterator_produces_expected_data() -> None:
+def test_iterator_produces_expected_data(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act (consume iterator)
@@ -198,9 +211,11 @@ def test_iterator_produces_expected_data() -> None:
     assert len(handler) == 2
 
 
-def test_replay_with_stub_data_record_passes_to_callback() -> None:
+def test_replay_with_stub_data_record_passes_to_callback(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     handler: List[Tuple[Union[int, bytes], ...]] = []
@@ -233,10 +248,11 @@ def test_replay_with_stub_data_record_passes_to_callback() -> None:
     ],
 )
 def test_to_df_across_schemas_returns_identical_dimension_dfs(
+    test_data: Callable[[Schema], bytes],
     schema: Schema,
 ) -> None:
     # Arrange
-    stub_data = get_test_data(schema=schema)
+    stub_data = test_data(schema)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -266,6 +282,7 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
     ],
 )
 def test_to_df_drop_columns(
+    test_data: Callable[[Schema], bytes],
     schema: Schema,
 ) -> None:
     """
@@ -273,7 +290,7 @@ def test_to_df_drop_columns(
     calling to_df().
     """
     # Arrange
-    stub_data = get_test_data(schema=schema)
+    stub_data = test_data(schema)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -285,9 +302,11 @@ def test_to_df_drop_columns(
     assert "dummy" not in df
 
 
-def test_to_df_with_mbo_data_returns_expected_record() -> None:
+def test_to_df_with_mbo_data_returns_expected_record(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -312,9 +331,11 @@ def test_to_df_with_mbo_data_returns_expected_record() -> None:
     assert df.iloc[0].sequence == 1170352
 
 
-def test_to_df_with_stub_ohlcv_data_returns_expected_record() -> None:
+def test_to_df_with_stub_ohlcv_data_returns_expected_record(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.OHLCV_1M)
+    stub_data = test_data(Schema.OHLCV_1M)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -336,9 +357,11 @@ def test_to_df_with_stub_ohlcv_data_returns_expected_record() -> None:
     assert df.iloc[0].volume == 353
 
 
-def test_to_df_with_pretty_ts_converts_timestamps_as_expected() -> None:
+def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -390,11 +413,12 @@ def test_to_df_with_pretty_ts_converts_timestamps_as_expected() -> None:
     ],
 )
 def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
+    test_data: Callable[[Schema], bytes],
     schema: Schema,
     columns: List[str],
 ) -> None:
     # Arrange
-    stub_data = get_test_data(schema=schema)
+    stub_data = test_data(schema)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -422,10 +446,11 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
     ],
 )
 def test_from_file_given_various_paths_returns_expected_metadata(
+    test_data_path: Callable[[Schema], Path],
     expected_schema: Schema,
 ) -> None:
     # Arrange
-    path = get_test_data_path(schema=expected_schema)
+    path = test_data_path(expected_schema)
 
     # Act
     data = DBNStore.from_file(path=path)
@@ -434,9 +459,11 @@ def test_from_file_given_various_paths_returns_expected_metadata(
     assert data.schema == expected_schema
 
 
-def test_from_dbn_alias() -> None:
+def test_from_dbn_alias(
+    test_data_path: Callable[[Schema], Path],
+) -> None:
     # Arrange
-    path = get_test_data_path(schema=Schema.MBO)
+    path = test_data_path(Schema.MBO)
 
     # Act
     data = databento.from_dbn(path=path)
@@ -446,10 +473,12 @@ def test_from_dbn_alias() -> None:
     assert len(data.to_ndarray()) == 2
 
 
-def test_mbo_to_csv_writes_expected_file_to_disk(tmp_path: Path) -> None:
+def test_mbo_to_csv_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
+    tmp_path: Path,
+) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBO)
-    data = DBNStore.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -477,11 +506,11 @@ def test_mbo_to_csv_writes_expected_file_to_disk(tmp_path: Path) -> None:
 
 
 def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = DBNStore.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -510,11 +539,11 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
 
 
 def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = DBNStore.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -546,11 +575,11 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
 
 
 def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBO)
-    data = DBNStore.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -576,11 +605,11 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
 
 
 def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBO)
-    data = DBNStore.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -607,11 +636,11 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
 
 
 def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = DBNStore.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -639,11 +668,11 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
 
 
 def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = DBNStore.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -688,13 +717,16 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
         )
     ],
 )
-def test_dbnstore_repr(schema: Schema) -> None:
+def test_dbnstore_repr(
+    test_data: Callable[[Schema], bytes],
+    schema: Schema,
+) -> None:
     """
     Check that a more meaningful string is returned
     when calling `repr()` on a DBNStore.
     """
     # Arrange
-    stub_data = get_test_data(schema=schema)
+    stub_data = test_data(schema)
 
     # Act
     dbnstore = DBNStore.from_bytes(data=stub_data)
@@ -703,13 +735,15 @@ def test_dbnstore_repr(schema: Schema) -> None:
     assert repr(dbnstore) == f"<DBNStore(schema={schema})>"
 
 
-def test_dbnstore_iterable() -> None:
+def test_dbnstore_iterable(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     """
     Tests the DBNStore iterable implementation to ensure records
     can be accessed by iteration.
     """
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     record_list = list(dbnstore)
@@ -725,14 +759,16 @@ def test_dbnstore_iterable() -> None:
     )
 
 
-def test_dbnstore_iterable_parallel() -> None:
+def test_dbnstore_iterable_parallel(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     """
     Tests the DBNStore iterable implementation to ensure iterators are
     not stateful. For example, calling next() on one iterator does
     not affect another.
     """
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     first = iter(dbnstore)
@@ -774,16 +810,17 @@ def test_dbnstore_iterable_parallel() -> None:
         Schema.TRADES,
     ],
 )
-def test_dbnstore_compression_equality(schema: Schema) -> None:
+def test_dbnstore_compression_equality(
+    test_data: Callable[[Schema], bytes],
+    schema: Schema,
+) -> None:
     """
     Test that a DBNStore constructed from compressed data contains the same
     records as an uncompressed version. Note that stub data is compressed
     with zstandard by default.
     """
-    zstd_stub_data = get_test_data(schema=schema)
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(get_test_data(schema=schema)).read()
-    )
+    zstd_stub_data = test_data(schema)
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
 
     zstd_dbnstore = DBNStore.from_bytes(zstd_stub_data)
     dbn_dbnstore = DBNStore.from_bytes(dbn_stub_data)

@@ -1,4 +1,5 @@
 import sys
+from typing import Callable
 from unittest.mock import MagicMock
 
 import databento as db
@@ -7,8 +8,6 @@ import requests
 from databento import DBNStore
 from databento.common.enums import Schema
 from pytest_mock import MockerFixture
-
-from tests.fixtures import get_test_data
 
 
 class TestHistoricalTimeSeries:
@@ -54,6 +53,7 @@ class TestHistoricalTimeSeries:
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_range_sends_expected_request(
         self,
+        test_data: Callable[[Schema], bytes],
         mocker: MockerFixture,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -61,7 +61,7 @@ class TestHistoricalTimeSeries:
         mocked_get = mocker.patch("requests.get")
 
         # Mock from_bytes with the definition stub
-        stream_bytes = get_test_data(Schema.TRADES)
+        stream_bytes = test_data(Schema.TRADES)
         monkeypatch.setattr(
             DBNStore,
             "from_bytes",
@@ -106,6 +106,7 @@ class TestHistoricalTimeSeries:
     @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_range_with_limit_sends_expected_request(
         self,
+        test_data: Callable[[Schema], bytes],
         mocker: MockerFixture,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -113,7 +114,7 @@ class TestHistoricalTimeSeries:
         mocked_get = mocker.patch("requests.get")
 
         # Mock from_bytes with the definition stub
-        stream_bytes = get_test_data(Schema.TRADES)
+        stream_bytes = test_data(Schema.TRADES)
         monkeypatch.setattr(
             DBNStore,
             "from_bytes",

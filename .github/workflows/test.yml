@@ -31,5 +31,9 @@ jobs:
           scripts/build.sh
 
       # Run tests
+      - name: Run tests in release mode
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: scripts/test.sh --release
       - name: Run tests
+        if: ${{ github.ref != 'refs/heads/main' }}
         run: scripts/test.sh
