@@ -32,6 +32,7 @@ from databento.common.data import (
 from databento.common.enums import Compression, Schema, SType
 from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import ProductIdMappingInterval
+from databento.historical.error import BentoError
 
 
 logger = logging.getLogger(__name__)
@@ -345,11 +346,18 @@ class DBNStore:
 
     def __iter__(self) -> Generator[np.void, None, None]:
         reader = self.reader
+        dtype = STRUCT_MAP[self.schema]
         while True:
             raw = reader.read(self.record_size)
             if raw:
-                rec = np.frombuffer(raw, dtype=STRUCT_MAP[self.schema])
-                yield rec[0]
+                try:
+                    rec = np.frombuffer(raw, dtype)
+                except ValueError as value_error:
+                    raise BentoError(
+                        f"Error decoding {len(raw)} bytes for {self.schema} iteration",
+                    ) from value_error
+                else:
+                    yield rec[0]
             else:
                 break
 
@@ -971,4 +979,11 @@ class DBNStore:
 
         """
         data: bytes = self.reader.read()
-        return np.frombuffer(data, dtype=self.dtype)
+        try:
+            nd_array = np.frombuffer(data, dtype=self.dtype)
+        except ValueError as value_error:
+            raise BentoError(
+                f"Error decoding {len(data)} bytes to {self.schema} `ndarray`",
+            ) from value_error
+        else:
+            return nd_array

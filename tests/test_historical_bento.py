@@ -11,6 +11,7 @@ import pytest
 import zstandard
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
+from databento.historical.error import BentoError
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:
@@ -820,7 +821,7 @@ def test_dbnstore_compression_equality(
     with zstandard by default.
     """
     zstd_stub_data = test_data(schema)
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(zstd_stub_data).read()
 
     zstd_dbnstore = DBNStore.from_bytes(zstd_stub_data)
     dbn_dbnstore = DBNStore.from_bytes(dbn_stub_data)
@@ -828,3 +829,70 @@ def test_dbnstore_compression_equality(
     assert len(zstd_dbnstore.to_ndarray()) == len(dbn_dbnstore.to_ndarray())
     assert zstd_dbnstore.metadata == dbn_dbnstore.metadata
     assert zstd_dbnstore.reader.read() == dbn_dbnstore.reader.read()
+
+
+def test_dbnstore_buffer_short(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that creating a DBNStore with missing bytes raises a
+    BentoError when decoding.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data[:-2])
+
+    # Assert
+    with pytest.raises(BentoError):
+        list(dbnstore)
+
+    with pytest.raises(BentoError):
+        dbnstore.to_ndarray()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_df()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_csv(tmp_path / "test.csv")
+
+    with pytest.raises(BentoError):
+        dbnstore.to_json(tmp_path / "test.json")
+
+
+def test_dbnstore_buffer_long(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that creating a DBNStore with excess bytes raises a
+    BentoError when decoding.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+    )
+
+    # Act
+    dbn_stub_data += b"\xF0\xFF"
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    # Assert
+    with pytest.raises(BentoError):
+        list(dbnstore)
+
+    with pytest.raises(BentoError):
+        dbnstore.to_ndarray()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_df()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_csv(tmp_path / "test.csv")
+
+    with pytest.raises(BentoError):
+        dbnstore.to_json(tmp_path / "test.json")
