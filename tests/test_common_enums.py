@@ -142,7 +142,7 @@ def test_int_flags_stringy_mixin(enum_type: Type[Flag]) -> None:
     """
     Test that combinations of int flags are displayed properly.
     """
-    for value in map(sum, combinations(enum_type, 2)):
+    for value in map(sum, combinations(enum_type, 2)):  # type: ignore [arg-type]
         record_flags = enum_type(value)
         assert str(record_flags) == ", ".join(
             f.name.lower() for f in enum_type if f in record_flags
