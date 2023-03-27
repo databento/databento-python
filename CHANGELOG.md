@@ -1,11 +1,24 @@
 # Changelog
 
 ## 0.12.0 - TBD
+- Added `Live` client for connecting to Databento's live service
 - Upgraded `databento-dbn` to 0.5.0
+- Upgraded `DBNStore` to support mixed schema types to support live data
+- Changed iteration `DBNStore` to return record types from `databento-dbn` instead of numpy arrays
+- Removed `dtype` property from `DBNStore`
+- Removed `record_size` property from `DBNStore`
 - Renamed the `cost` field to `cost_usd` for `batch.submit_job` and `batch.list_jobs` (value now expressed as US dollars)
 - Removed `bad` condition variant from `batch.get_dataset_condition`
 - Added `degraded`, `pending` and `missing` condition variants for `batch.get_dataset_condition`
 - Added `last_modified_date` field to `batch.get_dataset_condition` response
+- Deprecated `SType.PRODUCT_ID` to `SType.INSTRUMENT_ID`
+- Deprecated `SType.NATIVE` to `SType.RAW_SYMBOL`
+- Deprecated `SType.SMART` to `SType.PARENT` and `SType.CONTINUOUS`
+- Removed unused `LiveGateway` enum
+- Removed `STATSTICS` from `Schema` enum
+- Removed `STATUS` from `Schema` enum
+- Removed `GATEWAY_ERROR` from `Schema` enum
+- Removed `SYMBOL_MAPPING` from `Schema` enum
 
 ## 0.11.0 - 2023-04-13
 - Changed `end` and `end_date` to optional to support new forward-fill behaviour

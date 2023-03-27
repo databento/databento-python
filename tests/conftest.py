@@ -1,11 +1,17 @@
 """Pytest fixtures"""
+import asyncio
 import pathlib
-from typing import Callable, Iterable
+import random
+import string
+from typing import AsyncGenerator, Callable, Generator, Iterable
 
 import pytest
-from databento import Schema
+import pytest_asyncio
+from databento.common.enums import Schema
+from databento.live import client
 
 from tests import TESTS_ROOT
+from tests.mock_live_server import MockLiveServer
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -127,3 +133,76 @@ def fixture_test_data(
         return test_data_path(schema).read_bytes()
 
     return func
+
+
+@pytest.fixture(name="test_api_key")
+def fixture_test_api_key() -> str:
+    """
+    Generates a random API key for testing.
+    API keys are 32 characters in length, the first three of
+    which are "db-".
+
+    Returns
+    -------
+    str
+
+    """
+    chars = string.ascii_letters + string.digits
+    random_str = "".join(random.choice(chars) for _ in range(29))
+    return f"db-{random_str}"
+
+
+@pytest_asyncio.fixture(name="mock_live_server")
+async def fixture_mock_live_server(
+    event_loop: asyncio.AbstractEventLoop,
+    test_api_key: str,
+    caplog: pytest.LogCaptureFixture,
+    unused_tcp_port: int,
+    monkeypatch: pytest.MonkeyPatch,
+) -> AsyncGenerator[MockLiveServer, None]:
+    """
+    Fixture for a MockLiveServer instance.
+
+    Yields
+    ------
+    MockLiveServer
+
+    """
+    event_loop.set_debug(True)
+    monkeypatch.setenv(
+        name="DATABENTO_API_KEY",
+        value=test_api_key,
+    )
+
+    with caplog.at_level("DEBUG"):
+        mock_live_server = await MockLiveServer.create(
+            host="127.0.0.1",
+            port=unused_tcp_port,
+            dbn_path=TESTS_ROOT / "data",
+        )
+        await mock_live_server.start()
+        yield mock_live_server
+        await mock_live_server.stop()
+
+
+@pytest.fixture(name="live_client")
+def fixture_live_client(
+    test_api_key: str,
+    mock_live_server: MockLiveServer,
+) -> Generator[client.Live, None, None]:
+    """
+    Fixture for a Live client to connect to the MockLiveServer.
+
+    Yields
+    ------
+    Live
+
+    """
+    test_client = client.Live(
+        key=test_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
+    yield test_client
+    if test_client.is_connected():
+        test_client.stop()

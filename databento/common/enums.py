@@ -2,6 +2,17 @@ import warnings
 from enum import Enum, EnumMeta, Flag, IntFlag, unique
 from typing import Any, Callable, Iterable, Type, TypeVar, Union
 
+from databento.live.dbn import DBNRecord
+from databento_dbn import (
+    ImbalanceMsg,
+    InstrumentDefMsg,
+    MBOMsg,
+    MBP1Msg,
+    MBP10Msg,
+    OHLCVMsg,
+    TradeMsg,
+)
+
 
 M = TypeVar("M", bound=Enum)
 
@@ -31,7 +42,7 @@ def coercible(enum_type: Type[M]) -> Type[M]:
     Raises
     ------
     ValueError
-        When an invalid value of the Enum is given.
+        If an invalid value of the Enum is given.
 
 
     Notes
@@ -148,16 +159,6 @@ class HistoricalGateway(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class LiveGateway(StringyMixin, str, Enum):
-    """Represents a live data center gateway location."""
-
-    ORIGIN = "origin"
-    NY4 = "ny4"
-    DC3 = "dc3"
-
-
-@unique
-@coercible
 class FeedMode(StringyMixin, str, Enum):
     """Represents a data feed mode."""
 
@@ -191,10 +192,31 @@ class Schema(StringyMixin, str, Enum):
     OHLCV_1D = "ohlcv-1d"
     DEFINITION = "definition"
     IMBALANCE = "imbalance"
-    STATISTICS = "statistics"
-    STATUS = "status"
-    GATEWAY_ERROR = "gateway_error"
-    SYMBOL_MAPPING = "symbol_mapping"
+
+    def get_record_type(self) -> Type[DBNRecord]:
+        if self == Schema.MBO:
+            return MBOMsg
+        if self == Schema.MBP_1:
+            return MBP1Msg
+        if self == Schema.MBP_10:
+            return MBP10Msg
+        if self == Schema.TBBO:
+            return MBP1Msg
+        if self == Schema.TRADES:
+            return TradeMsg
+        if self == Schema.OHLCV_1S:
+            return OHLCVMsg
+        if self == Schema.OHLCV_1M:
+            return OHLCVMsg
+        if self == Schema.OHLCV_1H:
+            return OHLCVMsg
+        if self == Schema.OHLCV_1D:
+            return OHLCVMsg
+        if self == Schema.DEFINITION:
+            return InstrumentDefMsg
+        if self == Schema.IMBALANCE:
+            return ImbalanceMsg
+        raise NotImplementedError(f"No message type for {self}")
 
 
 @unique
@@ -277,7 +299,7 @@ class SType(StringyMixin, str, Enum, metaclass=DeprecatedAccess):
         return variant
 
     def __eq__(self, other: object) -> bool:
-        return str(self) == str(other)
+        return str(self).lower() == str(other).lower()
 
     def __deprecated(self) -> None:
         other_values = " or ".join(self.__args)  # type: ignore

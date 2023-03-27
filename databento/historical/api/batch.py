@@ -264,9 +264,9 @@ class BatchHttpAPI(BentoHttpAPI):
         Raises
         ------
         RuntimeError
-            When no files were found for the batch job.
+            If no files were found for the batch job.
         ValueError
-            When a file fails to download.
+            If a file fails to download.
 
         """
         output_dir = validate_path(output_dir, "output_dir")
@@ -405,9 +405,9 @@ class BatchHttpAPI(BentoHttpAPI):
         Raises
         ------
         RuntimeError
-            When no files were found for the batch job.
+            If no files were found for the batch job.
         ValueError
-            When a file fails to download.
+            If a file fails to download.
 
         """
         output_dir = validate_path(output_dir, "output_dir")

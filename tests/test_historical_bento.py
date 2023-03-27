@@ -2,7 +2,7 @@ import collections
 import datetime as dt
 import sys
 from pathlib import Path
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List
 
 import databento
 import numpy as np
@@ -13,6 +13,8 @@ from databento.common.data import DEFINITION_DROP_COLUMNS
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
 from databento.common.error import BentoError
+from databento.live.data import DBNStruct
+from databento_dbn import MBOMsg
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:
@@ -91,26 +93,6 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.dtype == np.dtype(
-        [
-            ("length", "u1"),
-            ("rtype", "u1"),
-            ("publisher_id", "<u2"),
-            ("instrument_id", "<u4"),
-            ("ts_event", "<u8"),
-            ("order_id", "<u8"),
-            ("price", "<i8"),
-            ("size", "<u4"),
-            ("flags", "i1"),
-            ("channel_id", "u1"),
-            ("action", "S1"),
-            ("side", "S1"),
-            ("ts_recv", "<u8"),
-            ("ts_in_delta", "<i4"),
-            ("sequence", "<u4"),
-        ],
-    )
-    assert dbnstore.record_size == 56
     assert dbnstore.nbytes == 182
     assert dbnstore.dataset == "GLBX.MDP3"
     assert dbnstore.schema == Schema.MBO
@@ -208,7 +190,7 @@ def test_iterator_produces_expected_data(
     handler = collections.deque(data)
 
     # Assert
-    assert len(handler) == 2
+    assert len(handler) == 2 + 1  # includes Metadata
 
 
 def test_replay_with_stub_data_record_passes_to_callback(
@@ -218,16 +200,29 @@ def test_replay_with_stub_data_record_passes_to_callback(
     stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
-    handler: List[Tuple[Union[int, bytes], ...]] = []
+    handler: List[MBOMsg] = []
 
     # Act
     data.replay(callback=handler.append)
+    record: MBOMsg = handler[1]  # first record is Metadata
 
     # Assert
-    assert (
-        str(handler[0])
-        == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)"  # noqa
-    )
+    assert record.hd.length == 14
+    assert record.hd.rtype == 160
+    assert record.hd.rtype == 160
+    assert record.hd.publisher_id == 1
+    assert record.hd.instrument_id == 5482
+    assert record.hd.ts_event == 1609160400000429831
+    assert record.order_id == 647784973705
+    assert record.price == 3722750000000
+    assert record.size == 1
+    assert record.flags == 128
+    assert record.channel_id == 0
+    assert record.action == 67
+    assert record.side == 65
+    assert record.ts_recv == 1609160400000704060
+    assert record.ts_in_delta == 22993
+    assert record.sequence == 1170352
 
 
 @pytest.mark.parametrize(
@@ -239,11 +234,7 @@ def test_replay_with_stub_data_record_passes_to_callback(
         not in (
             Schema.OHLCV_1H,
             Schema.OHLCV_1D,
-            Schema.STATUS,
-            Schema.STATISTICS,
             Schema.DEFINITION,
-            Schema.GATEWAY_ERROR,
-            Schema.SYMBOL_MAPPING,
         )
     ],
 )
@@ -708,11 +699,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
         not in (
             Schema.OHLCV_1H,
             Schema.OHLCV_1D,
-            Schema.STATUS,
-            Schema.STATISTICS,
             Schema.DEFINITION,
-            Schema.GATEWAY_ERROR,
-            Schema.SYMBOL_MAPPING,
         )
     ],
 )
@@ -745,17 +732,43 @@ def test_dbnstore_iterable(
     stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
-    record_list = list(dbnstore)
-    assert (
-        str(record_list[0]) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
-        "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
-        "22993, 1170352)"
-    )
-    assert (
-        str(record_list[1]) == "(14, 160, 1, 5482, 1609160400000431665, 647784973631, "
-        "3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, "
-        "19621, 1170353)"
-    )
+    record_list: List[DBNStruct] = list(dbnstore)
+    first: MBOMsg = record_list[1]  # type: ignore
+    second: MBOMsg = record_list[2]  # type: ignore
+
+    assert first.hd.length == 14
+    assert first.hd.rtype == 160
+    assert first.hd.rtype == 160
+    assert first.hd.publisher_id == 1
+    assert first.hd.instrument_id == 5482
+    assert first.hd.ts_event == 1609160400000429831
+    assert first.order_id == 647784973705
+    assert first.price == 3722750000000
+    assert first.size == 1
+    assert first.flags == 128
+    assert first.channel_id == 0
+    assert first.action == 67
+    assert first.side == 65
+    assert first.ts_recv == 1609160400000704060
+    assert first.ts_in_delta == 22993
+    assert first.sequence == 1170352
+
+    assert second.hd.length == 14
+    assert second.hd.rtype == 160
+    assert second.hd.rtype == 160
+    assert second.hd.publisher_id == 1
+    assert second.hd.instrument_id == 5482
+    assert second.hd.ts_event == 1609160400000431665
+    assert second.order_id == 647784973631
+    assert second.price == 3723000000000
+    assert second.size == 1
+    assert second.flags == 128
+    assert second.channel_id == 0
+    assert second.action == 67
+    assert second.side == 65
+    assert second.ts_recv == 1609160400000711344
+    assert second.ts_in_delta == 19621
+    assert second.sequence == 1170353
 
 
 def test_dbnstore_iterable_parallel(
@@ -773,26 +786,8 @@ def test_dbnstore_iterable_parallel(
     first = iter(dbnstore)
     second = iter(dbnstore)
 
-    assert (
-        str(next(first)) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
-        "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
-        "22993, 1170352)"
-    )
-    assert (
-        str(next(second)) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
-        "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
-        "22993, 1170352)"
-    )
-    assert (
-        str(next(second)) == "(14, 160, 1, 5482, 1609160400000431665, 647784973631, "
-        "3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, "
-        "19621, 1170353)"
-    )
-    assert (
-        str(next(first)) == "(14, 160, 1, 5482, 1609160400000431665, 647784973631, "
-        "3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, "
-        "19621, 1170353)"
-    )
+    assert next(first) == next(second)
+    assert next(first) == next(second)
 
 
 @pytest.mark.parametrize(
@@ -894,3 +889,74 @@ def test_dbnstore_buffer_long(
 
     with pytest.raises(BentoError):
         dbnstore.to_json(tmp_path / "test.json")
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        Schema.MBO,
+        Schema.MBP_1,
+        Schema.MBP_10,
+        Schema.OHLCV_1D,
+        Schema.OHLCV_1H,
+        Schema.OHLCV_1M,
+        Schema.OHLCV_1S,
+        Schema.TBBO,
+        Schema.TRADES,
+    ],
+)
+def test_dbnstore_to_ndarray_with_schema(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_ndarray with schema produces an
+    identical result to without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    actual = dbnstore.to_ndarray(schema=schema)
+    expected = dbnstore.to_ndarray()
+
+    # Assert
+    for i, row in enumerate(actual):
+        assert row == expected[i]
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        Schema.MBO,
+        Schema.MBP_1,
+        Schema.MBP_10,
+        Schema.OHLCV_1D,
+        Schema.OHLCV_1H,
+        Schema.OHLCV_1M,
+        Schema.OHLCV_1S,
+        Schema.TBBO,
+        Schema.TRADES,
+    ],
+)
+def test_dbnstore_to_df_with_schema(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_df with schema produces an
+    identical result to without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    actual = dbnstore.to_df(schema=schema)
+    expected = dbnstore.to_df()
+
+    # Assert
+    assert actual.equals(expected)

@@ -8,16 +8,7 @@ if __name__ == "__main__":
     client = db.Historical(key=key)
 
     for schema in Schema:
-        if schema in (
-            Schema.STATISTICS,
-            Schema.STATUS,
-            Schema.GATEWAY_ERROR,
-            Schema.SYMBOL_MAPPING,
-        ):
-            continue
-
         print(schema.value)
-
         path = f"test_data.{schema.value}.dbn.zst"
 
         # Execute request through client

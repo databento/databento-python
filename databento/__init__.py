@@ -1,7 +1,7 @@
 import logging
 import warnings
 
-from databento.common import utility
+from databento.common import bentologging
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import (
     Compression,
@@ -10,7 +10,6 @@ from databento.common.enums import (
     Encoding,
     FeedMode,
     HistoricalGateway,
-    LiveGateway,
     Packaging,
     RecordFlags,
     RollRule,
@@ -27,12 +26,28 @@ from databento.common.error import (
 )
 from databento.historical.api import API_VERSION
 from databento.historical.client import Historical
+from databento.live.client import Live
+from databento.live.dbn import DBNRecord
 from databento.version import __version__  # noqa
+from databento_dbn import (
+    ErrorMsg,
+    ImbalanceMsg,
+    InstrumentDefMsg,
+    MBOMsg,
+    MBP1Msg,
+    MBP10Msg,
+    Metadata,
+    OHLCVMsg,
+    SymbolMappingMsg,
+    SystemMsg,
+    TradeMsg,
+)
 
 
 __all__ = [
     "API_VERSION",
     "DBNStore",
+    "DBNRecord",
     "BentoClientError",
     "BentoError",
     "BentoHttpError",
@@ -45,13 +60,25 @@ __all__ = [
     "RecordFlags",
     "Historical",
     "HistoricalGateway",
-    "LiveGateway",
+    "Live",
     "Packaging",
     "RollRule",
     "Schema",
     "SplitDuration",
     "SType",
     "SymbologyResolution",
+    # DBN Record Types
+    "Metadata",
+    "MBOMsg",
+    "MBP1Msg",
+    "MBP10Msg",
+    "TradeMsg",
+    "OHLCVMsg",
+    "InstrumentDefMsg",
+    "ImbalanceMsg",
+    "ErrorMsg",
+    "SystemMsg",
+    "SymbolMappingMsg",
 ]
 
 # Setup logging
@@ -61,5 +88,5 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 warnings.simplefilter("always", DeprecationWarning)
 
 # Convenience imports
-enable_logging = utility.enable_logging
+enable_logging = bentologging.enable_logging
 from_dbn = DBNStore.from_file

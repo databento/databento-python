@@ -18,7 +18,7 @@ class InstrumentIdMappingInterval:
     end_date : dt.date
         The end of the mapping period.
     raw_symbol : str
-        The native symbol value.
+        The raw symbol value.
     instrument_id : int
         The instrument ID value.
     """
