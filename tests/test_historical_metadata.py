@@ -254,8 +254,8 @@ class TestHistoricalMetadata:
             ("dataset", "GLBX.MDP3"),
             ("symbols", "ESH1"),
             ("schema", "mbo"),
-            ("start", "2020-12-28T12:00:00"),
-            ("end", "2020-12-29T00:00:00"),
+            ("start", "2020-12-28T12:00"),
+            ("end", "2020-12-29"),
             ("stype_in", "native"),
             ("limit", "1000000"),
         ]
@@ -293,8 +293,8 @@ class TestHistoricalMetadata:
         )
         assert call["params"] == [
             ("dataset", "GLBX.MDP3"),
-            ("start", "2020-12-28T12:00:00"),
-            ("end", "2020-12-29T00:00:00"),
+            ("start", "2020-12-28T12:00"),
+            ("end", "2020-12-29"),
             ("symbols", "ESH1"),
             ("schema", "mbo"),
             ("stype_in", "native"),
@@ -332,8 +332,8 @@ class TestHistoricalMetadata:
         )
         assert call["params"] == [
             ("dataset", "GLBX.MDP3"),
-            ("start", "2020-12-28T12:00:00"),
-            ("end", "2020-12-29T00:00:00"),
+            ("start", "2020-12-28T12:00"),
+            ("end", "2020-12-29"),
             ("symbols", "ESH1"),
             ("schema", "mbo"),
             ("stype_in", "native"),
