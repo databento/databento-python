@@ -114,7 +114,7 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("contract_multiplier", np.int32),
     ("decay_quantity", np.int32),
     ("original_contract_size", np.int32),
-    ("related_security_id", np.uint32),
+    ("reserved1", "S4"),
     ("trading_reference_date", np.uint16),
     ("appl_id", np.int16),
     ("maturity_year", np.uint16),
@@ -131,7 +131,11 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("security_type", "S7"),  # 7 byte chararray
     ("unit_of_measure", "S31"),  # 31 byte chararray
     ("underlying", "S21"),  # 21 byte chararray
-    ("related", "S21"),  # 21 byte chararray
+    ("strike_price_currency", "S4"),
+    ("instrument_class", "S1"),
+    ("reserved2", "S2"),
+    ("strike_price", np.int64),
+    ("reserved3", "S6"),
     ("match_algorithm", "S1"),  # 1 byte chararray
     ("md_security_trading_status", np.uint8),
     ("main_fraction", np.uint8),
@@ -199,10 +203,10 @@ DEFINITION_CHARARRAY_COLUMNS = [
     "security_type",
     "unit_of_measure",
     "underlying",
-    "related",
     "match_algorithm",
     "security_update_action",
     "user_defined_instrument",
+    "strike_price_currency",
 ]
 
 DEFINITION_PRICE_COLUMNS = [
@@ -213,6 +217,7 @@ DEFINITION_PRICE_COLUMNS = [
     "max_price_variation",
     "trading_reference_price",
     "min_price_increment_amount",
+    "strike_price",
 ]
 
 DEFINITION_TYPE_MAX_MAP = {
@@ -261,14 +266,26 @@ OHLCV_HEADER_COLUMNS = [
     "volume",
 ]
 
-STATUS_COLUMNS = [x for x in np.dtype(STATUS_MSG).names or ()]
-STATUS_COLUMNS.remove("ts_recv")  # Index
+STATUS_DROP_COLUMNS = ["ts_recv"]
+DEFINITION_DROP_COLUMNS = [
+    "ts_recv",
+    "length",
+    "rtype",
+    "reserved1",
+    "reserved2",
+    "reserved3",
+    "dummy",
+]
 
-DEFINITION_COLUMNS = [x for x in np.dtype(DEFINITION_MSG).names or ()]
-DEFINITION_COLUMNS.remove("ts_recv")  # Index
-DEFINITION_COLUMNS.remove("length")
-DEFINITION_COLUMNS.remove("rtype")
-DEFINITION_COLUMNS.remove("dummy")
+STATUS_COLUMNS = [
+    x for x in (np.dtype(STATUS_MSG).names or ()) if x not in STATUS_DROP_COLUMNS
+]
+
+DEFINITION_COLUMNS = [
+    x
+    for x in (np.dtype(DEFINITION_MSG).names or ())
+    if x not in DEFINITION_DROP_COLUMNS
+]
 
 
 COLUMNS = {

@@ -5,6 +5,9 @@
 - Removed `metadata.list_compressions` (redundant with docs)
 - Removed `metadata.list_encodings` (redundant with docs)
 - Removed optional `start` and `end` params from `metadata.list_schemas` (redundant)
+- Removed `related` and `related_security_id` from definition schema
+- Added `instrument_class`, `strike_price`, and `strike_price_currency` to definition
+  schema
 
 ## 0.9.0 - 2023-03-10
 - Removed `record_count` property from Bento class

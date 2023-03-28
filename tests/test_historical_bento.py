@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import zstandard
+from databento.common.data import DEFINITION_DROP_COLUMNS
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
 from databento.historical.error import BentoError
@@ -287,7 +288,7 @@ def test_to_df_drop_columns(
     schema: Schema,
 ) -> None:
     """
-    Test that rtype, length, and dummy columns are dropped when
+    Test that rtype, length, reserved, and dummy columns are dropped when
     calling to_df().
     """
     # Arrange
@@ -298,9 +299,8 @@ def test_to_df_drop_columns(
     df = data.to_df()
 
     # Assert
-    assert "length" not in df
-    assert "rtype" not in df
-    assert "dummy" not in df
+    for col in DEFINITION_DROP_COLUMNS:
+        assert col not in df.columns
 
 
 def test_to_df_with_mbo_data_returns_expected_record(
