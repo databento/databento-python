@@ -154,6 +154,30 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("dummy", "S3"),  # 3 byte chararray (Adjustment filler for 8-bytes alignment)
 ]
 
+IMBALANCE_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+    ("ts_recv", np.uint64),
+    ("ref_price", np.int64),
+    ("auction_time", np.uint64),
+    ("cont_book_clr_price", np.int64),
+    ("auct_interest_clr_price", np.int64),
+    ("ssr_filling_price", np.int64),
+    ("ind_match_price", np.int64),
+    ("upper_collar", np.int64),
+    ("lower_collar", np.int64),
+    ("paired_qty", np.uint32),
+    ("total_imbalance_qty", np.uint32),
+    ("market_imbalance_qty", np.uint32),
+    ("unpaired_qty", np.uint32),
+    ("auction_type", "S1"),
+    ("side", "S1"),
+    ("auction_status", np.uint8),
+    ("freeze_status", np.uint8),
+    ("num_extensions", np.uint8),
+    ("unpaired_side", "S1"),
+    ("significant_imbalance", "S1"),
+    ("dummy", "S1"),
+]
+
 
 STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     Schema.MBO: MBO_MSG,
@@ -177,6 +201,7 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     Schema.OHLCV_1D: OHLCV_MSG,
     Schema.STATUS: STATUS_MSG,
     Schema.DEFINITION: DEFINITION_MSG,
+    Schema.IMBALANCE: IMBALANCE_MSG,
     Schema.GATEWAY_ERROR: RECORD_HEADER
     + [
         ("error", "S64"),
@@ -277,6 +302,13 @@ DEFINITION_DROP_COLUMNS = [
     "dummy",
 ]
 
+IMBALANCE_DROP_COLUMNS = [
+    "ts_recv",
+    "length",
+    "rtype",
+    "dummy",
+]
+
 STATUS_COLUMNS = [
     x for x in (np.dtype(STATUS_MSG).names or ()) if x not in STATUS_DROP_COLUMNS
 ]
@@ -285,6 +317,10 @@ DEFINITION_COLUMNS = [
     x
     for x in (np.dtype(DEFINITION_MSG).names or ())
     if x not in DEFINITION_DROP_COLUMNS
+]
+
+IMBALANCE_COLUMNS = [
+    x for x in (np.dtype(IMBALANCE_MSG).names or ()) if x not in IMBALANCE_DROP_COLUMNS
 ]
 
 
@@ -323,4 +359,5 @@ COLUMNS = {
     Schema.OHLCV_1D: OHLCV_HEADER_COLUMNS,
     Schema.STATUS: STATUS_COLUMNS,
     Schema.DEFINITION: DEFINITION_COLUMNS,
+    Schema.IMBALANCE: IMBALANCE_COLUMNS,
 }

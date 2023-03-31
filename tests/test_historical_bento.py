@@ -48,10 +48,10 @@ def test_sources_metadata_returns_expected_json_as_dict(
         "stype_in": "native",
         "stype_out": "product_id",
         "start": 1609160400000000000,
-        "end": 1609246800000000000,
+        "end": 1609246860000000000,
         "limit": 2,
-        "record_count": 2,
         "symbols": ["ESH1"],
+        "ts_out": False,
         "partial": [],
         "not_found": [],
         "mappings": {
@@ -113,14 +113,14 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
         ],
     )
     assert dbnstore.record_size == 56
-    assert dbnstore.nbytes == 172
+    assert dbnstore.nbytes == 182
     assert dbnstore.dataset == "GLBX.MDP3"
     assert dbnstore.schema == Schema.MBO
     assert dbnstore.symbols == ["ESH1"]
     assert dbnstore.stype_in == SType.NATIVE
     assert dbnstore.stype_out == SType.PRODUCT_ID
     assert dbnstore.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
-    assert dbnstore.end == pd.Timestamp("2020-12-29 13:00:00+0000", tz="UTC")
+    assert dbnstore.end == pd.Timestamp("2020-12-29 13:01:00+0000", tz="UTC")
     assert dbnstore.limit == 2
     assert len(dbnstore.to_ndarray()) == 2
     assert dbnstore.mappings == {
@@ -161,7 +161,7 @@ def test_file_dbnstore_given_valid_path_initialized_expected_data(
 
     # Assert
     assert dbnstore.dataset == "GLBX.MDP3"
-    assert dbnstore.nbytes == 172
+    assert dbnstore.nbytes == 182
 
 
 def test_to_file_persists_to_disk(
@@ -178,7 +178,7 @@ def test_to_file_persists_to_disk(
 
     # Assert
     assert dbn_path.exists()
-    assert dbn_path.stat().st_size == 172
+    assert dbn_path.stat().st_size == 182
 
 
 def test_to_ndarray_with_stub_data_returns_expected_array(

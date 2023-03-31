@@ -8,6 +8,7 @@
 - Removed `related` and `related_security_id` from definition schema
 - Added `instrument_class`, `strike_price`, and `strike_price_currency` to definition
   schema
+- Added support for `imbalance` schema
 
 ## 0.9.0 - 2023-03-10
 - Removed `record_count` property from Bento class
