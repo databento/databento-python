@@ -10,10 +10,10 @@ import pandas as pd
 from databento.common.dbnstore import DBNStore
 from databento.common.deprecated import deprecated
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
+from databento.common.error import BentoWarning
 from databento.common.parsing import datetime_to_string, optional_symbols_list_to_string
 from databento.common.validation import validate_enum, validate_semantic_string
 from databento.historical.api import API_VERSION
-from databento.historical.error import BentoWarning
 from databento.historical.http import BentoHttpAPI
 
 

@@ -12,7 +12,7 @@ import zstandard
 from databento.common.data import DEFINITION_DROP_COLUMNS
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
-from databento.historical.error import BentoError
+from databento.common.error import BentoError
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:

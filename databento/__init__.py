@@ -18,14 +18,14 @@ from databento.common.enums import (
     SType,
     SymbologyResolution,
 )
-from databento.historical.api import API_VERSION
-from databento.historical.client import Historical
-from databento.historical.error import (
+from databento.common.error import (
     BentoClientError,
     BentoError,
     BentoHttpError,
     BentoServerError,
 )
+from databento.historical.api import API_VERSION
+from databento.historical.client import Historical
 from databento.version import __version__  # noqa
 
 

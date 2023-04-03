@@ -30,9 +30,9 @@ from databento.common.data import (
     STRUCT_MAP,
 )
 from databento.common.enums import Compression, Schema, SType
+from databento.common.error import BentoError
 from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import ProductIdMappingInterval
-from databento.historical.error import BentoError
 
 
 logger = logging.getLogger(__name__)
