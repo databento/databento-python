@@ -5,8 +5,8 @@ from typing import Any, List, Optional, Tuple
 
 import aiohttp
 import requests
-from aiohttp import ClientResponse
-from databento.historical.error import BentoClientError, BentoServerError
+from aiohttp import ClientResponse, ContentTypeError
+from databento.common.error import BentoClientError, BentoServerError
 from databento.version import __version__
 from requests import Response
 from requests.auth import HTTPBasicAuth
@@ -155,6 +155,8 @@ def check_http_error(response: Response) -> None:
         except JSONDecodeError:
             json_body = None
             message = None
+        if response.status_code == 504:
+            message = "The remote gateway timed out."
         raise BentoServerError(
             http_status=response.status_code,
             http_body=response.content,
@@ -169,6 +171,8 @@ def check_http_error(response: Response) -> None:
         except JSONDecodeError:
             json_body = None
             message = None
+        if response.status_code == 408:
+            message = "The request transmission timed out."
         raise BentoClientError(
             http_status=response.status_code,
             http_body=response.content,
@@ -180,22 +184,40 @@ def check_http_error(response: Response) -> None:
 
 async def check_http_error_async(response: ClientResponse) -> None:
     if is_500_series_error(response.status):
-        json_body = await response.json()
-        http_body = await response.read()
+        try:
+            json_body = await response.json()
+            http_body = await response.read()
+            message = json_body.get("detail", "")
+        except ContentTypeError:
+            http_body = None
+            json_body = None
+            message = ""
+
+        if response.status == 504:
+            message = "The remote gateway timed out."
         raise BentoServerError(
             http_status=response.status,
             http_body=http_body,
             json_body=json_body,
-            message=json_body["detail"],
+            message=message,
             headers=response.headers,
         )
-    elif is_400_series_error(response.status):
-        json_body = await response.json()
-        http_body = await response.read()
+
+    if is_400_series_error(response.status):
+        try:
+            json_body = await response.json()
+            http_body = await response.read()
+            message = json_body.get("detail", "")
+        except ContentTypeError:
+            http_body = None
+            json_body = None
+            message = ""
+        if response.status == 408:
+            message = "The request transmission timed out."
         raise BentoClientError(
             http_status=response.status,
             http_body=http_body,
             json_body=json_body,
-            message=json_body["detail"],
+            message=message,
             headers=response.headers,
         )

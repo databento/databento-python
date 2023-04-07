@@ -86,12 +86,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
-    def list_schemas(
-        self,
-        dataset: Union[Dataset, str],
-        start_date: Optional[Union[date, str]] = None,
-        end_date: Optional[Union[date, str]] = None,
-    ) -> List[str]:
+    def list_schemas(self, dataset: Union[Dataset, str]) -> List[str]:
         """
         Request all available data schemas from Databento.
 
@@ -101,12 +96,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        start_date : date or str, optional
-            The start date (UTC) for the request range.
-            If `None` then first date available.
-        end_date : date or str, optional
-            The end date (UTC) for the request range.
-            If `None` then last date available.
 
         Returns
         -------
@@ -115,8 +104,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start_date", optional_date_to_string(start_date)),
-            ("end_date", optional_date_to_string(end_date)),
         ]
 
         response: Response = self._get(
@@ -164,40 +151,6 @@ class MetadataHttpAPI(BentoHttpAPI):
         response: Response = self._get(
             url=self._base_url + ".list_fields",
             params=params,
-            basic_auth=True,
-        )
-        return response.json()
-
-    def list_encodings(self) -> List[str]:
-        """
-        Request all available data encodings from Databento.
-
-        Makes a `GET /metadata.list_encodings` HTTP request.
-
-        Returns
-        -------
-        List[str]
-
-        """
-        response: Response = self._get(
-            url=self._base_url + ".list_encodings",
-            basic_auth=True,
-        )
-        return response.json()
-
-    def list_compressions(self) -> List[str]:
-        """
-        Request all available data compression modes from Databento.
-
-        Makes a `GET /metadata.list_compressions` HTTP request.
-
-        Returns
-        -------
-        List[str]
-
-        """
-        response: Response = self._get(
-            url=self._base_url + ".list_compressions",
             basic_auth=True,
         )
         return response.json()

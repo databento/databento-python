@@ -1,7 +1,7 @@
 import logging
 
 from databento.common import utility
-from databento.common.bento import Bento
+from databento.common.dbnstore import DBNStore
 from databento.common.enums import (
     Compression,
     Dataset,
@@ -18,20 +18,20 @@ from databento.common.enums import (
     SType,
     SymbologyResolution,
 )
-from databento.historical.api import API_VERSION
-from databento.historical.client import Historical
-from databento.historical.error import (
+from databento.common.error import (
     BentoClientError,
     BentoError,
     BentoHttpError,
     BentoServerError,
 )
+from databento.historical.api import API_VERSION
+from databento.historical.client import Historical
 from databento.version import __version__  # noqa
 
 
 __all__ = [
     "API_VERSION",
-    "Bento",
+    "DBNStore",
     "BentoClientError",
     "BentoError",
     "BentoHttpError",
@@ -58,4 +58,4 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 # Convenience imports
 enable_logging = utility.enable_logging
-from_dbn = Bento.from_file
+from_dbn = DBNStore.from_file

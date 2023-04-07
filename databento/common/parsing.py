@@ -199,7 +199,12 @@ def datetime_to_string(value: Union[pd.Timestamp, date, str, int]) -> str:
     str
 
     """
-    return str(pd.to_datetime(value)).replace(" ", "T")
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, int):
+        return str(value)
+    else:
+        return pd.to_datetime(value).isoformat()
 
 
 def datetime_to_date_string(value: Union[pd.Timestamp, date, str, int]) -> str:
@@ -216,7 +221,12 @@ def datetime_to_date_string(value: Union[pd.Timestamp, date, str, int]) -> str:
     str
 
     """
-    return str(pd.to_datetime(value).date())
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, int):
+        return str(value)
+    else:
+        return pd.to_datetime(value).date().isoformat()
 
 
 def optional_datetime_to_string(

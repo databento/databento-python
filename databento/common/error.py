@@ -6,8 +6,6 @@ class BentoError(Exception):
     Represents a Databento specific error.
     """
 
-    pass
-
 
 class BentoHttpError(BentoError):
     """
@@ -105,5 +103,3 @@ class BentoWarning(Warning):
     """
     Represents a Databento specific warning.
     """
-
-    pass

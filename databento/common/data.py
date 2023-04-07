@@ -114,7 +114,7 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("contract_multiplier", np.int32),
     ("decay_quantity", np.int32),
     ("original_contract_size", np.int32),
-    ("related_security_id", np.uint32),
+    ("reserved1", "S4"),
     ("trading_reference_date", np.uint16),
     ("appl_id", np.int16),
     ("maturity_year", np.uint16),
@@ -131,7 +131,11 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("security_type", "S7"),  # 7 byte chararray
     ("unit_of_measure", "S31"),  # 31 byte chararray
     ("underlying", "S21"),  # 21 byte chararray
-    ("related", "S21"),  # 21 byte chararray
+    ("strike_price_currency", "S4"),
+    ("instrument_class", "S1"),
+    ("reserved2", "S2"),
+    ("strike_price", np.int64),
+    ("reserved3", "S6"),
     ("match_algorithm", "S1"),  # 1 byte chararray
     ("md_security_trading_status", np.uint8),
     ("main_fraction", np.uint8),
@@ -148,6 +152,30 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("flow_schedule_type", np.int8),
     ("tick_rule", np.uint8),
     ("dummy", "S3"),  # 3 byte chararray (Adjustment filler for 8-bytes alignment)
+]
+
+IMBALANCE_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+    ("ts_recv", np.uint64),
+    ("ref_price", np.int64),
+    ("auction_time", np.uint64),
+    ("cont_book_clr_price", np.int64),
+    ("auct_interest_clr_price", np.int64),
+    ("ssr_filling_price", np.int64),
+    ("ind_match_price", np.int64),
+    ("upper_collar", np.int64),
+    ("lower_collar", np.int64),
+    ("paired_qty", np.uint32),
+    ("total_imbalance_qty", np.uint32),
+    ("market_imbalance_qty", np.uint32),
+    ("unpaired_qty", np.uint32),
+    ("auction_type", "S1"),
+    ("side", "S1"),
+    ("auction_status", np.uint8),
+    ("freeze_status", np.uint8),
+    ("num_extensions", np.uint8),
+    ("unpaired_side", "S1"),
+    ("significant_imbalance", "S1"),
+    ("dummy", "S1"),
 ]
 
 
@@ -173,6 +201,7 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     Schema.OHLCV_1D: OHLCV_MSG,
     Schema.STATUS: STATUS_MSG,
     Schema.DEFINITION: DEFINITION_MSG,
+    Schema.IMBALANCE: IMBALANCE_MSG,
     Schema.GATEWAY_ERROR: RECORD_HEADER
     + [
         ("error", "S64"),
@@ -199,10 +228,10 @@ DEFINITION_CHARARRAY_COLUMNS = [
     "security_type",
     "unit_of_measure",
     "underlying",
-    "related",
     "match_algorithm",
     "security_update_action",
     "user_defined_instrument",
+    "strike_price_currency",
 ]
 
 DEFINITION_PRICE_COLUMNS = [
@@ -213,6 +242,7 @@ DEFINITION_PRICE_COLUMNS = [
     "max_price_variation",
     "trading_reference_price",
     "min_price_increment_amount",
+    "strike_price",
 ]
 
 DEFINITION_TYPE_MAX_MAP = {
@@ -261,14 +291,37 @@ OHLCV_HEADER_COLUMNS = [
     "volume",
 ]
 
-STATUS_COLUMNS = [x for x in np.dtype(STATUS_MSG).names or ()]
-STATUS_COLUMNS.remove("ts_recv")  # Index
+STATUS_DROP_COLUMNS = ["ts_recv"]
+DEFINITION_DROP_COLUMNS = [
+    "ts_recv",
+    "length",
+    "rtype",
+    "reserved1",
+    "reserved2",
+    "reserved3",
+    "dummy",
+]
 
-DEFINITION_COLUMNS = [x for x in np.dtype(DEFINITION_MSG).names or ()]
-DEFINITION_COLUMNS.remove("ts_recv")  # Index
-DEFINITION_COLUMNS.remove("length")
-DEFINITION_COLUMNS.remove("rtype")
-DEFINITION_COLUMNS.remove("dummy")
+IMBALANCE_DROP_COLUMNS = [
+    "ts_recv",
+    "length",
+    "rtype",
+    "dummy",
+]
+
+STATUS_COLUMNS = [
+    x for x in (np.dtype(STATUS_MSG).names or ()) if x not in STATUS_DROP_COLUMNS
+]
+
+DEFINITION_COLUMNS = [
+    x
+    for x in (np.dtype(DEFINITION_MSG).names or ())
+    if x not in DEFINITION_DROP_COLUMNS
+]
+
+IMBALANCE_COLUMNS = [
+    x for x in (np.dtype(IMBALANCE_MSG).names or ()) if x not in IMBALANCE_DROP_COLUMNS
+]
 
 
 COLUMNS = {
@@ -306,4 +359,5 @@ COLUMNS = {
     Schema.OHLCV_1D: OHLCV_HEADER_COLUMNS,
     Schema.STATUS: STATUS_COLUMNS,
     Schema.DEFINITION: DEFINITION_COLUMNS,
+    Schema.IMBALANCE: IMBALANCE_COLUMNS,
 }

@@ -30,6 +30,7 @@ from databento.common.data import (
     STRUCT_MAP,
 )
 from databento.common.enums import Compression, Schema, SType
+from databento.common.error import BentoError
 from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import ProductIdMappingInterval
 
@@ -83,7 +84,7 @@ def is_dbn(reader: IO[bytes]) -> bool:
 
 
 class DataSource(abc.ABC):
-    """Abstract base class for backing Bento classes with data."""
+    """Abstract base class for backing DBNStore instances with data."""
 
     def __init__(self, source: object) -> None:
         ...
@@ -103,7 +104,7 @@ class DataSource(abc.ABC):
 
 class FileDataSource(DataSource):
     """
-    A file-backed data source for a Bento object.
+    A file-backed data source for a DBNStore object.
 
     Attributes
     ----------
@@ -181,7 +182,7 @@ class FileDataSource(DataSource):
 
 class MemoryDataSource(DataSource):
     """
-    A memory-backed data source for a Bento object.
+    A memory-backed data source for a DBNStore object.
 
     Attributes
     ----------
@@ -243,7 +244,7 @@ class MemoryDataSource(DataSource):
         return self.__buffer
 
 
-class Bento:
+class DBNStore:
     """
     A container for Databento Binary Encoding (DBN) data.
 
@@ -345,11 +346,18 @@ class Bento:
 
     def __iter__(self) -> Generator[np.void, None, None]:
         reader = self.reader
+        dtype = STRUCT_MAP[self.schema]
         while True:
             raw = reader.read(self.record_size)
             if raw:
-                rec = np.frombuffer(raw, dtype=STRUCT_MAP[self.schema])
-                yield rec[0]
+                try:
+                    rec = np.frombuffer(raw, dtype)
+                except ValueError as value_error:
+                    raise BentoError(
+                        f"Error decoding {len(raw)} bytes for {self.schema} iteration",
+                    ) from value_error
+                else:
+                    yield rec[0]
             else:
                 break
 
@@ -576,7 +584,7 @@ class Bento:
 
         See Also
         --------
-        Bento.reader
+        DBNStore.reader
 
         """
         return self._data_source.reader.read()
@@ -592,7 +600,7 @@ class Bento:
 
         See Also
         --------
-        Bento.raw
+        DBNStore.raw
 
         """
         if self.compression == Compression.ZSTD:
@@ -704,7 +712,7 @@ class Bento:
         return self._metadata["symbols"]
 
     @classmethod
-    def from_file(cls, path: Union[PathLike[str], str]) -> "Bento":
+    def from_file(cls, path: Union[PathLike[str], str]) -> "DBNStore":
         """
         Load the data from a DBN file at the given path.
 
@@ -715,7 +723,7 @@ class Bento:
 
         Returns
         -------
-        Bento
+        DBNStore
 
         Raises
         ------
@@ -726,7 +734,7 @@ class Bento:
         return cls(FileDataSource(path))
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "Bento":
+    def from_bytes(cls, data: bytes) -> "DBNStore":
         """
         Load the data from a raw bytes.
 
@@ -737,7 +745,7 @@ class Bento:
 
         Returns
         -------
-        Bento
+        DBNStore
 
         Raises
         ------
@@ -771,7 +779,7 @@ class Bento:
         self,
         client: "Historical",
         path: Optional[Union[Path, str]] = None,
-    ) -> "Bento":
+    ) -> "DBNStore":
         """
         Request full instrument definitions based on the metadata properties.
 
@@ -782,11 +790,11 @@ class Bento:
         client : Historical
             The historical client to use for the request (contains the API key).
         path : Path or str, optional
-            The path to stream the data to on disk (will then return a `Bento`).
+            The path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns
         -------
-        Bento
+        DBNStore
 
         Warnings
         --------
@@ -971,4 +979,11 @@ class Bento:
 
         """
         data: bytes = self.reader.read()
-        return np.frombuffer(data, dtype=self.dtype)
+        try:
+            nd_array = np.frombuffer(data, dtype=self.dtype)
+        except ValueError as value_error:
+            raise BentoError(
+                f"Error decoding {len(data)} bytes to {self.schema} `ndarray`",
+            ) from value_error
+        else:
+            return nd_array

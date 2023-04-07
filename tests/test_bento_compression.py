@@ -1,8 +1,8 @@
-"""Unit tests for Bento compression."""
+"""Unit tests for DBNStore compression."""
 from io import BytesIO
 
 import pytest
-from databento.common.bento import is_dbn, is_zstandard
+from databento.common.dbnstore import is_dbn, is_zstandard
 
 
 @pytest.mark.parametrize(

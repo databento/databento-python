@@ -1,12 +1,14 @@
-import pytest
-from databento.common.bento import FileDataSource, MemoryDataSource
-from databento.common.enums import Schema
+import pathlib
+from typing import Callable
 
-from tests.fixtures import get_test_data, get_test_data_path
+import pytest
+from databento.common.dbnstore import FileDataSource, MemoryDataSource
+from databento.common.enums import Schema
 
 
 @pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema])
 def test_memory_data_source(
+    test_data: Callable[[Schema], bytes],
     schema: Schema,
 ) -> None:
     """Test create of MemoryDataSource"""
@@ -18,7 +20,7 @@ def test_memory_data_source(
     ):
         pytest.skip(f"untested schema {schema}")
 
-    data = get_test_data(schema)
+    data = test_data(schema)
     data_source = MemoryDataSource(data)
 
     assert len(data) == data_source.nbytes
@@ -27,6 +29,7 @@ def test_memory_data_source(
 
 @pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema])
 def test_file_data_source(
+    test_data_path: Callable[[Schema], pathlib.Path],
     schema: Schema,
 ) -> None:
     """Test create of FileDataSource"""
@@ -38,7 +41,7 @@ def test_file_data_source(
     ):
         pytest.skip(f"untested schema {schema}")
 
-    path = get_test_data_path(schema)
+    path = test_data_path(schema)
     data_source = FileDataSource(path)
 
     assert path.stat().st_size == data_source.nbytes

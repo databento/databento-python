@@ -149,6 +149,7 @@ class Schema(StringyMixin, str, Enum):
     OHLCV_1H = "ohlcv-1h"
     OHLCV_1D = "ohlcv-1d"
     DEFINITION = "definition"
+    IMBALANCE = "imbalance"
     STATISTICS = "statistics"
     STATUS = "status"
     GATEWAY_ERROR = "gateway_error"

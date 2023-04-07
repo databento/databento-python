@@ -2,23 +2,23 @@ import collections
 import datetime as dt
 import sys
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 import databento
 import numpy as np
 import pandas as pd
 import pytest
 import zstandard
-from databento.common.bento import Bento
+from databento.common.data import DEFINITION_DROP_COLUMNS
+from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
-
-from tests.fixtures import get_test_data, get_test_data_path
+from databento.common.error import BentoError
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:
     # Arrange, Act, Assert
     with pytest.raises(FileNotFoundError):
-        Bento.from_file("my_data.dbn")
+        DBNStore.from_file("my_data.dbn")
 
 
 def test_from_file_when_file_empty_raises_expected_exception(
@@ -30,26 +30,28 @@ def test_from_file_when_file_empty_raises_expected_exception(
 
     # Act, Assert
     with pytest.raises(RuntimeError):
-        Bento.from_file(path)
+        DBNStore.from_file(path)
 
 
-def test_sources_metadata_returns_expected_json_as_dict() -> None:
+def test_sources_metadata_returns_expected_json_as_dict(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange, Act
-    stub_data = get_test_data(schema=Schema.MBO)
-    bento = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert bento.metadata == {
+    assert dbnstore.metadata == {
         "version": 1,
         "dataset": "GLBX.MDP3",
         "schema": "mbo",
         "stype_in": "native",
         "stype_out": "product_id",
         "start": 1609160400000000000,
-        "end": 1609246800000000000,
+        "end": 1609246860000000000,
         "limit": 2,
-        "record_count": 2,
         "symbols": ["ESH1"],
+        "ts_out": False,
         "partial": [],
         "not_found": [],
         "mappings": {
@@ -64,13 +66,15 @@ def test_sources_metadata_returns_expected_json_as_dict() -> None:
     }
 
 
-def test_build_product_id_index() -> None:
+def test_build_product_id_index(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    bento = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Act
-    product_id_index = bento._build_product_id_index()
+    product_id_index = dbnstore._build_product_id_index()
 
     # Assert
     assert product_id_index == {
@@ -79,15 +83,17 @@ def test_build_product_id_index() -> None:
     }
 
 
-def test_bento_given_initial_nbytes_returns_expected_metadata() -> None:
+def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
+    stub_data = test_data(Schema.MBO)
 
     # Act
-    bento = Bento.from_bytes(data=stub_data)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert bento.dtype == np.dtype(
+    assert dbnstore.dtype == np.dtype(
         [
             ("length", "u1"),
             ("rtype", "u1"),
@@ -106,18 +112,18 @@ def test_bento_given_initial_nbytes_returns_expected_metadata() -> None:
             ("sequence", "<u4"),
         ],
     )
-    assert bento.record_size == 56
-    assert bento.nbytes == 172
-    assert bento.dataset == "GLBX.MDP3"
-    assert bento.schema == Schema.MBO
-    assert bento.symbols == ["ESH1"]
-    assert bento.stype_in == SType.NATIVE
-    assert bento.stype_out == SType.PRODUCT_ID
-    assert bento.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
-    assert bento.end == pd.Timestamp("2020-12-29 13:00:00+0000", tz="UTC")
-    assert bento.limit == 2
-    assert len(bento.to_ndarray()) == 2
-    assert bento.mappings == {
+    assert dbnstore.record_size == 56
+    assert dbnstore.nbytes == 182
+    assert dbnstore.dataset == "GLBX.MDP3"
+    assert dbnstore.schema == Schema.MBO
+    assert dbnstore.symbols == ["ESH1"]
+    assert dbnstore.stype_in == SType.NATIVE
+    assert dbnstore.stype_out == SType.PRODUCT_ID
+    assert dbnstore.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
+    assert dbnstore.end == pd.Timestamp("2020-12-29 13:01:00+0000", tz="UTC")
+    assert dbnstore.limit == 2
+    assert len(dbnstore.to_ndarray()) == 2
+    assert dbnstore.mappings == {
         "ESH1": [
             {
                 "symbol": "5482",
@@ -126,7 +132,7 @@ def test_bento_given_initial_nbytes_returns_expected_metadata() -> None:
             },
         ],
     }
-    assert bento.symbology == {
+    assert dbnstore.symbology == {
         "symbols": ["ESH1"],
         "stype_in": "native",
         "stype_out": "product_id",
@@ -146,34 +152,41 @@ def test_bento_given_initial_nbytes_returns_expected_metadata() -> None:
     }
 
 
-def test_file_bento_given_valid_path_initialized_expected_data() -> None:
+def test_file_dbnstore_given_valid_path_initialized_expected_data(
+    test_data_path: Callable[[Schema], Path],
+) -> None:
     # Arrange, Act
-    path = get_test_data_path(schema=Schema.MBO)
-    bento = Bento.from_file(path=path)
+    path = test_data_path(Schema.MBO)
+    dbnstore = DBNStore.from_file(path=path)
 
     # Assert
-    assert bento.dataset == "GLBX.MDP3"
-    assert bento.nbytes == 172
+    assert dbnstore.dataset == "GLBX.MDP3"
+    assert dbnstore.nbytes == 182
 
 
-def test_to_file_persists_to_disk(tmp_path: Path) -> None:
+def test_to_file_persists_to_disk(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    bento = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Act
     dbn_path = tmp_path / "my_test.dbn"
-    bento.to_file(path=dbn_path)
+    dbnstore.to_file(path=dbn_path)
 
     # Assert
     assert dbn_path.exists()
-    assert dbn_path.stat().st_size == 172
+    assert dbn_path.stat().st_size == 182
 
 
-def test_to_ndarray_with_stub_data_returns_expected_array() -> None:
+def test_to_ndarray_with_stub_data_returns_expected_array(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act
     array = data.to_ndarray()
@@ -186,10 +199,12 @@ def test_to_ndarray_with_stub_data_returns_expected_array() -> None:
     )
 
 
-def test_iterator_produces_expected_data() -> None:
+def test_iterator_produces_expected_data(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act (consume iterator)
     handler = collections.deque(data)
@@ -198,10 +213,12 @@ def test_iterator_produces_expected_data() -> None:
     assert len(handler) == 2
 
 
-def test_replay_with_stub_data_record_passes_to_callback() -> None:
+def test_replay_with_stub_data_record_passes_to_callback(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
 
     handler: List[Tuple[Union[int, bytes], ...]] = []
 
@@ -233,11 +250,12 @@ def test_replay_with_stub_data_record_passes_to_callback() -> None:
     ],
 )
 def test_to_df_across_schemas_returns_identical_dimension_dfs(
+    test_data: Callable[[Schema], bytes],
     schema: Schema,
 ) -> None:
     # Arrange
-    stub_data = get_test_data(schema=schema)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(schema)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act
     df = data.to_df()
@@ -266,29 +284,31 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
     ],
 )
 def test_to_df_drop_columns(
+    test_data: Callable[[Schema], bytes],
     schema: Schema,
 ) -> None:
     """
-    Test that rtype, length, and dummy columns are dropped when
+    Test that rtype, length, reserved, and dummy columns are dropped when
     calling to_df().
     """
     # Arrange
-    stub_data = get_test_data(schema=schema)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(schema)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act
     df = data.to_df()
 
     # Assert
-    assert "length" not in df
-    assert "rtype" not in df
-    assert "dummy" not in df
+    for col in DEFINITION_DROP_COLUMNS:
+        assert col not in df.columns
 
 
-def test_to_df_with_mbo_data_returns_expected_record() -> None:
+def test_to_df_with_mbo_data_returns_expected_record(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act
     df = data.to_df(
@@ -312,10 +332,12 @@ def test_to_df_with_mbo_data_returns_expected_record() -> None:
     assert df.iloc[0].sequence == 1170352
 
 
-def test_to_df_with_stub_ohlcv_data_returns_expected_record() -> None:
+def test_to_df_with_stub_ohlcv_data_returns_expected_record(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.OHLCV_1M)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.OHLCV_1M)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act
     df = data.to_df(
@@ -336,10 +358,12 @@ def test_to_df_with_stub_ohlcv_data_returns_expected_record() -> None:
     assert df.iloc[0].volume == 353
 
 
-def test_to_df_with_pretty_ts_converts_timestamps_as_expected() -> None:
+def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act
     df = data.to_df(pretty_ts=True)
@@ -390,12 +414,13 @@ def test_to_df_with_pretty_ts_converts_timestamps_as_expected() -> None:
     ],
 )
 def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
+    test_data: Callable[[Schema], bytes],
     schema: Schema,
     columns: List[str],
 ) -> None:
     # Arrange
-    stub_data = get_test_data(schema=schema)
-    data = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(schema)
+    data = DBNStore.from_bytes(data=stub_data)
 
     # Act
     df = data.to_df(pretty_px=True)
@@ -422,21 +447,24 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
     ],
 )
 def test_from_file_given_various_paths_returns_expected_metadata(
+    test_data_path: Callable[[Schema], Path],
     expected_schema: Schema,
 ) -> None:
     # Arrange
-    path = get_test_data_path(schema=expected_schema)
+    path = test_data_path(expected_schema)
 
     # Act
-    data = Bento.from_file(path=path)
+    data = DBNStore.from_file(path=path)
 
     # Assert
     assert data.schema == expected_schema
 
 
-def test_from_dbn_alias() -> None:
+def test_from_dbn_alias(
+    test_data_path: Callable[[Schema], Path],
+) -> None:
     # Arrange
-    path = get_test_data_path(schema=Schema.MBO)
+    path = test_data_path(Schema.MBO)
 
     # Act
     data = databento.from_dbn(path=path)
@@ -446,10 +474,12 @@ def test_from_dbn_alias() -> None:
     assert len(data.to_ndarray()) == 2
 
 
-def test_mbo_to_csv_writes_expected_file_to_disk(tmp_path: Path) -> None:
+def test_mbo_to_csv_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
+    tmp_path: Path,
+) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBO)
-    data = Bento.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -477,11 +507,11 @@ def test_mbo_to_csv_writes_expected_file_to_disk(tmp_path: Path) -> None:
 
 
 def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = Bento.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -510,11 +540,11 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
 
 
 def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = Bento.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -546,11 +576,11 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
 
 
 def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBO)
-    data = Bento.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -576,11 +606,11 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
 
 
 def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBO)
-    data = Bento.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -607,11 +637,11 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
 
 
 def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = Bento.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -639,11 +669,11 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
 
 
 def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
+    test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    test_data_path = get_test_data_path(schema=Schema.MBP_1)
-    data = Bento.from_file(path=test_data_path)
+    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -688,31 +718,36 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
         )
     ],
 )
-def test_bento_repr(schema: Schema) -> None:
+def test_dbnstore_repr(
+    test_data: Callable[[Schema], bytes],
+    schema: Schema,
+) -> None:
     """
     Check that a more meaningful string is returned
-    when calling `repr()` on a Bento.
+    when calling `repr()` on a DBNStore.
     """
     # Arrange
-    stub_data = get_test_data(schema=schema)
+    stub_data = test_data(schema)
 
     # Act
-    bento = Bento.from_bytes(data=stub_data)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert repr(bento) == f"<Bento(schema={schema})>"
+    assert repr(dbnstore) == f"<DBNStore(schema={schema})>"
 
 
-def test_bento_iterable() -> None:
+def test_dbnstore_iterable(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     """
-    Tests the Bento iterable implementation to ensure records
+    Tests the DBNStore iterable implementation to ensure records
     can be accessed by iteration.
     """
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    bento = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
 
-    record_list = list(bento)
+    record_list = list(dbnstore)
     assert (
         str(record_list[0]) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
         "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
@@ -725,18 +760,20 @@ def test_bento_iterable() -> None:
     )
 
 
-def test_bento_iterable_parallel() -> None:
+def test_dbnstore_iterable_parallel(
+    test_data: Callable[[Schema], bytes],
+) -> None:
     """
-    Tests the Bento iterable implementation to ensure iterators are
+    Tests the DBNStore iterable implementation to ensure iterators are
     not stateful. For example, calling next() on one iterator does
     not affect another.
     """
     # Arrange
-    stub_data = get_test_data(schema=Schema.MBO)
-    bento = Bento.from_bytes(data=stub_data)
+    stub_data = test_data(Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
 
-    first = iter(bento)
-    second = iter(bento)
+    first = iter(dbnstore)
+    second = iter(dbnstore)
 
     assert (
         str(next(first)) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
@@ -774,20 +811,88 @@ def test_bento_iterable_parallel() -> None:
         Schema.TRADES,
     ],
 )
-def test_bento_compression_equality(schema: Schema) -> None:
+def test_dbnstore_compression_equality(
+    test_data: Callable[[Schema], bytes],
+    schema: Schema,
+) -> None:
     """
-    Test that a Bento constructed from compressed data contains the same
+    Test that a DBNStore constructed from compressed data contains the same
     records as an uncompressed version. Note that stub data is compressed
     with zstandard by default.
     """
-    zstd_stub_data = get_test_data(schema=schema)
+    zstd_stub_data = test_data(schema)
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(zstd_stub_data).read()
+
+    zstd_dbnstore = DBNStore.from_bytes(zstd_stub_data)
+    dbn_dbnstore = DBNStore.from_bytes(dbn_stub_data)
+
+    assert len(zstd_dbnstore.to_ndarray()) == len(dbn_dbnstore.to_ndarray())
+    assert zstd_dbnstore.metadata == dbn_dbnstore.metadata
+    assert zstd_dbnstore.reader.read() == dbn_dbnstore.reader.read()
+
+
+def test_dbnstore_buffer_short(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that creating a DBNStore with missing bytes raises a
+    BentoError when decoding.
+    """
+    # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(get_test_data(schema=schema)).read()
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
     )
 
-    zstd_bento = Bento.from_bytes(zstd_stub_data)
-    dbn_bento = Bento.from_bytes(dbn_stub_data)
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data[:-2])
 
-    assert len(zstd_bento.to_ndarray()) == len(dbn_bento.to_ndarray())
-    assert zstd_bento.metadata == dbn_bento.metadata
-    assert zstd_bento.reader.read() == dbn_bento.reader.read()
+    # Assert
+    with pytest.raises(BentoError):
+        list(dbnstore)
+
+    with pytest.raises(BentoError):
+        dbnstore.to_ndarray()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_df()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_csv(tmp_path / "test.csv")
+
+    with pytest.raises(BentoError):
+        dbnstore.to_json(tmp_path / "test.json")
+
+
+def test_dbnstore_buffer_long(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that creating a DBNStore with excess bytes raises a
+    BentoError when decoding.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+    )
+
+    # Act
+    dbn_stub_data += b"\xF0\xFF"
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    # Assert
+    with pytest.raises(BentoError):
+        list(dbnstore)
+
+    with pytest.raises(BentoError):
+        dbnstore.to_ndarray()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_df()
+
+    with pytest.raises(BentoError):
+        dbnstore.to_csv(tmp_path / "test.csv")
+
+    with pytest.raises(BentoError):
+        dbnstore.to_json(tmp_path / "test.json")

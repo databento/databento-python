@@ -1,5 +1,5 @@
 import databento as db
-from databento import Bento
+from databento import DBNStore
 from databento.common.enums import Schema
 
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         path = f"test_data.{schema.value}.dbn.zst"
 
         # Execute request through client
-        data: Bento = client.timeseries.get_range(
+        data: DBNStore = client.timeseries.get_range(
             dataset="GLBX.MDP3",
             symbols=["ESH1"],
             schema=schema,
@@ -29,7 +29,7 @@ if __name__ == "__main__":
             end="2020-12-29T13:00",
             limit=2,  # <-- limiting response to 2 records only (for test cases)
             path=path,
-        )  # -> Bento
+        )  # -> DBNStore
 
         written = open(path, mode="rb").read()
         print(written)

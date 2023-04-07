@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.8.2 - 2023-03-10
+## 0.10.0 - 2023-04-07
+- Upgraded `databento-dbn` to 0.4.3
+- Renamed `Bento` class to `DBNStore`
+- Removed `metadata.list_compressions` (redundant with docs)
+- Removed `metadata.list_encodings` (redundant with docs)
+- Removed optional `start` and `end` params from `metadata.list_schemas` (redundant)
+- Removed `related` and `related_security_id` from definition schema
+- Added `instrument_class`, `strike_price`, and `strike_price_currency` to definition
+  schema
+- Added support for `imbalance` schema
+- Improved exception messages for server and client timeouts
+
+## 0.9.0 - 2023-03-10
 - Removed `record_count` property from Bento class
 - Fixed bug in `Bento` where invalid metadata would prevent iteration
 - Improved use of the logging module
