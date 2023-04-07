@@ -1,6 +1,7 @@
 # Changelog
 
-## 0.10.0 - TBD
+## 0.10.0 - 2023-04-07
+- Upgraded `databento-dbn` to 0.4.3
 - Renamed `Bento` class to `DBNStore`
 - Removed `metadata.list_compressions` (redundant with docs)
 - Removed `metadata.list_encodings` (redundant with docs)
