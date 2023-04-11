@@ -11,7 +11,11 @@ from databento.common.dbnstore import DBNStore
 from databento.common.deprecated import deprecated
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
 from databento.common.error import BentoWarning
-from databento.common.parsing import datetime_to_string, optional_symbols_list_to_string
+from databento.common.parsing import (
+    datetime_to_string,
+    optional_datetime_to_string,
+    optional_symbols_list_to_string,
+)
 from databento.common.validation import validate_enum, validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -31,7 +35,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
         stype_in: Union[SType, str] = "native",
@@ -59,7 +63,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
         stype_in: Union[SType, str] = "native",
@@ -83,11 +87,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
         start : pd.Timestamp or date or str or int
-            The start datetime (UTC) of the request time range (inclusive).
+            The start datetime of the request time range (inclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int
-            The end datetime (UTC) of the request time range (exclusive).
+        end : pd.Timestamp or date or str or int, optional
+            The end datetime of the request time range (exclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+            Values are forward filled based on the resolution provided.
+            Defaults to the same value as `start`.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
@@ -122,7 +130,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
-            ("end", datetime_to_string(end)),
+            ("end", optional_datetime_to_string(end)),
             ("symbols", symbols_list),
             ("schema", str(schema_valid)),
             ("stype_in", str(stype_in_valid)),
@@ -166,7 +174,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
         stype_in: Union[SType, str] = "native",
@@ -195,7 +203,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
         stype_in: Union[SType, str] = "native",
@@ -219,11 +227,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
         start : pd.Timestamp or date or str or int
-            The start datetime (UTC) of the request time range (inclusive).
+            The start datetime of the request time range (inclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int
-            The end datetime (UTC) of the request time range (exclusive).
+        end : pd.Timestamp or date or str or int, optional
+            The end datetime of the request time range (exclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+            Values are forward filled based on the resolution provided.
+            Defaults to the same value as `start`.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
@@ -258,7 +270,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
-            ("end", datetime_to_string(end)),
+            ("end", optional_datetime_to_string(end)),
             ("symbols", symbols_list),
             ("schema", str(schema_valid)),
             ("stype_in", str(stype_in_valid)),

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.11.0 - TBD
+- Changed `end` and `end_date` to optional to support new forward-fill behaviour
+
 ## 0.10.0 - 2023-04-07
 - Upgraded `databento-dbn` to 0.4.3
 - Renamed `Bento` class to `DBNStore`

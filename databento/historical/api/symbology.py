@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from databento.common.enums import SType
 from databento.common.parsing import (
     datetime_to_date_string,
+    optional_date_to_string,
     optional_symbols_list_to_string,
 )
 from databento.common.validation import validate_enum, validate_semantic_string
@@ -28,7 +29,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         stype_in: Union[SType, str],
         stype_out: Union[SType, str],
         start_date: Union[date, str],
-        end_date: Union[date, str],
+        end_date: Optional[Union[date, str]] = None,
         default_value: Optional[str] = "",
     ) -> Dict[str, Any]:
         """
@@ -48,7 +49,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
             The output symbology type to resolve to.
         start_date : date or str
             The start date (UTC) of the request time range (inclusive).
-        end_date : date or str
+        end_date : date or str, optional
             The end date (UTC) of the request time range (exclusive).
         default_value : str, default '' (empty string)
             The default value to return if a symbol cannot be resolved.
@@ -68,7 +69,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
             ("stype_in", str(stype_in_valid)),
             ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
             ("start_date", datetime_to_date_string(start_date)),
-            ("end_date", datetime_to_date_string(end_date)),
+            ("end_date", optional_date_to_string(end_date)),
             ("default_value", default_value),
         ]
 
