@@ -162,7 +162,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Optional[Union[Schema, str]] = None,
     ) -> Union[float, Dict[str, Any]]:
         """
-        List unit prices for each data schema in dollars per gigabyte.
+        List unit prices for each data schema in US dollars per gigabyte.
 
         Makes a `GET /metadata.list_unit_prices` HTTP request.
 
@@ -418,7 +418,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> float:
         """
-        Request the cost in US Dollars for historical streaming or batched files
+        Request the cost in US dollars for historical streaming or batched files
         from Databento.
 
         Makes a `GET /metadata.get_cost` HTTP request.
@@ -452,7 +452,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         Returns
         -------
         float
-            The cost in US Dollars.
+            The cost in US dollars.
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
