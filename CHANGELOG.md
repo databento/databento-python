@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.12.0 - TBD
+- Renamed the `cost` field to `cost_usd` for `batch.submit_job` and `batch.list_jobs` (value now expressed as US dollars)
+
 ## 0.11.0 - 2023-04-13
 - Changed `end` and `end_date` to optional to support new forward-fill behaviour
 - Upgraded `zstandard` to 0.20.0
