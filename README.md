@@ -35,7 +35,7 @@ The minimum dependencies as found in the `requirements.txt` are also listed belo
 - numpy (>=1.17.0)
 - pandas (>=1.1.3)
 - requests (>=2.24.0)
-- zstandard (>=0.19.0)
+- zstandard (>=0.20.0)
 
 ## Installation
 To install the latest stable version of the package from PyPI:
