@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.0 - 2023-04-13
+- Changed `end` and `end_date` to optional to support new forward-fill behaviour
+- Upgraded `zstandard` to 0.20.0
+
 ## 0.10.0 - 2023-04-07
 - Upgraded `databento-dbn` to 0.4.3
 - Renamed `Bento` class to `DBNStore`
@@ -23,7 +27,7 @@
 - Added `from_dbn` convenience alias for loading DBN files
 
 ## 0.8.0 - 2023-03-03
-- Integrated DBN encoding `0.3.2`
+- Integrated DBN encoding 0.3.2
 - Renamed `timeseries.stream` to `timeseries.get_range`
 - Renamed `timeseries.stream_async` to `timeseries.get_range_async`
 - Deprecated `timeseries.stream(...)` method
@@ -39,12 +43,12 @@
 ## 0.7.0 - 2023-01-10
 - Added support for `definition` schema
 - Updated `Flags` enum
-- Upgraded `dbz-python` to `0.2.1`
-- Upgraded `zstandard` to `0.19.0`
+- Upgraded `dbz-python` to 0.2.1
+- Upgraded `zstandard` to 0.19.0
 
 ## 0.6.0 - 2022-12-02
 - Added `metadata.get_dataset_condition` method to `Historical` client
-- Upgraded `dbz-python` to `0.2.0`
+- Upgraded `dbz-python` to 0.2.0
 
 ## 0.5.0 - 2022-11-07
  - Fixed dataframe columns for derived data schemas (dropped `channel_id`)
@@ -52,7 +56,7 @@
  - Updated `quickstart.ipynb` jupyter notebook
 
 ## 0.4.0 - 2022-09-14
- - Upgraded `dbz-python` to `0.1.5`
+ - Upgraded `dbz-python` to 0.1.5
  - Added `map_symbols` option for `.to_df()` (experimental)
 
 ## 0.3.0 - 2022-08-30

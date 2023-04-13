@@ -162,7 +162,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         schema: Optional[Union[Schema, str]] = None,
     ) -> Union[float, Dict[str, Any]]:
         """
-        List unit prices for each data schema in dollars per gigabyte.
+        List unit prices for each data schema in US dollars per gigabyte.
 
         Makes a `GET /metadata.list_unit_prices` HTTP request.
 
@@ -273,7 +273,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
         stype_in: Optional[Union[SType, str]] = "native",
@@ -289,11 +289,15 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code for the request.
         start : pd.Timestamp or date or str or int
-            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+            The start datetime for the request range (inclusive).
+            Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int
-            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+        end : pd.Timestamp or date or str or int, optional
+            The end datetime for the request range (exclusive).
+            Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+            Values are forward filled based on the resolution provided.
+            Defaults to the same value as `start`.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
@@ -337,7 +341,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
         stype_in: Optional[Union[SType, str]] = "native",
@@ -353,12 +357,16 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
-        start : pd.Timestamp or date or str or int, optional
-            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+        start : pd.Timestamp or date or str or int
+            The start datetime for the request range (inclusive).
+            Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp or date or str or int, optional
-            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+            The end datetime for the request range (exclusive).
+            Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+            Values are forward filled based on the resolution provided.
+            Defaults to the same value as `start`.
         symbols : List[Union[str, int]] or str, optional
             The product symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
@@ -380,7 +388,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
-            ("end", datetime_to_string(end)),
+            ("end", optional_datetime_to_string(end)),
             ("symbols", symbols_list),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("stype_in", str(stype_in_valid)),
@@ -402,7 +410,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         dataset: Union[Dataset, str],
         start: Union[pd.Timestamp, date, str, int],
-        end: Union[pd.Timestamp, date, str, int],
+        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         mode: Union[FeedMode, str] = "historical-streaming",
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
@@ -410,7 +418,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: Optional[int] = None,
     ) -> float:
         """
-        Request the cost in US Dollars for historical streaming or batched files
+        Request the cost in US dollars for historical streaming or batched files
         from Databento.
 
         Makes a `GET /metadata.get_cost` HTTP request.
@@ -420,11 +428,15 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code for the request.
         start : pd.Timestamp or date or str or int
-            The start datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+            The start datetime for the request range (inclusive).
+            Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int
-            The end datetime for the request range. Assumes UTC as timezone unless otherwise specified.
+        end : pd.Timestamp or date or str or int, optional
+            The end datetime for the request range (exclusive).
+            Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+            Values are forward filled based on the resolution provided.
+            Defaults to the same value as `start`.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : List[Union[str, int]] or str, optional
@@ -440,15 +452,15 @@ class MetadataHttpAPI(BentoHttpAPI):
         Returns
         -------
         float
-            The cost in US Dollars.
+            The cost in US dollars.
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: List[Tuple[str, str]] = [
+        params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
-            ("end", datetime_to_string(end)),
+            ("end", optional_datetime_to_string(end)),
             ("symbols", symbols_list),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("stype_in", str(stype_in_valid)),
