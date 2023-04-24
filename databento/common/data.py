@@ -40,7 +40,7 @@ RECORD_HEADER: List[Tuple[str, Union[type, str]]] = [
     ("length", np.uint8),
     ("rtype", np.uint8),
     ("publisher_id", np.uint16),
-    ("product_id", np.uint32),
+    ("instrument_id", np.uint32),
     ("ts_event", np.uint64),
 ]
 
@@ -271,7 +271,7 @@ DERIV_HEADER_COLUMNS = [
     "ts_event",
     "ts_in_delta",
     "publisher_id",
-    "product_id",
+    "instrument_id",
     "action",
     "side",
     "depth",
@@ -283,7 +283,7 @@ DERIV_HEADER_COLUMNS = [
 
 OHLCV_HEADER_COLUMNS = [
     "publisher_id",
-    "product_id",
+    "instrument_id",
     "open",
     "high",
     "low",
@@ -330,7 +330,7 @@ COLUMNS = {
         "ts_in_delta",
         "publisher_id",
         "channel_id",
-        "product_id",
+        "instrument_id",
         "order_id",
         "action",
         "side",

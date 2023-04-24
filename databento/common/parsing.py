@@ -109,11 +109,11 @@ def _(symbols: int, stype_in: SType) -> str:
     optional_symbols_list_to_string
 
     """
-    if stype_in == SType.PRODUCT_ID:
+    if stype_in == SType.INSTRUMENT_ID:
         return str(symbols)
     raise ValueError(
         f"value `{symbols}` is not a valid symbol for stype {stype_in}; "
-        "did you mean to use `product_id`?",
+        "did you mean to use `instrument_id`?",
     )
 
 
@@ -142,7 +142,8 @@ def _(symbols: str, stype_in: SType) -> str:
         symbol_list = symbols.strip().strip(",").split(",")
         return ",".join(map(symbol_to_string, symbol_list))
 
-    if stype_in == SType.SMART:
+    # TODO(cs): Temporary mapping until new DBN released
+    if stype_in in (SType.SMART, SType.CONTINUOUS):
         return validate_smart_symbol(symbols)
     return symbols.strip().upper()
 

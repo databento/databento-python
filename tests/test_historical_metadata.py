@@ -256,7 +256,7 @@ class TestHistoricalMetadata:
             ("schema", "mbo"),
             ("start", "2020-12-28T12:00"),
             ("end", "2020-12-29"),
-            ("stype_in", "native"),
+            ("stype_in", "raw_symbol"),
             ("limit", "1000000"),
         ]
         assert call["timeout"] == (100, 100)
@@ -297,8 +297,8 @@ class TestHistoricalMetadata:
             ("end", "2020-12-29"),
             ("symbols", "ESH1"),
             ("schema", "mbo"),
-            ("stype_in", "native"),
-            ("stype_out", "product_id"),
+            ("stype_in", "raw_symbol"),
+            ("stype_out", "instrument_id"),
             ("limit", "1000000"),
         ]
         assert call["timeout"] == (100, 100)
@@ -336,8 +336,8 @@ class TestHistoricalMetadata:
             ("end", "2020-12-29"),
             ("symbols", "ESH1"),
             ("schema", "mbo"),
-            ("stype_in", "native"),
-            ("stype_out", "product_id"),
+            ("stype_in", "raw_symbol"),
+            ("stype_out", "instrument_id"),
             ("mode", "historical-streaming"),
             ("limit", "1000000"),
         ]

@@ -211,9 +211,13 @@ class Delivery(StringyMixin, str, Enum):
 class SType(StringyMixin, str, Enum):
     """Represents a symbology type."""
 
-    PRODUCT_ID = "product_id"
-    NATIVE = "native"
-    SMART = "smart"
+    PRODUCT_ID = "product_id"  # Deprecated for `instrument_id`
+    NATIVE = "native"  # Deprecated for `raw_symbol`
+    SMART = "smart"  # Deprecated for `parent` and `continuous`
+    INSTRUMENT_ID = "instrument_id"
+    RAW_SYMBOL = "raw_symbol"
+    PARENT = "parent"
+    CONTINUOUS = "continuous"
 
 
 @unique

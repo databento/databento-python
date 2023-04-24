@@ -53,7 +53,7 @@ class TestParsing:
     ) -> None:
         # Arrange, Act, Assert
         with pytest.raises(TypeError):
-            optional_symbols_list_to_string(INCORRECT_TYPE, SType.NATIVE)
+            optional_symbols_list_to_string(INCORRECT_TYPE, SType.RAW_SYMBOL)
 
     @pytest.mark.parametrize(
         "symbols, expected",
@@ -90,15 +90,15 @@ class TestParsing:
     @pytest.mark.parametrize(
         "symbols, stype, expected",
         [
-            pytest.param(12345, SType.PRODUCT_ID, "12345"),
-            pytest.param("67890", SType.PRODUCT_ID, "67890"),
-            pytest.param([12345, "  67890"], SType.PRODUCT_ID, "12345,67890"),
-            pytest.param([12345, [67890, 66]], SType.PRODUCT_ID, "12345,67890,66"),
-            pytest.param([12345, "67890,66"], SType.PRODUCT_ID, "12345,67890,66"),
-            pytest.param("", SType.PRODUCT_ID, ValueError),
-            pytest.param([12345, ""], SType.PRODUCT_ID, ValueError),
-            pytest.param([12345, [""]], SType.PRODUCT_ID, ValueError),
-            pytest.param(12345, SType.NATIVE, ValueError),
+            pytest.param(12345, SType.INSTRUMENT_ID, "12345"),
+            pytest.param("67890", SType.INSTRUMENT_ID, "67890"),
+            pytest.param([12345, "  67890"], SType.INSTRUMENT_ID, "12345,67890"),
+            pytest.param([12345, [67890, 66]], SType.INSTRUMENT_ID, "12345,67890,66"),
+            pytest.param([12345, "67890,66"], SType.INSTRUMENT_ID, "12345,67890,66"),
+            pytest.param("", SType.INSTRUMENT_ID, ValueError),
+            pytest.param([12345, ""], SType.INSTRUMENT_ID, ValueError),
+            pytest.param([12345, [""]], SType.INSTRUMENT_ID, ValueError),
+            pytest.param(12345, SType.RAW_SYMBOL, ValueError),
             pytest.param(12345, SType.SMART, ValueError),
         ],
     )
@@ -109,7 +109,7 @@ class TestParsing:
         expected: Union[str, Type[Exception]],
     ) -> None:
         """
-        Test that integers are allowed for SType.PRODUCT_ID.
+        Test that integers are allowed for SType.INSTRUMENT_ID.
         If integers are given for a different SType we expect
         a ValueError.
         """
@@ -122,17 +122,17 @@ class TestParsing:
     @pytest.mark.parametrize(
         "symbols, stype, expected",
         [
-            pytest.param("NVDA", SType.NATIVE, "NVDA"),
-            pytest.param(" nvda  ", SType.NATIVE, "NVDA"),
-            pytest.param("NVDA,amd", SType.NATIVE, "NVDA,AMD"),
-            pytest.param("NVDA,amd,NOC,", SType.NATIVE, "NVDA,AMD,NOC"),
-            pytest.param("NVDA,  amd,NOC, ", SType.NATIVE, "NVDA,AMD,NOC"),
-            pytest.param(["NVDA", ["NOC", "AMD"]], SType.NATIVE, "NVDA,NOC,AMD"),
-            pytest.param(["NVDA", "NOC,AMD"], SType.NATIVE, "NVDA,NOC,AMD"),
-            pytest.param("", SType.NATIVE, ValueError),
-            pytest.param([""], SType.NATIVE, ValueError),
-            pytest.param(["NVDA", ""], SType.NATIVE, ValueError),
-            pytest.param(["NVDA", [""]], SType.NATIVE, ValueError),
+            pytest.param("NVDA", SType.RAW_SYMBOL, "NVDA"),
+            pytest.param(" nvda  ", SType.RAW_SYMBOL, "NVDA"),
+            pytest.param("NVDA,amd", SType.RAW_SYMBOL, "NVDA,AMD"),
+            pytest.param("NVDA,amd,NOC,", SType.RAW_SYMBOL, "NVDA,AMD,NOC"),
+            pytest.param("NVDA,  amd,NOC, ", SType.RAW_SYMBOL, "NVDA,AMD,NOC"),
+            pytest.param(["NVDA", ["NOC", "AMD"]], SType.RAW_SYMBOL, "NVDA,NOC,AMD"),
+            pytest.param(["NVDA", "NOC,AMD"], SType.RAW_SYMBOL, "NVDA,NOC,AMD"),
+            pytest.param("", SType.RAW_SYMBOL, ValueError),
+            pytest.param([""], SType.RAW_SYMBOL, ValueError),
+            pytest.param(["NVDA", ""], SType.RAW_SYMBOL, ValueError),
+            pytest.param(["NVDA", [""]], SType.RAW_SYMBOL, ValueError),
         ],
     )
     def test_optional_symbols_list_to_string_native(
@@ -142,7 +142,7 @@ class TestParsing:
         expected: Union[str, Type[Exception]],
     ) -> None:
         """
-        Test that str are allowed for SType.NATIVE.
+        Test that str are allowed for SType.RAW_SYMBOL.
         """
         if isinstance(expected, str):
             assert optional_symbols_list_to_string(symbols, stype) == expected

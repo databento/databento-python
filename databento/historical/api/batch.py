@@ -65,8 +65,8 @@ class BatchHttpAPI(BentoHttpAPI):
         split_size: Optional[int] = None,
         packaging: Optional[Union[Packaging, str]] = None,
         delivery: Union[Delivery, str] = "download",
-        stype_in: Union[SType, str] = "native",
-        stype_out: Union[SType, str] = "product_id",
+        stype_in: Union[SType, str] = "raw_symbol",
+        stype_out: Union[SType, str] = "instrument_id",
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
@@ -107,9 +107,9 @@ class BatchHttpAPI(BentoHttpAPI):
             The archive type to package all batched data files in.
         delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
             The delivery mechanism for the processed batched data files.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
-        stype_out : SType or str, default 'product_id'
+        stype_out : SType or str, default 'instrument_id'
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.

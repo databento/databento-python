@@ -32,7 +32,7 @@ from databento.common.data import (
 from databento.common.enums import Compression, Schema, SType
 from databento.common.error import BentoError
 from databento.common.metadata import MetadataDecoder
-from databento.common.symbology import ProductIdMappingInterval
+from databento.common.symbology import InstrumentIdMappingInterval
 
 
 logger = logging.getLogger(__name__)
@@ -339,7 +339,7 @@ class DBNStore:
         )
 
         # This is populated when _map_symbols is called
-        self._product_id_index: Dict[
+        self._instrument_id_index: Dict[
             dt.date,
             Dict[int, str],
         ] = {}
@@ -392,19 +392,19 @@ class DBNStore:
 
         return df
 
-    def _build_product_id_index(self) -> Dict[dt.date, Dict[int, str]]:
-        intervals: List[ProductIdMappingInterval] = []
-        for native, i in self.mappings.items():
+    def _build_instrument_id_index(self) -> Dict[dt.date, Dict[int, str]]:
+        intervals: List[InstrumentIdMappingInterval] = []
+        for raw_symbol, i in self.mappings.items():
             for row in i:
                 symbol = row["symbol"]
                 if symbol == "":
                     continue
                 intervals.append(
-                    ProductIdMappingInterval(
+                    InstrumentIdMappingInterval(
                         start_date=row["start_date"],
                         end_date=row["end_date"],
-                        native=native,
-                        product_id=int(row["symbol"]),
+                        raw_symbol=raw_symbol,
+                        instrument_id=int(row["symbol"]),
                     ),
                 )
 
@@ -420,7 +420,7 @@ class DBNStore:
                 date_map: Dict[int, str] = product_id_index.get(d, {})
                 if not date_map:
                     product_id_index[d] = date_map
-                date_map[interval.product_id] = interval.native
+                date_map[interval.instrument_id] = interval.raw_symbol
 
         return product_id_index
 
@@ -457,17 +457,17 @@ class DBNStore:
         )
 
     def _map_symbols(self, df: pd.DataFrame, pretty_ts: bool) -> pd.DataFrame:
-        # Build product ID index
-        if not self._product_id_index:
-            self._product_id_index = self._build_product_id_index()
+        # Build instrument ID index
+        if not self._instrument_id_index:
+            self._instrument_id_index = self._build_instrument_id_index()
 
-        # Map product IDs to native symbols
-        if self._product_id_index:
+        # Map instrument IDs to raw symbols
+        if self._instrument_id_index:
             df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
             dates = [ts.date() for ts in df_index]
             df["symbol"] = [
-                self._product_id_index[dates[i]][p]
-                for i, p in enumerate(df["product_id"])
+                self._instrument_id_index[dates[i]][p]
+                for i, p in enumerate(df["instrument_id"])
             ]
 
         return df
@@ -864,7 +864,7 @@ class DBNStore:
             the correct scale (using the fixed precision scalar 1e-9).
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the product ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its native symbol for
             every record.
 
         Notes
@@ -897,7 +897,7 @@ class DBNStore:
             the correct scale (using the fixed precision scalar 1e-9).
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the product ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its native symbol for
             every record.
 
         Returns
@@ -955,7 +955,7 @@ class DBNStore:
             the correct scale (using the fixed precision scalar 1e-9).
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the product ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its native symbol for
             every record.
 
         Notes

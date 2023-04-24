@@ -276,7 +276,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        stype_in: Optional[Union[SType, str]] = "native",
+        stype_in: Optional[Union[SType, str]] = "raw_symbol",
         limit: Optional[int] = None,
     ) -> int:
         """
@@ -303,7 +303,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
@@ -344,7 +344,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        stype_in: Optional[Union[SType, str]] = "native",
+        stype_in: Optional[Union[SType, str]] = "raw_symbol",
         limit: Optional[int] = None,
     ) -> int:
         """
@@ -372,7 +372,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
@@ -392,7 +392,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             ("symbols", symbols_list),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(SType.PRODUCT_ID)),
+            ("stype_out", str(SType.INSTRUMENT_ID)),
         ]
 
         if limit is not None:
@@ -414,7 +414,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         mode: Union[FeedMode, str] = "historical-streaming",
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        stype_in: Optional[Union[SType, str]] = "native",
+        stype_in: Optional[Union[SType, str]] = "raw_symbol",
         limit: Optional[int] = None,
     ) -> float:
         """
@@ -444,7 +444,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
@@ -464,7 +464,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             ("symbols", symbols_list),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(SType.PRODUCT_ID)),
+            ("stype_out", str(SType.INSTRUMENT_ID)),
             ("mode", validate_enum(mode, FeedMode, "mode")),
         ]
 
