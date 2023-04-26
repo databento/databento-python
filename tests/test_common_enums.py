@@ -147,3 +147,35 @@ def test_int_flags_stringy_mixin(enum_type: Type[Flag]) -> None:
         assert str(record_flags) == ", ".join(
             f.name.lower() for f in enum_type if f in record_flags
         )
+
+
+def test_stype_deprecation() -> None:
+    """
+    Test that a deprecation warning is emitted when
+    accessing a deprecated SType member.
+    """
+    with pytest.deprecated_call():
+        SType.PRODUCT_ID
+
+    with pytest.deprecated_call():
+        SType.NATIVE
+
+    with pytest.deprecated_call():
+        SType.SMART
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "product_id",
+        "native",
+        "smart",
+    ],
+)
+def test_stype_deprecation_strings(name: str) -> None:
+    """
+    Test that a deprecation warning is emitted when
+    constructing an SType from strings.
+    """
+    with pytest.deprecated_call():
+        SType(name)

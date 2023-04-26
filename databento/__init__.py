@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 from databento.common import utility
 from databento.common.dbnstore import DBNStore
@@ -55,6 +56,9 @@ __all__ = [
 
 # Setup logging
 logging.getLogger(__name__).addHandler(logging.NullHandler())
+
+# Setup deprecation warnings
+warnings.simplefilter("always", DeprecationWarning)
 
 # Convenience imports
 enable_logging = utility.enable_logging
