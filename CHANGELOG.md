@@ -1,7 +1,11 @@
 # Changelog
 
 ## 0.12.0 - TBD
+- Upgraded `databento-dbn` to 0.5.0
 - Renamed the `cost` field to `cost_usd` for `batch.submit_job` and `batch.list_jobs` (value now expressed as US dollars)
+- Removed `bad` condition variant from `batch.get_dataset_condition`
+- Added `degraded`, `pending` and `missing` condition variants for `batch.get_dataset_condition`
+- Added `last_modified_date` field to `batch.get_dataset_condition` response
 
 ## 0.11.0 - 2023-04-13
 - Changed `end` and `end_date` to optional to support new forward-fill behaviour

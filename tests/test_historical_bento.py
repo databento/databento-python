@@ -41,28 +41,26 @@ def test_sources_metadata_returns_expected_json_as_dict(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.metadata == {
-        "version": 1,
-        "dataset": "GLBX.MDP3",
-        "schema": "mbo",
-        "stype_in": "raw_symbol",
-        "stype_out": "instrument_id",
-        "start": 1609160400000000000,
-        "end": 1609246860000000000,
-        "limit": 2,
-        "symbols": ["ESH1"],
-        "ts_out": False,
-        "partial": [],
-        "not_found": [],
-        "mappings": {
-            "ESH1": [
-                {
-                    "start_date": dt.date(2020, 12, 28),
-                    "end_date": dt.date(2020, 12, 30),
-                    "symbol": "5482",
-                },
-            ],
-        },
+    assert dbnstore.metadata.version == 1
+    assert dbnstore.metadata.dataset == "GLBX.MDP3"
+    assert dbnstore.metadata.schema == Schema.MBO
+    assert dbnstore.metadata.stype_in == SType.RAW_SYMBOL
+    assert dbnstore.metadata.stype_out == SType.INSTRUMENT_ID
+    assert dbnstore.metadata.start == 1609160400000000000
+    assert dbnstore.metadata.end == 1609246860000000000
+    assert dbnstore.metadata.limit == 2
+    assert dbnstore.metadata.symbols == ["ESH1"]
+    assert dbnstore.metadata.ts_out is False
+    assert dbnstore.metadata.partial == []
+    assert dbnstore.metadata.not_found == []
+    assert dbnstore.metadata.mappings == {
+        "ESH1": [
+            {
+                "start_date": dt.date(2020, 12, 28),
+                "end_date": dt.date(2020, 12, 30),
+                "symbol": "5482",
+            },
+        ],
     }
 
 

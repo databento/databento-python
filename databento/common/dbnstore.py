@@ -31,8 +31,8 @@ from databento.common.data import (
 )
 from databento.common.enums import Compression, Schema, SType
 from databento.common.error import BentoError
-from databento.common.metadata import MetadataDecoder
 from databento.common.symbology import InstrumentIdMappingInterval
+from databento_dbn import Metadata
 
 
 logger = logging.getLogger(__name__)
@@ -195,7 +195,7 @@ class MemoryDataSource(DataSource):
 
     """
 
-    def __init__(self, source: Union[BytesIO, bytes]):
+    def __init__(self, source: Union[BytesIO, bytes, IO[bytes]]):
         initial_data = source if isinstance(source, bytes) else source.read()
         if len(initial_data) == 0:
             raise ValueError(
@@ -334,7 +334,7 @@ class DBNStore:
         metadata_bytes.write(buffer.read(metadata_length))
 
         # Read metadata
-        self._metadata: Dict[str, Any] = MetadataDecoder().decode_to_json(
+        self._metadata: Metadata = Metadata.decode(
             metadata_bytes.getvalue(),
         )
 
@@ -408,7 +408,7 @@ class DBNStore:
                     ),
                 )
 
-        product_id_index: Dict[dt.date, Dict[int, str]] = {}
+        instrument_id_index: Dict[dt.date, Dict[int, str]] = {}
         for interval in intervals:
             for ts in pd.date_range(
                 start=interval.start_date,
@@ -417,12 +417,12 @@ class DBNStore:
                 **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
             ):
                 d: dt.date = ts.date()
-                date_map: Dict[int, str] = product_id_index.get(d, {})
+                date_map: Dict[int, str] = instrument_id_index.get(d, {})
                 if not date_map:
-                    product_id_index[d] = date_map
+                    instrument_id_index[d] = date_map
                 date_map[interval.instrument_id] = interval.raw_symbol
 
-        return product_id_index
+        return instrument_id_index
 
     def _prepare_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         # Setup column ordering and index
@@ -495,7 +495,7 @@ class DBNStore:
         str
 
         """
-        return str(self._metadata["dataset"])
+        return str(self._metadata.dataset)
 
     @property
     def dtype(self) -> np.dtype[Any]:
@@ -523,7 +523,7 @@ class DBNStore:
         The data timestamps will not occur after `end`.
 
         """
-        return pd.Timestamp(self._metadata["end"], tz="UTC")
+        return pd.Timestamp(self._metadata.end, tz="UTC")
 
     @property
     def limit(self) -> Optional[int]:
@@ -535,7 +535,7 @@ class DBNStore:
         int or None
 
         """
-        return self._metadata["limit"]
+        return self._metadata.limit
 
     @property
     def nbytes(self) -> int:
@@ -559,16 +559,16 @@ class DBNStore:
         Dict[str, List[Dict[str, Any]]]
 
         """
-        return self._metadata["mappings"]
+        return self._metadata.mappings
 
     @property
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> Metadata:
         """
         Return the metadata for the data.
 
         Returns
         -------
-        Dict[str, Any]
+        Metadata
 
         """
         return self._metadata
@@ -624,7 +624,7 @@ class DBNStore:
         Schema
 
         """
-        return Schema(self._metadata["schema"])
+        return Schema(self._metadata.schema)
 
     @property
     def start(self) -> pd.Timestamp:
@@ -640,7 +640,7 @@ class DBNStore:
         The data timestamps will not occur prior to `start`.
 
         """
-        return pd.Timestamp(self._metadata["start"], tz="UTC")
+        return pd.Timestamp(self._metadata.start, tz="UTC")
 
     @property
     def record_size(self) -> int:
@@ -664,7 +664,7 @@ class DBNStore:
         SType
 
         """
-        return SType(self._metadata["stype_in"])
+        return SType(self._metadata.stype_in)
 
     @property
     def stype_out(self) -> SType:
@@ -676,7 +676,7 @@ class DBNStore:
         SType
 
         """
-        return SType(self._metadata["stype_out"])
+        return SType(self._metadata.stype_out)
 
     @property
     def symbology(self) -> Dict[str, Any]:
@@ -694,8 +694,8 @@ class DBNStore:
             "stype_out": str(self.stype_out),
             "start_date": str(self.start.date()),
             "end_date": str(self.end.date()),
-            "partial": self._metadata["partial"],
-            "not_found": self._metadata["not_found"],
+            "partial": self._metadata.partial,
+            "not_found": self._metadata.not_found,
             "mappings": self.mappings,
         }
 
@@ -709,7 +709,7 @@ class DBNStore:
         List[str]
 
         """
-        return self._metadata["symbols"]
+        return self._metadata.symbols
 
     @classmethod
     def from_file(cls, path: Union[PathLike[str], str]) -> "DBNStore":

@@ -253,16 +253,15 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
     """Represents record flags.
 
     F_LAST
-        Last message in the packet from the venue for a given `product_id`
+        Last message in the packet from the venue for a given `instrument_id`.
     F_SNAPSHOT
-        Message sourced from a replay, such as a snapshot server
+        Message sourced from a replay, such as a snapshot server.
     F_MBP
-        Aggregated price level message, not an individual order
+        Aggregated price level message, not an individual order.
     F_BAD_TS_RECV
-        The `ts_recv` value is inaccurate (clock issues or reordering)
+        The `ts_recv` value is inaccurate (clock issues or reordering).
 
     Other bits are reserved and have no current meaning.
-
     """
 
     F_LAST = 128
