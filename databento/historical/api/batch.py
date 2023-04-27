@@ -55,7 +55,7 @@ class BatchHttpAPI(BentoHttpAPI):
     def submit_job(
         self,
         dataset: Union[Dataset, str],
-        symbols: Optional[Union[List[str], str]],
+        symbols: Union[List[str], str],
         schema: Union[Schema, str],
         start: Union[pd.Timestamp, date, str, int],
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
