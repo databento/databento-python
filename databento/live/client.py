@@ -570,14 +570,19 @@ class Live:
         ------
         BentoError
             If the connection is terminated unexpectedly.
+        ValueError
+            If the client has never connected.
 
         See Also
         --------
         wait_for_close
 
         """
+        if self._connection is None:
+            raise ValueError("cannot block_for_close before connecting")
+
         if not self.is_connected():
-            raise ValueError("cannot wait for close before connecting")
+            return
 
         try:
             asyncio.run_coroutine_threadsafe(
@@ -612,14 +617,19 @@ class Live:
         ------
         BentoError
             If the connection is terminated unexpectedly.
+        ValueError
+            If the client has never connected.
 
         See Also
         --------
         block_for_close
 
         """
+        if self._connection is None:
+            raise ValueError("cannot wait_for_close before connecting")
+
         if not self.is_connected():
-            raise ValueError("cannot wait for close before connecting")
+            return
 
         waiter = asyncio.wrap_future(
             asyncio.run_coroutine_threadsafe(

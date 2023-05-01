@@ -436,6 +436,17 @@ def test_live_block_for_close_timeout(
     live_client.terminate.assert_called_once()  # type: ignore
 
 
+def test_live_block_for_close_dry(
+    live_client: client.Live,
+) -> None:
+    """
+    Test that block_for_close raises a ValueError if the client
+    has never connected.
+    """
+    with pytest.raises(ValueError):
+        live_client.block_for_close()
+
+
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("mock_live_server")
 async def test_live_wait_for_close(
@@ -458,6 +469,18 @@ async def test_live_wait_for_close(
     await live_client.wait_for_close()
 
     assert not live_client.is_connected()
+
+
+@pytest.mark.asyncio
+async def test_live_wait_for_close_dry(
+    live_client: client.Live,
+) -> None:
+    """
+    Test that wait_for_close raises a ValueError if the client
+    has never connected.
+    """
+    with pytest.raises(ValueError):
+        await live_client.wait_for_close()
 
 
 @pytest.mark.asyncio
