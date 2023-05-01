@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.12.0 - TBD
+## 0.12.0 - 2023-05-01
 - Added `Live` client for connecting to Databento's live service
 - Upgraded `databento-dbn` to 0.5.0
 - Upgraded `DBNStore` to support mixed schema types to support live data
