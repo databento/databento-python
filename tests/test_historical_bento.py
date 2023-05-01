@@ -2,7 +2,7 @@ import collections
 import datetime as dt
 import sys
 from pathlib import Path
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List
 
 import databento
 import numpy as np
@@ -13,6 +13,8 @@ from databento.common.data import DEFINITION_DROP_COLUMNS
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
 from databento.common.error import BentoError
+from databento.live.data import DBNStruct
+from databento_dbn import MBOMsg
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:
@@ -41,32 +43,30 @@ def test_sources_metadata_returns_expected_json_as_dict(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.metadata == {
-        "version": 1,
-        "dataset": "GLBX.MDP3",
-        "schema": "mbo",
-        "stype_in": "native",
-        "stype_out": "product_id",
-        "start": 1609160400000000000,
-        "end": 1609246860000000000,
-        "limit": 2,
-        "symbols": ["ESH1"],
-        "ts_out": False,
-        "partial": [],
-        "not_found": [],
-        "mappings": {
-            "ESH1": [
-                {
-                    "start_date": dt.date(2020, 12, 28),
-                    "end_date": dt.date(2020, 12, 30),
-                    "symbol": "5482",
-                },
-            ],
-        },
+    assert dbnstore.metadata.version == 1
+    assert dbnstore.metadata.dataset == "GLBX.MDP3"
+    assert dbnstore.metadata.schema == Schema.MBO
+    assert dbnstore.metadata.stype_in == SType.RAW_SYMBOL
+    assert dbnstore.metadata.stype_out == SType.INSTRUMENT_ID
+    assert dbnstore.metadata.start == 1609160400000000000
+    assert dbnstore.metadata.end == 1609246860000000000
+    assert dbnstore.metadata.limit == 2
+    assert dbnstore.metadata.symbols == ["ESH1"]
+    assert dbnstore.metadata.ts_out is False
+    assert dbnstore.metadata.partial == []
+    assert dbnstore.metadata.not_found == []
+    assert dbnstore.metadata.mappings == {
+        "ESH1": [
+            {
+                "start_date": dt.date(2020, 12, 28),
+                "end_date": dt.date(2020, 12, 30),
+                "symbol": "5482",
+            },
+        ],
     }
 
 
-def test_build_product_id_index(
+def test_build_instrument_id_index(
     test_data: Callable[[Schema], bytes],
 ) -> None:
     # Arrange
@@ -74,10 +74,10 @@ def test_build_product_id_index(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Act
-    product_id_index = dbnstore._build_product_id_index()
+    instrument_id_index = dbnstore._build_instrument_id_index()
 
     # Assert
-    assert product_id_index == {
+    assert instrument_id_index == {
         dt.date(2020, 12, 28): {5482: "ESH1"},
         dt.date(2020, 12, 29): {5482: "ESH1"},
     }
@@ -93,32 +93,12 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.dtype == np.dtype(
-        [
-            ("length", "u1"),
-            ("rtype", "u1"),
-            ("publisher_id", "<u2"),
-            ("product_id", "<u4"),
-            ("ts_event", "<u8"),
-            ("order_id", "<u8"),
-            ("price", "<i8"),
-            ("size", "<u4"),
-            ("flags", "i1"),
-            ("channel_id", "u1"),
-            ("action", "S1"),
-            ("side", "S1"),
-            ("ts_recv", "<u8"),
-            ("ts_in_delta", "<i4"),
-            ("sequence", "<u4"),
-        ],
-    )
-    assert dbnstore.record_size == 56
     assert dbnstore.nbytes == 182
     assert dbnstore.dataset == "GLBX.MDP3"
     assert dbnstore.schema == Schema.MBO
     assert dbnstore.symbols == ["ESH1"]
-    assert dbnstore.stype_in == SType.NATIVE
-    assert dbnstore.stype_out == SType.PRODUCT_ID
+    assert dbnstore.stype_in == SType.RAW_SYMBOL
+    assert dbnstore.stype_out == SType.INSTRUMENT_ID
     assert dbnstore.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
     assert dbnstore.end == pd.Timestamp("2020-12-29 13:01:00+0000", tz="UTC")
     assert dbnstore.limit == 2
@@ -134,8 +114,8 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
     }
     assert dbnstore.symbology == {
         "symbols": ["ESH1"],
-        "stype_in": "native",
-        "stype_out": "product_id",
+        "stype_in": "raw_symbol",
+        "stype_out": "instrument_id",
         "start_date": "2020-12-28",
         "end_date": "2020-12-29",
         "not_found": [],
@@ -210,7 +190,7 @@ def test_iterator_produces_expected_data(
     handler = collections.deque(data)
 
     # Assert
-    assert len(handler) == 2
+    assert len(handler) == 2 + 1  # includes Metadata
 
 
 def test_replay_with_stub_data_record_passes_to_callback(
@@ -220,16 +200,29 @@ def test_replay_with_stub_data_record_passes_to_callback(
     stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
-    handler: List[Tuple[Union[int, bytes], ...]] = []
+    handler: List[MBOMsg] = []
 
     # Act
     data.replay(callback=handler.append)
+    record: MBOMsg = handler[1]  # first record is Metadata
 
     # Assert
-    assert (
-        str(handler[0])
-        == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)"  # noqa
-    )
+    assert record.hd.length == 14
+    assert record.hd.rtype == 160
+    assert record.hd.rtype == 160
+    assert record.hd.publisher_id == 1
+    assert record.hd.instrument_id == 5482
+    assert record.hd.ts_event == 1609160400000429831
+    assert record.order_id == 647784973705
+    assert record.price == 3722750000000
+    assert record.size == 1
+    assert record.flags == 128
+    assert record.channel_id == 0
+    assert record.action == 67
+    assert record.side == 65
+    assert record.ts_recv == 1609160400000704060
+    assert record.ts_in_delta == 22993
+    assert record.sequence == 1170352
 
 
 @pytest.mark.parametrize(
@@ -241,11 +234,7 @@ def test_replay_with_stub_data_record_passes_to_callback(
         not in (
             Schema.OHLCV_1H,
             Schema.OHLCV_1D,
-            Schema.STATUS,
-            Schema.STATISTICS,
             Schema.DEFINITION,
-            Schema.GATEWAY_ERROR,
-            Schema.SYMBOL_MAPPING,
         )
     ],
 )
@@ -323,7 +312,7 @@ def test_to_df_with_mbo_data_returns_expected_record(
     assert df.index.values[0] == 1609160400000704060
     assert df.iloc[0].ts_event == 1609160400000429831
     assert df.iloc[0].publisher_id == 1
-    assert df.iloc[0].product_id == 5482
+    assert df.iloc[0].instrument_id == 5482
     assert df.iloc[0].order_id == 647784973705
     assert df.iloc[0].action == "C"
     assert df.iloc[0].side == "A"
@@ -350,7 +339,7 @@ def test_to_df_with_stub_ohlcv_data_returns_expected_record(
     assert len(df) == 2
     assert df.index.name == "ts_event"
     assert df.index.values[0] == 1609160400000000000
-    assert df.iloc[0].product_id == 5482
+    assert df.iloc[0].instrument_id == 5482
     assert df.iloc[0].open == 3_720_250_000_000
     assert df.iloc[0].high == 3_721_500_000_000
     assert df.iloc[0].low == 3_720_250_000_000
@@ -495,7 +484,7 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
     written = open(path, mode="rb").read()
     assert path.exists()
     expected = (
-        b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,product_id,order_id,act"  # noqa
+        b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,instrument_id,order_id,act"  # noqa
         b"ion,side,flags,price,size,sequence\n1609160400000704060,16091604000004298"  # noqa
         b"31,22993,1,0,5482,647784973705,C,A,128,3722750000000,1,1170352\n160916040"  # noqa
         b"0000711344,1609160400000431665,19621,1,0,5482,647784973631,C,A,128,372300000"  # noqa
@@ -527,7 +516,7 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
     written = open(path, mode="rb").read()
     assert path.exists()
     expected = (
-        b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,action,side,depth,flags"  # noqa
+        b"ts_recv,ts_event,ts_in_delta,publisher_id,instrument_id,action,side,depth,flags"  # noqa
         b",price,size,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_oq_00,ask_o"  # noqa
         b"q_00\n1609160400006136329,1609160400006001487,17214,1,5482,A,A,0,128,3720"  # noqa
         b"500000000,1,1170362,3720250000000,3720500000000,24,11,15,9\n1609160400006"  # noqa
@@ -560,7 +549,7 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
     written = open(path, mode="rb").read()
     assert path.exists()
     expected = (
-        b"ts_recv,ts_event,ts_in_delta,publisher_id,product_id,action,si"
+        b"ts_recv,ts_event,ts_in_delta,publisher_id,instrument_id,action,si"
         b"de,depth,flags,price,size,sequence,bid_px_00,ask_px_00,bid_sz_"
         b"00,ask_sz_00,bid_oq_00,ask_oq_00,symbol\n2020-12-28 13:00:00.0"
         b"06136329+00:00,2020-12-28 13:00:00.006001487+00:00,17214,1,548"
@@ -597,10 +586,10 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
     assert path.exists()
     assert written == (
         b'{"ts_event":1609160400000429831,"ts_in_delta":22993,"publisher_id":1,"channe'  # noqa
-        b'l_id":0,"product_id":5482,"order_id":647784973705,"action":"C","side":"A","f'  # noqa
+        b'l_id":0,"instrument_id":5482,"order_id":647784973705,"action":"C","side":"A","f'  # noqa
         b'lags":128,"price":3722750000000,"size":1,"sequence":1170352}\n{"ts_event"'  # noqa
-        b':1609160400000431665,"ts_in_delta":19621,"publisher_id":1,"channel_id":0,"pr'  # noqa
-        b'oduct_id":5482,"order_id":647784973631,"action":"C","side":"A","flags":128,"'  # noqa
+        b':1609160400000431665,"ts_in_delta":19621,"publisher_id":1,"channel_id":0,"instru'  # noqa
+        b'ment_id":5482,"order_id":647784973631,"action":"C","side":"A","flags":128,"'  # noqa
         b'price":3723000000000,"size":1,"sequence":1170353}\n'
     )
 
@@ -627,10 +616,10 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
     assert path.exists()
     assert written == (
         b'{"ts_event":1609160400000,"ts_in_delta":22993,"publisher_id":1,"ch'
-        b'annel_id":0,"product_id":5482,"order_id":647784973705,"action":"C"'
+        b'annel_id":0,"instrument_id":5482,"order_id":647784973705,"action":"C"'
         b',"side":"A","flags":128,"price":3722.75,"size":1,"sequence":117035'
         b'2,"symbol":"ESH1"}\n{"ts_event":1609160400000,"ts_in_delta":19621,'
-        b'"publisher_id":1,"channel_id":0,"product_id":5482,"order_id":64778'
+        b'"publisher_id":1,"channel_id":0,"instrument_id":5482,"order_id":64778'
         b'4973631,"action":"C","side":"A","flags":128,"price":3723.0,"size":'
         b'1,"sequence":1170353,"symbol":"ESH1"}\n'
     )
@@ -657,11 +646,11 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
     written = open(path, mode="rb").read()
     assert path.exists()
     assert written == (
-        b'{"ts_event":1609160400006001487,"ts_in_delta":17214,"publisher_id":1,"produc'  # noqa
+        b'{"ts_event":1609160400006001487,"ts_in_delta":17214,"publisher_id":1,"instrumen'  # noqa
         b't_id":5482,"action":"A","side":"A","depth":0,"flags":128,"price":37205000000'  # noqa
         b'00,"size":1,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500'  # noqa
         b'000000,"bid_sz_00":24,"ask_sz_00":11,"bid_oq_00":15,"ask_oq_00":9}\n{"ts_'  # noqa
-        b'event":1609160400006146661,"ts_in_delta":18858,"publisher_id":1,"product_id"'  # noqa
+        b'event":1609160400006146661,"ts_in_delta":18858,"publisher_id":1,"instrument_id"'  # noqa
         b':5482,"action":"A","side":"A","depth":0,"flags":128,"price":3720500000000,"s'  # noqa
         b'ize":1,"sequence":1170364,"bid_px_00":3720250000000,"ask_px_00":372050000000'  # noqa
         b'0,"bid_sz_00":24,"ask_sz_00":12,"bid_oq_00":15,"ask_oq_00":10}\n'  # noqa
@@ -689,12 +678,12 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     written = open(path, mode="rb").read()
     assert path.exists()
     assert written == (
-        b'{"ts_event":1609160400006,"ts_in_delta":17214,"publisher_id":1,"pr'
-        b'oduct_id":5482,"action":"A","side":"A","depth":0,"flags":128,"pric'
+        b'{"ts_event":1609160400006,"ts_in_delta":17214,"publisher_id":1,"in'
+        b'strument_id":5482,"action":"A","side":"A","depth":0,"flags":128,"pric'
         b'e":3720.5,"size":1,"sequence":1170362,"bid_px_00":3720.25,"ask_px_'
         b'00":3720.5,"bid_sz_00":24,"ask_sz_00":11,"bid_oq_00":15,"ask_oq_00'
         b'":9,"symbol":"ESH1"}\n{"ts_event":1609160400006,"ts_in_delta":1885'
-        b'8,"publisher_id":1,"product_id":5482,"action":"A","side":"A","dept'
+        b'8,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","dept'
         b'h":0,"flags":128,"price":3720.5,"size":1,"sequence":1170364,"bid_p'
         b'x_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bi'
         b'd_oq_00":15,"ask_oq_00":10,"symbol":"ESH1"}\n'
@@ -710,11 +699,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
         not in (
             Schema.OHLCV_1H,
             Schema.OHLCV_1D,
-            Schema.STATUS,
-            Schema.STATISTICS,
             Schema.DEFINITION,
-            Schema.GATEWAY_ERROR,
-            Schema.SYMBOL_MAPPING,
         )
     ],
 )
@@ -747,17 +732,43 @@ def test_dbnstore_iterable(
     stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
-    record_list = list(dbnstore)
-    assert (
-        str(record_list[0]) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
-        "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
-        "22993, 1170352)"
-    )
-    assert (
-        str(record_list[1]) == "(14, 160, 1, 5482, 1609160400000431665, 647784973631, "
-        "3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, "
-        "19621, 1170353)"
-    )
+    record_list: List[DBNStruct] = list(dbnstore)
+    first: MBOMsg = record_list[1]  # type: ignore
+    second: MBOMsg = record_list[2]  # type: ignore
+
+    assert first.hd.length == 14
+    assert first.hd.rtype == 160
+    assert first.hd.rtype == 160
+    assert first.hd.publisher_id == 1
+    assert first.hd.instrument_id == 5482
+    assert first.hd.ts_event == 1609160400000429831
+    assert first.order_id == 647784973705
+    assert first.price == 3722750000000
+    assert first.size == 1
+    assert first.flags == 128
+    assert first.channel_id == 0
+    assert first.action == 67
+    assert first.side == 65
+    assert first.ts_recv == 1609160400000704060
+    assert first.ts_in_delta == 22993
+    assert first.sequence == 1170352
+
+    assert second.hd.length == 14
+    assert second.hd.rtype == 160
+    assert second.hd.rtype == 160
+    assert second.hd.publisher_id == 1
+    assert second.hd.instrument_id == 5482
+    assert second.hd.ts_event == 1609160400000431665
+    assert second.order_id == 647784973631
+    assert second.price == 3723000000000
+    assert second.size == 1
+    assert second.flags == 128
+    assert second.channel_id == 0
+    assert second.action == 67
+    assert second.side == 65
+    assert second.ts_recv == 1609160400000711344
+    assert second.ts_in_delta == 19621
+    assert second.sequence == 1170353
 
 
 def test_dbnstore_iterable_parallel(
@@ -775,26 +786,8 @@ def test_dbnstore_iterable_parallel(
     first = iter(dbnstore)
     second = iter(dbnstore)
 
-    assert (
-        str(next(first)) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
-        "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
-        "22993, 1170352)"
-    )
-    assert (
-        str(next(second)) == "(14, 160, 1, 5482, 1609160400000429831, 647784973705, "
-        "3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, "
-        "22993, 1170352)"
-    )
-    assert (
-        str(next(second)) == "(14, 160, 1, 5482, 1609160400000431665, 647784973631, "
-        "3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, "
-        "19621, 1170353)"
-    )
-    assert (
-        str(next(first)) == "(14, 160, 1, 5482, 1609160400000431665, 647784973631, "
-        "3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, "
-        "19621, 1170353)"
-    )
+    assert next(first) == next(second)
+    assert next(first) == next(second)
 
 
 @pytest.mark.parametrize(
@@ -896,3 +889,74 @@ def test_dbnstore_buffer_long(
 
     with pytest.raises(BentoError):
         dbnstore.to_json(tmp_path / "test.json")
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        Schema.MBO,
+        Schema.MBP_1,
+        Schema.MBP_10,
+        Schema.OHLCV_1D,
+        Schema.OHLCV_1H,
+        Schema.OHLCV_1M,
+        Schema.OHLCV_1S,
+        Schema.TBBO,
+        Schema.TRADES,
+    ],
+)
+def test_dbnstore_to_ndarray_with_schema(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_ndarray with schema produces an
+    identical result to without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    actual = dbnstore.to_ndarray(schema=schema)
+    expected = dbnstore.to_ndarray()
+
+    # Assert
+    for i, row in enumerate(actual):
+        assert row == expected[i]
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        Schema.MBO,
+        Schema.MBP_1,
+        Schema.MBP_10,
+        Schema.OHLCV_1D,
+        Schema.OHLCV_1H,
+        Schema.OHLCV_1M,
+        Schema.OHLCV_1S,
+        Schema.TBBO,
+        Schema.TRADES,
+    ],
+)
+def test_dbnstore_to_df_with_schema(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_df with schema produces an
+    identical result to without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    actual = dbnstore.to_df(schema=schema)
+    expected = dbnstore.to_df()
+
+    # Assert
+    assert actual.equals(expected)

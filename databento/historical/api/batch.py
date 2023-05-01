@@ -55,7 +55,7 @@ class BatchHttpAPI(BentoHttpAPI):
     def submit_job(
         self,
         dataset: Union[Dataset, str],
-        symbols: Optional[Union[List[str], str]],
+        symbols: Union[List[str], str],
         schema: Union[Schema, str],
         start: Union[pd.Timestamp, date, str, int],
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
@@ -65,8 +65,8 @@ class BatchHttpAPI(BentoHttpAPI):
         split_size: Optional[int] = None,
         packaging: Optional[Union[Packaging, str]] = None,
         delivery: Union[Delivery, str] = "download",
-        stype_in: Union[SType, str] = "native",
-        stype_out: Union[SType, str] = "product_id",
+        stype_in: Union[SType, str] = "raw_symbol",
+        stype_out: Union[SType, str] = "instrument_id",
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
@@ -79,7 +79,7 @@ class BatchHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
         symbols : List[Union[str, int]] or str
-            The product symbols to filter for. Takes up to 2,000 symbols per request.
+            The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -107,9 +107,9 @@ class BatchHttpAPI(BentoHttpAPI):
             The archive type to package all batched data files in.
         delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
             The delivery mechanism for the processed batched data files.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
-        stype_out : SType or str, default 'product_id'
+        stype_out : SType or str, default 'instrument_id'
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
@@ -264,9 +264,9 @@ class BatchHttpAPI(BentoHttpAPI):
         Raises
         ------
         RuntimeError
-            When no files were found for the batch job.
+            If no files were found for the batch job.
         ValueError
-            When a file fails to download.
+            If a file fails to download.
 
         """
         output_dir = validate_path(output_dir, "output_dir")
@@ -405,9 +405,9 @@ class BatchHttpAPI(BentoHttpAPI):
         Raises
         ------
         RuntimeError
-            When no files were found for the batch job.
+            If no files were found for the batch job.
         ValueError
-            When a file fails to download.
+            If a file fails to download.
 
         """
         output_dir = validate_path(output_dir, "output_dir")

@@ -38,8 +38,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "native",
-        stype_out: Union[SType, str] = "product_id",
+        stype_in: Union[SType, str] = "raw_symbol",
+        stype_out: Union[SType, str] = "instrument_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
     ) -> DBNStore:
@@ -66,8 +66,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "native",
-        stype_out: Union[SType, str] = "product_id",
+        stype_in: Union[SType, str] = "raw_symbol",
+        stype_out: Union[SType, str] = "instrument_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
     ) -> DBNStore:
@@ -97,14 +97,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
         symbols : List[Union[str, int]] or str, optional
-            The product symbols to filter for. Takes up to 2,000 symbols per request.
+            The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
-        stype_out : SType or str, default 'product_id'
+        stype_out : SType or str, default 'instrument_id'
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
@@ -177,8 +177,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "native",
-        stype_out: Union[SType, str] = "product_id",
+        stype_in: Union[SType, str] = "raw_symbol",
+        stype_out: Union[SType, str] = "instrument_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
     ) -> DBNStore:
@@ -206,8 +206,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         end: Optional[Union[pd.Timestamp, date, str, int]] = None,
         symbols: Optional[Union[List[str], str]] = None,
         schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "native",
-        stype_out: Union[SType, str] = "product_id",
+        stype_in: Union[SType, str] = "raw_symbol",
+        stype_out: Union[SType, str] = "instrument_id",
         limit: Optional[int] = None,
         path: Optional[Union[PathLike[str], str]] = None,
     ) -> DBNStore:
@@ -237,14 +237,14 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
         symbols : List[Union[str, int]] or str, optional
-            The product symbols to filter for. Takes up to 2,000 symbols per request.
+            The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
-        stype_out : SType or str, default 'product_id'
+        stype_out : SType or str, default 'instrument_id'
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.

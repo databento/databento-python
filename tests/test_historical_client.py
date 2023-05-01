@@ -121,8 +121,8 @@ class TestHistoricalClient:
         assert call["params"] == [
             ("dataset", "GLBX.MDP3"),
             ("symbols", "ESH1"),
-            ("stype_in", "native"),
-            ("stype_out", "product_id"),
+            ("stype_in", "raw_symbol"),
+            ("stype_out", "instrument_id"),
             ("start_date", "2020-12-28"),
             ("end_date", "2020-12-29"),
             ("default_value", ""),
@@ -173,8 +173,8 @@ class TestHistoricalClient:
             ("end", "2020-12-29T13:01:00+00:00"),
             ("symbols", "ESH1"),
             ("schema", "definition"),
-            ("stype_in", "native"),
-            ("stype_out", "product_id"),
+            ("stype_in", "raw_symbol"),
+            ("stype_out", "instrument_id"),
             ("encoding", "dbn"),
             ("compression", "zstd"),
         ]

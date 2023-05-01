@@ -31,8 +31,18 @@ from databento.common.data import (
 )
 from databento.common.enums import Compression, Schema, SType
 from databento.common.error import BentoError
-from databento.common.metadata import MetadataDecoder
-from databento.common.symbology import ProductIdMappingInterval
+from databento.common.symbology import InstrumentIdMappingInterval
+from databento.common.validation import validate_maybe_enum
+from databento.live.data import DBNStruct
+from databento_dbn import DbnDecoder, ErrorMsg, Metadata, SymbolMappingMsg, SystemMsg
+
+
+NON_SCHEMA_RECORD_TYPES = [
+    ErrorMsg,
+    SymbolMappingMsg,
+    SystemMsg,
+    Metadata,
+]
 
 
 logger = logging.getLogger(__name__)
@@ -195,7 +205,7 @@ class MemoryDataSource(DataSource):
 
     """
 
-    def __init__(self, source: Union[BytesIO, bytes]):
+    def __init__(self, source: Union[BytesIO, bytes, IO[bytes]]):
         initial_data = source if isinstance(source, bytes) else source.read()
         if len(initial_data) == 0:
             raise ValueError(
@@ -254,8 +264,6 @@ class DBNStore:
         The data compression format (if any).
     dataset : str
         The dataset code.
-    dtype : np.dtype
-        The binary struct format for the data schema.
     end : pd.Timestamp
         The query end for the data.
     limit : int | None
@@ -270,12 +278,10 @@ class DBNStore:
         The raw compressed data in bytes.
     reader : IO[bytes]
         A zstd decompression stream.
-    schema : Schema
+    schema : Schema or None
         The data record schema.
     start : pd.Timestamp
         The query start for the data.
-    record_size : int
-        The binary record size in bytes.
     stype_in : SType
         The query input symbology type for the data.
     stype_out : SType
@@ -303,6 +309,8 @@ class DBNStore:
     https://docs.databento.com/knowledge-base/new-users/dbn-encoding
 
     """
+
+    DBN_READ_SIZE = 64 * 1024  # 64kb
 
     def __init__(self, data_source: DataSource) -> None:
         self._data_source = data_source
@@ -334,31 +342,34 @@ class DBNStore:
         metadata_bytes.write(buffer.read(metadata_length))
 
         # Read metadata
-        self._metadata: Dict[str, Any] = MetadataDecoder().decode_to_json(
+        self._metadata: Metadata = Metadata.decode(
             metadata_bytes.getvalue(),
         )
 
         # This is populated when _map_symbols is called
-        self._product_id_index: Dict[
+        self._instrument_id_index: Dict[
             dt.date,
             Dict[int, str],
         ] = {}
 
-    def __iter__(self) -> Generator[np.void, None, None]:
+    def __iter__(self) -> Generator[DBNStruct, None, None]:
         reader = self.reader
-        dtype = STRUCT_MAP[self.schema]
+        decoder = DbnDecoder()
         while True:
-            raw = reader.read(self.record_size)
+            raw = reader.read(DBNStore.DBN_READ_SIZE)
             if raw:
+                decoder.write(raw)
                 try:
-                    rec = np.frombuffer(raw, dtype)
-                except ValueError as value_error:
-                    raise BentoError(
-                        f"Error decoding {len(raw)} bytes for {self.schema} iteration",
-                    ) from value_error
-                else:
-                    yield rec[0]
+                    records = decoder.decode()
+                except ValueError:
+                    continue
+                for record, _ in records:
+                    yield record
             else:
+                if len(decoder.buffer()) > 0:
+                    raise BentoError(
+                        "DBN file is truncated or contains an incomplete record",
+                    )
                 break
 
     def __repr__(self) -> str:
@@ -392,23 +403,23 @@ class DBNStore:
 
         return df
 
-    def _build_product_id_index(self) -> Dict[dt.date, Dict[int, str]]:
-        intervals: List[ProductIdMappingInterval] = []
-        for native, i in self.mappings.items():
+    def _build_instrument_id_index(self) -> Dict[dt.date, Dict[int, str]]:
+        intervals: List[InstrumentIdMappingInterval] = []
+        for raw_symbol, i in self.mappings.items():
             for row in i:
                 symbol = row["symbol"]
                 if symbol == "":
                     continue
                 intervals.append(
-                    ProductIdMappingInterval(
+                    InstrumentIdMappingInterval(
                         start_date=row["start_date"],
                         end_date=row["end_date"],
-                        native=native,
-                        product_id=int(row["symbol"]),
+                        raw_symbol=raw_symbol,
+                        instrument_id=int(row["symbol"]),
                     ),
                 )
 
-        product_id_index: Dict[dt.date, Dict[int, str]] = {}
+        instrument_id_index: Dict[dt.date, Dict[int, str]] = {}
         for interval in intervals:
             for ts in pd.date_range(
                 start=interval.start_date,
@@ -417,23 +428,27 @@ class DBNStore:
                 **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
             ):
                 d: dt.date = ts.date()
-                date_map: Dict[int, str] = product_id_index.get(d, {})
+                date_map: Dict[int, str] = instrument_id_index.get(d, {})
                 if not date_map:
-                    product_id_index[d] = date_map
-                date_map[interval.product_id] = interval.native
+                    instrument_id_index[d] = date_map
+                date_map[interval.instrument_id] = interval.raw_symbol
 
-        return product_id_index
+        return instrument_id_index
 
-    def _prepare_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _prepare_dataframe(
+        self,
+        df: pd.DataFrame,
+        schema: Schema,
+    ) -> pd.DataFrame:
         # Setup column ordering and index
-        df.set_index(self._get_index_column(), inplace=True)
-        df = df.reindex(columns=COLUMNS[self.schema])
+        df.set_index(self._get_index_column(schema), inplace=True)
+        df = df.reindex(columns=COLUMNS[schema])
 
-        if self.schema == Schema.MBO or self.schema in DERIV_SCHEMAS:
+        if schema == Schema.MBO or schema in DERIV_SCHEMAS:
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
             df["action"] = df["action"].str.decode("utf-8")
-        elif self.schema == Schema.DEFINITION:
+        elif schema == Schema.DEFINITION:
             for column in DEFINITION_CHARARRAY_COLUMNS:
                 df[column] = df[column].str.decode("utf-8")
             for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
@@ -441,33 +456,31 @@ class DBNStore:
                     df[column] = df[column].where(df[column] != type_max, np.nan)
         return df
 
-    def _get_index_column(self) -> str:
+    def _get_index_column(self, schema: Schema) -> str:
         return (
             "ts_event"
-            if self.schema
+            if schema
             in (
                 Schema.OHLCV_1S,
                 Schema.OHLCV_1M,
                 Schema.OHLCV_1H,
                 Schema.OHLCV_1D,
-                Schema.GATEWAY_ERROR,
-                Schema.SYMBOL_MAPPING,
             )
             else "ts_recv"
         )
 
     def _map_symbols(self, df: pd.DataFrame, pretty_ts: bool) -> pd.DataFrame:
-        # Build product ID index
-        if not self._product_id_index:
-            self._product_id_index = self._build_product_id_index()
+        # Build instrument ID index
+        if not self._instrument_id_index:
+            self._instrument_id_index = self._build_instrument_id_index()
 
-        # Map product IDs to native symbols
-        if self._product_id_index:
+        # Map instrument IDs to raw symbols
+        if self._instrument_id_index:
             df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
             dates = [ts.date() for ts in df_index]
             df["symbol"] = [
-                self._product_id_index[dates[i]][p]
-                for i, p in enumerate(df["product_id"])
+                self._instrument_id_index[dates[i]][p]
+                for i, p in enumerate(df["instrument_id"])
             ]
 
         return df
@@ -495,19 +508,7 @@ class DBNStore:
         str
 
         """
-        return str(self._metadata["dataset"])
-
-    @property
-    def dtype(self) -> np.dtype[Any]:
-        """
-        Return the binary struct format for the data schema.
-
-        Returns
-        -------
-        np.dtype
-
-        """
-        return np.dtype(STRUCT_MAP[self.schema])
+        return str(self._metadata.dataset)
 
     @property
     def end(self) -> pd.Timestamp:
@@ -523,7 +524,7 @@ class DBNStore:
         The data timestamps will not occur after `end`.
 
         """
-        return pd.Timestamp(self._metadata["end"], tz="UTC")
+        return pd.Timestamp(self._metadata.end, tz="UTC")
 
     @property
     def limit(self) -> Optional[int]:
@@ -535,7 +536,7 @@ class DBNStore:
         int or None
 
         """
-        return self._metadata["limit"]
+        return self._metadata.limit
 
     @property
     def nbytes(self) -> int:
@@ -559,16 +560,16 @@ class DBNStore:
         Dict[str, List[Dict[str, Any]]]
 
         """
-        return self._metadata["mappings"]
+        return self._metadata.mappings
 
     @property
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> Metadata:
         """
         Return the metadata for the data.
 
         Returns
         -------
-        Dict[str, Any]
+        Metadata
 
         """
         return self._metadata
@@ -610,21 +611,23 @@ class DBNStore:
         else:
             reader = self._data_source.reader
 
-        # Seek past the metadata to read records
-        reader.seek(self._metadata_length)
         return reader
 
     @property
-    def schema(self) -> Schema:
+    def schema(self) -> Optional[Schema]:
         """
-        Return the data record schema.
+        Return the DBN record schema.
+        If None, may contain one or more schemas.
 
         Returns
         -------
-        Schema
+        Schema or None
 
         """
-        return Schema(self._metadata["schema"])
+        schema = self._metadata.schema
+        if schema is not None:
+            return Schema(self._metadata.schema)
+        return None
 
     @property
     def start(self) -> pd.Timestamp:
@@ -640,19 +643,7 @@ class DBNStore:
         The data timestamps will not occur prior to `start`.
 
         """
-        return pd.Timestamp(self._metadata["start"], tz="UTC")
-
-    @property
-    def record_size(self) -> int:
-        """
-        Return the binary record size in bytes.
-
-        Returns
-        -------
-        int
-
-        """
-        return self.dtype.itemsize
+        return pd.Timestamp(self._metadata.start, tz="UTC")
 
     @property
     def stype_in(self) -> SType:
@@ -664,7 +655,7 @@ class DBNStore:
         SType
 
         """
-        return SType(self._metadata["stype_in"])
+        return SType(self._metadata.stype_in)
 
     @property
     def stype_out(self) -> SType:
@@ -676,7 +667,7 @@ class DBNStore:
         SType
 
         """
-        return SType(self._metadata["stype_out"])
+        return SType(self._metadata.stype_out)
 
     @property
     def symbology(self) -> Dict[str, Any]:
@@ -694,8 +685,8 @@ class DBNStore:
             "stype_out": str(self.stype_out),
             "start_date": str(self.start.date()),
             "end_date": str(self.end.date()),
-            "partial": self._metadata["partial"],
-            "not_found": self._metadata["not_found"],
+            "partial": self._metadata.partial,
+            "not_found": self._metadata.not_found,
             "mappings": self.mappings,
         }
 
@@ -709,7 +700,7 @@ class DBNStore:
         List[str]
 
         """
-        return self._metadata["symbols"]
+        return self._metadata.symbols
 
     @classmethod
     def from_file(cls, path: Union[PathLike[str], str]) -> "DBNStore":
@@ -734,13 +725,13 @@ class DBNStore:
         return cls(FileDataSource(path))
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "DBNStore":
+    def from_bytes(cls, data: Union[BytesIO, bytes, IO[bytes]]) -> "DBNStore":
         """
         Load the data from a raw bytes.
 
         Parameters
         ----------
-        data : bytes
+        data : BytesIO or bytes
             The bytes to read from.
 
         Returns
@@ -848,6 +839,7 @@ class DBNStore:
         pretty_ts: bool = True,
         pretty_px: bool = True,
         map_symbols: bool = True,
+        schema: Optional[Union[Schema, str]] = None,
     ) -> None:
         """
         Write the data to a file in CSV format.
@@ -864,8 +856,16 @@ class DBNStore:
             the correct scale (using the fixed precision scalar 1e-9).
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the product ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its native symbol for
             every record.
+        schema : Schema or str, optional
+            The schema for the csv.
+            This is only required when reading a DBN stream with mixed record types.
+
+        Raises
+        ------
+        ValueError
+            If the schema for the array cannot be determined.
 
         Notes
         -----
@@ -876,6 +876,7 @@ class DBNStore:
             pretty_ts=pretty_ts,
             pretty_px=pretty_px,
             map_symbols=map_symbols,
+            schema=schema,
         ).to_csv(path)
 
     def to_df(
@@ -883,6 +884,7 @@ class DBNStore:
         pretty_ts: bool = True,
         pretty_px: bool = True,
         map_symbols: bool = True,
+        schema: Optional[Union[Schema, str]] = None,
     ) -> pd.DataFrame:
         """
         Return the data as a `pd.DataFrame`.
@@ -897,16 +899,30 @@ class DBNStore:
             the correct scale (using the fixed precision scalar 1e-9).
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the product ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its native symbol for
             every record.
+        schema : Schema or str, optional
+            The schema for the dataframe.
+            This is only required when reading a DBN stream with mixed record types.
 
         Returns
         -------
         pd.DataFrame
 
+        Raises
+        ------
+        ValueError
+            If the schema for the array cannot be determined.
+
         """
-        df = pd.DataFrame(self.to_ndarray())
-        df = self._prepare_dataframe(df)
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
+
+        df = pd.DataFrame(self.to_ndarray(schema=schema))
+        df = self._prepare_dataframe(df, schema)
 
         if pretty_ts:
             df = self._apply_pretty_ts(df)
@@ -939,6 +955,7 @@ class DBNStore:
         pretty_ts: bool = True,
         pretty_px: bool = True,
         map_symbols: bool = True,
+        schema: Optional[Union[Schema, str]] = None,
     ) -> None:
         """
         Write the data to a file in JSON format.
@@ -955,8 +972,16 @@ class DBNStore:
             the correct scale (using the fixed precision scalar 1e-9).
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the product ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its native symbol for
             every record.
+        schema : Schema or str, optional
+            The schema for the json.
+            This is only required when reading a DBN stream with mixed record types.
+
+        Raises
+        ------
+        ValueError
+            If the schema for the array cannot be determined.
 
         Notes
         -----
@@ -967,23 +992,49 @@ class DBNStore:
             pretty_ts=pretty_ts,
             pretty_px=pretty_px,
             map_symbols=map_symbols,
+            schema=schema,
         ).to_json(path, orient="records", lines=True)
 
-    def to_ndarray(self) -> np.ndarray[Any, Any]:
+    def to_ndarray(
+        self,
+        schema: Optional[Union[Schema, str]] = None,
+    ) -> np.ndarray[Any, Any]:
         """
         Return the data as a numpy `ndarray`.
+
+        Parameters
+        ----------
+        schema : Schema or str, optional
+            The schema for the array.
+            This is only required when reading a DBN stream with mixed record types.
 
         Returns
         -------
         np.ndarray
 
+        Raises
+        ------
+        ValueError
+            If the schema for the array cannot be determined.
+
         """
-        data: bytes = self.reader.read()
-        try:
-            nd_array = np.frombuffer(data, dtype=self.dtype)
-        except ValueError as value_error:
-            raise BentoError(
-                f"Error decoding {len(data)} bytes to {self.schema} `ndarray`",
-            ) from value_error
-        else:
-            return nd_array
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
+
+        schema_records = filter(
+            lambda r: isinstance(r, schema.get_record_type()),  # type: ignore
+            self,
+        )
+
+        result = []
+        for record in schema_records:
+            np_rec = np.frombuffer(
+                bytes(record),
+                dtype=STRUCT_MAP[schema],
+            )
+            result.append(np_rec[0])
+
+        return np.asarray(result)

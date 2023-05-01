@@ -56,7 +56,7 @@ def optional_values_list_to_string(
 @singledispatch
 def optional_symbols_list_to_string(
     symbols: Optional[Union[Iterable[str], Iterable[int], str, int]],
-    stype_in: SType,
+    _: SType,
 ) -> str:
     """
     Concatenate a symbols string or iterable of symbol strings (if not None).
@@ -109,11 +109,11 @@ def _(symbols: int, stype_in: SType) -> str:
     optional_symbols_list_to_string
 
     """
-    if stype_in == SType.PRODUCT_ID:
+    if stype_in == SType.INSTRUMENT_ID or stype_in == "product_id":
         return str(symbols)
     raise ValueError(
         f"value `{symbols}` is not a valid symbol for stype {stype_in}; "
-        "did you mean to use `product_id`?",
+        "did you mean to use `instrument_id`?",
     )
 
 
@@ -142,7 +142,8 @@ def _(symbols: str, stype_in: SType) -> str:
         symbol_list = symbols.strip().strip(",").split(",")
         return ",".join(map(symbol_to_string, symbol_list))
 
-    if stype_in == SType.SMART:
+    # TODO(cs): Temporary mapping until past stype rename deprecation period
+    if stype_in in (SType.PARENT, SType.CONTINUOUS) or stype_in == "smart":
         return validate_smart_symbol(symbols)
     return symbols.strip().upper()
 
@@ -249,3 +250,60 @@ def optional_datetime_to_string(
         return None
 
     return datetime_to_string(value)
+
+
+def datetime_to_unix_nanoseconds(
+    value: Optional[Union[pd.Timestamp, date, str, int]],
+) -> int:
+    """
+    Return a valid UNIX nanosecond timestamp from the given value.
+
+    Parameters
+    ----------
+    value : pd.Timestamp or date or str or int
+        The value to parse.
+
+    Returns
+    -------
+    int
+
+    """
+    if isinstance(value, int):
+        return value  # no checking on integer values
+
+    if isinstance(value, date):
+        return pd.to_datetime(value, utc=True).value
+
+    if isinstance(value, pd.Timestamp):
+        return value.value
+
+    try:
+        nanoseconds = pd.to_datetime(value, utc=True).value
+    except Exception:  # different versions of pandas raise different exceptions
+        nanoseconds = pd.to_datetime(
+            int(value),
+            utc=True,
+        ).value
+
+    return nanoseconds
+
+
+def optional_datetime_to_unix_nanoseconds(
+    value: Optional[Union[pd.Timestamp, str, int]],
+) -> Optional[int]:
+    """
+    Return a valid UNIX nanosecond timestamp from the given value (if not None).
+
+    Parameters
+    ----------
+    value : pd.Timestamp or date or str or int
+        The value to parse.
+
+    Returns
+    -------
+    Optional[int]
+
+    """
+    if value is None:
+        return None
+    return datetime_to_unix_nanoseconds(value)

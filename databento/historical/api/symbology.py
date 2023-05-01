@@ -43,9 +43,9 @@ class SymbologyHttpAPI(BentoHttpAPI):
             The dataset code (string identifier) for the request.
         symbols : List[Union[str, int]] or str, optional
             The symbols to resolve. Takes up to 2,000 symbols per request.
-        stype_in : SType or str, default 'native'
+        stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
-        stype_out : SType or str, default 'product_id'
+        stype_out : SType or str, default 'instrument_id'
             The output symbology type to resolve to.
         start_date : date or str
             The start date (UTC) of the request time range (inclusive).

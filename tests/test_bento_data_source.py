@@ -12,14 +12,6 @@ def test_memory_data_source(
     schema: Schema,
 ) -> None:
     """Test create of MemoryDataSource"""
-    if schema in (
-        Schema.STATUS,
-        Schema.STATISTICS,
-        Schema.SYMBOL_MAPPING,
-        Schema.GATEWAY_ERROR,
-    ):
-        pytest.skip(f"untested schema {schema}")
-
     data = test_data(schema)
     data_source = MemoryDataSource(data)
 
@@ -33,14 +25,6 @@ def test_file_data_source(
     schema: Schema,
 ) -> None:
     """Test create of FileDataSource"""
-    if schema in (
-        Schema.STATUS,
-        Schema.STATISTICS,
-        Schema.SYMBOL_MAPPING,
-        Schema.GATEWAY_ERROR,
-    ):
-        pytest.skip(f"untested schema {schema}")
-
     path = test_data_path(schema)
     data_source = FileDataSource(path)
 

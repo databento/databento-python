@@ -40,7 +40,7 @@ RECORD_HEADER: List[Tuple[str, Union[type, str]]] = [
     ("length", np.uint8),
     ("rtype", np.uint8),
     ("publisher_id", np.uint16),
-    ("product_id", np.uint32),
+    ("instrument_id", np.uint32),
     ("ts_event", np.uint64),
 ]
 
@@ -76,14 +76,6 @@ OHLCV_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("low", np.int64),
     ("close", np.int64),
     ("volume", np.int64),
-]
-
-STATUS_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
-    ("ts_recv", np.uint64),
-    ("group", "S1"),  # 1 byte chararray
-    ("trading_status", np.uint8),
-    ("halt_reason", np.uint8),
-    ("trading_event", np.uint8),
 ]
 
 DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
@@ -199,22 +191,10 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     Schema.OHLCV_1M: OHLCV_MSG,
     Schema.OHLCV_1H: OHLCV_MSG,
     Schema.OHLCV_1D: OHLCV_MSG,
-    Schema.STATUS: STATUS_MSG,
     Schema.DEFINITION: DEFINITION_MSG,
     Schema.IMBALANCE: IMBALANCE_MSG,
-    Schema.GATEWAY_ERROR: RECORD_HEADER
-    + [
-        ("error", "S64"),
-    ],
-    Schema.SYMBOL_MAPPING: RECORD_HEADER
-    + [
-        ("stype_in_symbol", "S22"),
-        ("stype_out_symbol", "S22"),
-        ("dummy", "S4"),
-        ("start_ts", np.uint64),
-        ("end_ts", np.uint64),
-    ],
 }
+
 
 DEFINITION_CHARARRAY_COLUMNS = [
     "currency",
@@ -271,7 +251,7 @@ DERIV_HEADER_COLUMNS = [
     "ts_event",
     "ts_in_delta",
     "publisher_id",
-    "product_id",
+    "instrument_id",
     "action",
     "side",
     "depth",
@@ -283,7 +263,7 @@ DERIV_HEADER_COLUMNS = [
 
 OHLCV_HEADER_COLUMNS = [
     "publisher_id",
-    "product_id",
+    "instrument_id",
     "open",
     "high",
     "low",
@@ -291,7 +271,6 @@ OHLCV_HEADER_COLUMNS = [
     "volume",
 ]
 
-STATUS_DROP_COLUMNS = ["ts_recv"]
 DEFINITION_DROP_COLUMNS = [
     "ts_recv",
     "length",
@@ -309,10 +288,6 @@ IMBALANCE_DROP_COLUMNS = [
     "dummy",
 ]
 
-STATUS_COLUMNS = [
-    x for x in (np.dtype(STATUS_MSG).names or ()) if x not in STATUS_DROP_COLUMNS
-]
-
 DEFINITION_COLUMNS = [
     x
     for x in (np.dtype(DEFINITION_MSG).names or ())
@@ -323,14 +298,13 @@ IMBALANCE_COLUMNS = [
     x for x in (np.dtype(IMBALANCE_MSG).names or ()) if x not in IMBALANCE_DROP_COLUMNS
 ]
 
-
 COLUMNS = {
     Schema.MBO: [
         "ts_event",
         "ts_in_delta",
         "publisher_id",
         "channel_id",
-        "product_id",
+        "instrument_id",
         "order_id",
         "action",
         "side",
@@ -357,7 +331,6 @@ COLUMNS = {
     Schema.OHLCV_1M: OHLCV_HEADER_COLUMNS,
     Schema.OHLCV_1H: OHLCV_HEADER_COLUMNS,
     Schema.OHLCV_1D: OHLCV_HEADER_COLUMNS,
-    Schema.STATUS: STATUS_COLUMNS,
     Schema.DEFINITION: DEFINITION_COLUMNS,
     Schema.IMBALANCE: IMBALANCE_COLUMNS,
 }
