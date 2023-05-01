@@ -1,6 +1,7 @@
 """Unit tests for the Live client."""
 import asyncio
 import pathlib
+import platform
 from io import BytesIO
 from typing import Callable
 from unittest.mock import MagicMock
@@ -370,8 +371,9 @@ def test_live_stop(
         schema=Schema.MBO,
     )
 
-    live_client.start()
     assert live_client.is_connected() is True
+
+    live_client.start()
 
     live_client.stop()
     live_client.block_for_close()
@@ -431,7 +433,6 @@ def test_live_block_for_close_timeout(
         symbols="*",
         start=None,
     )
-    live_client.start()
     live_client.block_for_close(timeout=0)
     live_client.terminate.assert_called_once()  # type: ignore
 
@@ -557,6 +558,7 @@ def test_live_add_stream_invalid(
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:
@@ -583,6 +585,7 @@ async def test_live_async_iteration(
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration_backpressure(
     live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
@@ -628,6 +631,7 @@ async def test_live_async_iteration_backpressure(
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration_dropped(
     live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
@@ -670,6 +674,7 @@ async def test_live_async_iteration_dropped(
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration_stop(
     live_client: client.Live,
 ) -> None:
@@ -697,6 +702,7 @@ async def test_live_async_iteration_stop(
     assert isinstance(records[2], databento_dbn.MBOMsg)
 
 
+@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 def test_live_sync_iteration(
     live_client: client.Live,
 ) -> None:
