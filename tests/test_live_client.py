@@ -272,8 +272,9 @@ async def test_live_start(
         schema=Schema.MBO,
     )
 
-    live_client.start()
     assert live_client.is_connected() is True
+
+    live_client.start()
 
     message = await mock_live_server.get_message_of_type(
         gateway.SessionStart,
@@ -503,8 +504,6 @@ async def test_live_wait_for_close_timeout(
         symbols="ALL_SYMBOLS",
         start=None,
     )
-
-    live_client.start()
 
     await live_client.wait_for_close(timeout=0)
 
