@@ -10,6 +10,7 @@ from databento_dbn import (
     MBP1Msg,
     MBP10Msg,
     OHLCVMsg,
+    StatMsg,
     TradeMsg,
 )
 
@@ -192,6 +193,7 @@ class Schema(StringyMixin, str, Enum):
     OHLCV_1D = "ohlcv-1d"
     DEFINITION = "definition"
     IMBALANCE = "imbalance"
+    STATISTICS = "statistics"
 
     def get_record_type(self) -> Type[DBNRecord]:
         if self == Schema.MBO:
@@ -216,6 +218,8 @@ class Schema(StringyMixin, str, Enum):
             return InstrumentDefMsg
         if self == Schema.IMBALANCE:
             return ImbalanceMsg
+        if self == Schema.STATISTICS:
+            return StatMsg
         raise NotImplementedError(f"No message type for {self}")
 
 

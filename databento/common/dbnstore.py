@@ -383,11 +383,19 @@ class DBNStore:
         df.index = pd.to_datetime(df.index, utc=True)
         for column in df.columns:
             if column.startswith("ts_") and "delta" not in column:
-                df[column] = pd.to_datetime(df[column], utc=True)
+                df[column] = pd.to_datetime(df[column], errors="coerce", utc=True)
 
         if self.schema == Schema.DEFINITION:
-            df["expiration"] = pd.to_datetime(df["expiration"], utc=True)
-            df["activation"] = pd.to_datetime(df["activation"], utc=True)
+            df["expiration"] = pd.to_datetime(
+                df["expiration"],
+                errors="coerce",
+                utc=True,
+            )
+            df["activation"] = pd.to_datetime(
+                df["activation"],
+                errors="coerce",
+                utc=True,
+            )
 
         return df
 

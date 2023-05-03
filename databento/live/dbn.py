@@ -22,6 +22,7 @@ DBNRecord = Union[
     databento_dbn.OHLCVMsg,
     databento_dbn.ImbalanceMsg,
     databento_dbn.InstrumentDefMsg,
+    databento_dbn.StatMsg,
     databento_dbn.SymbolMappingMsg,
     databento_dbn.SystemMsg,
     databento_dbn.ErrorMsg,

@@ -256,21 +256,7 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
 
 @pytest.mark.parametrize(
     "schema",
-    [
-        pytest.param(schema, id=str(schema))
-        for schema in (
-            Schema.MBO,
-            Schema.MBP_1,
-            Schema.MBP_10,
-            Schema.TBBO,
-            Schema.TRADES,
-            Schema.OHLCV_1S,
-            Schema.OHLCV_1M,
-            Schema.OHLCV_1H,
-            Schema.OHLCV_1D,
-            Schema.DEFINITION,
-        )
-    ],
+    [pytest.param(schema, id=str(schema)) for schema in Schema],
 )
 def test_to_df_drop_columns(
     test_data: Callable[[Schema], bytes],

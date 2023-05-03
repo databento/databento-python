@@ -170,6 +170,20 @@ IMBALANCE_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("dummy", "S1"),
 ]
 
+STATISTICS_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+    ("ts_recv", np.uint64),
+    ("ts_ref", np.uint64),
+    ("price", np.int64),
+    ("quantity", np.int32),
+    ("sequence", np.uint32),
+    ("ts_in_delta", np.int32),
+    ("stat_type", np.uint16),
+    ("channel_id", np.uint16),
+    ("update_action", np.uint8),
+    ("stat_flags", np.uint8),
+    ("dummy", "S6"),
+]
+
 
 STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     Schema.MBO: MBO_MSG,
@@ -193,6 +207,7 @@ STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
     Schema.OHLCV_1D: OHLCV_MSG,
     Schema.DEFINITION: DEFINITION_MSG,
     Schema.IMBALANCE: IMBALANCE_MSG,
+    Schema.STATISTICS: STATISTICS_MSG,
 }
 
 
@@ -288,6 +303,13 @@ IMBALANCE_DROP_COLUMNS = [
     "dummy",
 ]
 
+STATISTICS_DROP_COLUMNS = [
+    "ts_recv",
+    "length",
+    "rtype",
+    "dummy",
+]
+
 DEFINITION_COLUMNS = [
     x
     for x in (np.dtype(DEFINITION_MSG).names or ())
@@ -296,6 +318,12 @@ DEFINITION_COLUMNS = [
 
 IMBALANCE_COLUMNS = [
     x for x in (np.dtype(IMBALANCE_MSG).names or ()) if x not in IMBALANCE_DROP_COLUMNS
+]
+
+STATISTICS_COLUMNS = [
+    x
+    for x in (np.dtype(STATISTICS_MSG).names or ())
+    if x not in STATISTICS_DROP_COLUMNS
 ]
 
 COLUMNS = {
@@ -333,4 +361,5 @@ COLUMNS = {
     Schema.OHLCV_1D: OHLCV_HEADER_COLUMNS,
     Schema.DEFINITION: DEFINITION_COLUMNS,
     Schema.IMBALANCE: IMBALANCE_COLUMNS,
+    Schema.STATISTICS: STATISTICS_COLUMNS,
 }
