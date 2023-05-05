@@ -264,7 +264,7 @@ class DBNStore:
         The data compression format (if any).
     dataset : str
         The dataset code.
-    end : pd.Timestamp
+    end : pd.Timestamp or None
         The query end for the data.
     limit : int | None
         The query limit for the data.
@@ -282,7 +282,7 @@ class DBNStore:
         The data record schema.
     start : pd.Timestamp
         The query start for the data.
-    stype_in : SType
+    stype_in : SType or None
         The query input symbology type for the data.
     stype_out : SType
         The query output symbology type for the data.
@@ -511,20 +511,24 @@ class DBNStore:
         return str(self._metadata.dataset)
 
     @property
-    def end(self) -> pd.Timestamp:
+    def end(self) -> Optional[pd.Timestamp]:
         """
         Return the query end for the data.
+        If None, the end time was not known when the data was generated.
 
         Returns
         -------
-        pd.Timestamp
+        pd.Timestamp or None
 
         Notes
         -----
         The data timestamps will not occur after `end`.
 
         """
-        return pd.Timestamp(self._metadata.end, tz="UTC")
+        end = self._metadata.end
+        if end:
+            return pd.Timestamp(self._metadata.end, tz="UTC")
+        return None
 
     @property
     def limit(self) -> Optional[int]:
@@ -625,7 +629,7 @@ class DBNStore:
 
         """
         schema = self._metadata.schema
-        if schema is not None:
+        if schema:
             return Schema(self._metadata.schema)
         return None
 
@@ -646,16 +650,20 @@ class DBNStore:
         return pd.Timestamp(self._metadata.start, tz="UTC")
 
     @property
-    def stype_in(self) -> SType:
+    def stype_in(self) -> Optional[SType]:
         """
         Return the query input symbology type for the data.
+        If None, the records may contain mixed STypes.
 
         Returns
         -------
-        SType
+        SType or None
 
         """
-        return SType(self._metadata.stype_in)
+        stype = self._metadata.stype_in
+        if stype:
+            return SType(self._metadata.stype_in)
+        return None
 
     @property
     def stype_out(self) -> SType:
