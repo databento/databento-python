@@ -363,7 +363,9 @@ class DBNStore:
                     records = decoder.decode()
                 except ValueError:
                     continue
-                for record, _ in records:
+                for record, ts_out in records:
+                    if not isinstance(record, Metadata):
+                        setattr(record, "ts_out", ts_out)
                     yield record
             else:
                 if len(decoder.buffer()) > 0:

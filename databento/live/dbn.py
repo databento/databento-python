@@ -188,6 +188,9 @@ class DBNProtocol(asyncio.BufferedProtocol):
                     ts_out,
                 )
 
+                if not isinstance(record, databento_dbn.Metadata):
+                    setattr(record, "ts_out", ts_out)
+
                 # Record Dispatch
                 self._client_callback(record)
 

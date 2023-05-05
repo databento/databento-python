@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import struct
 from typing import IO, Callable, List, Set
 
 import databento_dbn
@@ -72,8 +73,11 @@ class RecordPipeline:
         stream: IO[bytes],
         record: DBNStruct,
     ) -> None:
+        ts_out = getattr(record, "ts_out")
         try:
             stream.write(bytes(record))
+            if not isinstance(record, databento_dbn.Metadata) and ts_out:
+                stream.write(struct.pack("Q", ts_out))
         except Exception as exc:
             stream_name = getattr(stream, "name", str(stream))
             logger.error(

@@ -214,7 +214,7 @@ class Live:
         key: Optional[str] = None,
         gateway: Optional[str] = None,
         port: Optional[int] = None,
-        ts_out: bool = False,  # TODO: off for now, need to resolve metadata issue
+        ts_out: bool = True,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -682,7 +682,7 @@ class Live:
             return GatewayProtocol(
                 key=self._key,
                 dataset=dataset,
-                ts_out=False,
+                ts_out=self.ts_out,
             )
 
         return factory
