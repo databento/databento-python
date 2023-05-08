@@ -11,6 +11,8 @@
 - Removed `bad` condition variant from `batch.get_dataset_condition`
 - Added `degraded`, `pending` and `missing` condition variants for `batch.get_dataset_condition`
 - Added `last_modified_date` field to `batch.get_dataset_condition` response
+- Renamed `product_id` field to `instrument_id`
+- Renamed `symbol` field in definitions to `raw_symbol`
 - Deprecated `SType.PRODUCT_ID` to `SType.INSTRUMENT_ID`
 - Deprecated `SType.NATIVE` to `SType.RAW_SYMBOL`
 - Deprecated `SType.SMART` to `SType.PARENT` and `SType.CONTINUOUS`
