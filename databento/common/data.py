@@ -48,7 +48,7 @@ MBO_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("order_id", np.uint64),
     ("price", np.int64),
     ("size", np.uint32),
-    ("flags", np.int8),
+    ("flags", np.uint8),
     ("channel_id", np.uint8),
     ("action", "S1"),  # 1 byte chararray
     ("side", "S1"),  # 1 byte chararray
@@ -62,7 +62,7 @@ MBP_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("size", np.uint32),
     ("action", "S1"),  # 1 byte chararray
     ("side", "S1"),  # 1 byte chararray
-    ("flags", np.int8),
+    ("flags", np.uint8),
     ("depth", np.uint8),
     ("ts_recv", np.uint64),
     ("ts_in_delta", np.int32),

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.13.0 - TBD
+- Changed `flags` field to an unsigned int
+
 ## 0.12.0 - 2023-05-01
 - Added `Live` client for connecting to Databento's live service
 - Upgraded `databento-dbn` to 0.5.0
