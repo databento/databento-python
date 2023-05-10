@@ -354,6 +354,7 @@ class DBNStore:
 
     def __iter__(self) -> Generator[DBNStruct, None, None]:
         reader = self.reader
+        attach_ts_out = self.metadata.ts_out
         decoder = DbnDecoder()
         while True:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
@@ -364,7 +365,7 @@ class DBNStore:
                 except ValueError:
                     continue
                 for record, ts_out in records:
-                    if not isinstance(record, Metadata):
+                    if attach_ts_out and not isinstance(record, Metadata):
                         setattr(record, "ts_out", ts_out)
                     yield record
             else:
