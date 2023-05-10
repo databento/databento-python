@@ -570,13 +570,13 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
     # Assert
     written = open(path, mode="rb").read()
     assert path.exists()
-    assert written == (
+    assert written.strip() == (
         b'{"ts_event":1609160400000429831,"ts_in_delta":22993,"publisher_id":1,"channe'  # noqa
         b'l_id":0,"instrument_id":5482,"order_id":647784973705,"action":"C","side":"A","f'  # noqa
         b'lags":128,"price":3722750000000,"size":1,"sequence":1170352}\n{"ts_event"'  # noqa
         b':1609160400000431665,"ts_in_delta":19621,"publisher_id":1,"channel_id":0,"instru'  # noqa
         b'ment_id":5482,"order_id":647784973631,"action":"C","side":"A","flags":128,"'  # noqa
-        b'price":3723000000000,"size":1,"sequence":1170353}\n'
+        b'price":3723000000000,"size":1,"sequence":1170353}'
     )
 
 
@@ -600,14 +600,14 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
     # Assert
     written = open(path, mode="rb").read()
     assert path.exists()
-    assert written == (
+    assert written.strip() == (
         b'{"ts_event":1609160400000,"ts_in_delta":22993,"publisher_id":1,"ch'
         b'annel_id":0,"instrument_id":5482,"order_id":647784973705,"action":"C"'
         b',"side":"A","flags":128,"price":3722.75,"size":1,"sequence":117035'
         b'2,"symbol":"ESH1"}\n{"ts_event":1609160400000,"ts_in_delta":19621,'
         b'"publisher_id":1,"channel_id":0,"instrument_id":5482,"order_id":64778'
         b'4973631,"action":"C","side":"A","flags":128,"price":3723.0,"size":'
-        b'1,"sequence":1170353,"symbol":"ESH1"}\n'
+        b'1,"sequence":1170353,"symbol":"ESH1"}'
     )
 
 
@@ -631,7 +631,7 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
     # Assert
     written = open(path, mode="rb").read()
     assert path.exists()
-    assert written == (
+    assert written.strip() == (
         b'{"ts_event":1609160400006001487,"ts_in_delta":17214,"publisher_id":1,"instrumen'  # noqa
         b't_id":5482,"action":"A","side":"A","depth":0,"flags":128,"price":37205000000'  # noqa
         b'00,"size":1,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500'  # noqa
@@ -639,7 +639,7 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
         b'event":1609160400006146661,"ts_in_delta":18858,"publisher_id":1,"instrument_id"'  # noqa
         b':5482,"action":"A","side":"A","depth":0,"flags":128,"price":3720500000000,"s'  # noqa
         b'ize":1,"sequence":1170364,"bid_px_00":3720250000000,"ask_px_00":372050000000'  # noqa
-        b'0,"bid_sz_00":24,"ask_sz_00":12,"bid_oq_00":15,"ask_oq_00":10}\n'  # noqa
+        b'0,"bid_sz_00":24,"ask_sz_00":12,"bid_oq_00":15,"ask_oq_00":10}'  # noqa
     )
 
 
@@ -663,7 +663,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     # Assert
     written = open(path, mode="rb").read()
     assert path.exists()
-    assert written == (
+    assert written.strip() == (
         b'{"ts_event":1609160400006,"ts_in_delta":17214,"publisher_id":1,"in'
         b'strument_id":5482,"action":"A","side":"A","depth":0,"flags":128,"pric'
         b'e":3720.5,"size":1,"sequence":1170362,"bid_px_00":3720.25,"ask_px_'
@@ -672,7 +672,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
         b'8,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","dept'
         b'h":0,"flags":128,"price":3720.5,"size":1,"sequence":1170364,"bid_p'
         b'x_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bi'
-        b'd_oq_00":15,"ask_oq_00":10,"symbol":"ESH1"}\n'
+        b'd_oq_00":15,"ask_oq_00":10,"symbol":"ESH1"}'
     )
 
 

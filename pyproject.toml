@@ -1,0 +1,60 @@
+[tool.poetry]
+name = "databento"
+version = "0.13.0"
+description = "Official Python client library for Databento"
+authors = [
+    "Databento <support@databento.com>",
+]
+license = "Apache License 2.0"
+packages = [{include = "databento"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+readme = "README.md"
+documentation = "https://docs.databento.com"
+homepage = "https://databento.com"
+repository = "https://github.com/databento/databento-python"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/databento/databento-python/issues"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+aiohttp = "^3.7.2"
+databento-dbn = "0.6.1"
+numpy= ">=1.17.0"
+pandas = ">=1.1.3"
+requests = ">=2.24.0"
+zstandard = ">=0.20.0"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "1.2.0"
+pytest = ">=7.3.1"
+pytest-asyncio = ">=0.21.0"
+pytest-mock = ">=3.10.0"
+types-requests = "^2.30.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = 3.7
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+ignore_missing_imports = true
+namespace_packages = true
+no_strict_optional = true
+warn_no_return = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--asyncio-mode auto"
