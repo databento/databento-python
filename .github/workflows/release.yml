@@ -1,7 +1,5 @@
 name: release
 
-# Release Python client library on successful completion of the `test` workflow
-
 on:
   workflow_run:
     workflows:
@@ -20,29 +18,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
 
-      # Python setup
       - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      # Install dependencies
-      - name: Install dependencies
+      - name: Install poetry
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          scripts/build.sh
+          python -m pip install --upgrade pip poetry==1.3.2
 
-      # Set release output variables
-      - name: Set output
+      - name: Prepare release
         id: vars
         run: |
-          echo "::set-output name=tag_name::v$(python setup.py --version)"
-          echo "::set-output name=release_name::$(python setup.py --version)"
+          echo "tag_name=v$(poetry version -s)" >> $GITHUB_ENV
+          echo "release_name=$(poetry version)" >> $GITHUB_ENV
 
-      # Create GitHub release
       - name: Create release
         id: create-release
         uses: actions/create-release@v1
@@ -58,110 +49,44 @@ jobs:
 
   publish-sdist:
     needs: [tag-release]
-    name: publish-sdist - Python 3.10 (ubuntu-latest)
+    name: publish - Python 3.10 (ubuntu-latest)
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      # Python setup
       - name: Set up Python environment
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      # Install release dependencies
-      - name: Install release dependencies
+      - name: Install poetry
         run: |
-          python -m pip install --upgrade pip setuptools wheel twine
-          pip install -r requirements.txt
-          pip install -r requirements_dev.txt
+          python -m pip install --upgrade pip poetry==1.3.2
 
-      # Create distribution
-      - name: Package for release
-        run: python setup.py sdist
+      - name: Build
+        run: |
+          poetry build
 
-      # Set release output variables
-      - name: Set output
+      - name: Prepare artifacts
         id: vars
         run: |
-          echo "::set-output name=asset_path::$(find ./dist -mindepth 1 -print -quit)"
-          cd dist
-          echo "::set-output name=asset_name::$(printf '%s\0' * | awk 'BEGIN{RS="\0"} {print;  exit}')"
+          echo "asset_path=$(find ./dist -mindepth 1 -print -quit)" >> $GITHUB_ENV
+          echo "asset_name=databento-*.tar.gz,databento-*.whl" >> $GITHUB_ENV
 
-      # Upload release asset
       - name: Upload release asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSET_PATH: ${{ steps.vars.outputs.asset_path }}
-          ASSET_NAME: ${{ steps.vars.outputs.asset_name }}
         with:
           upload_url: ${{ needs.tag-release.outputs.upload_url }}
           asset_path: ${{ env.ASSET_PATH }}
           asset_name: ${{ env.ASSET_NAME }}
           asset_content_type: application/zip
 
-      # Publish to PyPI
       - name: Publish to PyPI
         id: publish-to-pypi
         env:
-          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        run: twine upload dist/*
-
-  publish-wheel:
-    needs: [tag-release]
-    name: publish-wheel - Python 3.10 (ubuntu-latest)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      # Python setup
-      - name: Set up Python environment
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      # Install release dependencies
-      - name: Install release dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel twine
-          pip install -r requirements.txt
-          pip install -r requirements_dev.txt
-
-      # Create distribution
-      - name: Package for release
-        run: python setup.py bdist_wheel
-
-      # Set release output variables
-      - name: Set output
-        id: vars
-        run: |
-          echo "::set-output name=asset_path::$(find ./dist -mindepth 1 -print -quit)"
-          cd dist
-          echo "::set-output name=asset_name::$(printf '%s\0' * | awk 'BEGIN{RS="\0"} {print;  exit}')"
-
-      # Upload release asset
-      - name: Upload release asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSET_PATH: ${{ steps.vars.outputs.asset_path }}
-          ASSET_NAME: ${{ steps.vars.outputs.asset_name }}
-        with:
-          upload_url: ${{ needs.tag-release.outputs.upload_url }}
-          asset_path: ${{ env.ASSET_PATH }}
-          asset_name: ${{ env.ASSET_NAME }}
-          asset_content_type: application/zip
-
-      # Publish to PyPI
-      - name: Publish to PyPI
-        id: publish-to-pypi
-        env:
-          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        run: twine upload dist/*
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        run: poetry publish
