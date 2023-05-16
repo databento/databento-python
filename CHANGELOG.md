@@ -3,6 +3,7 @@
 ## 0.13.0 - TBD
 - Renamed `booklevel` MBP field to `levels` for brevity and consistent naming
 - Changed `flags` field to an unsigned int
+- Changed default of `ts_out` to `False` for `Live` client
 - Removed `open_interest_qty` and `cleared_volume` fields that were always unset from
   definition schema
 

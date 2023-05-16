@@ -188,7 +188,7 @@ class Live:
         The remote gateway to connect to; for advanced use.
     port : int, optional
         The remote port to connect to; for advanced use.
-    ts_out: bool, default True
+    ts_out: bool, default False
         If set, DBN records will be timestamped when they are sent by the
         gateway.
 
@@ -214,7 +214,7 @@ class Live:
         key: Optional[str] = None,
         gateway: Optional[str] = None,
         port: Optional[int] = None,
-        ts_out: bool = True,
+        ts_out: bool = False,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
