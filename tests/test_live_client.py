@@ -407,7 +407,7 @@ def test_live_block_for_close(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
         stype_in=SType.INSTRUMENT_ID,
-        symbols="*",
+        symbols="ALL_SYMBOLS",
         start=None,
     )
 
@@ -431,7 +431,7 @@ def test_live_block_for_close_timeout(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
         stype_in=SType.INSTRUMENT_ID,
-        symbols="*",
+        symbols="ALL_SYMBOLS",
         start=None,
     )
     live_client.block_for_close(timeout=0)
@@ -462,7 +462,7 @@ async def test_live_wait_for_close(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
         stype_in=SType.INSTRUMENT_ID,
-        symbols="*",
+        symbols="ALL_SYMBOLS",
         start=None,
     )
 
