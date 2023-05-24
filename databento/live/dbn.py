@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import queue
+import threading
 from concurrent import futures
 from typing import Callable, NewType, Optional, Union
 
@@ -57,6 +58,7 @@ class DBNProtocol(asyncio.BufferedProtocol):
         self._dbn_queue: Optional[DBNQueue] = None
         self._decoder: databento_dbn.DbnDecoder = databento_dbn.DbnDecoder()
         self._disconnected: "asyncio.Future[None]" = loop.create_future()
+        self._transport_lock = threading.Lock()
         self._transport = transport
 
     def __aiter__(self) -> "DBNProtocol":
@@ -90,7 +92,8 @@ class DBNProtocol(asyncio.BufferedProtocol):
                         "resuming reading with %d pending records",
                         self._dbn_queue.qsize(),
                     )
-                    self._transport.resume_reading()
+                    with self._transport_lock:
+                        self._transport.resume_reading()
 
         raise StopAsyncIteration()
 
@@ -118,7 +121,8 @@ class DBNProtocol(asyncio.BufferedProtocol):
                         "resuming reading with %d pending records",
                         self._dbn_queue.qsize(),
                     )
-                    self._transport.resume_reading()
+                    with self._transport_lock:
+                        self._transport.resume_reading()
 
         raise StopIteration()
 
@@ -171,7 +175,8 @@ class DBNProtocol(asyncio.BufferedProtocol):
             self._decoder.write(record_bytes)
         except ValueError:
             logger.critical("could not write to dbn decoder")
-            self._transport.close()
+            with self._transport_lock:
+                self._transport.close()
 
         try:
             records = self._decoder.decode()
@@ -210,4 +215,5 @@ class DBNProtocol(asyncio.BufferedProtocol):
                                 "record queue is full; %d record(s) to be processed",
                                 self._dbn_queue.qsize(),
                             )
-                            self._transport.pause_reading()
+                            with self._transport_lock:
+                                self._transport.pause_reading()

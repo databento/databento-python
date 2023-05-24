@@ -3,7 +3,7 @@ import asyncio
 import pathlib
 import platform
 from io import BytesIO
-from typing import Callable
+from typing import Callable, List
 from unittest.mock import MagicMock
 
 import databento_dbn
@@ -571,11 +571,11 @@ async def test_live_async_iteration(
         symbols="TEST",
     )
 
-    live_client.start()
+    records: List[dbn.DBNStruct] = []
 
-    records = []
-    async for record in live_client:
-        records.append(record)
+    live_client.start()
+    live_client.add_callback(records.append)
+    await live_client.wait_for_close()
 
     assert len(records) == 3
     assert isinstance(records[0], databento_dbn.Metadata)
