@@ -57,7 +57,7 @@ class DBNProtocol(asyncio.BufferedProtocol):
         self._buffer: bytearray = bytearray()
         self._client_callback = client_callback
         self._dbn_queue: Optional[DBNQueue] = None
-        self._decoder: databento_dbn.DbnDecoder = databento_dbn.DbnDecoder()
+        self._decoder: databento_dbn.DBNDecoder = databento_dbn.DBNDecoder()
         self._disconnected: "asyncio.Future[None]" = loop.create_future()
         self._transport_lock = threading.Lock()
         self._transport = transport
@@ -184,18 +184,14 @@ class DBNProtocol(asyncio.BufferedProtocol):
         except ValueError:
             pass
         else:
-            for record, ts_out in records:
+            for record in records:
                 header = getattr(record, "hd", object())
                 ts_event = getattr(header, "ts_event", None)
                 logger.info(
-                    "decoded as %s record ts_event=%s ts_out=%s",
+                    "decoded as %s record ts_event=%s",
                     type(record).__name__,
                     ts_event,
-                    ts_out,
                 )
-
-                if not isinstance(record, databento_dbn.Metadata):
-                    setattr(record, "ts_out", ts_out)
 
                 # Record Dispatch
                 self._client_callback(record)

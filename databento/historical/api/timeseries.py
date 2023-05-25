@@ -18,7 +18,11 @@ from databento.common.parsing import (
 )
 from databento.common.validation import validate_enum, validate_semantic_string
 from databento.historical.api import API_VERSION
+from databento.historical.api.metadata import MetadataHttpAPI
 from databento.historical.http import BentoHttpAPI
+
+
+WARN_REQUEST_SIZE: int = 5 * 10**9  # 5 GB
 
 
 class TimeSeriesHttpAPI(BentoHttpAPI):
@@ -127,10 +131,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
+        start_valid = datetime_to_string(start)
+        end_valid = optional_datetime_to_string(end)
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start", datetime_to_string(start)),
-            ("end", optional_datetime_to_string(end)),
+            ("start", start_valid),
+            ("end", end_valid),
             ("symbols", symbols_list),
             ("schema", str(schema_valid)),
             ("stype_in", str(stype_in_valid)),
@@ -144,10 +150,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params.append(("limit", str(limit)))
 
         self._pre_check_data_size(
-            symbols=symbols,
+            dataset=dataset,
+            stype_in=stype_in_valid,
+            symbols=symbols_list,
             schema=schema_valid,
-            start=start,
-            end=end,
+            start=start_valid,
+            end=end_valid,
             limit=limit,
         )
 
@@ -267,10 +275,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
+        start_valid = datetime_to_string(start)
+        end_valid = optional_datetime_to_string(end)
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start", datetime_to_string(start)),
-            ("end", optional_datetime_to_string(end)),
+            ("start", start_valid),
+            ("end", end_valid),
             ("symbols", symbols_list),
             ("schema", str(schema_valid)),
             ("stype_in", str(stype_in_valid)),
@@ -283,10 +293,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             params.append(("limit", str(limit)))
 
         self._pre_check_data_size(
-            symbols=symbols,
+            dataset=dataset,
+            stype_in=stype_in_valid,
+            symbols=symbols_list,
             schema=schema_valid,
-            start=start,
-            end=end,
+            start=start_valid,
+            end=end_valid,
             limit=limit,
         )
 
@@ -308,59 +320,100 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         writer.seek(0)  # rewind for read
         return DBNStore.from_bytes(writer.read())
 
-    def _pre_check_data_size(  # noqa (prefer not to make static)
+    def _pre_check_data_size(
         self,
-        symbols: Optional[Union[List[str], str]],
+        dataset: str,
+        symbols: str,
         schema: Schema,
-        start: Optional[Union[pd.Timestamp, date, str, int]],
-        end: Optional[Union[pd.Timestamp, date, str, int]],
+        start: str,
+        end: Optional[str],
+        stype_in: SType,
         limit: Optional[int],
     ) -> None:
-        if limit and limit < 10**7:
+        if _is_size_limited(
+            schema=schema,
+            limit=limit,
+        ):
             return
 
-        # Use heuristics to check ballpark data size
-        if (
-            _is_large_data_size_schema(schema)
-            or _is_greater_than_one_day(start, end)
-            or _is_large_number_of_symbols(symbols)
+        if _is_period_limited(
+            schema=schema,
+            symbols=symbols,
+            start=start,
+            end=end,
         ):
-            warnings.warn(
-                message="The size of this streaming request is estimated "
-                "to be 5 GB or greater.\nWe recommend breaking your request "
-                "into smaller requests, or submitting a batch download request.\n"
-                "This warning can be suppressed: "
-                "https://docs.python.org/3/library/warnings.html",
-                category=BentoWarning,
-                stacklevel=3,  # This makes the error happen in user code
-            )
+            return
+
+        metadata_api = MetadataHttpAPI(
+            key=self._key,
+            gateway=self._gateway,
+        )
+        request_size = metadata_api.get_billable_size(
+            dataset=dataset,
+            start=start,
+            end=end,
+            symbols=symbols,
+            schema=schema,
+            stype_in=stype_in,
+            limit=limit,
+        )
+
+        if request_size < WARN_REQUEST_SIZE:
+            return
+
+        warnings.warn(
+            message="""The size of this streaming request is greater than 5GB.
+            It is recommended to submit a batch download request for large volumes
+            of data, or break this request into smaller requests.
+            This warning can be suppressed:
+            https://docs.python.org/3/library/warnings.html""",
+            category=BentoWarning,
+            stacklevel=3,  # This makes the error happen in user code
+        )
 
 
-def _is_large_number_of_symbols(symbols: Optional[Union[List[str], str]]) -> bool:
-    if not symbols:
-        return True  # Full universe
-
-    if isinstance(symbols, str):
-        symbols = symbols.split(",")
-
-    if len(symbols) >= 500:
-        return True
-
-    return False
-
-
-def _is_large_data_size_schema(schema: Schema) -> bool:
-    return schema in (Schema.MBO, Schema.MBP_10)
-
-
-def _is_greater_than_one_day(
-    start: Optional[Union[pd.Timestamp, date, str, int]],
-    end: Optional[Union[pd.Timestamp, date, str, int]],
+def _is_size_limited(
+    schema: Schema,
+    limit: Optional[int],
+    max_size: int = WARN_REQUEST_SIZE,
 ) -> bool:
-    if start is None or end is None:
-        return True
+    if limit is None:
+        return False
 
-    if pd.to_datetime(end) - pd.to_datetime(start) > pd.Timedelta(days=1):
-        return True
+    estimated_size = limit * schema.get_record_type().size_hint()
+    return estimated_size < max_size
 
-    return False
+
+def _is_period_limited(
+    schema: Schema,
+    symbols: str,
+    start: str,
+    end: Optional[str],
+    max_size: int = WARN_REQUEST_SIZE,
+) -> bool:
+    if end is None:
+        return False
+
+    if schema not in (
+        Schema.OHLCV_1S,
+        Schema.OHLCV_1M,
+        Schema.OHLCV_1H,
+        Schema.OHLCV_1D,
+        Schema.DEFINITION,
+    ):
+        return False
+
+    dt_start = pd.to_datetime(start, utc=True)
+    dt_end = pd.to_datetime(end, utc=True)
+
+    # default scale to one day for ohlcv_1d and definition
+    scale = {
+        Schema.OHLCV_1S: 1,
+        Schema.OHLCV_1M: 60,
+        Schema.OHLCV_1H: 60 * 60,
+    }.get(schema, 60 * 60 * 24)
+
+    num_symbols = len(symbols.split(","))
+    num_records = num_symbols * (dt_end - dt_start).total_seconds() // scale
+    estimated_size = num_records * schema.get_record_type().size_hint()
+    return estimated_size < max_size

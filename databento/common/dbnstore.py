@@ -34,7 +34,7 @@ from databento.common.error import BentoError
 from databento.common.symbology import InstrumentIdMappingInterval
 from databento.common.validation import validate_maybe_enum
 from databento.live.data import DBNStruct
-from databento_dbn import DbnDecoder, ErrorMsg, Metadata, SymbolMappingMsg, SystemMsg
+from databento_dbn import DBNDecoder, ErrorMsg, Metadata, SymbolMappingMsg, SystemMsg
 
 
 NON_SCHEMA_RECORD_TYPES = [
@@ -354,8 +354,7 @@ class DBNStore:
 
     def __iter__(self) -> Generator[DBNStruct, None, None]:
         reader = self.reader
-        attach_ts_out = self.metadata.ts_out
-        decoder = DbnDecoder()
+        decoder = DBNDecoder()
         while True:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
             if raw:
@@ -364,9 +363,7 @@ class DBNStore:
                     records = decoder.decode()
                 except ValueError:
                     continue
-                for record, ts_out in records:
-                    if attach_ts_out and not isinstance(record, Metadata):
-                        setattr(record, "ts_out", ts_out)
+                for record in records:
                     yield record
             else:
                 if len(decoder.buffer()) > 0:

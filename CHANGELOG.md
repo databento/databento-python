@@ -2,7 +2,7 @@
 
 ## 0.13.0 - TBD
 - Added support for `statistics` schema
-- Upgraded `databento-dbn` to 0.5.1
+- Upgraded `databento-dbn` to 0.6.0
 - Renamed `booklevel` MBP field to `levels` for brevity and consistent naming
 - Changed `flags` field to an unsigned int
 - Changed default of `ts_out` to `False` for `Live` client

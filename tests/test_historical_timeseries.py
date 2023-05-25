@@ -7,6 +7,7 @@ import pytest
 import requests
 from databento import DBNStore
 from databento.common.enums import Schema
+from databento.historical.api.timeseries import TimeSeriesHttpAPI
 from pytest_mock import MockerFixture
 
 
@@ -62,6 +63,11 @@ class TestHistoricalTimeSeries:
 
         # Mock from_bytes with the definition stub
         stream_bytes = test_data(Schema.TRADES)
+        monkeypatch.setattr(
+            TimeSeriesHttpAPI,
+            "_pre_check_data_size",
+            MagicMock(return_value=True),
+        )
         monkeypatch.setattr(
             DBNStore,
             "from_bytes",
