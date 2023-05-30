@@ -29,17 +29,16 @@ ALL_MESSAGES = (
     [
         pytest.param(
             "auth=abcd1234|dataset=GLBX.MDP3|encoding=json\n",
-            ("abcd1234", "GLBX.MDP3", "json", None, "1", str(Compression.NONE)),
+            ("abcd1234", "GLBX.MDP3", "json", None, "0"),
         ),
         pytest.param(
-            "auth=abcd1234|dataset=GLBX.MDP3|ts_out=1|compression=zstd\n",
+            "auth=abcd1234|dataset=GLBX.MDP3|ts_out=1\n",
             (
                 "abcd1234",
                 "GLBX.MDP3",
                 str(Encoding.DBN),
                 None,
                 "1",
-                str(Compression.ZSTD),
             ),
         ),
         pytest.param(
@@ -49,8 +48,7 @@ ALL_MESSAGES = (
                 "XNAS.ITCH",
                 str(Encoding.DBN),
                 None,
-                "1",
-                str(Compression.NONE),
+                "0",
             ),
         ),
         pytest.param(
@@ -75,7 +73,6 @@ def test_parse_authentication_request(
             msg.encoding,
             msg.details,
             msg.ts_out,
-            msg.compression,
         ) == expected
     else:
         with pytest.raises(expected):
@@ -90,7 +87,7 @@ def test_parse_authentication_request(
                 auth="abcd1234",
                 dataset=Dataset.GLBX_MDP3,
             ),
-            b"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=1|compression=none\n",
+            b"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=0\n",
         ),
         pytest.param(
             AuthenticationRequest(
@@ -98,7 +95,7 @@ def test_parse_authentication_request(
                 dataset=Dataset.XNAS_ITCH,
                 ts_out="1",
             ),
-            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1|compression=none\n",
+            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1\n",
         ),
     ],
 )

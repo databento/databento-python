@@ -1,6 +1,11 @@
 # Changelog
 
 ## 0.14.0 - TBD
+- Added support for reusing a `Live` client to reconnect
+- Changed iteration of `Live` to no longer yield DBN metadata
+- Changed `Live` callbacks to no longer yield DBN metadata
+- Added `metadata` property to `Live`
+- Added `DatatbentoLiveProtocol` class
 - Upgraded `aiohttp` to 3.8.3
 - Upgraded `numpy` to to 1.23.5
 - Upgraded `pandas` to to 1.5.3

@@ -13,7 +13,7 @@ from databento_dbn import OHLCVMsg
 from databento_dbn import StatMsg
 from databento_dbn import TradeMsg
 
-from databento.live.dbn import DBNRecord
+from databento.live import DBNRecord
 
 
 M = TypeVar("M", bound=Enum)

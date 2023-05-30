@@ -25,8 +25,8 @@ from databento.live.gateway import (
     SessionStart,
     SubscriptionRequest,
     parse_gateway_message,
-    singledispatchmethod,
 )
+from databento.live.protocol import singledispatchmethod
 
 
 LIVE_SERVER_VERSION: str = "1.0.0"
@@ -368,7 +368,6 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self._is_streaming = True
 
         for schema in self._schemas:
-            dbn_stream = BytesIO()
             for test_data_path in self._dbn_path.glob(f"*{schema}.dbn.zst"):
                 decompressor = zstandard.ZstdDecompressor().stream_reader(
                     test_data_path.read_bytes(),
@@ -378,9 +377,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
                     test_data_path.name,
                     schema,
                 )
-                dbn_stream.write(decompressor.readall())
-            dbn_stream.seek(0)  # rewind to read
-            self.__transport.write(dbn_stream.read())
+                self.__transport.write(decompressor.readall())
 
         logger.info(
             "data streaming for %d schema(s) completed",

@@ -18,6 +18,7 @@ from typing import (
     Union,
 )
 
+import databento_dbn
 import numpy as np
 import pandas as pd
 import zstandard
@@ -39,7 +40,7 @@ from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import InstrumentIdMappingInterval
 from databento.common.validation import validate_maybe_enum
-from databento.live.data import DBNStruct
+from databento.live import DBNRecord
 
 
 NON_SCHEMA_RECORD_TYPES = [
@@ -357,7 +358,7 @@ class DBNStore:
             Dict[int, str],
         ] = {}
 
-    def __iter__(self) -> Generator[DBNStruct, None, None]:
+    def __iter__(self) -> Generator[DBNRecord, None, None]:
         reader = self.reader
         decoder = DBNDecoder()
         while True:
@@ -369,6 +370,8 @@ class DBNStore:
                 except ValueError:
                     continue
                 for record in records:
+                    if isinstance(record, databento_dbn.Metadata):
+                        continue
                     yield record
             else:
                 if len(decoder.buffer()) > 0:

@@ -1,0 +1,413 @@
+import asyncio
+import logging
+from functools import singledispatch, update_wrapper
+from typing import Any, Callable, Iterable, Optional, Union
+
+import databento_dbn
+
+from databento.common import cram
+from databento.common.enums import Dataset, Schema, SType
+from databento.common.error import BentoError
+from databento.common.parsing import (
+    optional_datetime_to_unix_nanoseconds,
+    optional_symbols_list_to_string,
+)
+from databento.common.symbology import ALL_SYMBOLS
+from databento.common.validation import validate_enum, validate_semantic_string
+from databento.live.gateway import (
+    AuthenticationRequest,
+    AuthenticationResponse,
+    ChallengeRequest,
+    GatewayControl,
+    GatewayDecoder,
+    Greeting,
+    SessionStart,
+    SubscriptionRequest,
+)
+
+DBNRecord = Union[
+    databento_dbn.MBOMsg,
+    databento_dbn.MBP1Msg,
+    databento_dbn.MBP10Msg,
+    databento_dbn.TradeMsg,
+    databento_dbn.OHLCVMsg,
+    databento_dbn.ImbalanceMsg,
+    databento_dbn.InstrumentDefMsg,
+    databento_dbn.StatMsg,
+    databento_dbn.SymbolMappingMsg,
+    databento_dbn.SystemMsg,
+    databento_dbn.ErrorMsg,
+]
+
+MIN_BUFFER_SIZE: int = 64 * 1024  # 64kb
+
+logger = logging.getLogger(__name__)
+
+
+def singledispatchmethod(
+    func: Callable[..., Any],
+) -> Any:
+    """
+    Decorate a function to dispatch arguments by type.
+    This is a custom implementation of functools.singledispatchmethod.
+
+    See Also
+    --------
+    functools.singledispatch
+
+    Notes
+    -----
+    This should be removed when python 3.7 is no longer supported.
+
+    """
+    dispatcher: Any = singledispatch(func)
+
+    def _wrapper(*args: object, **kw: object) -> Any:
+        return dispatcher.dispatch(args[1].__class__)(*args, **kw)
+
+    setattr(_wrapper, "register", getattr(dispatcher, "register"))
+    update_wrapper(_wrapper, func)
+    return _wrapper
+
+
+class DatabentoLiveProtocol(asyncio.BufferedProtocol):
+    """
+    A BufferedProtocol implementation for the Databento live subscription
+    gateway. This protocol will handle all gateway control messaging.
+
+    This class can be used directly with `asyncio.loop.create_connection`
+    to provide low-level control of the connection. For simple use cases
+    it is recommended to create a subclass and implement your own methods
+    for `received_metadata` and `received_record`.
+
+    Parameters
+    ----------
+    api_key : str
+        The user API key for authentication.
+    dataset : Dataset, or str
+        The dataset for authentication.
+    ts_out : bool, default False
+        Flag for requesting `ts_out` to be appending to all records in the session.
+
+    See Also
+    --------
+    asyncio.BufferedProtocol
+
+    """
+
+    def __init__(
+        self,
+        api_key: str,
+        dataset: Union[Dataset, str],
+        ts_out: bool = False,
+    ) -> None:
+        self.__api_key = api_key
+        self.__transport: Optional[asyncio.Transport] = None
+        self.__buffer: bytearray
+
+        self._dataset = validate_semantic_string(dataset, "dataset")
+        self._ts_out = ts_out
+
+        self._dbn_decoder = databento_dbn.DBNDecoder()
+        self._gateway_decoder = GatewayDecoder()
+
+        self._authenticated: "asyncio.Future[int]" = asyncio.Future()
+        self._disconnected: "asyncio.Future[None]" = asyncio.Future()
+        self._started = asyncio.Event()
+
+    @property
+    def authenticated(self) -> "asyncio.Future[int]":
+        """
+        Future that completes when authentication with the
+        gateway is completed.
+
+        The result will contain the session id if successful.
+        The exception will contain a BentoError if authentication
+        fails for any reason.
+
+        Returns
+        -------
+        asyncio.Future[int]
+
+        """
+        return self._authenticated
+
+    @property
+    def disconnected(self) -> "asyncio.Future[None]":
+        """
+        Future that completes when the connection to the gateway is
+        lost or closed.
+
+        The result will contain None if the disconnection was graceful.
+        The result will contain an Exception otherwise.
+
+        Returns
+        -------
+        asyncio.Future[None]
+
+        """
+        return self._disconnected
+
+    @property
+    def started(self) -> asyncio.Event:
+        """
+        Event that is set when the session has started streaming.
+        This occurs when the SessionStart message is sent to the gateway.
+
+        Returns
+        -------
+        asyncio.Event
+
+        """
+        return self._started
+
+    @property
+    def transport(self) -> asyncio.Transport:
+        """
+        Transport that publishes to this DatbentoLiveProtocol.
+
+        Returns
+        -------
+        asyncio.Transport
+
+        Raises
+        ------
+        ValueError
+            If the protocol is not connected.
+
+        """
+        if self.__transport is None:
+            raise ValueError("protocol is not connected")
+        return self.__transport
+
+    def connection_made(self, transport: asyncio.BaseTransport) -> None:
+        """
+        Override of `connection_made`.
+
+        See Also
+        --------
+        asycnio.BufferedProtocol.connection_made
+
+        """
+        logger.debug("established connection to gateway")
+        if not isinstance(transport, asyncio.Transport):
+            raise TypeError("Connection does not support read-write operations.")
+        self.__transport = transport
+        return super().connection_made(transport)
+
+    def connection_lost(self, exc: Optional[Exception]) -> None:
+        """
+        Override of `connection_list`.
+
+        See Also
+        --------
+        asycnio.BufferedProtocol.connection_lost
+
+        """
+        if not self.disconnected.done():
+            if exc is None:
+                logger.info("connection closed")
+                self.disconnected.set_result(None)
+            else:
+                logger.error("connection lost", exc_info=exc)
+                self.disconnected.set_exception(exc)
+        super().connection_lost(exc)
+
+    def eof_received(self) -> Optional[bool]:
+        """
+        Override of `eof_received`.
+
+        See Also
+        --------
+        asycnio.BufferedProtocol.eof_received
+
+        """
+        logger.info("received EOF file from remote")
+        return super().eof_received()
+
+    def get_buffer(self, sizehint: int) -> bytearray:
+        """
+        Override of `get_buffer`.
+
+        See Also
+        --------
+        asycnio.BufferedProtocol.get_buffer
+
+        """
+        self.__buffer = bytearray(max(sizehint, MIN_BUFFER_SIZE))
+        return self.__buffer
+
+    def buffer_updated(self, nbytes: int) -> None:
+        """
+        Override of `buffer_updated`.
+
+        See Also
+        --------
+        asycnio.BufferedProtocol.buffer_updated
+
+        """
+        logger.debug("read %d bytes from remote gateway", nbytes)
+        data = self.__buffer[:nbytes]
+
+        if self.started.is_set():
+            self._process_dbn(data)
+        else:
+            self._process_gateway(data)
+
+        super().buffer_updated(nbytes)
+
+    def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
+        """
+        Called when the protocol receives a Metadata header.
+        This is always sent by the gateway before any data records.
+
+        Parameters
+        ----------
+        metadata : databento_dbn.Metadata
+
+        """
+        pass
+
+    def received_record(self, record: DBNRecord) -> None:
+        """
+        Called when the protocol receives a data record.
+
+        Parameters
+        ----------
+        record : DBNRecord
+
+        """
+        pass
+
+    def subscribe(
+        self,
+        schema: Union[Schema, str],
+        symbols: Union[Iterable[str], Iterable[int], str, int] = ALL_SYMBOLS,
+        stype_in: Union[SType, str] = SType.RAW_SYMBOL,
+        start: Optional[Union[str, int]] = None,
+    ) -> None:
+        """
+        Send a SubscriptionRequest to the gateway.
+
+        Parameters
+        ----------
+        schema : Schema or str
+            The schema to subscribe to.
+        symbols : Iterable[Union[str, int]] or str, default 'ALL_SYMBOLS'
+            The symbols to subscribe to.
+        stype_in : SType or str, default 'raw_symbol'
+            The input symbology type to resolve from.
+        start : str or int, optional
+            UNIX nanosecond epoch timestamp to start streaming from. Must be
+            within 24 hours.
+
+        """
+        logger.info(
+            "sending subscription to %s:%s %s start=%s",
+            schema,
+            stype_in,
+            symbols,
+            start if start is not None else "now",
+        )
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        message = SubscriptionRequest(
+            schema=validate_enum(schema, Schema, "schema"),
+            stype_in=stype_in_valid,
+            symbols=optional_symbols_list_to_string(symbols, stype_in_valid),
+            start=optional_datetime_to_unix_nanoseconds(start),
+        )
+
+        self.transport.write(bytes(message))
+
+    def start(
+        self,
+    ) -> None:
+        """
+        Send SessionStart to the gateway.
+
+        """
+        logger.debug("sending start")
+        message = SessionStart()
+        self.started.set()
+        self.transport.write(bytes(message))
+
+    def _process_dbn(self, data: bytes) -> None:
+        if self.__transport is None:
+            raise ValueError("not connected")
+
+        try:
+            self._dbn_decoder.write(bytes(data))
+            records = self._dbn_decoder.decode()
+        except ValueError:
+            pass  # expected for partial records
+        except Exception:
+            logger.exception("error decoding DBN record")
+            self.__transport.close()
+            raise
+        else:
+            for record in records:
+                logger.debug("dispatching %s", type(record).__name__)
+                if isinstance(record, databento_dbn.Metadata):
+                    self.received_metadata(record)
+                else:
+                    self.received_record(record)
+
+    def _process_gateway(self, data: bytes) -> None:
+        try:
+            self._gateway_decoder.write(data)
+            controls = self._gateway_decoder.decode()
+        except ValueError:
+            logger.exception("error decoding control message")
+            self.transport.close()
+            raise
+        for control in controls:
+            self._handle_gateway_message(control)
+
+    @singledispatchmethod
+    def _handle_gateway_message(self, message: GatewayControl) -> None:
+        """
+        Dispatch for GatewayControl messages.
+
+        Parameters
+        ----------
+        message : GatewayControl
+            The message to dispatch.
+
+        """
+        logger.error("unhandled gateway message: %s", type(message).__name__)
+
+    @_handle_gateway_message.register(Greeting)
+    def _(self, message: Greeting) -> None:
+        logger.debug("greeting received by remote gateway v%s", message.lsg_version)
+
+    @_handle_gateway_message.register(ChallengeRequest)
+    def _(self, message: ChallengeRequest) -> None:
+        logger.debug("received CRAM challenge: %s", message.cram)
+        response = cram.get_challenge_response(message.cram, self.__api_key)
+        auth_request = AuthenticationRequest(
+            auth=response,
+            dataset=self._dataset,
+            ts_out=str(int(self._ts_out)),
+        )
+        logger.debug("sending CRAM challenge response: %s", str(auth_request).strip())
+        self.transport.write(bytes(auth_request))
+
+    @_handle_gateway_message.register(AuthenticationResponse)
+    def _(self, message: AuthenticationResponse) -> None:
+        if message.success == "0":
+            logger.error("CRAM authentication failed: %s", message.error)
+            self.authenticated.set_exception(
+                BentoError(f"User authentication failed: {message.error}"),
+            )
+            self.transport.close()
+        else:
+            if message.session_id is None:
+                session_id = 0
+            else:
+                session_id = int(message.session_id)
+
+            logger.debug(
+                "CRAM authenticated session id assigned `%s`",
+                session_id,
+            )
+            self.authenticated.set_result(session_id)

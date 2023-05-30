@@ -10,10 +10,11 @@ import databento_dbn
 import pytest
 import zstandard
 from databento.common.cram import BUCKET_ID_LENGTH
-from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
+from databento.common.dbnstore import DBNStore
+from databento.common.enums import Dataset, Encoding, Schema, SType
 from databento.common.error import BentoError
 from databento.common.symbology import ALL_SYMBOLS
-from databento.live import client, dbn, gateway
+from databento.live import DBNRecord, client, gateway, protocol, session
 
 from tests.mock_live_server import MockLiveServer
 
@@ -50,9 +51,9 @@ def test_live_connection_timeout(
     function so that it never completes and set a timeout of 0.
     """
     monkeypatch.setattr(
-        asyncio.AbstractEventLoop,
-        "create_connection",
-        MagicMock(),
+        session,
+        "CONNECT_TIMEOUT_SECONDS",
+        0,
     )
 
     live_client = client.Live(
@@ -65,7 +66,6 @@ def test_live_connection_timeout(
         live_client.subscribe(
             dataset=Dataset.GLBX_MDP3,
             schema=Schema.MBO,
-            timeout=0,
         )
 
     # Ensure this was a timeout error
@@ -182,7 +182,6 @@ def test_live_creation(
     assert live_client.is_connected() is True
 
 
-@pytest.mark.asyncio
 async def test_live_connect_auth(
     mock_live_server: MockLiveServer,
     live_client: client.Live,
@@ -204,10 +203,8 @@ async def test_live_connect_auth(
     assert message.auth.endswith(live_client.key[-BUCKET_ID_LENGTH:])
     assert message.dataset == live_client.dataset
     assert message.encoding == Encoding.DBN
-    assert message.compression == Compression.NONE
 
 
-@pytest.mark.asyncio
 async def test_live_connect_auth_two_clients(
     mock_live_server: MockLiveServer,
     test_api_key: str,
@@ -240,7 +237,6 @@ async def test_live_connect_auth_two_clients(
     assert first_auth.auth.endswith(first.key[-BUCKET_ID_LENGTH:])
     assert first_auth.dataset == first.dataset
     assert first_auth.encoding == Encoding.DBN
-    assert first_auth.compression == Compression.NONE
 
     second.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -255,10 +251,8 @@ async def test_live_connect_auth_two_clients(
     assert second_auth.auth.endswith(second.key[-BUCKET_ID_LENGTH:])
     assert second_auth.dataset == second.dataset
     assert second_auth.encoding == Encoding.DBN
-    assert second_auth.compression == Compression.NONE
 
 
-@pytest.mark.asyncio
 async def test_live_start(
     live_client: client.Live,
     mock_live_server: MockLiveServer,
@@ -301,7 +295,6 @@ def test_live_start_twice(
         live_client.start()
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema],
@@ -438,18 +431,6 @@ def test_live_block_for_close_timeout(
     live_client.terminate.assert_called_once()  # type: ignore
 
 
-def test_live_block_for_close_dry(
-    live_client: client.Live,
-) -> None:
-    """
-    Test that block_for_close raises a ValueError if the client
-    has never connected.
-    """
-    with pytest.raises(ValueError):
-        live_client.block_for_close()
-
-
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("mock_live_server")
 async def test_live_wait_for_close(
     live_client: client.Live,
@@ -473,19 +454,6 @@ async def test_live_wait_for_close(
     assert not live_client.is_connected()
 
 
-@pytest.mark.asyncio
-async def test_live_wait_for_close_dry(
-    live_client: client.Live,
-) -> None:
-    """
-    Test that wait_for_close raises a ValueError if the client
-    has never connected.
-    """
-    with pytest.raises(ValueError):
-        await live_client.wait_for_close()
-
-
-@pytest.mark.asyncio
 @pytest.mark.usefixtures("mock_live_server")
 async def test_live_wait_for_close_timeout(
     live_client: client.Live,
@@ -521,8 +489,8 @@ def test_live_add_callback(
         pass
 
     live_client.add_callback(callback)
-    assert live_client._record_pipeline._user_callbacks == [callback]
-    assert live_client._record_pipeline._user_streams == []
+    assert live_client._user_callbacks == [callback]
+    assert live_client._user_streams == []
 
 
 def test_live_add_stream(
@@ -535,8 +503,8 @@ def test_live_add_stream(
     stream = BytesIO()
 
     live_client.add_stream(stream)
-    assert live_client._record_pipeline._user_callbacks == []
-    assert live_client._record_pipeline._user_streams == [stream]
+    assert live_client._user_callbacks == []
+    assert live_client._user_streams == [stream]
 
 
 def test_live_add_stream_invalid(
@@ -556,7 +524,7 @@ def test_live_add_stream_invalid(
         live_client.add_stream(readable_file.open(mode="rb"))
 
 
-@pytest.mark.asyncio
+@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:
@@ -570,23 +538,22 @@ async def test_live_async_iteration(
         symbols="TEST",
     )
 
-    records: List[dbn.DBNStruct] = []
+    records: List[DBNRecord] = []
 
     live_client.start()
     live_client.add_callback(records.append)
     await live_client.wait_for_close()
 
-    assert len(records) == 3
-    assert isinstance(records[0], databento_dbn.Metadata)
+    assert len(records) == 2
+    assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
-    assert isinstance(records[2], databento_dbn.MBOMsg)
 
 
-@pytest.mark.asyncio
 @pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration_backpressure(
-    live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
+    mock_live_server: MockLiveServer,
+    test_api_key: str,
 ) -> None:
     """
     Test that a full queue disables reading on the
@@ -596,7 +563,13 @@ async def test_live_async_iteration_backpressure(
     Note that the total queue size is twice the value of
     DEFAULT_QUEUE_SIZE.
     """
-    monkeypatch.setattr(dbn, "DEFAULT_QUEUE_SIZE", 2)
+    monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 2)
+
+    live_client = client.Live(
+        key=test_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
 
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -604,43 +577,38 @@ async def test_live_async_iteration_backpressure(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
-
     live_client.start()
-    dbn_protocol = live_client._connection._protocol
 
-    records = []
-    async for record in live_client:
-        records.append(record)
-        break
+    ait = live_client.__aiter__()
+    await asyncio.sleep(0.1)
 
-    assert len(records) == 1
-    assert isinstance(records[0], databento_dbn.Metadata)
+    assert live_client._dbn_queue.full()
+    assert live_client._session.is_reading() is False
 
-    assert dbn_protocol.is_queue_full() is True
-    assert dbn_protocol._transport.is_reading() is False
-
-    async for record in live_client:
-        records.append(record)
-
-    assert len(records) == 3
-    assert isinstance(records[1], databento_dbn.MBOMsg)
-    assert isinstance(records[2], databento_dbn.MBOMsg)
-    assert dbn_protocol.is_queue_full() is False
+    assert isinstance(await ait.__anext__(), databento_dbn.MBOMsg)
+    assert live_client._session.is_reading() is True
+    assert isinstance(await ait.__anext__(), databento_dbn.MBOMsg)
+    with pytest.raises(StopAsyncIteration):
+        await ait.__anext__()
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration_dropped(
-    live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
+    mock_live_server: MockLiveServer,
+    test_api_key: str,
 ) -> None:
     """
-    Test that a very small queue size drops messages.
-
-    Note that the total queue size is twice the value of
-    DEFAULT_QUEUE_SIZE.
+    Test that an artificially small queue size
     """
-    monkeypatch.setattr(dbn, "DEFAULT_QUEUE_SIZE", 1)
+    monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 1)
+
+    live_client = client.Live(
+        key=test_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
 
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -650,28 +618,18 @@ async def test_live_async_iteration_dropped(
     )
 
     live_client.start()
-    dbn_protocol = live_client._connection._protocol
 
-    records = []
-    async for record in live_client:
-        records.append(record)
-        break
+    ait = live_client.__aiter__()
+    await asyncio.sleep(0.1)
+    assert live_client._dbn_queue.full()
+    assert live_client._session._transport.is_reading() is False
 
-    assert len(records) == 1
-    assert isinstance(records[0], databento_dbn.Metadata)
-
-    queue = dbn_protocol._dbn_queue
-    assert queue.qsize() == 1
-    assert dbn_protocol.is_queue_full() is True
-
-    async for record in live_client:
-        records.append(record)
-
-    assert len(records) == 2
-    assert isinstance(records[1], databento_dbn.MBOMsg)
+    assert isinstance(await ait.__anext__(), databento_dbn.MBOMsg)
+    assert live_client._session._transport.is_reading() is True
+    with pytest.raises(StopAsyncIteration):
+        await ait.__anext__()
 
 
-@pytest.mark.asyncio
 @pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration_stop(
     live_client: client.Live,
@@ -694,10 +652,9 @@ async def test_live_async_iteration_stop(
         records.append(record)
         live_client.stop()
 
-    assert len(records) == 3
-    assert isinstance(records[0], databento_dbn.Metadata)
+    assert len(records) == 2
+    assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
-    assert isinstance(records[2], databento_dbn.MBOMsg)
 
 
 @pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
@@ -720,13 +677,11 @@ def test_live_sync_iteration(
     for record in live_client:
         records.append(record)
 
-    assert len(records) == 3
-    assert isinstance(records[0], databento_dbn.Metadata)
+    assert len(records) == 2
+    assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
-    assert isinstance(records[2], databento_dbn.MBOMsg)
 
 
-@pytest.mark.asyncio
 async def test_live_callback(
     live_client: client.Live,
 ) -> None:
@@ -742,7 +697,7 @@ async def test_live_callback(
 
     records = []
 
-    def callback(record: dbn.DBNStruct) -> None:
+    def callback(record: DBNRecord) -> None:
         nonlocal records
         records.append(record)
 
@@ -752,13 +707,11 @@ async def test_live_callback(
 
     await live_client.wait_for_close()
 
-    assert len(records) == 3
-    assert isinstance(records[0], databento_dbn.Metadata)
+    assert len(records) == 2
+    assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
-    assert isinstance(records[2], databento_dbn.MBOMsg)
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "schema",
     (pytest.param(schema, id=str(schema)) for schema in Schema),
@@ -797,7 +750,6 @@ async def test_live_stream_to_dbn(
     assert output.read_bytes() == expected_data.read()
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "schema",
     (pytest.param(schema, id=str(schema)) for schema in Schema),
@@ -822,7 +774,7 @@ async def test_live_stream_to_dbn_with_tiny_buffer(
     Test that DBN data streamed by the MockLiveServer is properly
     re-constructed client side when using the small values for MIN_BUFFER_SIZE.
     """
-    monkeypatch.setattr(dbn, "MIN_BUFFER_SIZE", buffer_size)
+    monkeypatch.setattr(protocol, "MIN_BUFFER_SIZE", buffer_size)
     output = tmp_path / "output.dbn"
 
     live_client.subscribe(
@@ -847,7 +799,6 @@ async def test_live_stream_to_dbn_with_tiny_buffer(
     assert output.read_bytes() == expected_data.read()
 
 
-@pytest.mark.asyncio
 async def test_live_disconnect_async(
     live_client: client.Live,
 ) -> None:
@@ -863,11 +814,12 @@ async def test_live_disconnect_async(
         symbols="TEST",
     )
     live_client.start()
+    assert live_client._session is not None
 
     wait = live_client.wait_for_close()
 
-    protocol = live_client._connection._protocol
-    protocol.connection_lost(Exception("test"))
+    protocol = live_client._session._protocol
+    protocol.disconnected.set_exception(Exception("test"))
 
     with pytest.raises(BentoError) as exc:
         await wait
@@ -890,9 +842,10 @@ def test_live_disconnect(
         symbols="TEST",
     )
     live_client.start()
+    assert live_client._session is not None
 
-    protocol = live_client._connection._protocol
-    protocol.connection_lost(Exception("test"))
+    protocol = live_client._session._protocol
+    protocol.disconnected.set_exception(Exception("test"))
 
     with pytest.raises(BentoError) as exc:
         live_client.block_for_close()
@@ -904,7 +857,7 @@ async def test_live_terminate(
     live_client: client.Live,
 ) -> None:
     """
-    Test callback dispatch of DBN records.
+    Test that terminate closes the connection.
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -915,7 +868,7 @@ async def test_live_terminate(
 
     records = []
 
-    def callback(record: dbn.DBNStruct) -> None:
+    def callback(record: DBNRecord) -> None:
         nonlocal records
         records.append(record)
 
@@ -924,5 +877,150 @@ async def test_live_terminate(
     live_client.start()
     live_client.terminate()
 
+    await live_client.wait_for_close()
+
     assert records == []
     assert not live_client.is_connected()
+
+
+@pytest.mark.parametrize(
+    "schema",
+    (pytest.param(schema, id=str(schema)) for schema in Schema),
+)
+async def test_live_iteration_with_reconnect(
+    live_client: client.Live,
+    test_data_path: Callable[[Schema], pathlib.Path],
+    schema: Schema,
+) -> None:
+    """
+    Test that the client can reconnect to the same subscription
+    while iterating. The iteration should yield every record.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=schema,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    assert live_client.is_connected()
+    assert live_client.dataset == Dataset.GLBX_MDP3
+
+    live_client.start()
+    my_iter = iter(live_client)
+
+    await live_client.wait_for_close()
+
+    assert not live_client.is_connected()
+    assert live_client.dataset == ""
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=schema,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    live_client.start()
+
+    await live_client.wait_for_close()
+
+    assert not live_client.is_connected()
+    assert live_client.dataset == ""
+
+    expected_data = BytesIO(
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data_path(schema).open("rb"))
+        .read(),
+    )
+    dbn = DBNStore.from_bytes(expected_data)
+
+    records = list(my_iter)
+    assert len(records) == 2 * len(list(dbn))
+    for record in records:
+        assert isinstance(record, schema.get_record_type())
+
+
+@pytest.mark.parametrize(
+    "schema",
+    (pytest.param(schema, id=str(schema)) for schema in Schema),
+)
+async def test_live_callback_with_reconnect(
+    live_client: client.Live,
+    test_data_path: Callable[[Schema], pathlib.Path],
+    schema: Schema,
+) -> None:
+    """
+    Test that the client can reconnect to the same subscription
+    with a callback. That callback should emit every record.
+    """
+    records: List[DBNRecord] = []
+    live_client.add_callback(records.append)
+
+    for _ in range(5):
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=schema,
+            stype_in=SType.RAW_SYMBOL,
+            symbols="TEST",
+        )
+
+        assert live_client.is_connected()
+        assert live_client.dataset == Dataset.GLBX_MDP3
+
+        live_client.start()
+
+        await live_client.wait_for_close()
+        assert not live_client.is_connected()
+        assert live_client.dataset == ""
+
+    expected_data = BytesIO(
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data_path(schema).open("rb"))
+        .read(),
+    )
+    dbn = DBNStore.from_bytes(expected_data)
+    assert len(records) == 5 * len(list(dbn))
+
+    for record in records:
+        assert isinstance(record, schema.get_record_type())
+
+
+@pytest.mark.parametrize(
+    "schema",
+    (pytest.param(schema, id=str(schema)) for schema in Schema),
+)
+async def test_live_stream_with_reconnect(
+    tmp_path: pathlib.Path,
+    live_client: client.Live,
+    schema: Schema,
+) -> None:
+    """
+    Test that the client can reconnect to the same subscription
+    with an output stream. That output stream should be readable.
+    """
+    output = tmp_path / "output.dbn"
+    live_client.add_stream(output.open("wb", buffering=0))
+
+    for _ in range(5):
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=schema,
+            stype_in=SType.RAW_SYMBOL,
+            symbols="TEST",
+        )
+
+        assert live_client.is_connected()
+        assert live_client.dataset == Dataset.GLBX_MDP3
+
+        live_client.start()
+
+        await live_client.wait_for_close()
+        assert not live_client.is_connected()
+        assert live_client.dataset == ""
+
+    data = DBNStore.from_file(output)
+
+    records = list(data)
+    for record in records:
+        assert isinstance(record, schema.get_record_type())

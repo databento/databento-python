@@ -26,8 +26,8 @@ from databento.common.error import (
 )
 from databento.historical.api import API_VERSION
 from databento.historical.client import Historical
+from databento.live import DBNRecord
 from databento.live.client import Live
-from databento.live.dbn import DBNRecord, DBNStruct
 from databento.version import __version__  # noqa
 from databento_dbn import (
     ErrorMsg,
@@ -38,6 +38,7 @@ from databento_dbn import (
     MBP10Msg,
     Metadata,
     OHLCVMsg,
+    StatMsg,
     SymbolMappingMsg,
     SystemMsg,
     TradeMsg,
@@ -48,7 +49,6 @@ __all__ = [
     "API_VERSION",
     "DBNStore",
     "DBNRecord",
-    "DBNStruct",
     "BentoClientError",
     "BentoError",
     "BentoHttpError",
@@ -75,6 +75,7 @@ __all__ = [
     "MBP10Msg",
     "TradeMsg",
     "OHLCVMsg",
+    "StatMsg",
     "InstrumentDefMsg",
     "ImbalanceMsg",
     "ErrorMsg",
