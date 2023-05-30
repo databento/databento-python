@@ -1,20 +1,18 @@
-import asyncio
 import dataclasses
 import logging
-from functools import partial, singledispatchmethod
+from functools import partial
 from io import BytesIO
-from typing import Optional, Type, TypeVar, Union
+from typing import List, Optional, Type, TypeVar, Union
 
-from databento.common import cram
-from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
+from databento.common.enums import Dataset
+from databento.common.enums import Encoding
+from databento.common.enums import Schema
+from databento.common.enums import SType
 
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="GatewayControl")
-
-MIN_BUFFER_SIZE = 16 * 1024  # 16kB
-
 
 @dataclasses.dataclass
 class GatewayControl:
@@ -25,7 +23,7 @@ class GatewayControl:
     @classmethod
     def parse(cls: Type[T], line: str) -> T:
         """
-        Parse a a message of type `T` from a string.
+        Parse a message of type `T` from a string.
 
         Returns
         -------
@@ -105,8 +103,7 @@ class AuthenticationRequest(GatewayControl):
     dataset: Union[Dataset, str]
     encoding: Encoding = Encoding.DBN
     details: Optional[str] = None
-    ts_out: str = "1"
-    compression: Compression = Compression.NONE
+    ts_out: str = "0"
 
 
 @dataclasses.dataclass
@@ -154,113 +151,67 @@ def parse_gateway_message(line: str) -> GatewayControl:
     raise ValueError(f"`{line.strip()}` is not a parsible gateway message")
 
 
-class GatewayProtocol(asyncio.BufferedProtocol):
+class GatewayDecoder:
     """
-    The gateway protocol for the Databento Live Subscription Gateway.
-    This protocol supports sending and responding to plain text gateway
-    messages.
-
-    See Also
-    --------
-    `asyncio.BufferedProtocol`
+    Decoder for gateway control messages.
 
     """
 
-    def __init__(
-        self,
-        key: str,
-        dataset: Union[Dataset, str],
-        ts_out: bool,
-    ) -> None:
-        self.__key: str = key
-        self.__dataset: Union[Dataset, str] = dataset
-        self.__transport: asyncio.Transport
-        self._buffer: bytearray
-        self._data: BytesIO = BytesIO()
-        self._ts_out: str = str(int(ts_out))
-
-        self._authenticated: "asyncio.Future[str]" = asyncio.Future()
+    def __init__(self) -> None:
+        self.__buffer = BytesIO()
 
     @property
-    def authenticated(self) -> "asyncio.Future[str]":
+    def buffer(self) -> BytesIO:
         """
-        A Future property that will complete when CRAM
-        authentication is completed or contain an
-        exception when it fails.
+        The internal buffer for decoding messages.
 
         Returns
         -------
-        asyncio.Future
+        BytesIO
 
         """
-        return self._authenticated
+        return self.__buffer
 
-    def connection_made(self, transport: asyncio.BaseTransport) -> None:
-        if not isinstance(transport, asyncio.Transport):
-            raise TypeError("Connection does not support read-write operations.")
-        self.__transport = transport
-
-    def get_buffer(self, size_hint: int) -> bytearray:
-        self._buffer = bytearray(max(size_hint, MIN_BUFFER_SIZE))
-        return self._buffer
-
-    def buffer_updated(self, nbytes: int) -> None:
-        logger.debug("read %d bytes from remote", nbytes)
-
-        self._data.seek(0, 2)  # seek to the end
-        self._data.write(self._buffer[:nbytes])
-        buffer_lines = self._data.getvalue().splitlines(keepends=True)
-
-        for line in buffer_lines:
-            if line.endswith(b"\n"):
-                try:
-                    message = parse_gateway_message(line.decode("utf-8"))
-                except ValueError:
-                    logger.exception("could not parse gateway message: %s", line)
-                else:
-                    self.handle_gateway_message(message)
-                    self._data = BytesIO()
-            else:
-                self._data = BytesIO(line)
-                break
-
-    @singledispatchmethod
-    def handle_gateway_message(self, message: GatewayControl) -> None:
+    def write(self, data: bytes) -> None:
         """
-        Dispatch for GatewayControl messages.
+        Write data to the decoder's buffer.
+        This will make the data available for decoding.
 
         Parameters
         ----------
-        message : GatewayControl
-            The message to dispatch.
+        data : bytes
+            The data to write.
 
         """
-        logger.error("unhandled gateway message: %s", type(message).__name__)
+        self.__buffer.seek(0, 2)  # seek to end
+        self.__buffer.write(data)
 
-    @handle_gateway_message.register(Greeting)
-    def _(self, message: Greeting) -> None:
-        logger.debug("greeting received by remote gateway v%s", message.lsg_version)
+    def decode(self) -> List[GatewayControl]:
+        """
+        Decode messages from the decoder's buffer.
+        This will consume decoded data from the buffer.
 
-    @handle_gateway_message.register(ChallengeRequest)
-    def _(self, message: ChallengeRequest) -> None:
-        logger.debug("received CRAM challenge: %s", message.cram)
-        response = cram.get_challenge_response(message.cram, self.__key)
-        auth_request = AuthenticationRequest(
-            auth=response,
-            dataset=self.__dataset,
-            ts_out=self._ts_out,
-        )
-        logger.debug("sending CRAM challenge response: %s", str(auth_request).strip())
-        self.__transport.write(bytes(auth_request))
+        Returns
+        -------
+        List[GatewayControl]
 
-    @handle_gateway_message.register(AuthenticationResponse)
-    def _(self, message: AuthenticationResponse) -> None:
-        if message.success == "0":
-            self._authenticated.set_exception(ValueError(message.error))
-            logger.error("CRAM authentication failed: %s", message.error)
-        else:
-            self._authenticated.set_result(str(message.session_id))
-            logger.debug(
-                "CRAM authenticated session id assigned `%s`",
-                message.session_id,
-            )
+        """
+        self.__buffer.seek(0)  # rewind
+        buffer_lines = self.__buffer.getvalue().splitlines(keepends=True)
+
+        cursor = 0
+        messages = []
+        for line in buffer_lines:
+            if not line.endswith(b"\n"):
+                break
+            try:
+                message = parse_gateway_message(line.decode("utf-8"))
+            except ValueError:
+                logger.exception("could not parse gateway message: %s", line)
+                raise
+            else:
+                cursor += len(line)
+                messages.append(message)
+
+        self.__buffer = BytesIO(self.__buffer.getvalue()[cursor:])
+        return messages

@@ -13,7 +13,7 @@ from databento.common.data import DEFINITION_DROP_COLUMNS
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Schema, SType
 from databento.common.error import BentoError
-from databento.live.data import DBNStruct
+from databento.live import DBNRecord
 from databento_dbn import MBOMsg
 
 
@@ -190,7 +190,7 @@ def test_iterator_produces_expected_data(
     handler = collections.deque(data)
 
     # Assert
-    assert len(handler) == 2 + 1  # includes Metadata
+    assert len(handler) == 2
 
 
 def test_replay_with_stub_data_record_passes_to_callback(
@@ -204,7 +204,7 @@ def test_replay_with_stub_data_record_passes_to_callback(
 
     # Act
     data.replay(callback=handler.append)
-    record: MBOMsg = handler[1]  # first record is Metadata
+    record: MBOMsg = handler[0]
 
     # Assert
     assert record.hd.length == 14
@@ -718,9 +718,9 @@ def test_dbnstore_iterable(
     stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
-    record_list: List[DBNStruct] = list(dbnstore)
-    first: MBOMsg = record_list[1]  # type: ignore
-    second: MBOMsg = record_list[2]  # type: ignore
+    record_list: List[DBNRecord] = list(dbnstore)
+    first: MBOMsg = record_list[0]  # type: ignore
+    second: MBOMsg = record_list[1]  # type: ignore
 
     assert first.hd.length == 14
     assert first.hd.rtype == 160
