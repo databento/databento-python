@@ -223,20 +223,21 @@ DEFINITION_CHARARRAY_COLUMNS = [
     "security_type",
     "unit_of_measure",
     "underlying",
+    "strike_price_currency",
+    "instrument_class",
     "match_algorithm",
     "security_update_action",
     "user_defined_instrument",
-    "strike_price_currency",
 ]
 
 DEFINITION_PRICE_COLUMNS = [
     "min_price_increment",
-    "display_factor",
     "high_limit_price",
     "low_limit_price",
     "max_price_variation",
     "trading_reference_price",
     "min_price_increment_amount",
+    "price_ratio",
     "strike_price",
 ]
 
