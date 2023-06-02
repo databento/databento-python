@@ -175,7 +175,7 @@ def test_to_ndarray_with_stub_data_returns_expected_array(
     assert isinstance(array, np.ndarray)
     assert (
         str(array)
-        == "[(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, -128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)\n (14, 160, 1, 5482, 1609160400000431665, 647784973631, 3723000000000, 1, -128, 0, b'C', b'A', 1609160400000711344, 19621, 1170353)]"  # noqa
+        == "[(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, 128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)\n (14, 160, 1, 5482, 1609160400000431665, 647784973631, 3723000000000, 1, 128, 0, b'C', b'A', 1609160400000711344, 19621, 1170353)]"  # noqa
     )
 
 
@@ -218,8 +218,8 @@ def test_replay_with_stub_data_record_passes_to_callback(
     assert record.size == 1
     assert record.flags == 128
     assert record.channel_id == 0
-    assert record.action == 67
-    assert record.side == 65
+    assert record.action == "C"
+    assert record.side == "A"
     assert record.ts_recv == 1609160400000704060
     assert record.ts_in_delta == 22993
     assert record.sequence == 1170352
@@ -256,21 +256,7 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
 
 @pytest.mark.parametrize(
     "schema",
-    [
-        pytest.param(schema, id=str(schema))
-        for schema in (
-            Schema.MBO,
-            Schema.MBP_1,
-            Schema.MBP_10,
-            Schema.TBBO,
-            Schema.TRADES,
-            Schema.OHLCV_1S,
-            Schema.OHLCV_1M,
-            Schema.OHLCV_1H,
-            Schema.OHLCV_1D,
-            Schema.DEFINITION,
-        )
-    ],
+    [pytest.param(schema, id=str(schema)) for schema in Schema],
 )
 def test_to_df_drop_columns(
     test_data: Callable[[Schema], bytes],
@@ -747,8 +733,8 @@ def test_dbnstore_iterable(
     assert first.size == 1
     assert first.flags == 128
     assert first.channel_id == 0
-    assert first.action == 67
-    assert first.side == 65
+    assert first.action == "C"
+    assert first.side == "A"
     assert first.ts_recv == 1609160400000704060
     assert first.ts_in_delta == 22993
     assert first.sequence == 1170352
@@ -764,8 +750,8 @@ def test_dbnstore_iterable(
     assert second.size == 1
     assert second.flags == 128
     assert second.channel_id == 0
-    assert second.action == 67
-    assert second.side == 65
+    assert second.action == "C"
+    assert second.side == "A"
     assert second.ts_recv == 1609160400000711344
     assert second.ts_in_delta == 19621
     assert second.sequence == 1170353

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.13.0 - 2023-06-02
+- Added support for `statistics` schema
+- Added batch download support data files (`condition.json` and `symbology.json`)
+- Upgraded `databento-dbn` to 0.6.1
+- Renamed `booklevel` MBP field to `levels` for brevity and consistent naming
+- Changed `flags` field to an unsigned int
+- Changed default of `ts_out` to `False` for `Live` client
+- Changed `instrument_class` DataFrame representation to be consistent with other `char` types
+- Removed `open_interest_qty` and `cleared_volume` fields that were always unset from definition schema
+- Removed sunset `timeseries.stream` method
+
 ## 0.12.0 - 2023-05-01
 - Added `Live` client for connecting to Databento's live service
 - Upgraded `databento-dbn` to 0.5.0
@@ -11,6 +22,8 @@
 - Removed `bad` condition variant from `batch.get_dataset_condition`
 - Added `degraded`, `pending` and `missing` condition variants for `batch.get_dataset_condition`
 - Added `last_modified_date` field to `batch.get_dataset_condition` response
+- Renamed `product_id` field to `instrument_id`
+- Renamed `symbol` field in definitions to `raw_symbol`
 - Deprecated `SType.PRODUCT_ID` to `SType.INSTRUMENT_ID`
 - Deprecated `SType.NATIVE` to `SType.RAW_SYMBOL`
 - Deprecated `SType.SMART` to `SType.PARENT` and `SType.CONTINUOUS`

@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 import datetime as dt
 import logging
+from collections.abc import Generator
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
@@ -12,7 +13,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Generator,
     List,
     Optional,
     Union,
@@ -21,20 +21,25 @@ from typing import (
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import (
-    COLUMNS,
-    DEFINITION_CHARARRAY_COLUMNS,
-    DEFINITION_PRICE_COLUMNS,
-    DEFINITION_TYPE_MAX_MAP,
-    DERIV_SCHEMAS,
-    STRUCT_MAP,
-)
-from databento.common.enums import Compression, Schema, SType
+from databento_dbn import DBNDecoder
+from databento_dbn import ErrorMsg
+from databento_dbn import Metadata
+from databento_dbn import SymbolMappingMsg
+from databento_dbn import SystemMsg
+
+from databento.common.data import COLUMNS
+from databento.common.data import DEFINITION_CHARARRAY_COLUMNS
+from databento.common.data import DEFINITION_PRICE_COLUMNS
+from databento.common.data import DEFINITION_TYPE_MAX_MAP
+from databento.common.data import DERIV_SCHEMAS
+from databento.common.data import STRUCT_MAP
+from databento.common.enums import Compression
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import InstrumentIdMappingInterval
 from databento.common.validation import validate_maybe_enum
 from databento.live.data import DBNStruct
-from databento_dbn import DbnDecoder, ErrorMsg, Metadata, SymbolMappingMsg, SystemMsg
 
 
 NON_SCHEMA_RECORD_TYPES = [
@@ -264,7 +269,7 @@ class DBNStore:
         The data compression format (if any).
     dataset : str
         The dataset code.
-    end : pd.Timestamp
+    end : pd.Timestamp or None
         The query end for the data.
     limit : int | None
         The query limit for the data.
@@ -282,7 +287,7 @@ class DBNStore:
         The data record schema.
     start : pd.Timestamp
         The query start for the data.
-    stype_in : SType
+    stype_in : SType or None
         The query input symbology type for the data.
     stype_out : SType
         The query output symbology type for the data.
@@ -354,7 +359,7 @@ class DBNStore:
 
     def __iter__(self) -> Generator[DBNStruct, None, None]:
         reader = self.reader
-        decoder = DbnDecoder()
+        decoder = DBNDecoder()
         while True:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
             if raw:
@@ -363,7 +368,7 @@ class DBNStore:
                     records = decoder.decode()
                 except ValueError:
                     continue
-                for record, _ in records:
+                for record in records:
                     yield record
             else:
                 if len(decoder.buffer()) > 0:
@@ -380,11 +385,19 @@ class DBNStore:
         df.index = pd.to_datetime(df.index, utc=True)
         for column in df.columns:
             if column.startswith("ts_") and "delta" not in column:
-                df[column] = pd.to_datetime(df[column], utc=True)
+                df[column] = pd.to_datetime(df[column], errors="coerce", utc=True)
 
         if self.schema == Schema.DEFINITION:
-            df["expiration"] = pd.to_datetime(df["expiration"], utc=True)
-            df["activation"] = pd.to_datetime(df["activation"], utc=True)
+            df["expiration"] = pd.to_datetime(
+                df["expiration"],
+                errors="coerce",
+                utc=True,
+            )
+            df["activation"] = pd.to_datetime(
+                df["activation"],
+                errors="coerce",
+                utc=True,
+            )
 
         return df
 
@@ -479,8 +492,7 @@ class DBNStore:
             df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
             dates = [ts.date() for ts in df_index]
             df["symbol"] = [
-                self._instrument_id_index[dates[i]][p]
-                for i, p in enumerate(df["instrument_id"])
+                self._instrument_id_index[dates[i]][p] for i, p in enumerate(df["instrument_id"])
             ]
 
         return df
@@ -511,20 +523,24 @@ class DBNStore:
         return str(self._metadata.dataset)
 
     @property
-    def end(self) -> pd.Timestamp:
+    def end(self) -> Optional[pd.Timestamp]:
         """
         Return the query end for the data.
+        If None, the end time was not known when the data was generated.
 
         Returns
         -------
-        pd.Timestamp
+        pd.Timestamp or None
 
         Notes
         -----
         The data timestamps will not occur after `end`.
 
         """
-        return pd.Timestamp(self._metadata.end, tz="UTC")
+        end = self._metadata.end
+        if end:
+            return pd.Timestamp(self._metadata.end, tz="UTC")
+        return None
 
     @property
     def limit(self) -> Optional[int]:
@@ -625,7 +641,7 @@ class DBNStore:
 
         """
         schema = self._metadata.schema
-        if schema is not None:
+        if schema:
             return Schema(self._metadata.schema)
         return None
 
@@ -646,16 +662,20 @@ class DBNStore:
         return pd.Timestamp(self._metadata.start, tz="UTC")
 
     @property
-    def stype_in(self) -> SType:
+    def stype_in(self) -> Optional[SType]:
         """
         Return the query input symbology type for the data.
+        If None, the records may contain mixed STypes.
 
         Returns
         -------
-        SType
+        SType or None
 
         """
-        return SType(self._metadata.stype_in)
+        stype = self._metadata.stype_in
+        if stype:
+            return SType(self._metadata.stype_in)
+        return None
 
     @property
     def stype_out(self) -> SType:
@@ -774,7 +794,7 @@ class DBNStore:
         """
         Request full instrument definitions based on the metadata properties.
 
-        Makes a `GET /timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.get_range` HTTP request.
 
         Parameters
         ----------
@@ -792,7 +812,7 @@ class DBNStore:
         Calling this method will incur a cost.
 
         """
-        return client.timeseries.stream(
+        return client.timeseries.get_range(
             dataset=self.dataset,
             symbols=self.symbols,
             schema=Schema.DEFINITION,

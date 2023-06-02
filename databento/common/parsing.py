@@ -142,8 +142,7 @@ def _(symbols: str, stype_in: SType) -> str:
         symbol_list = symbols.strip().strip(",").split(",")
         return ",".join(map(symbol_to_string, symbol_list))
 
-    # TODO(cs): Temporary mapping until past stype rename deprecation period
-    if stype_in in (SType.PARENT, SType.CONTINUOUS) or stype_in == "smart":
+    if stype_in in (SType.PARENT, SType.CONTINUOUS):
         return validate_smart_symbol(symbols)
     return symbols.strip().upper()
 

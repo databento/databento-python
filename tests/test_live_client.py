@@ -3,7 +3,7 @@ import asyncio
 import pathlib
 import platform
 from io import BytesIO
-from typing import Callable
+from typing import Callable, List
 from unittest.mock import MagicMock
 
 import databento_dbn
@@ -407,7 +407,7 @@ def test_live_block_for_close(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
         stype_in=SType.INSTRUMENT_ID,
-        symbols="*",
+        symbols="ALL_SYMBOLS",
         start=None,
     )
 
@@ -431,7 +431,7 @@ def test_live_block_for_close_timeout(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
         stype_in=SType.INSTRUMENT_ID,
-        symbols="*",
+        symbols="ALL_SYMBOLS",
         start=None,
     )
     live_client.block_for_close(timeout=0)
@@ -462,7 +462,7 @@ async def test_live_wait_for_close(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
         stype_in=SType.INSTRUMENT_ID,
-        symbols="*",
+        symbols="ALL_SYMBOLS",
         start=None,
     )
 
@@ -571,11 +571,11 @@ async def test_live_async_iteration(
         symbols="TEST",
     )
 
-    live_client.start()
+    records: List[dbn.DBNStruct] = []
 
-    records = []
-    async for record in live_client:
-        records.append(record)
+    live_client.start()
+    live_client.add_callback(records.append)
+    await live_client.wait_for_close()
 
     assert len(records) == 3
     assert isinstance(records[0], databento_dbn.Metadata)

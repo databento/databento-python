@@ -59,9 +59,8 @@ class TestHistoricalTimeSeries:
     ) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
-
-        # Mock from_bytes with the definition stub
         stream_bytes = test_data(Schema.TRADES)
+
         monkeypatch.setattr(
             DBNStore,
             "from_bytes",
