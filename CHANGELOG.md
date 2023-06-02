@@ -1,9 +1,9 @@
 # Changelog
 
-## 0.13.0 - TBD
+## 0.13.0 - 2023-06-02
 - Added support for `statistics` schema
 - Added batch download support data files (`condition.json` and `symbology.json`)
-- Upgraded `databento-dbn` to 0.6.0
+- Upgraded `databento-dbn` to 0.6.1
 - Renamed `booklevel` MBP field to `levels` for brevity and consistent naming
 - Changed `flags` field to an unsigned int
 - Changed default of `ts_out` to `False` for `Live` client

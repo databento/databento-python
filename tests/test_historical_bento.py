@@ -218,8 +218,8 @@ def test_replay_with_stub_data_record_passes_to_callback(
     assert record.size == 1
     assert record.flags == 128
     assert record.channel_id == 0
-    assert record.action == 67
-    assert record.side == 65
+    assert record.action == "C"
+    assert record.side == "A"
     assert record.ts_recv == 1609160400000704060
     assert record.ts_in_delta == 22993
     assert record.sequence == 1170352
@@ -733,8 +733,8 @@ def test_dbnstore_iterable(
     assert first.size == 1
     assert first.flags == 128
     assert first.channel_id == 0
-    assert first.action == 67
-    assert first.side == 65
+    assert first.action == "C"
+    assert first.side == "A"
     assert first.ts_recv == 1609160400000704060
     assert first.ts_in_delta == 22993
     assert first.sequence == 1170352
@@ -750,8 +750,8 @@ def test_dbnstore_iterable(
     assert second.size == 1
     assert second.flags == 128
     assert second.channel_id == 0
-    assert second.action == 67
-    assert second.side == 65
+    assert second.action == "C"
+    assert second.side == "A"
     assert second.ts_recv == 1609160400000711344
     assert second.ts_in_delta == 19621
     assert second.sequence == 1170353

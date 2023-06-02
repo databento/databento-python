@@ -31,7 +31,7 @@ The library is fully compatible with the latest distribution of Anaconda 3.7 and
 The minimum dependencies as found in the `requirements.txt` are also listed below:
 - Python (>=3.7)
 - aiohttp (>=3.7.2,<4.0.0)
-- databento-dbn (==0.6.0)
+- databento-dbn (==0.6.1)
 - numpy (>=1.17.0)
 - pandas (>=1.1.3)
 - requests (>=2.24.0)
@@ -57,7 +57,7 @@ client = db.Historical('YOUR_API_KEY')
 data = client.timeseries.get_range(
     dataset='GLBX.MDP3',
     symbols='ES.FUT',
-    stype_in='smart',
+    stype_in='parent',
     start='2022-06-10T14:30',
     end='2022-06-10T14:40',
 )
@@ -72,7 +72,7 @@ and dispatch each data event to an event handler. You can also use
 `.to_df()` or `.to_ndarray()` to cast the data into a Pandas `DataFrame` or numpy `ndarray`:
 
 ```python
-df = data.to_df(pretty_ts=True, pretty_px=True)  # to DataFrame, with pretty formatting
+df = data.to_df()  # to DataFrame
 array = data.to_ndarray()  # to ndarray
 ```
 
