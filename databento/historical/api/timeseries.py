@@ -2,21 +2,26 @@ from __future__ import annotations
 
 import warnings
 from datetime import date
-from io import BufferedIOBase, BytesIO
+from io import BufferedIOBase
+from io import BytesIO
 from os import PathLike
 from typing import List, Optional, Tuple, Union
 
 import pandas as pd
+
 from databento.common.dbnstore import DBNStore
 from databento.common.deprecated import deprecated
-from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
+from databento.common.enums import Compression
+from databento.common.enums import Dataset
+from databento.common.enums import Encoding
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.common.error import BentoWarning
-from databento.common.parsing import (
-    datetime_to_string,
-    optional_datetime_to_string,
-    optional_symbols_list_to_string,
-)
-from databento.common.validation import validate_enum, validate_semantic_string
+from databento.common.parsing import datetime_to_string
+from databento.common.parsing import optional_datetime_to_string
+from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.validation import validate_enum
+from databento.common.validation import validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.api.metadata import MetadataHttpAPI
 from databento.historical.http import BentoHttpAPI
@@ -33,35 +38,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
     def __init__(self, key: str, gateway: str) -> None:
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/timeseries"
-
-    @deprecated
-    def stream(
-        self,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "raw_symbol",
-        stype_out: Union[SType, str] = "instrument_id",
-        limit: Optional[int] = None,
-        path: Optional[Union[PathLike[str], str]] = None,
-    ) -> DBNStore:
-        """
-        The `.stream` method is deprecated and will be removed in a future version.
-        The method has been renamed to `.get_range`, which you can now use.
-        """
-        return self.get_range(
-            dataset=dataset,
-            start=start,
-            end=end,
-            symbols=symbols,
-            schema=schema,
-            stype_in=stype_in,
-            stype_out=stype_out,
-            limit=limit,
-            path=path,
-        )
 
     def get_range(
         self,

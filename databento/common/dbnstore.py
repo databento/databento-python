@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 import datetime as dt
 import logging
+from collections.abc import Generator
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
@@ -12,7 +13,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Generator,
     List,
     Optional,
     Union,
@@ -21,20 +21,25 @@ from typing import (
 import numpy as np
 import pandas as pd
 import zstandard
-from databento.common.data import (
-    COLUMNS,
-    DEFINITION_CHARARRAY_COLUMNS,
-    DEFINITION_PRICE_COLUMNS,
-    DEFINITION_TYPE_MAX_MAP,
-    DERIV_SCHEMAS,
-    STRUCT_MAP,
-)
-from databento.common.enums import Compression, Schema, SType
+from databento_dbn import DBNDecoder
+from databento_dbn import ErrorMsg
+from databento_dbn import Metadata
+from databento_dbn import SymbolMappingMsg
+from databento_dbn import SystemMsg
+
+from databento.common.data import COLUMNS
+from databento.common.data import DEFINITION_CHARARRAY_COLUMNS
+from databento.common.data import DEFINITION_PRICE_COLUMNS
+from databento.common.data import DEFINITION_TYPE_MAX_MAP
+from databento.common.data import DERIV_SCHEMAS
+from databento.common.data import STRUCT_MAP
+from databento.common.enums import Compression
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import InstrumentIdMappingInterval
 from databento.common.validation import validate_maybe_enum
 from databento.live.data import DBNStruct
-from databento_dbn import DBNDecoder, ErrorMsg, Metadata, SymbolMappingMsg, SystemMsg
 
 
 NON_SCHEMA_RECORD_TYPES = [
@@ -487,8 +492,7 @@ class DBNStore:
             df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
             dates = [ts.date() for ts in df_index]
             df["symbol"] = [
-                self._instrument_id_index[dates[i]][p]
-                for i, p in enumerate(df["instrument_id"])
+                self._instrument_id_index[dates[i]][p] for i, p in enumerate(df["instrument_id"])
             ]
 
         return df
@@ -790,7 +794,7 @@ class DBNStore:
         """
         Request full instrument definitions based on the metadata properties.
 
-        Makes a `GET /timeseries.stream` HTTP request.
+        Makes a `GET /timeseries.get_range` HTTP request.
 
         Parameters
         ----------
@@ -808,7 +812,7 @@ class DBNStore:
         Calling this method will incur a cost.
 
         """
-        return client.timeseries.stream(
+        return client.timeseries.get_range(
             dataset=self.dataset,
             symbols=self.symbols,
             schema=Schema.DEFINITION,
