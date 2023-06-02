@@ -137,36 +137,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         writer.seek(0)  # rewind for read
         return DBNStore.from_bytes(writer.read())
 
-    @deprecated
-    async def stream_async(
-        self,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "raw_symbol",
-        stype_out: Union[SType, str] = "instrument_id",
-        limit: Optional[int] = None,
-        path: Optional[Union[PathLike[str], str]] = None,
-    ) -> DBNStore:
-        """
-        The `.stream_async` method is deprecated and will be removed in a future
-        version.
-        The method has been renamed to `.get_range_async`, which you can now use.
-        """
-        return await self.get_range_async(
-            dataset=dataset,
-            start=start,
-            end=end,
-            symbols=symbols,
-            schema=schema,
-            stype_in=stype_in,
-            stype_out=stype_out,
-            limit=limit,
-            path=path,
-        )
-
     async def get_range_async(
         self,
         dataset: Union[Dataset, str],
