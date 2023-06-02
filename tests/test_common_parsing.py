@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Type, Union
 import numpy as np
 import pandas as pd
 import pytest
+
 from databento.common.enums import SType
 from databento.common.parsing import (
     optional_date_to_string,
@@ -12,7 +13,6 @@ from databento.common.parsing import (
     optional_symbols_list_to_string,
     optional_values_list_to_string,
 )
-
 
 # Set the type to `Any` to disable mypy type checking. Used to test if functions
 # will raise a `TypeError` when passed an incorrectly-typed argument.
@@ -85,35 +85,36 @@ def test_maybe_symbols_list_to_string_given_invalid_input_raises_type_error() ->
 
 
 @pytest.mark.parametrize(
-    "symbols, expected",
+    "stype, symbols, expected",
     [
-        pytest.param(None, "ALL_SYMBOLS"),
-        pytest.param("ES.fut", "ES.FUT"),
-        pytest.param("ES,CL", "ES,CL"),
-        pytest.param("ES,CL,", "ES,CL"),
-        pytest.param("es,cl,", "ES,CL"),
-        pytest.param(["ES", "CL"], "ES,CL"),
-        pytest.param(["es", "cl"], "ES,CL"),
-        pytest.param(["ES.N.0", "CL.n.0"], "ES.n.0,CL.n.0"),
-        pytest.param(["ES.N.0", ["ES,cl"]], "ES.n.0,ES,CL"),
-        pytest.param(["ES.N.0", "ES,cl"], "ES.n.0,ES,CL"),
-        pytest.param("", ValueError),
-        pytest.param([""], ValueError),
-        pytest.param(["ES.N.0", ""], ValueError),
-        pytest.param(["ES.N.0", "CL..0"], ValueError),
-        pytest.param(123458, ValueError),
+        pytest.param(SType.RAW_SYMBOL, None, "ALL_SYMBOLS"),
+        pytest.param(SType.PARENT, "ES.fut", "ES.FUT"),
+        pytest.param(SType.PARENT, "ES,CL", "ES,CL"),
+        pytest.param(SType.PARENT, "ES,CL,", "ES,CL"),
+        pytest.param(SType.PARENT, "es,cl,", "ES,CL"),
+        pytest.param(SType.PARENT, ["ES", "CL"], "ES,CL"),
+        pytest.param(SType.PARENT, ["es", "cl"], "ES,CL"),
+        pytest.param(SType.CONTINUOUS, ["ES.N.0", "CL.n.0"], "ES.n.0,CL.n.0"),
+        pytest.param(SType.CONTINUOUS, ["ES.N.0", ["ES,cl"]], "ES.n.0,ES,CL"),
+        pytest.param(SType.CONTINUOUS, ["ES.N.0", "ES,cl"], "ES.n.0,ES,CL"),
+        pytest.param(SType.CONTINUOUS, "", ValueError),
+        pytest.param(SType.CONTINUOUS, [""], ValueError),
+        pytest.param(SType.CONTINUOUS, ["ES.N.0", ""], ValueError),
+        pytest.param(SType.CONTINUOUS, ["ES.N.0", "CL..0"], ValueError),
+        pytest.param(SType.PARENT, 123458, ValueError),
     ],
 )
 def test_optional_symbols_list_to_string_given_valid_inputs_returns_expected(
+    stype: SType,
     symbols: Optional[List[str]],
     expected: Union[str, Type[Exception]],
 ) -> None:
     # Arrange, Act, Assert
     if isinstance(expected, str):
-        assert optional_symbols_list_to_string(symbols, SType.SMART) == expected
+        assert optional_symbols_list_to_string(symbols, stype) == expected
     else:
         with pytest.raises(expected):
-            optional_symbols_list_to_string(symbols, SType.SMART)
+            optional_symbols_list_to_string(symbols, stype)
 
 
 @pytest.mark.parametrize(
@@ -128,7 +129,8 @@ def test_optional_symbols_list_to_string_given_valid_inputs_returns_expected(
         pytest.param([12345, ""], SType.INSTRUMENT_ID, ValueError),
         pytest.param([12345, [""]], SType.INSTRUMENT_ID, ValueError),
         pytest.param(12345, SType.RAW_SYMBOL, ValueError),
-        pytest.param(12345, SType.SMART, ValueError),
+        pytest.param(12345, SType.PARENT, ValueError),
+        pytest.param(12345, SType.CONTINUOUS, ValueError),
     ],
 )
 def test_optional_symbols_list_to_string_int(

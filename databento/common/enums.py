@@ -1,8 +1,6 @@
-import warnings
-from enum import Enum, EnumMeta, Flag, IntFlag, unique
-from typing import Any, Callable, Iterable, Type, TypeVar, Union
+from enum import Enum, Flag, IntFlag, unique
+from typing import Callable, Type, TypeVar, Union
 
-from databento.live.dbn import DBNRecord
 from databento_dbn import (
     ImbalanceMsg,
     InstrumentDefMsg,
@@ -14,6 +12,7 @@ from databento_dbn import (
     TradeMsg,
 )
 
+from databento.live.dbn import DBNRecord
 
 M = TypeVar("M", bound=Enum)
 
@@ -88,46 +87,6 @@ def coercible(enum_type: Type[M]) -> Type[M]:
     setattr(enum_type, "__new__", coerced_new)
 
     return enum_type
-
-
-class DeprecatedAccess(EnumMeta):
-    """
-    runs a user-specified function whenever member is accessed
-    """
-
-    def __getattribute__(cls, name: str) -> object:
-        obj = super().__getattribute__(name)
-        if isinstance(obj, Enum) and obj._on_access:  # type: ignore
-            obj._on_access()  # type: ignore
-        return obj
-
-    def __getitem__(cls, name: str, *_: Iterable[Any]) -> object:  # type: ignore
-        member: Any = super().__getitem__(name)
-        if member._on_access:
-            member._on_access()
-        return member
-
-    def __call__(  # type: ignore
-        cls,
-        value: str,
-        names=None,
-        *,
-        module=None,
-        qualname=None,
-        type=None,
-        start=1,
-    ) -> object:
-        obj = super().__call__(
-            value,
-            names,
-            module=module,
-            qualname=qualname,
-            type=type,
-            start=start,
-        )
-        if isinstance(obj, Enum) and obj._on_access:
-            obj._on_access()
-        return obj
 
 
 class StringyMixin:
@@ -273,45 +232,15 @@ class Delivery(StringyMixin, str, Enum):
     DISK = "disk"
 
 
-def deprecated_enum(old_value: str, new_value: str) -> str:
-    warnings.warn(
-        f"{old_value} is deprecated to {new_value}",
-        category=DeprecationWarning,
-        stacklevel=3,  # This makes the error happen in user code
-    )
-    return new_value
-
-
 @unique
 @coercible
-class SType(StringyMixin, str, Enum, metaclass=DeprecatedAccess):
+class SType(StringyMixin, str, Enum):
     """Represents a symbology type."""
 
-    PRODUCT_ID = "product_id", "instrument_id"  # Deprecated for `instrument_id`
-    NATIVE = "native", "raw_symbol"  # Deprecated for `raw_symbol`
-    SMART = "smart", "parent", "continuous"  # Deprecated for `parent` and `continuous`
     INSTRUMENT_ID = "instrument_id"
     RAW_SYMBOL = "raw_symbol"
     PARENT = "parent"
     CONTINUOUS = "continuous"
-
-    def __new__(cls, value: str, *args: Iterable[str]) -> "SType":
-        variant = super().__new__(cls, value)
-        variant._value_ = value
-        variant.__args = args  # type: ignore
-        variant._on_access = variant.__deprecated if args else None  # type: ignore
-        return variant
-
-    def __eq__(self, other: object) -> bool:
-        return str(self).lower() == str(other).lower()
-
-    def __deprecated(self) -> None:
-        other_values = " or ".join(self.__args)  # type: ignore
-        warnings.warn(
-            f"SType of {self.value} is deprecated; use {other_values}",
-            category=DeprecationWarning,
-            stacklevel=3,
-        )
 
 
 @unique
