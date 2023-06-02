@@ -7,8 +7,9 @@
 - Renamed `booklevel` MBP field to `levels` for brevity and consistent naming
 - Changed `flags` field to an unsigned int
 - Changed default of `ts_out` to `False` for `Live` client
-- Removed `open_interest_qty` and `cleared_volume` fields that were always unset from definition schema
 - Changed `instrument_class` DataFrame representation to be consistent with other `char` types
+- Removed `open_interest_qty` and `cleared_volume` fields that were always unset from definition schema
+- Removed sunset `timeseries.stream` method
 
 ## 0.12.0 - 2023-05-01
 - Added `Live` client for connecting to Databento's live service

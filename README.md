@@ -30,12 +30,12 @@ You can find our full client API reference on the [Historical Reference](https:/
 The library is fully compatible with the latest distribution of Anaconda 3.7 and above.
 The minimum dependencies as found in the `requirements.txt` are also listed below:
 - Python (>=3.7)
-- aiohttp (>=3.7.2)
-- databento-dbn (==0.5.0)
+- aiohttp (>=3.7.2,<4.0.0)
+- databento-dbn (==0.6.0)
 - numpy (>=1.17.0)
 - pandas (>=1.1.3)
 - requests (>=2.24.0)
-- zstandard (>=0.20.0)
+- zstandard (>=0.21.0)
 
 ## Installation
 To install the latest stable version of the package from PyPI:
