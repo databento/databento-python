@@ -1,18 +1,20 @@
-from enum import Enum, Flag, IntFlag, unique
+from enum import Enum
+from enum import Flag
+from enum import IntFlag
+from enum import unique
 from typing import Callable, Type, TypeVar, Union
 
-from databento_dbn import (
-    ImbalanceMsg,
-    InstrumentDefMsg,
-    MBOMsg,
-    MBP1Msg,
-    MBP10Msg,
-    OHLCVMsg,
-    StatMsg,
-    TradeMsg,
-)
+from databento_dbn import ImbalanceMsg
+from databento_dbn import InstrumentDefMsg
+from databento_dbn import MBOMsg
+from databento_dbn import MBP1Msg
+from databento_dbn import MBP10Msg
+from databento_dbn import OHLCVMsg
+from databento_dbn import StatMsg
+from databento_dbn import TradeMsg
 
 from databento.live.dbn import DBNRecord
+
 
 M = TypeVar("M", bound=Enum)
 
@@ -43,7 +45,6 @@ def coercible(enum_type: Type[M]) -> Type[M]:
     ------
     ValueError
         If an invalid value of the Enum is given.
-
 
     Notes
     -----

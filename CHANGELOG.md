@@ -10,6 +10,7 @@
 - Changed `instrument_class` DataFrame representation to be consistent with other `char` types
 - Removed `open_interest_qty` and `cleared_volume` fields that were always unset from definition schema
 - Removed sunset `timeseries.stream` method
+- Removed support for legacy stypes
 
 ## 0.12.0 - 2023-05-01
 - Added `Live` client for connecting to Databento's live service
