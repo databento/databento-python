@@ -1,9 +1,9 @@
 import asyncio
 import dataclasses
 import logging
-from functools import partial, singledispatch, update_wrapper
+from functools import partial, singledispatchmethod
 from io import BytesIO
-from typing import Any, Callable, Optional, Type, TypeVar, Union
+from typing import Optional, Type, TypeVar, Union
 
 from databento.common import cram
 from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
@@ -14,32 +14,6 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T", bound="GatewayControl")
 
 MIN_BUFFER_SIZE = 16 * 1024  # 16kB
-
-
-def singledispatchmethod(
-    func: Callable[..., Any],
-) -> Any:
-    """
-    Decorate a function to dispatch arguments by type.
-    This is a custom implementation of functools.singledispatchmethod.
-
-    See Also
-    --------
-    functools.singledispatch
-
-    Notes
-    -----
-    This should be removed when python 3.7 is no longer supported.
-
-    """
-    dispatcher: Any = singledispatch(func)
-
-    def _wrapper(*args: object, **kw: object) -> Any:
-        return dispatcher.dispatch(args[1].__class__)(*args, **kw)
-
-    setattr(_wrapper, "register", getattr(dispatcher, "register"))
-    update_wrapper(_wrapper, func)
-    return _wrapper
 
 
 @dataclasses.dataclass

@@ -50,7 +50,6 @@ class TestHistoricalTimeSeries:
                 stype_out="zzz",  # <--- invalid
             )
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_range_sends_expected_request(
         self,
         test_data: Callable[[Schema], bytes],
@@ -102,7 +101,6 @@ class TestHistoricalTimeSeries:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_range_with_limit_sends_expected_request(
         self,
         test_data: Callable[[Schema], bytes],

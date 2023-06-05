@@ -557,7 +557,6 @@ def test_live_add_stream_invalid(
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:

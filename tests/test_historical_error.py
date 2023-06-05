@@ -35,7 +35,6 @@ def test_check_http_status(
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(sys.version_info < (3, 8), reason="no async support for MagicMock")
 @pytest.mark.parametrize(
     "status_code, expected_exception, message",
     [
