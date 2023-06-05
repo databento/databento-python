@@ -49,7 +49,6 @@ class TestHistoricalBatch:
                 stype_in="zzz",  # <--- invalid
             )
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_submit_job_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -101,7 +100,6 @@ class TestHistoricalBatch:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_list_jobs_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -130,7 +128,6 @@ class TestHistoricalBatch:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_list_files_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -159,7 +156,6 @@ class TestHistoricalBatch:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_batch_download_single_file_sends_expected_request(
         self,
         mocker: MockerFixture,

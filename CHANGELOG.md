@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.14.0 - TBD
+- Upgraded `aiohttp` to 3.8.3
+- Upgraded `numpy` to to 1.23.5
+- Upgraded `pandas` to to 1.5.3
+- Upgraded `requests` to to 2.28.1
+- Upgraded `zstandard` to to 0.21.0
+- Removed support for Python 3.7
+
 ## 0.13.0 - 2023-06-02
 - Added support for `statistics` schema
 - Added batch download support data files (`condition.json` and `symbology.json`)

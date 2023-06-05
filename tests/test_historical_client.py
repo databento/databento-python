@@ -96,7 +96,6 @@ class TestHistoricalClient:
         # Assert
         assert client.gateway == expected
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_re_request_symbology_makes_expected_request(
         self,
         test_data_path: Callable[[Schema], pathlib.Path],
@@ -135,7 +134,6 @@ class TestHistoricalClient:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_request_full_definitions_expected_request(
         self,
         test_data: Callable[[Schema], bytes],

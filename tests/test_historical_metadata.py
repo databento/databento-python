@@ -13,7 +13,6 @@ class TestHistoricalMetadata:
         key = "DUMMY_API_KEY"
         self.client = db.Historical(key=key)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_publishers_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -38,7 +37,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_datasets_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -65,7 +63,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_schemas_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -88,7 +85,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_list_fields_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
@@ -117,7 +113,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     @pytest.mark.parametrize(
         "dataset, schema, mode",
         [
@@ -161,7 +156,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_dataset_condition_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -193,7 +187,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_dataset_range_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -221,7 +214,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_record_count_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -262,7 +254,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_billable_size_sends_expected_request(
         self,
         mocker: MockerFixture,
@@ -304,7 +295,6 @@ class TestHistoricalMetadata:
         assert call["timeout"] == (100, 100)
         assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
-    @pytest.mark.skipif(sys.version_info < (3, 8), reason="incompatible mocking")
     def test_get_cost_sends_expected_request(self, mocker: MockerFixture) -> None:
         # Arrange
         mocked_get = mocker.patch("requests.get")
