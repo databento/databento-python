@@ -1,2 +1,2 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 poetry run pytest tests . $@

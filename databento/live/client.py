@@ -128,10 +128,10 @@ class Live:
         if self._dbn_queue is None:
             raise ValueError("iteration has not started")
 
-        while not self._session.is_disconnected() or not self._dbn_queue.empty():
+        while not self._session.is_disconnected() or self._dbn_queue.qsize() > 0:
             try:
-                record = self._dbn_queue.get(timeout=0.001)
-            except (futures.TimeoutError, queue.Empty):
+                record = self._dbn_queue.get(block=False)
+            except queue.Empty:
                 continue
             else:
                 logger.debug(
@@ -476,9 +476,6 @@ class Live:
         wait_for_close
 
         """
-        if not self.is_connected():
-            return
-
         try:
             asyncio.run_coroutine_threadsafe(
                 self._shutdown(),
@@ -520,9 +517,6 @@ class Live:
         block_for_close
 
         """
-        if not self.is_connected():
-            return
-
         waiter = asyncio.wrap_future(
             asyncio.run_coroutine_threadsafe(
                 self._shutdown(),
@@ -549,5 +543,4 @@ class Live:
         """
         if self._session is None:
             return
-        self._dataset = ""  # reset dataset for client reuse
         await self._session.wait_for_close()

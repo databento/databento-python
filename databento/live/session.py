@@ -3,16 +3,20 @@ import dataclasses
 import logging
 import queue
 import struct
-import threading
 from typing import IO, Callable, Iterable, List, Optional, Set, Union
 
 import databento_dbn
 
-from databento.common.enums import Dataset, Schema, SType
+from databento.common.enums import Dataset
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import ALL_SYMBOLS
-from databento.live import AUTH_TIMEOUT_SECONDS, CONNECT_TIMEOUT_SECONDS, DBNRecord
+from databento.live import AUTH_TIMEOUT_SECONDS
+from databento.live import CONNECT_TIMEOUT_SECONDS
+from databento.live import DBNRecord
 from databento.live.protocol import DatabentoLiveProtocol
+
 
 logger = logging.getLogger(__name__)
 
@@ -258,7 +262,6 @@ class Session:
         self._ts_out = ts_out
         self._protocol_factory = protocol_factory
 
-        self._lock = threading.Lock()
         self._transport: Optional[asyncio.Transport] = None
         self._protocol: Optional[_SessionProtocol] = None
 
@@ -276,12 +279,11 @@ class Session:
         """
         if self._protocol is None:
             return False
-        with self._lock:
-            try:
-                self._protocol.authenticated.result()
-            except (asyncio.InvalidStateError, asyncio.CancelledError, BentoError):
-                return False
-            return True
+        try:
+            self._protocol.authenticated.result()
+        except (asyncio.InvalidStateError, asyncio.CancelledError, BentoError):
+            return False
+        return True
 
     def is_disconnected(self) -> bool:
         """
@@ -294,12 +296,7 @@ class Session:
         """
         if self._protocol is None:
             return True
-        with self._lock:
-            try:
-                self._protocol.disconnected.result()
-            except (asyncio.InvalidStateError, asyncio.CancelledError, Exception):
-                return False
-            return True
+        return self._protocol.disconnected.done()
 
     def is_reading(self) -> bool:
         """
@@ -312,8 +309,7 @@ class Session:
         """
         if self._transport is None:
             return False
-        with self._lock:
-            return self._transport.is_reading()
+        return self._transport.is_reading()
 
     def is_started(self) -> bool:
         """
@@ -326,8 +322,7 @@ class Session:
         """
         if self._protocol is None:
             return False
-        with self._lock:
-            return self._protocol.started.is_set()
+        return self._protocol.started.is_set()
 
     @property
     def metadata(self) -> Optional[databento_dbn.Metadata]:
@@ -356,9 +351,8 @@ class Session:
         """
         if self._transport is None:
             return
-        with self._lock:
-            self._transport.abort()
-            self._protocol = None
+        self._transport.abort()
+        self._protocol = None
 
     def close(self) -> None:
         """
@@ -367,10 +361,9 @@ class Session:
         """
         if self._transport is None:
             return
-        with self._lock:
-            if self._transport.can_write_eof():
-                self._transport.write_eof()
-            self._transport.close()
+        if self._transport.can_write_eof():
+            self._loop.call_soon_threadsafe(self._transport.write_eof)
+        self._loop.call_soon_threadsafe(self._transport.close)
 
     def subscribe(
         self,
@@ -421,8 +414,7 @@ class Session:
         """
         if self._transport is None:
             return
-        with self._lock:
-            self._transport.resume_reading()
+        self._loop.call_soon_threadsafe(self._transport.resume_reading)
 
     def start(self) -> None:
         """
@@ -445,9 +437,15 @@ class Session:
         """
         if self._protocol is None:
             return
+
         await self._protocol.disconnected
+        disconnect_exc = self._protocol.disconnected.exception()
+
         await self._protocol.wait_for_processing()
         self._protocol = self._transport = None
+
+        if disconnect_exc is not None:
+            raise BentoError(disconnect_exc)
 
     def _connect(
         self,
@@ -521,6 +519,5 @@ class Session:
             "authentication with remote gateway completed",
         )
 
-        with self._lock:
-            self._transport = transport
-            self._protocol = protocol
+        self._transport = transport
+        self._protocol = protocol

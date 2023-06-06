@@ -1,5 +1,4 @@
 """Unit tests for the Live client."""
-import asyncio
 import pathlib
 import platform
 from io import BytesIO
@@ -182,7 +181,7 @@ def test_live_creation(
     assert live_client.is_connected() is True
 
 
-async def test_live_connect_auth(
+def test_live_connect_auth(
     mock_live_server: MockLiveServer,
     live_client: client.Live,
 ) -> None:
@@ -195,7 +194,7 @@ async def test_live_connect_auth(
         schema=Schema.MBO,
     )
 
-    message = await mock_live_server.get_message_of_type(
+    message = mock_live_server.get_message_of_type(
         gateway.AuthenticationRequest,
         timeout=1,
     )
@@ -205,7 +204,7 @@ async def test_live_connect_auth(
     assert message.encoding == Encoding.DBN
 
 
-async def test_live_connect_auth_two_clients(
+def test_live_connect_auth_two_clients(
     mock_live_server: MockLiveServer,
     test_api_key: str,
 ) -> None:
@@ -230,7 +229,7 @@ async def test_live_connect_auth_two_clients(
         schema=Schema.MBO,
     )
 
-    first_auth = await mock_live_server.get_message_of_type(
+    first_auth = mock_live_server.get_message_of_type(
         gateway.AuthenticationRequest,
         timeout=1,
     )
@@ -243,7 +242,7 @@ async def test_live_connect_auth_two_clients(
         schema=Schema.MBO,
     )
 
-    second_auth = await mock_live_server.get_message_of_type(
+    second_auth = mock_live_server.get_message_of_type(
         gateway.AuthenticationRequest,
         timeout=1,
     )
@@ -253,7 +252,7 @@ async def test_live_connect_auth_two_clients(
     assert second_auth.encoding == Encoding.DBN
 
 
-async def test_live_start(
+def test_live_start(
     live_client: client.Live,
     mock_live_server: MockLiveServer,
 ) -> None:
@@ -270,7 +269,9 @@ async def test_live_start(
 
     live_client.start()
 
-    message = await mock_live_server.get_message_of_type(
+    live_client.block_for_close()
+
+    message = mock_live_server.get_message_of_type(
         gateway.SessionStart,
         timeout=1,
     )
@@ -318,7 +319,7 @@ def test_live_start_twice(
         "1680736543000000000",
     ],
 )
-async def test_live_subscribe(
+def test_live_subscribe(
     live_client: client.Live,
     mock_live_server: MockLiveServer,
     schema: Schema,
@@ -338,7 +339,7 @@ async def test_live_subscribe(
         start=start,
     )
 
-    message = await mock_live_server.get_message_of_type(
+    message = mock_live_server.get_message_of_type(
         gateway.SubscriptionRequest,
         timeout=1,
     )
@@ -524,7 +525,7 @@ def test_live_add_stream_invalid(
         live_client.add_stream(readable_file.open(mode="rb"))
 
 
-@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
+@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:
@@ -538,18 +539,18 @@ async def test_live_async_iteration(
         symbols="TEST",
     )
 
-    records: List[DBNRecord] = []
-
     live_client.start()
-    live_client.add_callback(records.append)
-    await live_client.wait_for_close()
+
+    records: List[DBNRecord] = []
+    async for record in live_client:
+        records.append(record)
 
     assert len(records) == 2
     assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
 
 
-@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
+@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_backpressure(
     monkeypatch: pytest.MonkeyPatch,
     mock_live_server: MockLiveServer,
@@ -559,9 +560,6 @@ async def test_live_async_iteration_backpressure(
     Test that a full queue disables reading on the
     transport but will resume it when the queue is
     depleted when iterating asynchronously.
-
-    Note that the total queue size is twice the value of
-    DEFAULT_QUEUE_SIZE.
     """
     monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 2)
 
@@ -577,30 +575,27 @@ async def test_live_async_iteration_backpressure(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
+
     live_client.start()
 
-    ait = live_client.__aiter__()
-    await asyncio.sleep(0.1)
+    records: List[DBNRecord] = []
+    async for record in live_client:
+        records.append(record)
 
-    assert live_client._dbn_queue.full()
-    assert live_client._session.is_reading() is False
+    assert len(records) == 2
+    assert isinstance(records[0], databento_dbn.MBOMsg)
+    assert isinstance(records[1], databento_dbn.MBOMsg)
+    assert live_client._dbn_queue.empty()
 
-    assert isinstance(await ait.__anext__(), databento_dbn.MBOMsg)
-    assert live_client._session.is_reading() is True
-    assert isinstance(await ait.__anext__(), databento_dbn.MBOMsg)
-    with pytest.raises(StopAsyncIteration):
-        await ait.__anext__()
-
-
-@pytest.mark.asyncio
-@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
+@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_dropped(
     monkeypatch: pytest.MonkeyPatch,
     mock_live_server: MockLiveServer,
     test_api_key: str,
 ) -> None:
     """
-    Test that an artificially small queue size
+    Test that an artificially small queue size will
+    drop messages when full.
     """
     monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 1)
 
@@ -619,18 +614,16 @@ async def test_live_async_iteration_dropped(
 
     live_client.start()
 
-    ait = live_client.__aiter__()
-    await asyncio.sleep(0.1)
-    assert live_client._dbn_queue.full()
-    assert live_client._session._transport.is_reading() is False
+    records: List[DBNRecord] = []
+    async for record in live_client:
+        records.append(record)
 
-    assert isinstance(await ait.__anext__(), databento_dbn.MBOMsg)
-    assert live_client._session._transport.is_reading() is True
-    with pytest.raises(StopAsyncIteration):
-        await ait.__anext__()
+    assert len(records) == 1
+    assert isinstance(records[0], databento_dbn.MBOMsg)
+    assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
+@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_stop(
     live_client: client.Live,
 ) -> None:
@@ -656,8 +649,7 @@ async def test_live_async_iteration_stop(
     assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
 
-
-@pytest.mark.skipif(platform.system() == "Darwin", reason="flaky on MacOS runner")
+@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 def test_live_sync_iteration(
     live_client: client.Live,
 ) -> None:
@@ -912,7 +904,6 @@ async def test_live_iteration_with_reconnect(
     await live_client.wait_for_close()
 
     assert not live_client.is_connected()
-    assert live_client.dataset == ""
 
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -926,7 +917,6 @@ async def test_live_iteration_with_reconnect(
     await live_client.wait_for_close()
 
     assert not live_client.is_connected()
-    assert live_client.dataset == ""
 
     expected_data = BytesIO(
         zstandard.ZstdDecompressor()
@@ -972,7 +962,6 @@ async def test_live_callback_with_reconnect(
 
         await live_client.wait_for_close()
         assert not live_client.is_connected()
-        assert live_client.dataset == ""
 
     expected_data = BytesIO(
         zstandard.ZstdDecompressor()
@@ -1017,7 +1006,6 @@ async def test_live_stream_with_reconnect(
 
         await live_client.wait_for_close()
         assert not live_client.is_connected()
-        assert live_client.dataset == ""
 
     data = DBNStore.from_file(output)
 

@@ -5,6 +5,7 @@ import random
 import string
 from typing import AsyncGenerator, Callable, Generator, Iterable
 
+import databento.live
 import pytest
 import pytest_asyncio
 from databento.common.enums import Schema
@@ -154,7 +155,6 @@ def fixture_test_api_key() -> str:
 
 @pytest_asyncio.fixture(name="mock_live_server")
 async def fixture_mock_live_server(
-    event_loop: asyncio.AbstractEventLoop,
     test_api_key: str,
     caplog: pytest.LogCaptureFixture,
     unused_tcp_port: int,
@@ -168,10 +168,19 @@ async def fixture_mock_live_server(
     MockLiveServer
 
     """
-    event_loop.set_debug(True)
     monkeypatch.setenv(
         name="DATABENTO_API_KEY",
         value=test_api_key,
+    )
+    monkeypatch.setattr(
+        databento.live,
+        "AUTH_TIMEOUT_SECONDS",
+        1,
+    )
+    monkeypatch.setattr(
+        databento.live,
+        "CONNECT_TIMEOUT_SECONDS",
+        1,
     )
 
     with caplog.at_level("DEBUG"):
