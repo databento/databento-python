@@ -5,34 +5,33 @@ import asyncio
 import logging
 import os
 import pathlib
+import queue
 import random
 import string
 import sys
 import threading
-import time
+from concurrent import futures
+from functools import singledispatchmethod
 from io import BytesIO
 from typing import Callable, Dict, List, NewType, Optional, Type, TypeVar
 
 import zstandard
 from databento.common import cram
 from databento.common.enums import Schema
-from databento.live.gateway import (
-    AuthenticationRequest,
-    AuthenticationResponse,
-    ChallengeRequest,
-    GatewayControl,
-    Greeting,
-    SessionStart,
-    SubscriptionRequest,
-    parse_gateway_message,
-)
-from databento.live.protocol import singledispatchmethod
+from databento.live.gateway import AuthenticationRequest
+from databento.live.gateway import AuthenticationResponse
+from databento.live.gateway import ChallengeRequest
+from databento.live.gateway import GatewayControl
+from databento.live.gateway import Greeting
+from databento.live.gateway import SessionStart
+from databento.live.gateway import SubscriptionRequest
+from databento.live.gateway import parse_gateway_message
 
 
 LIVE_SERVER_VERSION: str = "1.0.0"
 
 G = TypeVar("G", bound=GatewayControl)
-MessageQueue = NewType("MessageQueue", "asyncio.Queue[GatewayControl]")
+MessageQueue = NewType("MessageQueue", "queue.Queue[GatewayControl]")
 
 
 logger = logging.getLogger(__name__)
@@ -285,7 +284,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
                 logger.exception(val_err)
                 continue
             else:
-                self._message_queue.put_nowait(message)
+                self._message_queue.put(message)
                 self.handle_client_message(message)
 
     def eof_received(self) -> bool:
@@ -528,7 +527,7 @@ class MockLiveServer:
         thread.start()
 
         user_api_keys: Dict[str, str] = {}
-        message_queue: MessageQueue = asyncio.Queue()  # type: ignore
+        message_queue: MessageQueue = queue.Queue()  # type: ignore
 
         # We will add an API key from DATABENTO_API_KEY if it exists
         env_key = os.environ.get("DATABENTO_API_KEY")
@@ -565,7 +564,7 @@ class MockLiveServer:
 
         return mock_live_server
 
-    async def get_message(self, timeout: Optional[float]) -> GatewayControl:
+    def get_message(self, timeout: Optional[float]) -> GatewayControl:
         """
         Return the next gateway message received from the client.
 
@@ -584,12 +583,9 @@ class MockLiveServer:
             If the timeout duration is reached, if specified.
 
         """
-        return await asyncio.wait_for(
-            self._message_queue.get(),
-            timeout=timeout,
-        )
+        return self._message_queue.get(timeout=timeout)
 
-    async def get_message_of_type(
+    def get_message_of_type(
         self,
         message_type: Type[G],
         timeout: float,
@@ -612,7 +608,7 @@ class MockLiveServer:
 
         Raises
         ------
-        asyncio.TimeoutError
+        futures.TimeoutError
             If the timeout duration is reached, if specified.
 
         """
@@ -620,19 +616,12 @@ class MockLiveServer:
         end_time = self._loop.time() + timeout
         while start_time < end_time:
             remaining_time = abs(end_time - self._loop.time())
-
-            message = asyncio.run_coroutine_threadsafe(
-                asyncio.wait_for(
-                    self._message_queue.get(),
-                    timeout=remaining_time,
-                ),
-                loop=self._loop,
-            ).result()
+            message = self._message_queue.get(timeout=remaining_time)
 
             if isinstance(message, message_type):
                 return message
 
-        raise asyncio.TimeoutError()
+        raise futures.TimeoutError
 
     async def start(self) -> None:
         """
@@ -645,7 +634,10 @@ class MockLiveServer:
             self.host,
             self.port,
         )
-        await self.server.start_serving()
+        asyncio.run_coroutine_threadsafe(
+            coro=self.server.start_serving(),
+            loop=self._loop,
+        ).result()
 
     async def stop(self) -> None:
         """
@@ -659,6 +651,7 @@ class MockLiveServer:
             self.port,
         )
 
+        self._loop.call_soon_threadsafe(self.server.close)
         self._loop.call_soon_threadsafe(self._loop.stop)
         self._thread.join()
 
