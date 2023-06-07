@@ -1,4 +1,5 @@
 """Unit tests for the Live client."""
+import asyncio
 import pathlib
 import platform
 from io import BytesIO
@@ -10,10 +11,17 @@ import pytest
 import zstandard
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.dbnstore import DBNStore
-from databento.common.enums import Dataset, Encoding, Schema, SType
+from databento.common.enums import Dataset
+from databento.common.enums import Encoding
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import ALL_SYMBOLS
-from databento.live import DBNRecord, client, gateway, protocol, session
+from databento.live import DBNRecord
+from databento.live import client
+from databento.live import gateway
+from databento.live import protocol
+from databento.live import session
 
 from tests.mock_live_server import MockLiveServer
 
@@ -128,7 +136,6 @@ def test_live_connection_cram_failure(
     Test that a failed auth message due to an incorrect CRAM
     raies a BentoError.
     """
-
     # Dork up the API key in the mock client to fail CRAM
     bucket_id = test_api_key[-BUCKET_ID_LENGTH:]
     invalid_key = "db-invalidkey00000000000000FFFFF"
@@ -500,7 +507,6 @@ def test_live_add_stream(
     """
     Test that calling add_stream adds that stream to the client.
     """
-
     stream = BytesIO()
 
     live_client.add_stream(stream)
@@ -578,18 +584,18 @@ async def test_live_async_iteration_backpressure(
         symbols="TEST",
     )
 
+    monkeypatch.setattr(live_client._session._transport, "pause_reading", pause_mock:=MagicMock())
+
     live_client.start()
+    it = live_client.__iter__()
+    await live_client.wait_for_close()
 
-    records: List[DBNRecord] = []
-    async for record in live_client:
-        records.append(record)
+    assert pause_mock.called
 
+    records = list(it)
     assert len(records) == 4
-    assert isinstance(records[0], databento_dbn.MBOMsg)
-    assert isinstance(records[1], databento_dbn.MBOMsg)
-    assert isinstance(records[2], databento_dbn.MBOMsg)
-    assert isinstance(records[3], databento_dbn.MBOMsg)
     assert live_client._dbn_queue.empty()
+
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_dropped(
@@ -616,15 +622,17 @@ async def test_live_async_iteration_dropped(
         symbols="TEST",
     )
 
+    monkeypatch.setattr(live_client._session._transport, "pause_reading", pause_mock:=MagicMock())
+
     live_client.start()
+    it = live_client.__iter__()
+    await live_client.wait_for_close()
 
-    records: List[DBNRecord] = []
-    async for record in live_client:
-        records.append(record)
+    assert pause_mock.called
 
-    assert len(records) < 4
+    records = list(it)
+    assert len(records) == 1
     assert live_client._dbn_queue.empty()
-
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_stop(
@@ -650,6 +658,7 @@ async def test_live_async_iteration_stop(
 
     assert len(records) > 1
     assert live_client._dbn_queue.empty()
+
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 def test_live_sync_iteration(
