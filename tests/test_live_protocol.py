@@ -67,4 +67,4 @@ async def test_protocol_connection_streaming(
     await asyncio.wait_for(protocol.disconnected, timeout=1)
 
     assert metadata_mock.call_count == 1
-    assert record_mock.call_count == 2
+    assert record_mock.call_count == 4
