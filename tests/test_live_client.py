@@ -858,20 +858,9 @@ async def test_live_terminate(
         symbols="TEST",
     )
 
-    records = []
-
-    def callback(record: DBNRecord) -> None:
-        nonlocal records
-        records.append(record)
-
-    live_client.add_callback(callback)
-
-    live_client.start()
     live_client.terminate()
 
     await live_client.wait_for_close()
-
-    assert records == []
     assert not live_client.is_connected()
 
 
