@@ -3,6 +3,7 @@ import dataclasses
 import logging
 import queue
 import struct
+import threading
 from typing import IO, Callable, Iterable, List, Optional, Set, Union
 
 import databento_dbn
@@ -38,25 +39,7 @@ class DBNQueue(queue.Queue):  # type: ignore [type-arg]
 
     def __init__(self, maxsize: int) -> None:
         super().__init__(maxsize)
-        self._enabled: bool = False
-
-    def put(
-        self,
-        item: DBNRecord,
-        block: bool = True,
-        timeout: Optional[float] = None,
-    ) -> None:
-        if self._enabled:
-            return super().put(item, block, timeout)
-        raise ValueError("queue is not being iterated")
-
-    def put_nowait(
-        self,
-        item: DBNRecord,
-    ) -> None:
-        if self._enabled:
-            return super().put_nowait(item)
-        raise ValueError("queue is not being iterated")
+        self._enabled = threading.Event()
 
     @property
     def enabled(self) -> bool:
@@ -64,14 +47,15 @@ class DBNQueue(queue.Queue):  # type: ignore [type-arg]
         True if the Queue will allow pushing.
         A queue should only be enabled when it has a consumer.
         """
-        return self._enabled
+        return self._enabled.is_set()
 
-    def full(self) -> bool:
+    def half_full(self) -> bool:
         """
         Implementation which reports the queue as full when it
         has reached half capacity.
         """
-        return self.qsize() > self.maxsize // 2
+        with self.mutex:
+            return self._qsize() > self.maxsize // 2
 
 
 @dataclasses.dataclass
@@ -180,10 +164,10 @@ class _SessionProtocol(DatabentoLiveProtocol):
                     record.ts_event,
                 )
             else:
-                if self._dbn_queue.full():
+                if self._dbn_queue.half_full():
                     logger.warning(
                         "record queue is full; %d record(s) to be processed",
-                        self._dbn_queue.qsize(),
+                        self._dbn_queue._qsize(),
                     )
                     self.transport.pause_reading()
 

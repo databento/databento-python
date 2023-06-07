@@ -121,14 +121,14 @@ class Live:
 
     def __iter__(self) -> "Live":
         logger.debug("starting iteration")
-        self._dbn_queue._enabled = True
+        self._dbn_queue._enabled.set()
         return self
 
     def __next__(self) -> DBNRecord:
         if self._dbn_queue is None:
             raise ValueError("iteration has not started")
 
-        while not self._session.is_disconnected() or self._dbn_queue.qsize() > 0:
+        while not self._session.is_disconnected() or self._dbn_queue._qsize() > 0:
             try:
                 record = self._dbn_queue.get(block=False)
             except queue.Empty:
@@ -141,14 +141,14 @@ class Live:
                 self._dbn_queue.task_done()
                 return record
             finally:
-                if not self._dbn_queue.full() and not self._session.is_reading():
+                if not self._dbn_queue.half_full() and not self._session.is_reading():
                     logger.debug(
                         "resuming reading with %d pending records",
-                        self._dbn_queue.qsize(),
+                        self._dbn_queue._qsize(),
                     )
                     self._session.resume_reading()
 
-        self._dbn_queue._enabled = False
+        self._dbn_queue._enabled.clear()
         raise StopIteration
 
     def __repr__(self) -> str:

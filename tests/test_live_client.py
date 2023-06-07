@@ -545,9 +545,11 @@ async def test_live_async_iteration(
     async for record in live_client:
         records.append(record)
 
-    assert len(records) == 2
+    assert len(records) == 4
     assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
+    assert isinstance(records[2], databento_dbn.MBOMsg)
+    assert isinstance(records[3], databento_dbn.MBOMsg)
 
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
@@ -561,7 +563,7 @@ async def test_live_async_iteration_backpressure(
     transport but will resume it when the queue is
     depleted when iterating asynchronously.
     """
-    monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 2)
+    monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 4)
 
     live_client = client.Live(
         key=test_api_key,
@@ -582,9 +584,11 @@ async def test_live_async_iteration_backpressure(
     async for record in live_client:
         records.append(record)
 
-    assert len(records) == 2
+    assert len(records) == 4
     assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
+    assert isinstance(records[2], databento_dbn.MBOMsg)
+    assert isinstance(records[3], databento_dbn.MBOMsg)
     assert live_client._dbn_queue.empty()
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
@@ -618,8 +622,7 @@ async def test_live_async_iteration_dropped(
     async for record in live_client:
         records.append(record)
 
-    assert len(records) == 1
-    assert isinstance(records[0], databento_dbn.MBOMsg)
+    assert len(records) < 4
     assert live_client._dbn_queue.empty()
 
 
@@ -645,9 +648,8 @@ async def test_live_async_iteration_stop(
         records.append(record)
         live_client.stop()
 
-    assert len(records) == 2
-    assert isinstance(records[0], databento_dbn.MBOMsg)
-    assert isinstance(records[1], databento_dbn.MBOMsg)
+    assert len(records) > 1
+    assert live_client._dbn_queue.empty()
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 def test_live_sync_iteration(
@@ -669,9 +671,11 @@ def test_live_sync_iteration(
     for record in live_client:
         records.append(record)
 
-    assert len(records) == 2
+    assert len(records) == 4
     assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
+    assert isinstance(records[2], databento_dbn.MBOMsg)
+    assert isinstance(records[3], databento_dbn.MBOMsg)
 
 
 async def test_live_callback(
@@ -699,9 +703,11 @@ async def test_live_callback(
 
     await live_client.wait_for_close()
 
-    assert len(records) == 2
+    assert len(records) == 4
     assert isinstance(records[0], databento_dbn.MBOMsg)
     assert isinstance(records[1], databento_dbn.MBOMsg)
+    assert isinstance(records[2], databento_dbn.MBOMsg)
+    assert isinstance(records[3], databento_dbn.MBOMsg)
 
 
 @pytest.mark.parametrize(
