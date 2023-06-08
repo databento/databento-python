@@ -1,18 +1,26 @@
+import json
 import sys
+import warnings
 from io import BufferedIOBase
 from json.decoder import JSONDecodeError
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import aiohttp
 import requests
-from aiohttp import ClientResponse, ContentTypeError
-from databento.common.error import BentoClientError, BentoServerError
-from databento.version import __version__
+from aiohttp import ClientResponse
+from aiohttp import ContentTypeError
 from requests import Response
 from requests.auth import HTTPBasicAuth
 
+from databento.common.error import BentoClientError
+from databento.common.error import BentoDeprecationWarning
+from databento.common.error import BentoServerError
+from databento.common.error import BentoWarning
+from databento.version import __version__
+
 
 _32KB = 1024 * 32  # 32_768
+WARNING_HEADER_FIELD: str = "X-Warning"
 
 
 class BentoHttpAPI:
@@ -51,6 +59,7 @@ class BentoHttpAPI:
             auth=HTTPBasicAuth(username=self._key, password="") if basic_auth else None,
             timeout=(self.TIMEOUT, self.TIMEOUT),
         ) as response:
+            check_backend_warnings(response)
             check_http_error(response)
             return response
 
@@ -71,6 +80,7 @@ class BentoHttpAPI:
                 else None,
                 timeout=self.TIMEOUT,
             ) as response:
+                check_backend_warnings(response)
                 await check_http_error_async(response)
                 return await response.json()
 
@@ -89,6 +99,7 @@ class BentoHttpAPI:
             auth=HTTPBasicAuth(username=self._key, password="") if basic_auth else None,
             timeout=(self.TIMEOUT, self.TIMEOUT),
         ) as response:
+            check_backend_warnings(response)
             check_http_error(response)
             return response
 
@@ -109,6 +120,7 @@ class BentoHttpAPI:
             timeout=(self.TIMEOUT, self.TIMEOUT),
             stream=True,
         ) as response:
+            check_backend_warnings(response)
             check_http_error(response)
 
             for chunk in response.iter_content(chunk_size=_32KB):
@@ -133,6 +145,7 @@ class BentoHttpAPI:
                 else None,
                 timeout=self.TIMEOUT,
             ) as response:
+                check_backend_warnings(response)
                 await check_http_error_async(response)
 
                 async for chunk in response.content.iter_chunks():
@@ -145,6 +158,24 @@ def is_400_series_error(status: int) -> bool:
 
 def is_500_series_error(status: int) -> bool:
     return status // 100 == 5
+
+
+def check_backend_warnings(response: Union[Response, ClientResponse]) -> None:
+    if WARNING_HEADER_FIELD not in response.headers:  # type: ignore [arg-type]
+        return
+
+    backend_warnings = json.loads(
+        response.headers[WARNING_HEADER_FIELD],  # type: ignore [arg-type]
+    )
+
+    for bw in backend_warnings:
+        type_, _, message = bw.partition(": ")
+        if type_ == "DeprecationWarning":
+            category = BentoDeprecationWarning
+        else:
+            category = BentoWarning  # type: ignore [assignment]
+
+        warnings.warn(message, category=category, stacklevel=4)
 
 
 def check_http_error(response: Response) -> None:

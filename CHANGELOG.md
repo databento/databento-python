@@ -6,6 +6,7 @@
 - Changed `Live` callbacks to no longer yield DBN metadata
 - Added `metadata` property to `Live`
 - Added `DatatbentoLiveProtocol` class
+- Added support for emitting warnings in API response headers
 - Upgraded `aiohttp` to 3.8.3
 - Upgraded `numpy` to to 1.23.5
 - Upgraded `pandas` to to 1.5.3
