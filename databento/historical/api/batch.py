@@ -10,34 +10,27 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import aiohttp
 import pandas as pd
 import requests
-from databento.common.enums import (
-    Compression,
-    Dataset,
-    Delivery,
-    Encoding,
-    Packaging,
-    Schema,
-    SplitDuration,
-    SType,
-)
-from databento.common.parsing import (
-    datetime_to_string,
-    optional_datetime_to_string,
-    optional_symbols_list_to_string,
-    optional_values_list_to_string,
-)
-from databento.common.validation import (
-    validate_enum,
-    validate_path,
-    validate_semantic_string,
-)
-from databento.historical.api import API_VERSION
-from databento.historical.http import (
-    BentoHttpAPI,
-    check_http_error,
-    check_http_error_async,
-)
 from requests.auth import HTTPBasicAuth
+
+from databento.common.enums import Compression
+from databento.common.enums import Dataset
+from databento.common.enums import Delivery
+from databento.common.enums import Encoding
+from databento.common.enums import Packaging
+from databento.common.enums import Schema
+from databento.common.enums import SplitDuration
+from databento.common.enums import SType
+from databento.common.parsing import datetime_to_string
+from databento.common.parsing import optional_datetime_to_string
+from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.parsing import optional_values_list_to_string
+from databento.common.validation import validate_enum
+from databento.common.validation import validate_path
+from databento.common.validation import validate_semantic_string
+from databento.historical.api import API_VERSION
+from databento.historical.http import BentoHttpAPI
+from databento.historical.http import check_http_error
+from databento.historical.http import check_http_error_async
 
 
 logger = logging.getLogger(__name__)
@@ -129,7 +122,7 @@ class BatchHttpAPI(BentoHttpAPI):
         params: List[Tuple[str, Optional[str]]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
-            ("end", datetime_to_string(end)),
+            ("end", optional_datetime_to_string(end)),
             ("symbols", str(symbols_list)),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("stype_in", str(stype_in_valid)),
