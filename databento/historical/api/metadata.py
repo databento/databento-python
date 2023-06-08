@@ -2,21 +2,22 @@ from datetime import date
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
-from databento.common.enums import Dataset, Encoding, FeedMode, Schema, SType
-from databento.common.parsing import (
-    datetime_to_string,
-    optional_date_to_string,
-    optional_datetime_to_string,
-    optional_symbols_list_to_string,
-)
-from databento.common.validation import (
-    validate_enum,
-    validate_maybe_enum,
-    validate_semantic_string,
-)
+from requests import Response
+
+from databento.common.enums import Dataset
+from databento.common.enums import Encoding
+from databento.common.enums import FeedMode
+from databento.common.enums import Schema
+from databento.common.enums import SType
+from databento.common.parsing import datetime_to_string
+from databento.common.parsing import optional_date_to_string
+from databento.common.parsing import optional_datetime_to_string
+from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.validation import validate_enum
+from databento.common.validation import validate_maybe_enum
+from databento.common.validation import validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
-from requests import Response
 
 
 class MetadataHttpAPI(BentoHttpAPI):

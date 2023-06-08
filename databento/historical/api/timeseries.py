@@ -9,7 +9,6 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 
 from databento.common.dbnstore import DBNStore
-from databento.common.deprecated import deprecated
 from databento.common.enums import Compression
 from databento.common.enums import Dataset
 from databento.common.enums import Encoding
