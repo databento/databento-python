@@ -103,3 +103,8 @@ class BentoWarning(Warning):
     """
     Represents a Databento specific warning.
     """
+
+class BentoDeprecationWarning(BentoWarning):
+    """
+    Represents a Databento deprecation warning.
+    """
