@@ -1,15 +1,19 @@
 """Pytest fixtures"""
-import asyncio
+from __future__ import annotations
+
 import pathlib
 import random
 import string
-from typing import AsyncGenerator, Callable, Generator, Iterable
+from collections.abc import AsyncGenerator
+from collections.abc import Generator
+from collections.abc import Iterable
+from typing import Callable
 
-import databento.live
 import pytest
 import pytest_asyncio
+from databento import historical
+from databento import live
 from databento.common.enums import Schema
-from databento.live import client
 
 from tests import TESTS_ROOT
 from tests.mock_live_server import MockLiveServer
@@ -173,12 +177,12 @@ async def fixture_mock_live_server(
         value=test_api_key,
     )
     monkeypatch.setattr(
-        databento.live,
+        live,
         "AUTH_TIMEOUT_SECONDS",
         1,
     )
     monkeypatch.setattr(
-        databento.live,
+        live,
         "CONNECT_TIMEOUT_SECONDS",
         1,
     )
@@ -194,11 +198,30 @@ async def fixture_mock_live_server(
         await mock_live_server.stop()
 
 
+@pytest.fixture(name="historical_client")
+def fixture_historical_client(
+    test_api_key: str,
+) -> Generator[historical.client.Historical, None, None]:
+    """
+    Fixture for a Historical client.
+
+    Yields
+    ------
+    Historical
+
+    """
+    test_client = historical.client.Historical(
+        key=test_api_key,
+        gateway="localhost",
+    )
+    yield test_client
+
+
 @pytest.fixture(name="live_client")
 def fixture_live_client(
     test_api_key: str,
     mock_live_server: MockLiveServer,
-) -> Generator[client.Live, None, None]:
+) -> Generator[live.client.Live, None, None]:
     """
     Fixture for a Live client to connect to the MockLiveServer.
 
@@ -207,7 +230,7 @@ def fixture_live_client(
     Live
 
     """
-    test_client = client.Live(
+    test_client = live.client.Live(
         key=test_api_key,
         gateway=mock_live_server.host,
         port=mock_live_server.port,

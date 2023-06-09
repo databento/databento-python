@@ -495,7 +495,8 @@ class DBNStore:
             df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
             dates = [ts.date() for ts in df_index]
             df["symbol"] = [
-                self._instrument_id_index[dates[i]][p] for i, p in enumerate(df["instrument_id"])
+                self._instrument_id_index[dates[i]][p]
+                for i, p in enumerate(df["instrument_id"])
             ]
 
         return df

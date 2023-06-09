@@ -2,7 +2,8 @@ import pathlib
 from typing import Callable
 
 import pytest
-from databento.common.dbnstore import FileDataSource, MemoryDataSource
+from databento.common.dbnstore import FileDataSource
+from databento.common.dbnstore import MemoryDataSource
 from databento.common.enums import Schema
 
 

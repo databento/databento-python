@@ -1,12 +1,14 @@
-import sys
 from typing import Type
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
 import aiohttp
 import pytest
 import requests
-from databento.common.error import BentoClientError, BentoServerError
-from databento.historical.http import check_http_error, check_http_error_async
+from databento.common.error import BentoClientError
+from databento.common.error import BentoServerError
+from databento.historical.http import check_http_error
+from databento.historical.http import check_http_error_async
 
 
 @pytest.mark.parametrize(
@@ -52,8 +54,11 @@ async def test_check_http_status_async(
     """
     Test that responses with the given status code raise the expected exception.
     """
-    response = MagicMock(spec=aiohttp.ClientResponse)
-    response.status = status_code
+    response = MagicMock(
+        spec=aiohttp.ClientResponse,
+        status=status_code,
+        json=AsyncMock(return_value=MagicMock()),
+    )
     with pytest.raises(expected_exception) as exc:
         await check_http_error_async(response)
 

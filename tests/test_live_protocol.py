@@ -2,7 +2,8 @@ import asyncio
 from unittest.mock import MagicMock
 
 import pytest
-from databento.common.enums import Schema, SType
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.live.protocol import DatabentoLiveProtocol
 
 from tests.mock_live_server import MockLiveServer

@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import logging
-from functools import singledispatch
-from functools import update_wrapper
+from collections.abc import Iterable
+from functools import singledispatchmethod
 from numbers import Number
-from typing import Any, Callable, Iterable, Optional, Union
+from typing import Optional, Union
 
 import databento_dbn
 
@@ -44,32 +46,6 @@ DBNRecord = Union[
 MIN_BUFFER_SIZE: int = 64 * 1024  # 64kb
 
 logger = logging.getLogger(__name__)
-
-
-def singledispatchmethod(
-    func: Callable[..., Any],
-) -> Any:
-    """
-    Decorate a function to dispatch arguments by type.
-    This is a custom implementation of functools.singledispatchmethod.
-
-    See Also
-    --------
-    functools.singledispatch
-
-    Notes
-    -----
-    This should be removed when python 3.7 is no longer supported.
-
-    """
-    dispatcher: Any = singledispatch(func)
-
-    def _wrapper(*args: object, **kw: object) -> Any:
-        return dispatcher.dispatch(args[1].__class__)(*args, **kw)
-
-    setattr(_wrapper, "register", getattr(dispatcher, "register"))
-    update_wrapper(_wrapper, func)
-    return _wrapper
 
 
 class DatabentoLiveProtocol(asyncio.BufferedProtocol):
