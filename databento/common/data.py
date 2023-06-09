@@ -115,7 +115,7 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("currency", "S4"),  # 4 byte chararray
     ("settl_currency", "S4"),  # 4 byte chararray
     ("secsubtype", "S6"),  # 6 byte chararray
-    ("symbol", "S22"),  # 22 byte chararray
+    ("raw_symbol", "S22"),  # 22 byte chararray
     ("group", "S21"),  # 21 byte chararray
     ("exchange", "S5"),  # 5 byte chararray
     ("asset", "S7"),  # 7 byte chararray
@@ -215,7 +215,7 @@ DEFINITION_CHARARRAY_COLUMNS = [
     "currency",
     "settl_currency",
     "secsubtype",
-    "symbol",
+    "raw_symbol",
     "group",
     "exchange",
     "asset",
