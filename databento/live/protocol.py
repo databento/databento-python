@@ -1,29 +1,31 @@
 import asyncio
 import logging
-from functools import singledispatch, update_wrapper
+from functools import singledispatch
+from functools import update_wrapper
+from numbers import Number
 from typing import Any, Callable, Iterable, Optional, Union
 
 import databento_dbn
 
 from databento.common import cram
-from databento.common.enums import Dataset, Schema, SType
+from databento.common.enums import Dataset
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.common.error import BentoError
-from databento.common.parsing import (
-    optional_datetime_to_unix_nanoseconds,
-    optional_symbols_list_to_string,
-)
+from databento.common.parsing import optional_datetime_to_unix_nanoseconds
+from databento.common.parsing import optional_symbols_list_to_string
 from databento.common.symbology import ALL_SYMBOLS
-from databento.common.validation import validate_enum, validate_semantic_string
-from databento.live.gateway import (
-    AuthenticationRequest,
-    AuthenticationResponse,
-    ChallengeRequest,
-    GatewayControl,
-    GatewayDecoder,
-    Greeting,
-    SessionStart,
-    SubscriptionRequest,
-)
+from databento.common.validation import validate_enum
+from databento.common.validation import validate_semantic_string
+from databento.live.gateway import AuthenticationRequest
+from databento.live.gateway import AuthenticationResponse
+from databento.live.gateway import ChallengeRequest
+from databento.live.gateway import GatewayControl
+from databento.live.gateway import GatewayDecoder
+from databento.live.gateway import Greeting
+from databento.live.gateway import SessionStart
+from databento.live.gateway import SubscriptionRequest
+
 
 DBNRecord = Union[
     databento_dbn.MBOMsg,
@@ -282,7 +284,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     def subscribe(
         self,
         schema: Union[Schema, str],
-        symbols: Union[Iterable[str], Iterable[int], str, int] = ALL_SYMBOLS,
+        symbols: Union[Iterable[str], Iterable[Number], str, Number] = ALL_SYMBOLS,
         stype_in: Union[SType, str] = SType.RAW_SYMBOL,
         start: Optional[Union[str, int]] = None,
     ) -> None:
@@ -293,7 +295,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         ----------
         schema : Schema or str
             The schema to subscribe to.
-        symbols : Iterable[Union[str, int]] or str, default 'ALL_SYMBOLS'
+        symbols : Iterable[Union[str, Number]] or str or Number, default 'ALL_SYMBOLS'
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.

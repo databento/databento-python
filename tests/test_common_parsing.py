@@ -1,18 +1,17 @@
 import datetime as dt
+from numbers import Number
 from typing import Any, List, Optional, Type, Union
 
 import numpy as np
 import pandas as pd
 import pytest
-
 from databento.common.enums import SType
-from databento.common.parsing import (
-    optional_date_to_string,
-    optional_datetime_to_string,
-    optional_datetime_to_unix_nanoseconds,
-    optional_symbols_list_to_string,
-    optional_values_list_to_string,
-)
+from databento.common.parsing import optional_date_to_string
+from databento.common.parsing import optional_datetime_to_string
+from databento.common.parsing import optional_datetime_to_unix_nanoseconds
+from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.parsing import optional_values_list_to_string
+
 
 # Set the type to `Any` to disable mypy type checking. Used to test if functions
 # will raise a `TypeError` when passed an incorrectly-typed argument.
@@ -45,37 +44,6 @@ def test_maybe_values_list_to_string_given_valid_inputs_returns_expected(
 
     # Assert
     assert result == expected
-
-
-@pytest.mark.parametrize(
-    "symbols, stype, expected",
-    [
-        pytest.param("NVDA", SType.RAW_SYMBOL, "NVDA"),
-        pytest.param(" nvda  ", SType.RAW_SYMBOL, "NVDA"),
-        pytest.param("NVDA,amd", SType.RAW_SYMBOL, "NVDA,AMD"),
-        pytest.param("NVDA,amd,NOC,", SType.RAW_SYMBOL, "NVDA,AMD,NOC"),
-        pytest.param("NVDA,  amd,NOC, ", SType.RAW_SYMBOL, "NVDA,AMD,NOC"),
-        pytest.param(["NVDA", ["NOC", "AMD"]], SType.RAW_SYMBOL, "NVDA,NOC,AMD"),
-        pytest.param(["NVDA", "NOC,AMD"], SType.RAW_SYMBOL, "NVDA,NOC,AMD"),
-        pytest.param("", SType.RAW_SYMBOL, ValueError),
-        pytest.param([""], SType.RAW_SYMBOL, ValueError),
-        pytest.param(["NVDA", ""], SType.RAW_SYMBOL, ValueError),
-        pytest.param(["NVDA", [""]], SType.RAW_SYMBOL, ValueError),
-    ],
-)
-def test_optional_symbols_list_to_string_native(
-    symbols: Optional[Union[List[int], int]],
-    stype: SType,
-    expected: Union[str, Type[Exception]],
-) -> None:
-    """
-    Test that str are allowed for SType.RAW_SYMBOL.
-    """
-    if isinstance(expected, str):
-        assert optional_symbols_list_to_string(symbols, stype) == expected
-    else:
-        with pytest.raises(expected):
-            optional_symbols_list_to_string(symbols, stype)
 
 
 def test_maybe_symbols_list_to_string_given_invalid_input_raises_type_error() -> None:
@@ -134,12 +102,48 @@ def test_optional_symbols_list_to_string_given_valid_inputs_returns_expected(
     ],
 )
 def test_optional_symbols_list_to_string_int(
-    symbols: Optional[Union[List[int], int]],
+    symbols: Optional[Union[List[Number], Number]],
     stype: SType,
     expected: Union[str, Type[Exception]],
 ) -> None:
     """
     Test that integers are allowed for SType.INSTRUMENT_ID.
+    If integers are given for a different SType we expect
+    a ValueError.
+    """
+    if isinstance(expected, str):
+        assert optional_symbols_list_to_string(symbols, stype) == expected
+    else:
+        with pytest.raises(expected):
+            optional_symbols_list_to_string(symbols, stype)
+
+
+@pytest.mark.parametrize(
+    "symbols, stype, expected",
+    [
+        pytest.param(np.byte(120), SType.INSTRUMENT_ID, "120"),
+        pytest.param(np.short(32_000), SType.INSTRUMENT_ID, "32000"),
+        pytest.param(
+            [np.intc(12345), np.intc(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+        pytest.param(
+            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+        pytest.param(
+            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+        pytest.param(
+            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+    ],
+)
+def test_optional_symbols_list_to_string_numpy(
+    symbols: Optional[Union[List[Number], Number]],
+    stype: SType,
+    expected: Union[str, Type[Exception]],
+) -> None:
+    """
+    Test that weird numpy types are allowed for SType.INSTRUMENT_ID.
     If integers are given for a different SType we expect
     a ValueError.
     """
@@ -167,7 +171,7 @@ def test_optional_symbols_list_to_string_int(
     ],
 )
 def test_optional_symbols_list_to_string_raw_symbol(
-    symbols: Optional[Union[List[int], int]],
+    symbols: Optional[Union[List[Number], Number]],
     stype: SType,
     expected: Union[str, Type[Exception]],
 ) -> None:
