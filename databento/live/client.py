@@ -4,26 +4,27 @@ import os
 import queue
 import threading
 from concurrent import futures
+from numbers import Number
 from typing import IO, Callable, Iterable, List, Optional, Union
 
 import databento_dbn
+
 from databento.common.cram import BUCKET_ID_LENGTH
-from databento.common.enums import Dataset, Schema, SType
+from databento.common.enums import Dataset
+from databento.common.enums import Schema
+from databento.common.enums import SType
 from databento.common.error import BentoError
-from databento.common.parsing import (
-    optional_datetime_to_unix_nanoseconds,
-    optional_symbols_list_to_string,
-)
+from databento.common.parsing import optional_datetime_to_unix_nanoseconds
+from databento.common.parsing import optional_symbols_list_to_string
 from databento.common.symbology import ALL_SYMBOLS
-from databento.common.validation import validate_enum, validate_semantic_string
+from databento.common.validation import validate_enum
+from databento.common.validation import validate_semantic_string
 from databento.live import DBNRecord
-from databento.live.session import (
-    DEFAULT_REMOTE_PORT,
-    DBNQueue,
-    Session,
-    SessionMetadata,
-    _SessionProtocol,
-)
+from databento.live.session import DEFAULT_REMOTE_PORT
+from databento.live.session import DBNQueue
+from databento.live.session import Session
+from databento.live.session import SessionMetadata
+from databento.live.session import _SessionProtocol
 
 
 logger = logging.getLogger(__name__)
@@ -358,7 +359,7 @@ class Live:
         self,
         dataset: Union[Dataset, str],
         schema: Union[Schema, str],
-        symbols: Union[Iterable[str], Iterable[int], str, int] = ALL_SYMBOLS,
+        symbols: Union[Iterable[str], Iterable[Number], str, Number] = ALL_SYMBOLS,
         stype_in: Union[SType, str] = SType.RAW_SYMBOL,
         start: Optional[Union[str, int]] = None,
     ) -> None:
@@ -378,7 +379,7 @@ class Live:
             The dataset for the subscription.
         schema : Schema or str
             The schema to subscribe to.
-        symbols : Iterable[Union[str, int]] or str, default 'ALL_SYMBOLS'
+        symbols : Iterable[Union[str, Number]] or str or Number, default 'ALL_SYMBOLS'
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.

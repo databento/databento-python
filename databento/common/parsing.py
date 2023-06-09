@@ -1,9 +1,14 @@
-from collections.abc import Iterable as IterableABC
+from __future__ import annotations
+
+from collections.abc import Iterable
 from datetime import date
-from functools import partial, singledispatch
-from typing import Iterable, Optional, Union
+from functools import partial
+from functools import singledispatch
+from numbers import Number
+from typing import Optional, Union
 
 import pandas as pd
+
 from databento.common.enums import SType
 from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_smart_symbol
@@ -55,15 +60,15 @@ def optional_values_list_to_string(
 
 @singledispatch
 def optional_symbols_list_to_string(
-    symbols: Optional[Union[Iterable[str], Iterable[int], str, int]],
-    _: SType,
+    symbols: Optional[Union[Iterable[str], Iterable[Number], str, Number]],
+    stype_in: SType,
 ) -> str:
     """
     Concatenate a symbols string or iterable of symbol strings (if not None).
 
     Parameters
     ----------
-    symbols : iterable of str, iterable of int, str, or int optional
+    symbols : iterable of str, iterable of Number, str, or Number optional
         The symbols to concatenate.
     stype_in : SType
         The input symbology type for the request.
@@ -98,18 +103,18 @@ def _(_: None, __: SType) -> str:
 
 
 @optional_symbols_list_to_string.register
-def _(symbols: int, stype_in: SType) -> str:
+def _(symbols: Number, stype_in: SType) -> str:
     """
     Dispatch method for optional_symbols_list_to_string.
-    Handles int, alerting when an integer is given for
-    STypes that expect strings.
+    Handles numerical types, alerting when an integer is
+    given for STypes that expect strings.
 
     See Also
     --------
     optional_symbols_list_to_string
 
     """
-    if stype_in == SType.INSTRUMENT_ID or stype_in == "product_id":
+    if stype_in == SType.INSTRUMENT_ID:
         return str(symbols)
     raise ValueError(
         f"value `{symbols}` is not a valid symbol for stype {stype_in}; "
@@ -147,7 +152,7 @@ def _(symbols: str, stype_in: SType) -> str:
     return symbols.strip().upper()
 
 
-@optional_symbols_list_to_string.register(cls=IterableABC)
+@optional_symbols_list_to_string.register(cls=Iterable)
 def _(symbols: Union[Iterable[str], Iterable[int]], stype_in: SType) -> str:
     """
     Dispatch method for optional_symbols_list_to_string.

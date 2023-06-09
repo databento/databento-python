@@ -4,6 +4,7 @@ import logging
 import queue
 import struct
 import threading
+from numbers import Number
 from typing import IO, Callable, Iterable, List, Optional, Set, Union
 
 import databento_dbn
@@ -353,7 +354,7 @@ class Session:
         self,
         dataset: Union[Dataset, str],
         schema: Union[Schema, str],
-        symbols: Union[Iterable[str], Iterable[int], str, int] = ALL_SYMBOLS,
+        symbols: Union[Iterable[str], Iterable[Number], str, Number] = ALL_SYMBOLS,
         stype_in: Union[SType, str] = SType.RAW_SYMBOL,
         start: Optional[Union[str, int]] = None,
     ) -> None:
@@ -368,7 +369,7 @@ class Session:
             The dataset for the subscription.
         schema : Schema or str
             The schema to subscribe to.
-        symbols : Iterable[Union[str, int]] or str, default 'ALL_SYMBOLS'
+        symbols : Iterable[Union[str, Number]] or str or Number, default 'ALL_SYMBOLS'
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.

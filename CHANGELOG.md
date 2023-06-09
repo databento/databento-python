@@ -7,6 +7,7 @@
 - Added `metadata` property to `Live`
 - Added `DatatbentoLiveProtocol` class
 - Added support for emitting warnings in API response headers
+- Fixed issue with `numpy` types not being handled in symbols field
 - Upgraded `aiohttp` to 3.8.3
 - Upgraded `numpy` to to 1.23.5
 - Upgraded `pandas` to to 1.5.3
