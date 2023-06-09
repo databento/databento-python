@@ -1,25 +1,24 @@
 """Unit tests for databento.common.enums"""
-from enum import Enum, Flag
+from enum import Enum
+from enum import Flag
 from itertools import combinations
 from typing import Type
 
 import pytest
-from databento.common.enums import (
-    Compression,
-    Dataset,
-    Delivery,
-    Encoding,
-    FeedMode,
-    HistoricalGateway,
-    Packaging,
-    RecordFlags,
-    RollRule,
-    Schema,
-    SplitDuration,
-    StringyMixin,
-    SType,
-    SymbologyResolution,
-)
+from databento.common.enums import Compression
+from databento.common.enums import Dataset
+from databento.common.enums import Delivery
+from databento.common.enums import Encoding
+from databento.common.enums import FeedMode
+from databento.common.enums import HistoricalGateway
+from databento.common.enums import Packaging
+from databento.common.enums import RecordFlags
+from databento.common.enums import RollRule
+from databento.common.enums import Schema
+from databento.common.enums import SplitDuration
+from databento.common.enums import StringyMixin
+from databento.common.enums import SType
+from databento.common.enums import SymbologyResolution
 
 
 DATABENTO_ENUMS = (

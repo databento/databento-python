@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from datetime import date
-from io import BufferedIOBase
-from io import BytesIO
 from os import PathLike
 from typing import List, Optional, Tuple, Union
 
@@ -118,23 +116,12 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         if limit is not None:
             params.append(("limit", str(limit)))
 
-        if path is not None:
-            writer: BufferedIOBase = open(path, "x+b")
-        else:
-            writer = BytesIO()
-
-        self._stream(
+        return self._stream(
             url=self._base_url + ".get_range",
             params=params,
             basic_auth=True,
-            writer=writer,
+            path=path,
         )
-
-        if path is not None:
-            writer.close()
-            return DBNStore.from_file(path)
-        writer.seek(0)  # rewind for read
-        return DBNStore.from_bytes(writer.read())
 
     async def get_range_async(
         self,
@@ -218,23 +205,13 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             ("compression", str(Compression.ZSTD)),  # Always request zstd
         ]
 
+        # Optional Parameters
         if limit is not None:
             params.append(("limit", str(limit)))
 
-        if path is not None:
-            writer: BufferedIOBase = open(path, "x+b")
-        else:
-            writer = BytesIO()
-
-        await self._stream_async(
+        return await self._stream_async(
             url=self._base_url + ".get_range",
             params=params,
             basic_auth=True,
-            writer=writer,
+            path=path,
         )
-
-        if path is not None:
-            writer.close()
-            return DBNStore.from_file(path)
-        writer.seek(0)  # rewind for read
-        return DBNStore.from_bytes(writer.read())

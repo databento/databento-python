@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import json
 import sys
 import warnings
-from io import BufferedIOBase
+from io import BytesIO
 from json.decoder import JSONDecodeError
-from typing import Any, List, Optional, Tuple, Union
+from os import PathLike
+from typing import IO, Any, List, Optional, Tuple, Union
 
 import aiohttp
 import requests
@@ -12,6 +15,7 @@ from aiohttp import ContentTypeError
 from requests import Response
 from requests.auth import HTTPBasicAuth
 
+from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoClientError
 from databento.common.error import BentoDeprecationWarning
 from databento.common.error import BentoServerError
@@ -108,8 +112,8 @@ class BentoHttpAPI:
         url: str,
         params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
-        writer: BufferedIOBase,
-    ) -> None:
+        path: Optional[Union[PathLike[str], str]] = None,
+    ) -> DBNStore:
         self._check_api_key()
 
         with requests.get(
@@ -123,16 +127,28 @@ class BentoHttpAPI:
             check_backend_warnings(response)
             check_http_error(response)
 
+            if path is None:
+                writer: IO[bytes] = BytesIO()
+            else:
+                writer = open(path, "x+b")
+
             for chunk in response.iter_content(chunk_size=_32KB):
                 writer.write(chunk)
+
+            if path is None:
+                writer.seek(0)
+                return DBNStore.from_bytes(writer)
+
+            writer.close()
+            return DBNStore.from_file(path)
 
     async def _stream_async(
         self,
         url: str,
         params: List[Tuple[str, Optional[str]]],
         basic_auth: bool,
-        writer: BufferedIOBase,
-    ) -> None:
+        path: Optional[Union[PathLike[str], str]] = None,
+    ) -> DBNStore:
         self._check_api_key()
 
         async with aiohttp.ClientSession() as session:
@@ -148,8 +164,20 @@ class BentoHttpAPI:
                 check_backend_warnings(response)
                 await check_http_error_async(response)
 
+                if path is None:
+                    writer: IO[bytes] = BytesIO()
+                else:
+                    writer = open(path, "x+b")
+
                 async for chunk in response.content.iter_chunks():
                     writer.write(chunk[0])
+
+                if path is None:
+                    writer.seek(0)
+                    return DBNStore.from_bytes(writer)
+
+                writer.close()
+                return DBNStore.from_file(path)
 
 
 def is_400_series_error(status: int) -> bool:

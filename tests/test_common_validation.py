@@ -3,14 +3,12 @@ from typing import Any, Type, Union
 
 import pytest
 from databento.common.enums import Encoding
-from databento.common.validation import (
-    validate_enum,
-    validate_gateway,
-    validate_maybe_enum,
-    validate_path,
-    validate_semantic_string,
-    validate_smart_symbol,
-)
+from databento.common.validation import validate_enum
+from databento.common.validation import validate_gateway
+from databento.common.validation import validate_maybe_enum
+from databento.common.validation import validate_path
+from databento.common.validation import validate_semantic_string
+from databento.common.validation import validate_smart_symbol
 
 
 class TestValidation:

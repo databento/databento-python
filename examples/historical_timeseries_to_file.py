@@ -1,6 +1,7 @@
 from pprint import pprint
 
-from databento import DBNStore, Historical
+from databento import DBNStore
+from databento import Historical
 
 
 if __name__ == "__main__":

@@ -2,7 +2,8 @@
 from io import BytesIO
 
 import pytest
-from databento.common.dbnstore import is_dbn, is_zstandard
+from databento.common.dbnstore import is_dbn
+from databento.common.dbnstore import is_zstandard
 
 
 @pytest.mark.parametrize(

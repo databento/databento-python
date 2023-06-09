@@ -1,16 +1,17 @@
 from typing import Tuple, Type, Union
 
 import pytest
-from databento.common.enums import Compression, Dataset, Encoding, Schema, SType
-from databento.live.gateway import (
-    AuthenticationRequest,
-    AuthenticationResponse,
-    ChallengeRequest,
-    GatewayControl,
-    Greeting,
-    SessionStart,
-    SubscriptionRequest,
-)
+from databento.common.enums import Dataset
+from databento.common.enums import Encoding
+from databento.common.enums import Schema
+from databento.common.enums import SType
+from databento.live.gateway import AuthenticationRequest
+from databento.live.gateway import AuthenticationResponse
+from databento.live.gateway import ChallengeRequest
+from databento.live.gateway import GatewayControl
+from databento.live.gateway import Greeting
+from databento.live.gateway import SessionStart
+from databento.live.gateway import SubscriptionRequest
 
 
 ALL_MESSAGES = (

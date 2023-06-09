@@ -1,6 +1,7 @@
 from pprint import pprint
 
-from databento import Historical, SType
+from databento import Historical
+from databento import SType
 
 
 if __name__ == "__main__":

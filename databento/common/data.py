@@ -1,6 +1,7 @@
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
+
 from databento.common.enums import Schema
 
 

@@ -1,7 +1,8 @@
 import asyncio
 from pprint import pprint
 
-from databento import DBNStore, Historical
+from databento import DBNStore
+from databento import Historical
 
 
 async def example_get_range_async() -> None:

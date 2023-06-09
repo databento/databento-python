@@ -1,5 +1,4 @@
 """Unit tests for the Live client."""
-import asyncio
 import pathlib
 import platform
 from io import BytesIO

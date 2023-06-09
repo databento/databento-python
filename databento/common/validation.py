@@ -4,7 +4,8 @@ from enum import Enum
 from os import PathLike
 from pathlib import Path
 from typing import Optional, Type, TypeVar, Union
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit
+from urllib.parse import urlunsplit
 
 
 E = TypeVar("E", bound=Enum)
