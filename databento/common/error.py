@@ -1,4 +1,7 @@
-from typing import Any, Dict, Optional, Union
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
 
 
 class BentoError(Exception):
@@ -15,12 +18,12 @@ class BentoHttpError(BentoError):
     def __init__(
         self,
         http_status: int,
-        http_body: Optional[Union[bytes, str]] = None,
-        json_body: Optional[Dict[str, Any]] = None,
-        message: Optional[str] = None,
-        headers: Optional[Any] = None,
+        http_body: bytes | str | None = None,
+        json_body: dict[str, Any] | None = None,
+        message: str | None = None,
+        headers: Mapping[str, Any] | None = None,
     ) -> None:
-        super(BentoHttpError, self).__init__(message)
+        super().__init__(message)
 
         if http_body and isinstance(http_body, bytes):
             try:
@@ -63,10 +66,10 @@ class BentoServerError(BentoHttpError):
     def __init__(
         self,
         http_status: int,
-        http_body: Optional[Union[bytes, str]] = None,
-        json_body: Optional[Dict[str, Any]] = None,
-        message: Optional[str] = None,
-        headers: Optional[Any] = None,
+        http_body: bytes | str | None = None,
+        json_body: dict[str, Any] | None = None,
+        message: str | None = None,
+        headers: Mapping[str, Any] | None = None,
     ) -> None:
         super().__init__(
             http_status=http_status,
@@ -85,10 +88,10 @@ class BentoClientError(BentoHttpError):
     def __init__(
         self,
         http_status: int,
-        http_body: Optional[Union[bytes, str]] = None,
-        json_body: Optional[Dict[str, Any]] = None,
-        message: Optional[str] = None,
-        headers: Optional[Any] = None,
+        http_body: bytes | str | None = None,
+        json_body: dict[str, Any] | None = None,
+        message: str | None = None,
+        headers: Mapping[str, Any] | None = None,
     ) -> None:
         super().__init__(
             http_status=http_status,
@@ -103,6 +106,7 @@ class BentoWarning(Warning):
     """
     Represents a Databento specific warning.
     """
+
 
 class BentoDeprecationWarning(BentoWarning):
     """

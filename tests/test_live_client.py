@@ -1,8 +1,10 @@
 """Unit tests for the Live client."""
+from __future__ import annotations
+
 import pathlib
 import platform
 from io import BytesIO
-from typing import Callable, List
+from typing import Callable
 from unittest.mock import MagicMock
 
 import databento_dbn
@@ -546,7 +548,7 @@ async def test_live_async_iteration(
 
     live_client.start()
 
-    records: List[DBNRecord] = []
+    records: list[DBNRecord] = []
     async for record in live_client:
         records.append(record)
 
@@ -947,7 +949,7 @@ async def test_live_callback_with_reconnect(
     Test that the client can reconnect to the same subscription
     with a callback. That callback should emit every record.
     """
-    records: List[DBNRecord] = []
+    records: list[DBNRecord] = []
     live_client.add_callback(records.append)
 
     for _ in range(5):

@@ -1,4 +1,5 @@
-from typing import Union
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import databento as db
@@ -125,9 +126,9 @@ def test_list_fields_sends_expected_request(
 def test_list_unit_price_sends_expected_request(
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,
-    dataset: Union[str, Dataset],
-    schema: Union[str, Schema],
-    mode: Union[str, FeedMode],
+    dataset: Dataset | str,
+    schema: Schema | str,
+    mode: FeedMode | str,
 ) -> None:
     # Arrange
     monkeypatch.setattr(requests, "get", mocked_get := MagicMock())

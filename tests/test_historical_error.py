@@ -1,4 +1,5 @@
-from typing import Type
+from __future__ import annotations
+
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
@@ -22,7 +23,7 @@ from databento.historical.http import check_http_error_async
 )
 def test_check_http_status(
     status_code: int,
-    expected_exception: Type[Exception],
+    expected_exception: type[Exception],
     message: str,
 ) -> None:
     """
@@ -48,7 +49,7 @@ def test_check_http_status(
 )
 async def test_check_http_status_async(
     status_code: int,
-    expected_exception: Type[Exception],
+    expected_exception: type[Exception],
     message: str,
 ) -> None:
     """

@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import asyncio
 import dataclasses
 import logging
 import queue
 import struct
 import threading
+from collections.abc import Iterable
 from numbers import Number
-from typing import IO, Callable, Iterable, List, Optional, Set, Union
+from typing import IO, Callable
 
 import databento_dbn
 
@@ -52,8 +55,7 @@ class DBNQueue(queue.Queue):  # type: ignore [type-arg]
 
     def half_full(self) -> bool:
         """
-        Implementation which reports the queue as full when it
-        has reached half capacity.
+        Return True when the queue has reached half capacity.
         """
         with self.mutex:
             return self._qsize() > self.maxsize // 2
@@ -70,7 +72,7 @@ class SessionMetadata:
         The encapsulated metadata.
     """
 
-    data: Optional[databento_dbn.Metadata] = dataclasses.field(default=None)
+    data: databento_dbn.Metadata | None = dataclasses.field(default=None)
 
     def __bool__(self) -> bool:
         return self.data is not None
@@ -116,10 +118,10 @@ class _SessionProtocol(DatabentoLiveProtocol):
     def __init__(
         self,
         api_key: str,
-        dataset: Union[Dataset, str],
+        dataset: Dataset | str,
         dbn_queue: DBNQueue,
-        user_callbacks: List[UserCallback],
-        user_streams: List[IO[bytes]],
+        user_callbacks: list[UserCallback],
+        user_streams: list[IO[bytes]],
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
@@ -129,7 +131,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._dbn_queue = dbn_queue
         self._loop = loop
         self._metadata: SessionMetadata = metadata
-        self._tasks: Set["asyncio.Task[None]"] = set()
+        self._tasks: set[asyncio.Task[None]] = set()
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
 
@@ -193,7 +195,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
     async def _stream_task(
         self,
         stream: IO[bytes],
-        record: Union[databento_dbn.Metadata, DBNRecord],
+        record: databento_dbn.Metadata | DBNRecord,
     ) -> None:
         has_ts_out = self._metadata and self._metadata.data.ts_out
         try:
@@ -239,7 +241,7 @@ class Session:
         self,
         loop: asyncio.AbstractEventLoop,
         protocol_factory: Callable[[], _SessionProtocol],
-        user_gateway: Optional[str] = None,
+        user_gateway: str | None = None,
         port: int = DEFAULT_REMOTE_PORT,
         ts_out: bool = False,
     ) -> None:
@@ -247,10 +249,10 @@ class Session:
         self._ts_out = ts_out
         self._protocol_factory = protocol_factory
 
-        self._transport: Optional[asyncio.Transport] = None
-        self._protocol: Optional[_SessionProtocol] = None
+        self._transport: asyncio.Transport | None = None
+        self._protocol: _SessionProtocol | None = None
 
-        self._user_gateway: Optional[str] = user_gateway
+        self._user_gateway: str | None = user_gateway
         self._port = port
 
     def is_authenticated(self) -> bool:
@@ -310,7 +312,7 @@ class Session:
         return self._protocol.started.is_set()
 
     @property
-    def metadata(self) -> Optional[databento_dbn.Metadata]:
+    def metadata(self) -> databento_dbn.Metadata | None:
         """
         Return the current session's Metadata.
 
@@ -352,11 +354,11 @@ class Session:
 
     def subscribe(
         self,
-        dataset: Union[Dataset, str],
-        schema: Union[Schema, str],
-        symbols: Union[Iterable[str], Iterable[Number], str, Number] = ALL_SYMBOLS,
-        stype_in: Union[SType, str] = SType.RAW_SYMBOL,
-        start: Optional[Union[str, int]] = None,
+        dataset: Dataset | str,
+        schema: Schema | str,
+        symbols: Iterable[str] | Iterable[Number] | str | Number = ALL_SYMBOLS,
+        stype_in: SType | str = SType.RAW_SYMBOL,
+        start: str | int | None = None,
     ) -> None:
         """
         Send a subscription request on the current connection.
@@ -369,7 +371,7 @@ class Session:
             The dataset for the subscription.
         schema : Schema or str
             The schema to subscribe to.
-        symbols : Iterable[Union[str, Number]] or str or Number, default 'ALL_SYMBOLS'
+        symbols : Iterable[str | Number] or str or Number, default 'ALL_SYMBOLS'
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
@@ -434,7 +436,7 @@ class Session:
 
     def _connect(
         self,
-        dataset: Union[Dataset, str],
+        dataset: Dataset | str,
         port: int,
         loop: asyncio.AbstractEventLoop,
     ) -> None:

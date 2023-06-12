@@ -13,7 +13,7 @@ import threading
 from concurrent import futures
 from functools import singledispatchmethod
 from io import BytesIO
-from typing import Callable, Dict, List, NewType, Optional, Type, TypeVar
+from typing import Callable, NewType, TypeVar
 
 import zstandard
 from databento.common import cram
@@ -64,7 +64,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
     def __init__(
         self,
         version: str,
-        user_api_keys: Dict[str, str],
+        user_api_keys: dict[str, str],
         message_queue: MessageQueue,
         dbn_path: pathlib.Path,
     ) -> None:
@@ -73,7 +73,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self._data: BytesIO
         self._message_queue: MessageQueue = message_queue
         self._cram_challenge: str = "".join(
-            random.choice(string.ascii_letters) for _ in range(32)
+            random.choice(string.ascii_letters) for _ in range(32)  # noqa: S311
         )
         self._message_queue = message_queue
         self._peer: str = ""
@@ -134,7 +134,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         return self._peer
 
     @property
-    def user_api_keys(self) -> Dict[str, str]:
+    def user_api_keys(self) -> dict[str, str]:
         """
         Return a dictionary of user api keys for testing.
         The keys to this dictionary are the bucket_ids.
@@ -142,7 +142,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
 
         Returns
         -------
-        Dict[str, str]
+        dict[str, str]
 
         """
         return self._user_api_keys
@@ -214,7 +214,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self.__transport = transport
         self._buffer = bytearray(1024)
         self._data = BytesIO()
-        self._schemas: List[Schema] = []
+        self._schemas: list[Schema] = []
 
         peer_host, peer_port = transport.get_extra_info("peername")
         self._peer = f"{peer_host}:{peer_port}"
@@ -420,7 +420,7 @@ class MockLiveServer:
         self._host: str
         self._port: int
         self._dbn_path: pathlib.Path
-        self._user_api_keys: Dict[str, str]
+        self._user_api_keys: dict[str, str]
         self._message_queue: MessageQueue
         self._thread: threading.Thread
         self._loop: asyncio.AbstractEventLoop
@@ -464,7 +464,7 @@ class MockLiveServer:
     @classmethod
     def _protocol_factory(
         cls,
-        user_api_keys: Dict[str, str],
+        user_api_keys: dict[str, str],
         message_queue: MessageQueue,
         version: str,
         dbn_path: pathlib.Path,
@@ -485,7 +485,7 @@ class MockLiveServer:
         host: str = "localhost",
         port: int = 0,
         dbn_path: pathlib.Path = pathlib.Path.cwd(),
-    ) -> "MockLiveServer":
+    ) -> MockLiveServer:
         """
         Create a mock server instance. This factory method is the
         preferred way to create an instance of MockLiveServer.
@@ -526,7 +526,7 @@ class MockLiveServer:
         )
         thread.start()
 
-        user_api_keys: Dict[str, str] = {}
+        user_api_keys: dict[str, str] = {}
         message_queue: MessageQueue = queue.Queue()  # type: ignore
 
         # We will add an API key from DATABENTO_API_KEY if it exists
@@ -564,7 +564,7 @@ class MockLiveServer:
 
         return mock_live_server
 
-    def get_message(self, timeout: Optional[float]) -> GatewayControl:
+    def get_message(self, timeout: float | None) -> GatewayControl:
         """
         Return the next gateway message received from the client.
 
@@ -587,7 +587,7 @@ class MockLiveServer:
 
     def get_message_of_type(
         self,
-        message_type: Type[G],
+        message_type: type[G],
         timeout: float,
     ) -> G:
         """
@@ -597,7 +597,7 @@ class MockLiveServer:
 
         Parameters
         ----------
-        message_type : Type[GatewayControl]
+        message_type : type[GatewayControl]
             The type of GatewayControl message to wait for.
         timeout : float, optional
             Duration in seconds to wait before timing out.

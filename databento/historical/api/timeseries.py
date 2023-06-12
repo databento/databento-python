@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import date
 from os import PathLike
-from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -32,15 +31,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
     def get_range(
         self,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "raw_symbol",
-        stype_out: Union[SType, str] = "instrument_id",
-        limit: Optional[int] = None,
-        path: Optional[Union[PathLike[str], str]] = None,
+        dataset: Dataset | str | None,
+        start: pd.Timestamp | date | str | int,
+        end: pd.Timestamp | date | str | int | None = None,
+        symbols: list[str] | str | None = None,
+        schema: Schema | str = "trades",
+        stype_in: SType | str = "raw_symbol",
+        stype_out: SType | str = "instrument_id",
+        limit: int | None = None,
+        path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         """
         Request a historical time series data stream from Databento.
@@ -67,11 +66,11 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : List[Union[str, int]] or str, optional
+        symbols : list[str | instr | intt] or str, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'
             The data record schema for the request.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
@@ -100,7 +99,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         schema_valid = validate_enum(schema, Schema, "schema")
         start_valid = datetime_to_string(start)
         end_valid = optional_datetime_to_string(end)
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", start_valid),
             ("end", end_valid),
@@ -125,15 +124,15 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
     async def get_range_async(
         self,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
-        stype_in: Union[SType, str] = "raw_symbol",
-        stype_out: Union[SType, str] = "instrument_id",
-        limit: Optional[int] = None,
-        path: Optional[Union[PathLike[str], str]] = None,
+        dataset: Dataset | str | None,
+        start: pd.Timestamp | date | str | int,
+        end: pd.Timestamp | date | str | int | None = None,
+        symbols: list[str] | str | None = None,
+        schema: Schema | str = "trades",
+        stype_in: SType | str = "raw_symbol",
+        stype_out: SType | str = "instrument_id",
+        limit: int | None = None,
+        path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         """
         Asynchronously request a historical time series data stream from Databento.
@@ -160,7 +159,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : List[Union[str, int]] or str, optional
+        symbols : list[str | int] or str, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
@@ -193,7 +192,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         schema_valid = validate_enum(schema, Schema, "schema")
         start_valid = datetime_to_string(start)
         end_valid = optional_datetime_to_string(end)
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", start_valid),
             ("end", end_valid),

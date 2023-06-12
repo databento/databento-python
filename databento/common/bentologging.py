@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import logging
-from typing import Union
 
 
-def enable_logging(level: Union[int, str] = logging.INFO) -> None:
+def enable_logging(level: int | str = logging.INFO) -> None:
     """
     Enable logging for the Databento module.
     This function should be used for simple applications and examples.

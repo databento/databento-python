@@ -21,7 +21,7 @@ from tests.mock_live_server import MockLiveServer
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
-    Function to customize pytest cli options.
+    Customize pytest cli options.
     This should not be invoked directly.
 
     Parameters
@@ -44,7 +44,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def pytest_configure(config: pytest.Config) -> None:
     """
-    Function to configure pytest.
+    Configure pytest.
     This should not be invoked directly.
 
     Parameters
@@ -65,7 +65,7 @@ def pytest_collection_modifyitems(
     items: Iterable[pytest.Item],
 ) -> None:
     """
-    Function to customize test items.
+    Customize test items.
     This should not be invoked directly.
 
     Parameters
@@ -89,7 +89,7 @@ def pytest_collection_modifyitems(
 @pytest.fixture(name="test_data_path")
 def fixture_test_data_path() -> Callable[[Schema], pathlib.Path]:
     """
-    Factory fixture for retrieving stub data paths.
+    Fixture to retrieve stub data paths.
 
     Parameters
     ----------
@@ -117,7 +117,7 @@ def fixture_test_data(
     test_data_path: Callable[[Schema], pathlib.Path],
 ) -> Callable[[Schema], bytes]:
     """
-    Factory fixture for retrieving stub test data.
+    Fixture to retrieve stub test data.
 
     Parameters
     ----------
@@ -143,7 +143,7 @@ def fixture_test_data(
 @pytest.fixture(name="test_api_key")
 def fixture_test_api_key() -> str:
     """
-    Generates a random API key for testing.
+    Generate a random API key for testing.
     API keys are 32 characters in length, the first three of
     which are "db-".
 
@@ -153,7 +153,7 @@ def fixture_test_api_key() -> str:
 
     """
     chars = string.ascii_letters + string.digits
-    random_str = "".join(random.choice(chars) for _ in range(29))
+    random_str = "".join(random.choice(chars) for _ in range(29))  # noqa: S311
     return f"db-{random_str}"
 
 

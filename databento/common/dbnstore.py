@@ -12,10 +12,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
-    List,
-    Optional,
-    Union,
 )
 
 import databento_dbn
@@ -135,14 +131,14 @@ class FileDataSource(DataSource):
 
     """
 
-    def __init__(self, source: Union[PathLike[str], str]):
+    def __init__(self, source: PathLike[str] | str):
         self._path = Path(source)
 
         if not self._path.is_file() or not self._path.exists():
             raise FileNotFoundError(source)
 
         self._name = self._path.name
-        self.__buffer: Optional[IO[bytes]] = None
+        self.__buffer: IO[bytes] | None = None
 
     @property
     def name(self) -> str:
@@ -211,7 +207,7 @@ class MemoryDataSource(DataSource):
 
     """
 
-    def __init__(self, source: Union[BytesIO, bytes, IO[bytes]]):
+    def __init__(self, source: BytesIO | bytes | IO[bytes]):
         initial_data = source if isinstance(source, bytes) else source.read()
         if len(initial_data) == 0:
             raise ValueError(
@@ -274,9 +270,9 @@ class DBNStore:
         The query end for the data.
     limit : int | None
         The query limit for the data.
-    mappings : Dict[str, List[Dict[str, Any]]]:
+    mappings : dict[str, list[dict[str, Any]]]:
         The symbology mappings for the data.
-    metadata : Dict[str, Any]
+    metadata : dict[str, Any]
         The metadata for the data.
     nbytes : int
         The size of the data in bytes.
@@ -292,9 +288,9 @@ class DBNStore:
         The query input symbology type for the data.
     stype_out : SType
         The query output symbology type for the data.
-    symbology : Dict[str, Any]
+    symbology : dict[str, Any]
         The symbology resolution mappings for the data.
-    symbols : List[str]
+    symbols : list[str]
         The query symbols for the data.
 
     Methods
@@ -353,9 +349,9 @@ class DBNStore:
         )
 
         # This is populated when _map_symbols is called
-        self._instrument_id_index: Dict[
+        self._instrument_id_index: dict[
             dt.date,
-            Dict[int, str],
+            dict[int, str],
         ] = {}
 
     def __iter__(self) -> Generator[DBNRecord, None, None]:
@@ -419,8 +415,8 @@ class DBNStore:
 
         return df
 
-    def _build_instrument_id_index(self) -> Dict[dt.date, Dict[int, str]]:
-        intervals: List[InstrumentIdMappingInterval] = []
+    def _build_instrument_id_index(self) -> dict[dt.date, dict[int, str]]:
+        intervals: list[InstrumentIdMappingInterval] = []
         for raw_symbol, i in self.mappings.items():
             for row in i:
                 symbol = row["symbol"]
@@ -435,7 +431,7 @@ class DBNStore:
                     ),
                 )
 
-        instrument_id_index: Dict[dt.date, Dict[int, str]] = {}
+        instrument_id_index: dict[dt.date, dict[int, str]] = {}
         for interval in intervals:
             for ts in pd.date_range(
                 start=interval.start_date,
@@ -444,7 +440,7 @@ class DBNStore:
                 **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
             ):
                 d: dt.date = ts.date()
-                date_map: Dict[int, str] = instrument_id_index.get(d, {})
+                date_map: dict[int, str] = instrument_id_index.get(d, {})
                 if not date_map:
                     instrument_id_index[d] = date_map
                 date_map[interval.instrument_id] = interval.raw_symbol
@@ -527,7 +523,7 @@ class DBNStore:
         return str(self._metadata.dataset)
 
     @property
-    def end(self) -> Optional[pd.Timestamp]:
+    def end(self) -> pd.Timestamp | None:
         """
         Return the query end for the data.
         If None, the end time was not known when the data was generated.
@@ -547,7 +543,7 @@ class DBNStore:
         return None
 
     @property
-    def limit(self) -> Optional[int]:
+    def limit(self) -> int | None:
         """
         Return the query limit for the data.
 
@@ -571,13 +567,13 @@ class DBNStore:
         return self._data_source.nbytes
 
     @property
-    def mappings(self) -> Dict[str, List[Dict[str, Any]]]:
+    def mappings(self) -> dict[str, list[dict[str, Any]]]:
         """
         Return the symbology mappings for the data.
 
         Returns
         -------
-        Dict[str, List[Dict[str, Any]]]
+        dict[str, list[dict[str, Any]]]
 
         """
         return self._metadata.mappings
@@ -634,7 +630,7 @@ class DBNStore:
         return reader
 
     @property
-    def schema(self) -> Optional[Schema]:
+    def schema(self) -> Schema | None:
         """
         Return the DBN record schema.
         If None, may contain one or more schemas.
@@ -666,7 +662,7 @@ class DBNStore:
         return pd.Timestamp(self._metadata.start, tz="UTC")
 
     @property
-    def stype_in(self) -> Optional[SType]:
+    def stype_in(self) -> SType | None:
         """
         Return the query input symbology type for the data.
         If None, the records may contain mixed STypes.
@@ -694,13 +690,13 @@ class DBNStore:
         return SType(self._metadata.stype_out)
 
     @property
-    def symbology(self) -> Dict[str, Any]:
+    def symbology(self) -> dict[str, Any]:
         """
         Return the symbology resolution mappings for the data.
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
 
         """
         return {
@@ -715,19 +711,19 @@ class DBNStore:
         }
 
     @property
-    def symbols(self) -> List[str]:
+    def symbols(self) -> list[str]:
         """
         Return the query symbols for the data.
 
         Returns
         -------
-        List[str]
+        list[str]
 
         """
         return self._metadata.symbols
 
     @classmethod
-    def from_file(cls, path: Union[PathLike[str], str]) -> "DBNStore":
+    def from_file(cls, path: PathLike[str] | str) -> DBNStore:
         """
         Load the data from a DBN file at the given path.
 
@@ -749,7 +745,7 @@ class DBNStore:
         return cls(FileDataSource(path))
 
     @classmethod
-    def from_bytes(cls, data: Union[BytesIO, bytes, IO[bytes]]) -> "DBNStore":
+    def from_bytes(cls, data: BytesIO | bytes | IO[bytes]) -> DBNStore:
         """
         Load the data from a raw bytes.
 
@@ -792,9 +788,9 @@ class DBNStore:
 
     def request_full_definitions(
         self,
-        client: "Historical",
-        path: Optional[Union[Path, str]] = None,
-    ) -> "DBNStore":
+        client: Historical,
+        path: Path | str | None = None,
+    ) -> DBNStore:
         """
         Request full instrument definitions based on the metadata properties.
 
@@ -827,7 +823,7 @@ class DBNStore:
             path=path,
         )
 
-    def request_symbology(self, client: "Historical") -> Dict[str, Any]:
+    def request_symbology(self, client: Historical) -> dict[str, Any]:
         """
         Request symbology resolution based on the metadata properties.
 
@@ -843,7 +839,7 @@ class DBNStore:
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
             A result including a map of input symbol to output symbol across a
             date range.
 
@@ -859,11 +855,11 @@ class DBNStore:
 
     def to_csv(
         self,
-        path: Union[Path, str],
+        path: Path | str,
         pretty_ts: bool = True,
         pretty_px: bool = True,
         map_symbols: bool = True,
-        schema: Optional[Union[Schema, str]] = None,
+        schema: Schema | str | None = None,
     ) -> None:
         """
         Write the data to a file in CSV format.
@@ -908,7 +904,7 @@ class DBNStore:
         pretty_ts: bool = True,
         pretty_px: bool = True,
         map_symbols: bool = True,
-        schema: Optional[Union[Schema, str]] = None,
+        schema: Schema | str | None = None,
     ) -> pd.DataFrame:
         """
         Return the data as a `pd.DataFrame`.
@@ -959,7 +955,7 @@ class DBNStore:
 
         return df
 
-    def to_file(self, path: Union[Path, str]) -> None:
+    def to_file(self, path: Path | str) -> None:
         """
         Write the data to a DBN file at the given path.
 
@@ -975,11 +971,11 @@ class DBNStore:
 
     def to_json(
         self,
-        path: Union[Path, str],
+        path: Path | str,
         pretty_ts: bool = True,
         pretty_px: bool = True,
         map_symbols: bool = True,
-        schema: Optional[Union[Schema, str]] = None,
+        schema: Schema | str | None = None,
     ) -> None:
         """
         Write the data to a file in JSON format.
@@ -1021,7 +1017,7 @@ class DBNStore:
 
     def to_ndarray(
         self,
-        schema: Optional[Union[Schema, str]] = None,
+        schema: Schema | str | None = None,
     ) -> np.ndarray[Any, Any]:
         """
         Return the data as a numpy `ndarray`.

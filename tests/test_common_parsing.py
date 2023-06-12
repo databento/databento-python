@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import datetime as dt
 from numbers import Number
-from typing import Any, List, Optional, Type, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -36,11 +38,11 @@ def test_maybe_values_list_to_string_given_invalid_input_raises_type_error() -> 
     ],
 )
 def test_maybe_values_list_to_string_given_valid_inputs_returns_expected(
-    values: Optional[List[str]],
+    values: list[str] | None,
     expected: str,
 ) -> None:
     # Arrange, Act
-    result: Optional[str] = optional_values_list_to_string(values)
+    result: str | None = optional_values_list_to_string(values)
 
     # Assert
     assert result == expected
@@ -74,8 +76,8 @@ def test_maybe_symbols_list_to_string_given_invalid_input_raises_type_error() ->
 )
 def test_optional_symbols_list_to_string_given_valid_inputs_returns_expected(
     stype: SType,
-    symbols: Optional[List[str]],
-    expected: Union[str, Type[Exception]],
+    symbols: list[str] | None,
+    expected: str | type[Exception],
 ) -> None:
     # Arrange, Act, Assert
     if isinstance(expected, str):
@@ -102,9 +104,9 @@ def test_optional_symbols_list_to_string_given_valid_inputs_returns_expected(
     ],
 )
 def test_optional_symbols_list_to_string_int(
-    symbols: Optional[Union[List[Number], Number]],
+    symbols: list[Number] |  Number | None,
     stype: SType,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that integers are allowed for SType.INSTRUMENT_ID.
@@ -138,9 +140,9 @@ def test_optional_symbols_list_to_string_int(
     ],
 )
 def test_optional_symbols_list_to_string_numpy(
-    symbols: Optional[Union[List[Number], Number]],
+    symbols: list[Number] | Number | None,
     stype: SType,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that weird numpy types are allowed for SType.INSTRUMENT_ID.
@@ -171,9 +173,9 @@ def test_optional_symbols_list_to_string_numpy(
     ],
 )
 def test_optional_symbols_list_to_string_raw_symbol(
-    symbols: Optional[Union[List[Number], Number]],
+    symbols: list[Number] | Number | None,
     stype: SType,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that str are allowed for SType.RAW_SYMBOL.
@@ -194,11 +196,11 @@ def test_optional_symbols_list_to_string_raw_symbol(
     ],
 )
 def test_maybe_date_to_string_give_valid_values_returns_expected_results(
-    value: Union[dt.date, str],
+    value: dt.date | str,
     expected: str,
 ) -> None:
     # Arrange, Act
-    result: Optional[str] = optional_date_to_string(value)
+    result: str | None = optional_date_to_string(value)
 
     # Assert
     assert result == expected
@@ -215,11 +217,11 @@ def test_maybe_date_to_string_give_valid_values_returns_expected_results(
     ],
 )
 def test_maybe_datetime_to_string_give_valid_values_returns_expected_results(
-    value: Union[pd.Timestamp, dt.date, str, int],
+    value: pd.Timestamp | dt.date | str | int,
     expected: str,
 ) -> None:
     # Arrange, Act
-    result: Optional[str] = optional_datetime_to_string(value)
+    result: str | None = optional_datetime_to_string(value)
 
     # Assert
     assert result == expected
@@ -244,7 +246,7 @@ def test_maybe_datetime_to_string_give_valid_values_returns_expected_results(
     ],
 )
 def test_datetime_to_unix_nanoseconds(
-    value: Optional[Union[pd.Timestamp, str, int]],
+    value: pd.Timestamp | str | int,
     expected: int,
 ) -> None:
     """

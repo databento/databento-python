@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import Optional, Type, TypeVar, Union
+from typing import TypeVar
 from urllib.parse import urlsplit
 from urllib.parse import urlunsplit
 
@@ -11,7 +11,7 @@ from urllib.parse import urlunsplit
 E = TypeVar("E", bound=Enum)
 
 
-def validate_path(value: Union[PathLike[str], str], param: str) -> Path:
+def validate_path(value: PathLike[str] | str, param: str) -> Path:
     """
     Validate whether the given value is a valid path.
 
@@ -39,7 +39,7 @@ def validate_path(value: Union[PathLike[str], str], param: str) -> Path:
 
 def validate_enum(
     value: object,
-    enum: Type[E],
+    enum: type[E],
     param: str,
 ) -> E:
     """
@@ -50,7 +50,7 @@ def validate_enum(
     ----------
     value : Enum or str, optional
         The value to validate.
-    enum : Type[Enum]
+    enum : type[Enum]
         The valid enum type.
     param : str
         The name of the parameter being validated (for any error message).
@@ -77,10 +77,10 @@ def validate_enum(
 
 
 def validate_maybe_enum(
-    value: Optional[Union[E, str]],
-    enum: Type[E],
+    value: E | str | None,
+    enum: type[E],
     param: str,
-) -> Optional[E]:
+) -> E | None:
     """
     Validate whether the given value is either the correct Enum type, a valid
     value of that enum, or None.
@@ -89,7 +89,7 @@ def validate_maybe_enum(
     ----------
     value : Enum or str, optional
         The value to validate.
-    enum : Type[Enum]
+    enum : type[Enum]
         The valid enum type.
     param : str
         The name of the parameter being validated (for any error message).

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import date
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import pandas as pd
 from requests import Response
@@ -29,7 +31,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/metadata"
 
-    def list_publishers(self) -> Dict[str, int]:
+    def list_publishers(self) -> dict[str, int]:
         """
         Request all publishers from Databento.
 
@@ -39,7 +41,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, int]
+        dict[str, int]
 
         """
         response: Response = self._get(
@@ -50,9 +52,9 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_datasets(
         self,
-        start_date: Optional[Union[date, str]] = None,
-        end_date: Optional[Union[date, str]] = None,
-    ) -> List[str]:
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
+    ) -> list[str]:
         """
         Request all available datasets from Databento.
 
@@ -72,10 +74,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        List[str]
+        list[str]
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("start_date", optional_date_to_string(start_date)),
             ("end_date", optional_date_to_string(end_date)),
         ]
@@ -87,7 +89,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         )
         return response.json()
 
-    def list_schemas(self, dataset: Union[Dataset, str]) -> List[str]:
+    def list_schemas(self, dataset: Dataset | str) -> list[str]:
         """
         Request all available data schemas from Databento.
 
@@ -100,10 +102,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        List[str]
+        list[str]
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
         ]
 
@@ -116,10 +118,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_fields(
         self,
-        dataset: Union[Dataset, str],
-        schema: Optional[Union[Schema, str]] = None,
-        encoding: Optional[Union[Encoding, str]] = None,
-    ) -> Dict[str, Dict[str, str]]:
+        dataset: Dataset | str,
+        schema: Schema | str | None = None,
+        encoding: Encoding | str | None = None,
+    ) -> dict[str, dict[str, str]]:
         """
         Request all fields for a dataset, schema and encoding from Databento.
 
@@ -139,11 +141,11 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Dict[str, str]]
+        dict[str, dict[str, str]]
             A mapping of dataset to encoding to schema to field to data type.
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("schema", validate_maybe_enum(schema, Schema, "schema")),
             ("encoding", validate_maybe_enum(encoding, Encoding, "encoding")),
@@ -158,10 +160,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_unit_prices(
         self,
-        dataset: Union[Dataset, str],
-        mode: Optional[Union[FeedMode, str]] = None,
-        schema: Optional[Union[Schema, str]] = None,
-    ) -> Union[float, Dict[str, Any]]:
+        dataset: Dataset | str,
+        mode: FeedMode | str | None = None,
+        schema: Schema | str | None = None,
+    ) -> float | dict[str, Any]:
         """
         List unit prices for each data schema in US dollars per gigabyte.
 
@@ -178,12 +180,12 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        float or Dict[str, Any]
+        float or dict[str, Any]
             If both `mode` and `schema` are specified, the unit price is returned as a single number.
             Otherwise, return a map of feed mode to schema to unit price.
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("mode", validate_maybe_enum(mode, FeedMode, "mode")),
             ("schema", validate_maybe_enum(schema, Schema, "schema")),
@@ -198,10 +200,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def get_dataset_condition(
         self,
-        dataset: Union[Dataset, str],
-        start_date: Optional[Union[date, str]] = None,
-        end_date: Optional[Union[date, str]] = None,
-    ) -> Dict[str, Any]:
+        dataset: Dataset | str,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
+    ) -> dict[str, Any]:
         """
         Get the per date dataset conditions from Databento.
 
@@ -222,10 +224,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start_date", optional_date_to_string(start_date)),
             ("end_date", optional_date_to_string(end_date)),
@@ -240,8 +242,8 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def get_dataset_range(
         self,
-        dataset: Union[Dataset, str],
-    ) -> Dict[str, str]:
+        dataset: Dataset | str,
+    ) -> dict[str, str]:
         """
         Request the available range for the dataset from Databento.
 
@@ -254,11 +256,11 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, str]
+        dict[str, str]
             The available range for the dataset.
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
         ]
 
@@ -272,13 +274,13 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def get_record_count(
         self,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
-        stype_in: Optional[Union[SType, str]] = "raw_symbol",
-        limit: Optional[int] = None,
+        dataset: Dataset | str,
+        start: pd.Timestamp | date | str | int,
+        end: pd.Timestamp | date | str | int | None = None,
+        symbols: list[str] | str | None = None,
+        schema: Schema | str = "trades",
+        stype_in: SType | str = "raw_symbol",
+        limit: int | None = None,
     ) -> int:
         """
         Request the count of data records from Databento.
@@ -299,7 +301,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : List[Union[str, int]] or str, optional
+        symbols : list[str | int] or str, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -317,7 +319,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("symbols", symbols_list),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
@@ -340,13 +342,13 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def get_billable_size(
         self,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
-        stype_in: Optional[Union[SType, str]] = "raw_symbol",
-        limit: Optional[int] = None,
+        dataset: Dataset | str,
+        start: pd.Timestamp | date | str | int,
+        end: pd.Timestamp | date | str | int | None = None,
+        symbols: list[str] | str | None = None,
+        schema: Schema | str = "trades",
+        stype_in: SType | str = "raw_symbol",
+        limit: int | None = None,
     ) -> int:
         """
         Request the billable uncompressed raw binary size for historical
@@ -368,7 +370,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : List[Union[str, int]] or str, optional
+        symbols : list[str | int] or str, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -386,7 +388,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", optional_datetime_to_string(end)),
@@ -409,14 +411,14 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def get_cost(
         self,
-        dataset: Union[Dataset, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        mode: Union[FeedMode, str] = "historical-streaming",
-        symbols: Optional[Union[List[str], str]] = None,
-        schema: Union[Schema, str] = "trades",
-        stype_in: Optional[Union[SType, str]] = "raw_symbol",
-        limit: Optional[int] = None,
+        dataset: Dataset | str,
+        start: pd.Timestamp | date | str | int,
+        end: pd.Timestamp | date | str | int | None = None,
+        mode: FeedMode | str = "historical-streaming",
+        symbols: list[str] | str | None = None,
+        schema: Schema | str = "trades",
+        stype_in: SType | str = "raw_symbol",
+        limit: int | None = None,
     ) -> float:
         """
         Request the cost in US dollars for historical streaming or batched files
@@ -440,7 +442,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             Defaults to the same value as `start`.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
-        symbols : List[Union[str, int]] or str, optional
+        symbols : list[str | int] or str, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -458,7 +460,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", optional_datetime_to_string(end)),

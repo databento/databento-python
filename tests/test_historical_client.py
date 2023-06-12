@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import pathlib
-from typing import Callable, Union
+from typing import Callable
 from unittest.mock import MagicMock
 
 import databento as db
@@ -38,7 +40,7 @@ def test_default_host_returns_expected() -> None:
     ],
 )
 def test_gateway_nearest_and_bo1_map_to_hist_databento(
-    gateway: Union[HistoricalGateway, str],
+    gateway: HistoricalGateway | str,
     expected: str,
 ) -> None:
     # Arrange, Act

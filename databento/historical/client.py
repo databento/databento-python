@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Optional, Union
 
 from databento.common.enums import HistoricalGateway
 from databento.common.validation import validate_gateway
@@ -35,8 +36,8 @@ class Historical:
 
     def __init__(
         self,
-        key: Optional[str] = None,
-        gateway: Union[HistoricalGateway, str] = HistoricalGateway.BO1,
+        key: str | None = None,
+        gateway: HistoricalGateway | str = HistoricalGateway.BO1,
     ):
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")

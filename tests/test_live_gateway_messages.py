@@ -1,4 +1,4 @@
-from typing import Tuple, Type, Union
+from __future__ import annotations
 
 import pytest
 from databento.common.enums import Dataset
@@ -60,7 +60,7 @@ ALL_MESSAGES = (
 )
 def test_parse_authentication_request(
     line: str,
-    expected: Union[Tuple[str, ...], Type[Exception]],
+    expected: tuple[str, ...] | type[Exception],
 ) -> None:
     """
     Test that a AuthenticationRequest is parsed from a string as
@@ -102,7 +102,7 @@ def test_parse_authentication_request(
 )
 def test_serialize_authentication_request(
     message: AuthenticationRequest,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a AuthenticationRequest is serialized as expected.
@@ -120,7 +120,7 @@ def test_serialize_authentication_request(
 )
 def test_parse_authentication_response(
     line: str,
-    expected: Union[Tuple[str, ...], Type[Exception]],
+    expected: tuple[str, ...] | type[Exception],
 ) -> None:
     """
     Test that a AuthenticationResponse is parsed from a string as
@@ -155,7 +155,7 @@ def test_parse_authentication_response(
 )
 def test_serialize_authentication_response(
     message: AuthenticationResponse,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a AuthenticationResponse is serialized as expected.
@@ -173,7 +173,7 @@ def test_serialize_authentication_response(
 )
 def test_parse_challenge_request(
     line: str,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a ChallengeRequest is parsed from a string as
@@ -195,7 +195,7 @@ def test_parse_challenge_request(
 )
 def test_serialize_challenge_request(
     message: ChallengeRequest,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a ChallengeRequest is serialized as expected.
@@ -213,7 +213,7 @@ def test_serialize_challenge_request(
 )
 def test_parse_greeting(
     line: str,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a Greeting is parsed from a string as
@@ -235,7 +235,7 @@ def test_parse_greeting(
 )
 def test_serialize_greeting(
     message: Greeting,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a Greeting is serialized as expected.
@@ -253,7 +253,7 @@ def test_serialize_greeting(
 )
 def test_parse_session_start(
     line: str,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a SessionStart is parsed from a string as
@@ -275,7 +275,7 @@ def test_parse_session_start(
 )
 def test_serialize_session_start(
     message: SessionStart,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a SessionStart is serialized as expected.
@@ -311,7 +311,7 @@ def test_serialize_session_start(
 )
 def test_parse_subscription_request(
     line: str,
-    expected: Union[Tuple[str, ...], Type[Exception]],
+    expected: tuple[str, ...] | type[Exception],
 ) -> None:
     """
     Test that a SubscriptionRequest is parsed from a string as
@@ -357,7 +357,7 @@ def test_parse_subscription_request(
 )
 def test_serialize_subscription_request(
     message: SubscriptionRequest,
-    expected: Union[str, Type[Exception]],
+    expected: str | type[Exception],
 ) -> None:
     """
     Test that a SubscriptionRequest is serialized as expected.

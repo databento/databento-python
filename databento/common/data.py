@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union
+from __future__ import annotations
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from databento.common.enums import Schema
 ################################################################################
 
 
-def get_deriv_ba_types(level: int) -> List[Tuple[str, Union[type, str]]]:
+def get_deriv_ba_types(level: int) -> list[tuple[str, type | str]]:
     return [
         (f"bid_px_{level:02d}", np.int64),
         (f"ask_px_{level:02d}", np.int64),
@@ -37,7 +37,7 @@ OHLCV_SCHEMAS = (
 )
 
 
-RECORD_HEADER: List[Tuple[str, Union[type, str]]] = [
+RECORD_HEADER: list[tuple[str, type | str]] = [
     ("length", np.uint8),
     ("rtype", np.uint8),
     ("publisher_id", np.uint16),
@@ -45,7 +45,7 @@ RECORD_HEADER: List[Tuple[str, Union[type, str]]] = [
     ("ts_event", np.uint64),
 ]
 
-MBO_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+MBO_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("order_id", np.uint64),
     ("price", np.int64),
     ("size", np.uint32),
@@ -58,7 +58,7 @@ MBO_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("sequence", np.uint32),
 ]
 
-MBP_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+MBP_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("price", np.int64),
     ("size", np.uint32),
     ("action", "S1"),  # 1 byte chararray
@@ -71,7 +71,7 @@ MBP_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
 ]
 
 
-OHLCV_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+OHLCV_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("open", np.int64),
     ("high", np.int64),
     ("low", np.int64),
@@ -79,7 +79,7 @@ OHLCV_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("volume", np.int64),
 ]
 
-DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+DEFINITION_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("ts_recv", np.uint64),
     ("min_price_increment", np.int64),
     ("display_factor", np.int64),
@@ -147,7 +147,7 @@ DEFINITION_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("dummy", "S3"),  # 3 byte chararray (Adjustment filler for 8-bytes alignment)
 ]
 
-IMBALANCE_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+IMBALANCE_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("ts_recv", np.uint64),
     ("ref_price", np.int64),
     ("auction_time", np.uint64),
@@ -171,7 +171,7 @@ IMBALANCE_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
     ("dummy", "S1"),
 ]
 
-STATISTICS_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
+STATISTICS_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("ts_recv", np.uint64),
     ("ts_ref", np.uint64),
     ("price", np.int64),
@@ -186,7 +186,7 @@ STATISTICS_MSG: List[Tuple[str, Union[type, str]]] = RECORD_HEADER + [
 ]
 
 
-STRUCT_MAP: Dict[Schema, List[Tuple[str, Union[type, str]]]] = {
+STRUCT_MAP: dict[Schema, list[tuple[str, type | str]]] = {
     Schema.MBO: MBO_MSG,
     Schema.MBP_1: MBP_MSG + get_deriv_ba_types(0),  # 1
     Schema.MBP_10: MBP_MSG
@@ -253,7 +253,7 @@ DEFINITION_TYPE_MAX_MAP = {
 ################################################################################
 
 
-def get_deriv_ba_fields(level: int) -> List[str]:
+def get_deriv_ba_fields(level: int) -> list[str]:
     return [
         f"bid_px_{level:02d}",
         f"ask_px_{level:02d}",

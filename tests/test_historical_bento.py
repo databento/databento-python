@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import collections
 import datetime as dt
 import sys
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable
 
 import databento
 import numpy as np
@@ -201,7 +203,7 @@ def test_replay_with_stub_data_record_passes_to_callback(
     stub_data = test_data(Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
-    handler: List[MBOMsg] = []
+    handler: list[MBOMsg] = []
 
     # Act
     data.replay(callback=handler.append)
@@ -393,7 +395,7 @@ def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
 def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
     test_data: Callable[[Schema], bytes],
     schema: Schema,
-    columns: List[str],
+    columns: list[str],
 ) -> None:
     # Arrange
     stub_data = test_data(schema)
@@ -756,7 +758,7 @@ def test_dbnstore_iterable(
     stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
-    record_list: List[DBNRecord] = list(dbnstore)
+    record_list: list[DBNRecord] = list(dbnstore)
     first: MBOMsg = record_list[0]  # type: ignore
     second: MBOMsg = record_list[1]  # type: ignore
 
