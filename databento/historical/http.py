@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import sys
 import warnings
+from collections.abc import Iterable
 from io import BytesIO
 from json.decoder import JSONDecodeError
 from os import PathLike
-from typing import IO, Any, List, Optional, Tuple, Union
+from typing import IO, Any
 
 import aiohttp
 import requests
@@ -51,7 +52,7 @@ class BentoHttpAPI:
     def _get(
         self,
         url: str,
-        params: Optional[List[Tuple[str, Optional[str]]]] = None,
+        params: Iterable[tuple[str, str | None]] | None = None,
         basic_auth: bool = False,
     ) -> Response:
         self._check_api_key()
@@ -70,7 +71,7 @@ class BentoHttpAPI:
     async def _get_json_async(
         self,
         url: str,
-        params: Optional[List[Tuple[str, Optional[str]]]] = None,
+        params: Iterable[tuple[str, str | None]] | None = None,
         basic_auth: bool = False,
     ) -> Any:
         self._check_api_key()
@@ -91,7 +92,7 @@ class BentoHttpAPI:
     def _post(
         self,
         url: str,
-        params: Optional[List[Tuple[str, Optional[str]]]] = None,
+        params: Iterable[tuple[str, str | None]] | None = None,
         basic_auth: bool = False,
     ) -> Response:
         self._check_api_key()
@@ -110,9 +111,9 @@ class BentoHttpAPI:
     def _stream(
         self,
         url: str,
-        params: List[Tuple[str, Optional[str]]],
+        params: Iterable[tuple[str, str | None]],
         basic_auth: bool,
-        path: Optional[Union[PathLike[str], str]] = None,
+        path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         self._check_api_key()
 
@@ -145,9 +146,9 @@ class BentoHttpAPI:
     async def _stream_async(
         self,
         url: str,
-        params: List[Tuple[str, Optional[str]]],
+        params: Iterable[tuple[str, str | None]],
         basic_auth: bool,
-        path: Optional[Union[PathLike[str], str]] = None,
+        path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         self._check_api_key()
 
@@ -188,7 +189,7 @@ def is_500_series_error(status: int) -> bool:
     return status // 100 == 5
 
 
-def check_backend_warnings(response: Union[Response, ClientResponse]) -> None:
+def check_backend_warnings(response: Response | ClientResponse) -> None:
     if WARNING_HEADER_FIELD not in response.headers:  # type: ignore [arg-type]
         return
 

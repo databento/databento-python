@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import dataclasses
 import logging
 from functools import partial
 from io import BytesIO
-from typing import List, Optional, Type, TypeVar, Union
+from typing import TypeVar
 
 from databento.common.enums import Dataset
 from databento.common.enums import Encoding
@@ -14,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="GatewayControl")
 
+
 @dataclasses.dataclass
 class GatewayControl:
     """
@@ -21,7 +24,7 @@ class GatewayControl:
     """
 
     @classmethod
-    def parse(cls: Type[T], line: str) -> T:
+    def parse(cls: type[T], line: str) -> T:
         """
         Parse a message of type `T` from a string.
 
@@ -87,8 +90,8 @@ class AuthenticationResponse(GatewayControl):
     """
 
     success: str
-    error: Optional[str] = None
-    session_id: Optional[str] = None
+    error: str | None = None
+    session_id: str | None = None
 
 
 @dataclasses.dataclass
@@ -100,9 +103,9 @@ class AuthenticationRequest(GatewayControl):
     """
 
     auth: str
-    dataset: Union[Dataset, str]
+    dataset: Dataset | str
     encoding: Encoding = Encoding.DBN
-    details: Optional[str] = None
+    details: str | None = None
     ts_out: str = "0"
 
 
@@ -113,10 +116,10 @@ class SubscriptionRequest(GatewayControl):
     the client.
     """
 
-    schema: Union[Schema, str]
+    schema: Schema | str
     stype_in: SType
     symbols: str
-    start: Optional[int] = None
+    start: int | None = None
 
 
 @dataclasses.dataclass
@@ -186,14 +189,14 @@ class GatewayDecoder:
         self.__buffer.seek(0, 2)  # seek to end
         self.__buffer.write(data)
 
-    def decode(self) -> List[GatewayControl]:
+    def decode(self) -> list[GatewayControl]:
         """
         Decode messages from the decoder's buffer.
         This will consume decoded data from the buffer.
 
         Returns
         -------
-        List[GatewayControl]
+        list[GatewayControl]
 
         """
         self.__buffer.seek(0)  # rewind

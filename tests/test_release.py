@@ -22,7 +22,7 @@ def fixture_changelog() -> str:
     str
 
     """
-    with open(PROJECT_ROOT / "CHANGELOG.md", mode="r", encoding="utf-8") as changelog:
+    with open(PROJECT_ROOT / "CHANGELOG.md") as changelog:
         return changelog.read()
 
 

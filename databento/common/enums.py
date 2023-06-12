@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from enum import Enum
 from enum import Flag
 from enum import IntFlag
 from enum import unique
-from typing import Callable, Type, TypeVar, Union
+from typing import Callable, TypeVar
 
 from databento_dbn import ImbalanceMsg
 from databento_dbn import InstrumentDefMsg
@@ -19,7 +21,7 @@ from databento.live import DBNRecord
 M = TypeVar("M", bound=Enum)
 
 
-def coercible(enum_type: Type[M]) -> Type[M]:
+def coercible(enum_type: type[M]) -> type[M]:
     """Decorate coercible enumerations.
 
     Decorating an Enum class with this function will intercept calls to
@@ -53,12 +55,12 @@ def coercible(enum_type: Type[M]) -> Type[M]:
         2. Your attribute values are all lowercase
 
     """
-    _new: Callable[[Type[M], object], M] = enum_type.__new__
+    _new: Callable[[type[M], object], M] = enum_type.__new__
 
     def _cast_str(value: object) -> str:
         return str(value).lower()
 
-    coerce_fn: Callable[[object], Union[str, int]]
+    coerce_fn: Callable[[object], str | int]
     if issubclass(enum_type, int):
         coerce_fn = int
     elif issubclass(enum_type, str):
@@ -66,7 +68,7 @@ def coercible(enum_type: Type[M]) -> Type[M]:
     else:
         raise TypeError(f"{enum_type} does not a subclass a coercible type.")
 
-    def coerced_new(enum: Type[M], value: object) -> M:
+    def coerced_new(enum: type[M], value: object) -> M:
         if value is None:
             raise TypeError(
                 f"value `{value}` is not coercible to {enum_type.__name__}.",
@@ -155,7 +157,7 @@ class Schema(StringyMixin, str, Enum):
     IMBALANCE = "imbalance"
     STATISTICS = "statistics"
 
-    def get_record_type(self) -> Type[DBNRecord]:
+    def get_record_type(self) -> type[DBNRecord]:
         if self == Schema.MBO:
             return MBOMsg
         if self == Schema.MBP_1:

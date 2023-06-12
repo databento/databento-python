@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 import os
 import queue
 import threading
+from collections.abc import Iterable
 from concurrent import futures
 from numbers import Number
-from typing import IO, Callable, Iterable, List, Optional, Union
+from typing import IO, Callable
 
 import databento_dbn
 
@@ -61,8 +64,8 @@ class Live:
 
     def __init__(
         self,
-        key: Optional[str] = None,
-        gateway: Optional[str] = None,
+        key: str | None = None,
+        gateway: str | None = None,
         port: int = DEFAULT_REMOTE_PORT,
         ts_out: bool = False,
     ) -> None:
@@ -74,19 +77,19 @@ class Live:
 
         if gateway is not None:
             gateway = validate_semantic_string(gateway, "gateway")
-        self._gateway: Optional[str] = gateway
+        self._gateway: str | None = gateway
 
         if not isinstance(port, int):
             raise ValueError(f"port must be a valid integer, was `{port}`")
         self._port = port
 
-        self._dataset: Union[Dataset, str] = ""
+        self._dataset: Dataset | str = ""
         self._ts_out = ts_out
 
         self._dbn_queue: DBNQueue = DBNQueue(maxsize=DEFAULT_QUEUE_SIZE)
         self._metadata: SessionMetadata = SessionMetadata()
-        self._user_callbacks: List[UserCallback] = []
-        self._user_streams: List[IO[bytes]] = []
+        self._user_callbacks: list[UserCallback] = []
+        self._user_streams: list[IO[bytes]] = []
 
         def factory() -> _SessionProtocol:
             return _SessionProtocol(
@@ -111,7 +114,7 @@ class Live:
         if not Live._thread.is_alive():
             Live._thread.start()
 
-    def __aiter__(self) -> "Live":
+    def __aiter__(self) -> Live:
         return iter(self)
 
     async def __anext__(self) -> DBNRecord:
@@ -120,7 +123,7 @@ class Live:
         except StopIteration:
             raise StopAsyncIteration
 
-    def __iter__(self) -> "Live":
+    def __iter__(self) -> Live:
         logger.debug("starting iteration")
         self._dbn_queue._enabled.set()
         return self
@@ -174,7 +177,7 @@ class Live:
         return self._dataset
 
     @property
-    def gateway(self) -> Optional[str]:
+    def gateway(self) -> str | None:
         """
         Return the gateway for this live client.
 
@@ -186,7 +189,7 @@ class Live:
         return self._gateway
 
     @property
-    def metadata(self) -> Optional[databento_dbn.Metadata]:
+    def metadata(self) -> databento_dbn.Metadata | None:
         """
         The DBN metadata header for this session, or `None` if the
         metadata has not been received yet.
@@ -202,7 +205,7 @@ class Live:
 
     def is_connected(self) -> bool:
         """
-        True if the live client is connected.
+        Return True if the live client is connected.
 
         Returns
         -------
@@ -357,11 +360,11 @@ class Live:
 
     def subscribe(
         self,
-        dataset: Union[Dataset, str],
-        schema: Union[Schema, str],
-        symbols: Union[Iterable[str], Iterable[Number], str, Number] = ALL_SYMBOLS,
-        stype_in: Union[SType, str] = SType.RAW_SYMBOL,
-        start: Optional[Union[str, int]] = None,
+        dataset: Dataset | str,
+        schema: Schema | str,
+        symbols: Iterable[str] | Iterable[Number] | str | Number = ALL_SYMBOLS,
+        stype_in: SType | str = SType.RAW_SYMBOL,
+        start: str | int | None = None,
     ) -> None:
         """
         Subscribe to a data stream.
@@ -379,7 +382,7 @@ class Live:
             The dataset for the subscription.
         schema : Schema or str
             The schema to subscribe to.
-        symbols : Iterable[Union[str, Number]] or str or Number, default 'ALL_SYMBOLS'
+        symbols : Iterable[str | Number] or str or Number, default 'ALL_SYMBOLS'
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
@@ -453,7 +456,7 @@ class Live:
 
     def block_for_close(
         self,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None:
         """
         Block until the session closes or a timeout is reached. A session will
@@ -493,7 +496,7 @@ class Live:
 
     async def wait_for_close(
         self,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None:
         """
         Coroutine to wait until the session closes or a timeout is reached.

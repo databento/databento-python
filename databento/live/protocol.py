@@ -5,7 +5,6 @@ import logging
 from collections.abc import Iterable
 from functools import singledispatchmethod
 from numbers import Number
-from typing import Optional, Union
 
 import databento_dbn
 
@@ -19,6 +18,7 @@ from databento.common.parsing import optional_symbols_list_to_string
 from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
+from databento.live import DBNRecord
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import AuthenticationResponse
 from databento.live.gateway import ChallengeRequest
@@ -28,20 +28,6 @@ from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 
-
-DBNRecord = Union[
-    databento_dbn.MBOMsg,
-    databento_dbn.MBP1Msg,
-    databento_dbn.MBP10Msg,
-    databento_dbn.TradeMsg,
-    databento_dbn.OHLCVMsg,
-    databento_dbn.ImbalanceMsg,
-    databento_dbn.InstrumentDefMsg,
-    databento_dbn.StatMsg,
-    databento_dbn.SymbolMappingMsg,
-    databento_dbn.SystemMsg,
-    databento_dbn.ErrorMsg,
-]
 
 MIN_BUFFER_SIZE: int = 64 * 1024  # 64kb
 
@@ -76,11 +62,11 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     def __init__(
         self,
         api_key: str,
-        dataset: Union[Dataset, str],
+        dataset: Dataset | str,
         ts_out: bool = False,
     ) -> None:
         self.__api_key = api_key
-        self.__transport: Optional[asyncio.Transport] = None
+        self.__transport: asyncio.Transport | None = None
         self.__buffer: bytearray
 
         self._dataset = validate_semantic_string(dataset, "dataset")
@@ -89,12 +75,12 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         self._dbn_decoder = databento_dbn.DBNDecoder()
         self._gateway_decoder = GatewayDecoder()
 
-        self._authenticated: "asyncio.Future[int]" = asyncio.Future()
-        self._disconnected: "asyncio.Future[None]" = asyncio.Future()
+        self._authenticated: asyncio.Future[int] = asyncio.Future()
+        self._disconnected: asyncio.Future[None] = asyncio.Future()
         self._started = asyncio.Event()
 
     @property
-    def authenticated(self) -> "asyncio.Future[int]":
+    def authenticated(self) -> asyncio.Future[int]:
         """
         Future that completes when authentication with the
         gateway is completed.
@@ -111,7 +97,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         return self._authenticated
 
     @property
-    def disconnected(self) -> "asyncio.Future[None]":
+    def disconnected(self) -> asyncio.Future[None]:
         """
         Future that completes when the connection to the gateway is
         lost or closed.
@@ -173,7 +159,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         self.__transport = transport
         return super().connection_made(transport)
 
-    def connection_lost(self, exc: Optional[Exception]) -> None:
+    def connection_lost(self, exc: Exception | None) -> None:
         """
         Override of `connection_list`.
 
@@ -191,7 +177,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 self.disconnected.set_exception(exc)
         super().connection_lost(exc)
 
-    def eof_received(self) -> Optional[bool]:
+    def eof_received(self) -> bool | None:
         """
         Override of `eof_received`.
 
@@ -236,7 +222,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         """
-        Called when the protocol receives a Metadata header.
+        Call when the protocol receives a Metadata header.
         This is always sent by the gateway before any data records.
 
         Parameters
@@ -248,7 +234,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
     def received_record(self, record: DBNRecord) -> None:
         """
-        Called when the protocol receives a data record.
+        Handle when the protocol receives a data record.
 
         Parameters
         ----------
@@ -259,10 +245,10 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
     def subscribe(
         self,
-        schema: Union[Schema, str],
-        symbols: Union[Iterable[str], Iterable[Number], str, Number] = ALL_SYMBOLS,
-        stype_in: Union[SType, str] = SType.RAW_SYMBOL,
-        start: Optional[Union[str, int]] = None,
+        schema: Schema | str,
+        symbols: Iterable[str] | Iterable[Number] | str | Number = ALL_SYMBOLS,
+        stype_in: SType | str = SType.RAW_SYMBOL,
+        start: str | int | None = None,
     ) -> None:
         """
         Send a SubscriptionRequest to the gateway.
@@ -271,7 +257,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         ----------
         schema : Schema or str
             The schema to subscribe to.
-        symbols : Iterable[Union[str, Number]] or str or Number, default 'ALL_SYMBOLS'
+        symbols : Iterable[str | Number] or str or Number, default 'ALL_SYMBOLS'
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.

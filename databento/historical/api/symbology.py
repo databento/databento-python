@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import date
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from requests import Response
 
@@ -25,13 +27,13 @@ class SymbologyHttpAPI(BentoHttpAPI):
     def resolve(
         self,
         dataset: str,
-        symbols: Union[List[str], str],
-        stype_in: Union[SType, str],
-        stype_out: Union[SType, str],
-        start_date: Union[date, str],
-        end_date: Optional[Union[date, str]] = None,
-        default_value: Optional[str] = "",
-    ) -> Dict[str, Any]:
+        symbols: list[str] | str,
+        stype_in: SType | str,
+        stype_out: SType | str,
+        start_date: date | str,
+        end_date: date | str | None = None,
+        default_value: str | None = "",
+    ) -> dict[str, Any]:
         """
         Request symbology mappings resolution from Databento.
 
@@ -41,7 +43,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        symbols : List[Union[str, int]] or str, optional
+        symbols : list[str | int] or str, optional
             The symbols to resolve. Takes up to 2,000 symbols per request.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
@@ -56,14 +58,14 @@ class SymbologyHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
             A result including a map of input symbol to output symbol across a
             date range.
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("symbols", symbols_list),
             ("stype_in", str(stype_in_valid)),

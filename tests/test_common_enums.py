@@ -1,8 +1,9 @@
 """Unit tests for databento.common.enums"""
+from __future__ import annotations
+
 from enum import Enum
 from enum import Flag
 from itertools import combinations
-from typing import Type
 
 import pytest
 from databento.common.enums import Compression
@@ -42,7 +43,7 @@ DATABENTO_ENUMS = (
     "enum_type",
     (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, int)),
 )
-def test_int_enum_string_coercion(enum_type: Type[Enum]) -> None:
+def test_int_enum_string_coercion(enum_type: type[Enum]) -> None:
     """
     Test the int coercion for integer enumerations.
     See: databento.common.enums.coercible
@@ -57,7 +58,7 @@ def test_int_enum_string_coercion(enum_type: Type[Enum]) -> None:
     "enum_type",
     (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, str)),
 )
-def test_str_enum_case_coercion(enum_type: Type[Enum]) -> None:
+def test_str_enum_case_coercion(enum_type: type[Enum]) -> None:
     """
     Test the lowercase name coercion for string enumerations.
     See: databento.common.enums.coercible
@@ -73,7 +74,7 @@ def test_str_enum_case_coercion(enum_type: Type[Enum]) -> None:
     "enum_type",
     DATABENTO_ENUMS,
 )
-def test_enum_name_coercion(enum_type: Type[Enum]) -> None:
+def test_enum_name_coercion(enum_type: type[Enum]) -> None:
     """
     Test that enums can be coerced from the member names.
     This includes case and dash conversion to underscores.
@@ -92,7 +93,7 @@ def test_enum_name_coercion(enum_type: Type[Enum]) -> None:
     "enum_type",
     (pytest.param(enum) for enum in DATABENTO_ENUMS),
 )
-def test_enum_none_not_coercible(enum_type: Type[Enum]) -> None:
+def test_enum_none_not_coercible(enum_type: type[Enum]) -> None:
     """
     Test that None type is not coercible and raises a TypeError.
     See: databento.common.enum.coercible
@@ -105,7 +106,7 @@ def test_enum_none_not_coercible(enum_type: Type[Enum]) -> None:
     "enum_type",
     (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, int)),
 )
-def test_int_enum_stringy_mixin(enum_type: Type[Enum]) -> None:
+def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     """
     Test the StringyMixin for integer enumerations.
     See: databento.common.enum.StringyMixin
@@ -120,7 +121,7 @@ def test_int_enum_stringy_mixin(enum_type: Type[Enum]) -> None:
     "enum_type",
     (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, str)),
 )
-def test_str_enum_stringy_mixin(enum_type: Type[Enum]) -> None:
+def test_str_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     """
     Test the StringyMixin for string enumerations.
     See: databento.common.enum.StringyMixin
@@ -135,7 +136,7 @@ def test_str_enum_stringy_mixin(enum_type: Type[Enum]) -> None:
     "enum_type",
     (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, Flag)),
 )
-def test_int_flags_stringy_mixin(enum_type: Type[Flag]) -> None:
+def test_int_flags_stringy_mixin(enum_type: type[Flag]) -> None:
     """
     Test that combinations of int flags are displayed properly.
     """

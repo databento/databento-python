@@ -29,7 +29,7 @@ def get_challenge_response(challenge: str, key: str) -> str:
 
     """
     bucket_id = key[-BUCKET_ID_LENGTH:]
-    sha = hashlib.sha256(f"{challenge}|{key}".encode("utf-8")).hexdigest()
+    sha = hashlib.sha256(f"{challenge}|{key}".encode()).hexdigest()
     return f"{sha}-{bucket_id}"
 
 

@@ -5,7 +5,6 @@ from datetime import date
 from functools import partial
 from functools import singledispatch
 from numbers import Number
-from typing import Optional, Union
 
 import pandas as pd
 
@@ -15,7 +14,7 @@ from databento.common.validation import validate_smart_symbol
 
 
 def values_list_to_string(
-    values: Union[Iterable[str], str],
+    values: Iterable[str] | str,
 ) -> str:
     """
     Concatenate a values string or iterable of string values.
@@ -38,8 +37,8 @@ def values_list_to_string(
 
 
 def optional_values_list_to_string(
-    values: Optional[Union[Iterable[str], str]],
-) -> Optional[str]:
+    values: Iterable[str] | str | None,
+) -> str | None:
     """
     Concatenate a values string or iterable of string values (if not None).
 
@@ -60,7 +59,7 @@ def optional_values_list_to_string(
 
 @singledispatch
 def optional_symbols_list_to_string(
-    symbols: Optional[Union[Iterable[str], Iterable[Number], str, Number]],
+    symbols: Iterable[str] | Iterable[Number] | str | Number | None,
     stype_in: SType,
 ) -> str:
     """
@@ -153,7 +152,7 @@ def _(symbols: str, stype_in: SType) -> str:
 
 
 @optional_symbols_list_to_string.register(cls=Iterable)
-def _(symbols: Union[Iterable[str], Iterable[int]], stype_in: SType) -> str:
+def _(symbols: Iterable[str] | Iterable[int], stype_in: SType) -> str:
     """
     Dispatch method for optional_symbols_list_to_string.
     Handles Iterables by dispatching the individual members.
@@ -170,7 +169,7 @@ def _(symbols: Union[Iterable[str], Iterable[int]], stype_in: SType) -> str:
     return ",".join(map(symbol_to_string, symbols))
 
 
-def optional_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:
+def optional_date_to_string(value: date | str | None) -> str | None:
     """
     Return a valid date string from the given value (if not None).
 
@@ -190,7 +189,7 @@ def optional_date_to_string(value: Optional[Union[date, str]]) -> Optional[str]:
     return datetime_to_date_string(value)
 
 
-def datetime_to_string(value: Union[pd.Timestamp, date, str, int]) -> str:
+def datetime_to_string(value: pd.Timestamp | date | str | int) -> str:
     """
     Return a valid datetime string from the given value.
 
@@ -212,7 +211,7 @@ def datetime_to_string(value: Union[pd.Timestamp, date, str, int]) -> str:
         return pd.to_datetime(value).isoformat()
 
 
-def datetime_to_date_string(value: Union[pd.Timestamp, date, str, int]) -> str:
+def datetime_to_date_string(value: pd.Timestamp | date | str | int) -> str:
     """
     Return a valid date string from the given value.
 
@@ -235,8 +234,8 @@ def datetime_to_date_string(value: Union[pd.Timestamp, date, str, int]) -> str:
 
 
 def optional_datetime_to_string(
-    value: Optional[Union[pd.Timestamp, date, str, int]],
-) -> Optional[str]:
+    value: pd.Timestamp | date | str | int,
+) -> str | None:
     """
     Return a valid datetime string from the given value (if not None).
 
@@ -257,7 +256,7 @@ def optional_datetime_to_string(
 
 
 def datetime_to_unix_nanoseconds(
-    value: Optional[Union[pd.Timestamp, date, str, int]],
+    value: pd.Timestamp | date | str | int,
 ) -> int:
     """
     Return a valid UNIX nanosecond timestamp from the given value.
@@ -293,8 +292,8 @@ def datetime_to_unix_nanoseconds(
 
 
 def optional_datetime_to_unix_nanoseconds(
-    value: Optional[Union[pd.Timestamp, str, int]],
-) -> Optional[int]:
+    value: pd.Timestamp | str | int | None,
+) -> int | None:
     """
     Return a valid UNIX nanosecond timestamp from the given value (if not None).
 
@@ -305,7 +304,7 @@ def optional_datetime_to_unix_nanoseconds(
 
     Returns
     -------
-    Optional[int]
+    int | None
 
     """
     if value is None:

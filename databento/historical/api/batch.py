@@ -5,7 +5,7 @@ import os
 from datetime import date
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import aiohttp
 import pandas as pd
@@ -47,21 +47,21 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def submit_job(
         self,
-        dataset: Union[Dataset, str],
-        symbols: Union[List[str], str],
-        schema: Union[Schema, str],
-        start: Union[pd.Timestamp, date, str, int],
-        end: Optional[Union[pd.Timestamp, date, str, int]] = None,
-        encoding: Union[Encoding, str] = "dbn",
-        compression: Optional[Union[Compression, str]] = "zstd",
-        split_duration: Union[SplitDuration, str] = "day",
-        split_size: Optional[int] = None,
-        packaging: Optional[Union[Packaging, str]] = None,
-        delivery: Union[Delivery, str] = "download",
-        stype_in: Union[SType, str] = "raw_symbol",
-        stype_out: Union[SType, str] = "instrument_id",
-        limit: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        dataset: Dataset | str,
+        symbols: list[str] | str,
+        schema: Schema | str,
+        start: pd.Timestamp | date | str | int,
+        end: pd.Timestamp | date | str | int | None = None,
+        encoding: Encoding | str = "dbn",
+        compression: Compression | str = "zstd",
+        split_duration: SplitDuration | str = "day",
+        split_size: int | None = None,
+        packaging: Packaging | str | None = None,
+        delivery: Delivery | str = "download",
+        stype_in: SType | str = "raw_symbol",
+        stype_out: SType | str = "instrument_id",
+        limit: int | None = None,
+    ) -> dict[str, Any]:
         """
         Request a new time series data batch download from Databento.
 
@@ -71,7 +71,7 @@ class BatchHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        symbols : List[Union[str, int]] or str
+        symbols : list[str | int] or str
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
@@ -109,7 +109,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
             The job info for batch download request.
 
         Warnings
@@ -119,7 +119,7 @@ class BatchHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", optional_datetime_to_string(end)),
@@ -161,9 +161,9 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def list_jobs(
         self,
-        states: Optional[Union[List[str], str]] = "received,queued,processing,done",
-        since: Optional[Union[pd.Timestamp, date, str, int]] = None,
-    ) -> List[Dict[str, Any]]:
+        states: list[str] | str = "received,queued,processing,done",
+        since: pd.Timestamp | date | str | int | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Request all batch job details for the user account.
 
@@ -173,18 +173,18 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        states : List[str] or str, optional {'received', 'queued', 'processing', 'done', 'expired'}  # noqa
+        states : list[str] or str, optional {'received', 'queued', 'processing', 'done', 'expired'}  # noqa
             The filter for jobs states as a list of comma separated values.
         since : pd.Timestamp or date or str or int, optional
             The filter for timestamp submitted (will not include jobs prior to this).
 
         Returns
         -------
-        List[Dict[str, Any]]
+        list[dict[str, Any]]
             The batch job details.
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("states", optional_values_list_to_string(states)),
             ("since", optional_datetime_to_string(since)),
         ]
@@ -195,7 +195,7 @@ class BatchHttpAPI(BentoHttpAPI):
             basic_auth=True,
         ).json()
 
-    def list_files(self, job_id: str) -> List[Dict[str, Any]]:
+    def list_files(self, job_id: str) -> list[dict[str, Any]]:
         """
         Request details of all files for a specific batch job.
 
@@ -208,11 +208,11 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        List[Dict[str, Any]]
+        list[dict[str, Any]]
             The file details for the batch job.
 
         """
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("job_id", job_id),
         ]
 
@@ -224,11 +224,11 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def download(
         self,
-        output_dir: Union[PathLike[str], str],
+        output_dir: PathLike[str] | str,
         job_id: str,
-        filename_to_download: Optional[str] = None,
+        filename_to_download: str | None = None,
         enable_partial_downloads: bool = True,
-    ) -> List[Path]:
+    ) -> list[Path]:
         """
         Download a batch job or a specific file to `{output_dir}/{job_id}/`.
 
@@ -251,7 +251,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        List[Path]
+        list[Path]
             A list of paths to the downloaded files.
 
         Raises
@@ -265,11 +265,11 @@ class BatchHttpAPI(BentoHttpAPI):
         output_dir = validate_path(output_dir, "output_dir")
         self._check_api_key()
 
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("job_id", job_id),
         ]
 
-        job_files: List[Dict[str, Any]] = self._get(
+        job_files: list[dict[str, Any]] = self._get(
             url=self._base_url + ".list_files",
             params=params,
             basic_auth=True,
@@ -364,11 +364,11 @@ class BatchHttpAPI(BentoHttpAPI):
 
     async def download_async(
         self,
-        output_dir: Union[PathLike[str], str],
+        output_dir: PathLike[str] | str,
         job_id: str,
-        filename_to_download: Optional[str] = None,
+        filename_to_download: str | None = None,
         enable_partial_downloads: bool = True,
-    ) -> List[Path]:
+    ) -> list[Path]:
         """
         Asynchronously download a batch job or a specific file to
         `{output_dir}/{job_id}/`.
@@ -392,7 +392,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        List[Path]
+        list[Path]
             A list of paths to the downloaded files.
 
         Raises
@@ -406,11 +406,11 @@ class BatchHttpAPI(BentoHttpAPI):
         output_dir = validate_path(output_dir, "output_dir")
         self._check_api_key()
 
-        params: List[Tuple[str, Optional[str]]] = [
+        params: list[tuple[str, str | None]] = [
             ("job_id", job_id),
         ]
 
-        job_files: List[Dict[str, Any]] = await self._get_json_async(
+        job_files: list[dict[str, Any]] = await self._get_json_async(
             url=self._base_url + ".list_files",
             params=params,
             basic_auth=True,
@@ -509,8 +509,8 @@ class BatchHttpAPI(BentoHttpAPI):
         filesize: int,
         output_path: Path,
         enable_partial_downloads: bool,
-    ) -> Tuple[Dict[str, str], str]:
-        headers: Dict[str, str] = self._headers.copy()
+    ) -> tuple[dict[str, str], str]:
+        headers: dict[str, str] = self._headers.copy()
         mode = "wb"
 
         # Check if file already exists in partially downloaded state
