@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.14.0 - TBD
+## 0.14.0 - 2023-06-14
 - Added support for reusing a `Live` client to reconnect
 - Added `metadata` property to `Live`
 - Added `DatatbentoLiveProtocol` class
@@ -14,6 +14,7 @@
 - Upgraded `pandas` to to 1.5.3
 - Upgraded `requests` to to 2.28.1
 - Upgraded `zstandard` to to 0.21.0
+- Removed 10 minute minimum request time range restriction
 - Removed support for Python 3.7
 
 ## 0.13.0 - 2023-06-02
