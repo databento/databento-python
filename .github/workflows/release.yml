@@ -9,84 +9,37 @@ on:
       - completed
 
 jobs:
-  tag-release:
+  release:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    name: tag-release - Python 3.10 (ubuntu-latest)
     runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create-release.outputs.upload_url }}
-
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Python environment
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
+      - uses: snok/install-poetry@v1
         with:
-          python-version: "3.10"
-
-      - name: Install poetry
-        run: |
-          python -m pip install --upgrade pip poetry==1.5.1
-
-      - name: Prepare release
-        id: vars
-        run: |
-          echo "tag_name=v$(poetry version -s)" >> $GITHUB_ENV
-          echo "release_name=$(poetry version)" >> $GITHUB_ENV
-
-      - name: Create release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: ${{ steps.vars.outputs.tag_name }}
-          RELEASE_NAME: ${{ steps.vars.outputs.release_name }}
-        with:
-          tag_name: ${{ env.TAG_NAME }}
-          release_name: ${{ env.RELEASE_NAME }}
-          draft: false
-          prerelease: false
-
-  publish-sdist:
-    needs: [tag-release]
-    name: publish - Python 3.10 (ubuntu-latest)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python environment
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install poetry
-        run: |
-          python -m pip install --upgrade pip poetry==1.5.1
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
 
       - name: Build
         run: |
-          poetry build
+          poetry build --no-interaction
+          echo "RELEASE_NAME=$(poetry version)" >> $GITHUB_ENV
+          echo "TAG_NAME=v$(poetry version -s)" >> $GITHUB_ENV
+          echo "## Release notes" > NOTES.md
+          sed -n '4,/^$/p' CHANGELOG.md >> NOTES.md
 
-      - name: Prepare artifacts
-        id: vars
-        run: |
-          echo "asset_path=$(find ./dist -mindepth 1 -print -quit)" >> $GITHUB_ENV
-          echo "asset_name=databento-*.tar.gz,databento-*.whl" >> $GITHUB_ENV
-
-      - name: Upload release asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ needs.tag-release.outputs.upload_url }}
-          asset_path: ${{ env.ASSET_PATH }}
-          asset_name: ${{ env.ASSET_NAME }}
-          asset_content_type: application/zip
+          fail_on_unmatched_files: true
+          append_body: true
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.TAG_NAME }}
+          body_path: ./NOTES.md
+          files: ./dist/*
 
-      - name: Publish to PyPI
-        id: publish-to-pypi
+      - name: Publish
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: poetry publish
