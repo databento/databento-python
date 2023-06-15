@@ -1,12 +1,4 @@
-<a href="https://databento.com">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://dzv012k6yye9u.cloudfront.net/brand/logo-white.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://dzv012k6yye9u.cloudfront.net/brand/logo.png">
-    <img alt="Databento" src="https://dzv012k6yye9u.cloudfront.net/brand/logo.png" width="560px">
-  </picture>
-</a>
-
-# Pay as you go for market data
+# databento-python
 
 [![test](https://github.com/databento/databento-python/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/databento/databento-python/actions/workflows/test.yml)
 ![python](https://img.shields.io/badge/python-3.8+-blue.svg)
