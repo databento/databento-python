@@ -139,6 +139,11 @@ class FileDataSource(DataSource):
         if not self._path.is_file() or not self._path.exists():
             raise FileNotFoundError(source)
 
+        if self._path.stat().st_size == 0:
+            raise ValueError(
+                f"Cannot create data source from empty file: {self._path.name}",
+            )
+
         self._name = self._path.name
         self.__buffer: IO[bytes] | None = None
 
@@ -308,6 +313,11 @@ class DBNStore:
     to_ndarray : np.ndarray
         The data as a numpy `ndarray`.
 
+    Raises
+    ------
+    BentoError
+        When the data_source does not contain valid DBN data or is corrupted.
+
     See Also
     --------
     https://docs.databento.com/knowledge-base/new-users/dbn-encoding
@@ -330,7 +340,7 @@ class DBNStore:
             buffer = data_source.reader
         else:
             # We don't know how to read this file
-            raise RuntimeError(
+            raise BentoError(
                 f"Could not determine compression format of {self._data_source.name}",
             )
 
@@ -736,7 +746,9 @@ class DBNStore:
         Raises
         ------
         FileNotFoundError
-            If a empty or non-existant file is specified.
+            If a non-existant file is specified.
+        ValueError
+            If an empty file is specified.
 
         """
         return cls(FileDataSource(path))
@@ -757,8 +769,8 @@ class DBNStore:
 
         Raises
         ------
-        FileNotFoundError
-            If a empty or non-existant file is specified.
+        ValueError
+            If an empty buffer is specified.
 
         """
         return cls(MemoryDataSource(data))
