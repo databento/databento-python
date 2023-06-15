@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 import datetime as dt
 import sys
+from io import BytesIO
 from pathlib import Path
 from typing import Callable
 
@@ -29,13 +30,50 @@ def test_from_file_when_not_exists_raises_expected_exception() -> None:
 def test_from_file_when_file_empty_raises_expected_exception(
     tmp_path: Path,
 ) -> None:
+    """
+    Test that creating a DBNStore from an empty file raises a ValueError.
+    """
     # Arrange
     path = tmp_path / "test.dbn"
     path.touch()
 
     # Act, Assert
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         DBNStore.from_file(path)
+
+
+def test_from_file_when_buffer_corrupted_raises_expected_exception(
+    tmp_path: Path,
+) -> None:
+    """
+    Test that creating a DBNStore from an invalid DBN file raises a BentoError.
+    """
+    # Arrange
+    path = tmp_path / "corrupted.dbn"
+    path.write_text("this is a test")
+
+    # Act, Assert
+    with pytest.raises(BentoError):
+        DBNStore.from_file(path)
+
+
+def test_from_bytes_when_buffer_empty_raises_expected_exception() -> None:
+    """
+    Test that creating a DBNStore from an empty buffer raises a ValueError.
+    """
+    # Arrange, Act, Assert
+    with pytest.raises(ValueError):
+        DBNStore.from_bytes(BytesIO())
+
+
+def test_from_bytes_when_buffer_corrupted_raises_expected_exception() -> None:
+    """
+    Test that creating a DBNStore from an invalid DBN stream raises a
+    BentoError.
+    """
+    # Arrange, Act, Assert
+    with pytest.raises(ValueError):
+        DBNStore.from_bytes(BytesIO())
 
 
 def test_sources_metadata_returns_expected_json_as_dict(
