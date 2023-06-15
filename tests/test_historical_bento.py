@@ -413,17 +413,7 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
 
 @pytest.mark.parametrize(
     "expected_schema",
-    [
-        Schema.MBO,
-        Schema.MBP_1,
-        Schema.MBP_10,
-        Schema.TBBO,
-        Schema.TRADES,
-        Schema.OHLCV_1S,
-        Schema.OHLCV_1M,
-        Schema.OHLCV_1H,
-        Schema.OHLCV_1D,
-    ],
+    [pytest.param(schema, id=str(schema)) for schema in Schema],
 )
 def test_from_file_given_various_paths_returns_expected_metadata(
     test_data_path: Callable[[Schema], Path],
@@ -474,7 +464,7 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
     written = open(path, mode="rb").read()
     assert path.exists()
     expected = (
-        b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,instrument_id,order_id,act" # noqa
+        b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,instrument_id,order_id,act"  # noqa
         b"ion,side,flags,price,size,sequence\n1609160400000704060,16091604000004298"  # noqa
         b"31,22993,1,0,5482,647784973705,C,A,128,3722750000000,1,1170352\n160916040"  # noqa
         b"0000711344,1609160400000431665,19621,1,0,5482,647784973631,C,A,128,372300000"  # noqa
@@ -718,16 +708,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
 
 @pytest.mark.parametrize(
     "schema",
-    [
-        s
-        for s in Schema
-        if s
-        not in (
-            Schema.OHLCV_1H,
-            Schema.OHLCV_1D,
-            Schema.DEFINITION,
-        )
-    ],
+    [pytest.param(schema, id=str(schema)) for schema in Schema],
 )
 def test_dbnstore_repr(
     test_data: Callable[[Schema], bytes],
@@ -820,17 +801,7 @@ def test_dbnstore_iterable_parallel(
 
 @pytest.mark.parametrize(
     "schema",
-    [
-        Schema.MBO,
-        Schema.MBP_1,
-        Schema.MBP_10,
-        Schema.OHLCV_1D,
-        Schema.OHLCV_1H,
-        Schema.OHLCV_1M,
-        Schema.OHLCV_1S,
-        Schema.TBBO,
-        Schema.TRADES,
-    ],
+    [pytest.param(schema, id=str(schema)) for schema in Schema],
 )
 def test_dbnstore_compression_equality(
     test_data: Callable[[Schema], bytes],
@@ -923,17 +894,7 @@ def test_dbnstore_buffer_long(
 
 @pytest.mark.parametrize(
     "schema",
-    [
-        Schema.MBO,
-        Schema.MBP_1,
-        Schema.MBP_10,
-        Schema.OHLCV_1D,
-        Schema.OHLCV_1H,
-        Schema.OHLCV_1M,
-        Schema.OHLCV_1S,
-        Schema.TBBO,
-        Schema.TRADES,
-    ],
+    [pytest.param(schema, id=str(schema)) for schema in Schema],
 )
 def test_dbnstore_to_ndarray_with_schema(
     schema: Schema,
@@ -957,19 +918,30 @@ def test_dbnstore_to_ndarray_with_schema(
         assert row == expected[i]
 
 
+def test_dbnstore_to_ndarray_with_schema_empty(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_ndarray on a DBNStore that contains no data of the
+    specified schema returns an empty DataFrame.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    array = dbnstore.to_ndarray(schema=Schema.MBO)
+
+    # Assert
+    assert len(array) == 0
+
+
 @pytest.mark.parametrize(
     "schema",
-    [
-        Schema.MBO,
-        Schema.MBP_1,
-        Schema.MBP_10,
-        Schema.OHLCV_1D,
-        Schema.OHLCV_1H,
-        Schema.OHLCV_1M,
-        Schema.OHLCV_1S,
-        Schema.TBBO,
-        Schema.TRADES,
-    ],
+    [pytest.param(schema, id=str(schema)) for schema in Schema],
 )
 def test_dbnstore_to_df_with_schema(
     schema: Schema,
@@ -990,3 +962,24 @@ def test_dbnstore_to_df_with_schema(
 
     # Assert
     assert actual.equals(expected)
+
+
+def test_dbnstore_to_df_with_schema_empty(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_df on a DBNStore that contains no data of the
+    specified schema returns an empty DataFrame.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    df = dbnstore.to_df(schema=Schema.MBO)
+
+    # Assert
+    assert df.empty

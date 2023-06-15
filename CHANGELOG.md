@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.14.1 - TBD
+- Fixed issue where `DBNStore.to_df()` would raise an exception if no records were present
+
 ## 0.14.0 - 2023-06-14
 - Added support for reusing a `Live` client to reconnect
 - Added `metadata` property to `Live`
