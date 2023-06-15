@@ -28,15 +28,6 @@ DERIV_SCHEMAS = (
     Schema.TRADES,
 )
 
-
-OHLCV_SCHEMAS = (
-    Schema.OHLCV_1S,
-    Schema.OHLCV_1M,
-    Schema.OHLCV_1H,
-    Schema.OHLCV_1D,
-)
-
-
 RECORD_HEADER: list[tuple[str, type | str]] = [
     ("length", np.uint8),
     ("rtype", np.uint8),
@@ -265,6 +256,7 @@ def get_deriv_ba_fields(level: int) -> list[str]:
 
 
 DERIV_HEADER_COLUMNS = [
+    "ts_recv",
     "ts_event",
     "ts_in_delta",
     "publisher_id",
@@ -279,6 +271,7 @@ DERIV_HEADER_COLUMNS = [
 ]
 
 OHLCV_HEADER_COLUMNS = [
+    "ts_event",
     "publisher_id",
     "instrument_id",
     "open",
@@ -289,7 +282,6 @@ OHLCV_HEADER_COLUMNS = [
 ]
 
 DEFINITION_DROP_COLUMNS = [
-    "ts_recv",
     "length",
     "rtype",
     "reserved1",
@@ -299,14 +291,12 @@ DEFINITION_DROP_COLUMNS = [
 ]
 
 IMBALANCE_DROP_COLUMNS = [
-    "ts_recv",
     "length",
     "rtype",
     "dummy",
 ]
 
 STATISTICS_DROP_COLUMNS = [
-    "ts_recv",
     "length",
     "rtype",
     "dummy",
@@ -330,6 +320,7 @@ STATISTICS_COLUMNS = [
 
 COLUMNS = {
     Schema.MBO: [
+        "ts_recv",
         "ts_event",
         "ts_in_delta",
         "publisher_id",

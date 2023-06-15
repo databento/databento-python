@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import datetime as dt
+import functools
 import logging
 from collections.abc import Generator
 from io import BytesIO
@@ -453,10 +454,6 @@ class DBNStore:
         df: pd.DataFrame,
         schema: Schema,
     ) -> pd.DataFrame:
-        # Setup column ordering and index
-        df.set_index(self._get_index_column(schema), inplace=True)
-        df = df.reindex(columns=COLUMNS[schema])
-
         if schema == Schema.MBO or schema in DERIV_SCHEMAS:
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
@@ -941,7 +938,12 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        df = pd.DataFrame(self.to_ndarray(schema=schema))
+        df = pd.DataFrame(
+            self.to_ndarray(schema),
+            columns=COLUMNS[schema],
+        )
+        df.set_index(self._get_index_column(schema), inplace=True)
+
         df = self._prepare_dataframe(df, schema)
 
         if pretty_ts:
@@ -1049,12 +1051,10 @@ class DBNStore:
             self,
         )
 
-        result = []
-        for record in schema_records:
-            np_rec = np.frombuffer(
-                bytes(record),
-                dtype=STRUCT_MAP[schema],
-            )
-            result.append(np_rec[0])
+        decoder = functools.partial(np.frombuffer, dtype=STRUCT_MAP[schema])
+        result = tuple(map(decoder, map(bytes, schema_records)))
 
-        return np.asarray(result)
+        if not result:
+            return np.empty(shape=(0, 1), dtype=STRUCT_MAP[schema])
+
+        return np.ravel(result)
