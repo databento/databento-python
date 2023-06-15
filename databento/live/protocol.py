@@ -82,8 +82,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     @property
     def authenticated(self) -> asyncio.Future[int]:
         """
-        Future that completes when authentication with the
-        gateway is completed.
+        Future that completes when authentication with the gateway is
+        completed.
 
         The result will contain the session id if successful.
         The exception will contain a BentoError if authentication
@@ -99,8 +99,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     @property
     def disconnected(self) -> asyncio.Future[None]:
         """
-        Future that completes when the connection to the gateway is
-        lost or closed.
+        Future that completes when the connection to the gateway is lost or
+        closed.
 
         The result will contain None if the disconnection was graceful.
         The result will contain an Exception otherwise.
@@ -115,8 +115,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     @property
     def started(self) -> asyncio.Event:
         """
-        Event that is set when the session has started streaming.
-        This occurs when the SessionStart message is sent to the gateway.
+        Event that is set when the session has started streaming. This occurs
+        when the SessionStart message is sent to the gateway.
 
         Returns
         -------
@@ -222,8 +222,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         """
-        Call when the protocol receives a Metadata header.
-        This is always sent by the gateway before any data records.
+        Call when the protocol receives a Metadata header. This is always sent
+        by the gateway before any data records.
 
         Parameters
         ----------
@@ -288,7 +288,6 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     ) -> None:
         """
         Send SessionStart to the gateway.
-
         """
         logger.debug("sending start")
         message = SessionStart()

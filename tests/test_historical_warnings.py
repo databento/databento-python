@@ -32,8 +32,8 @@ def test_backend_warning(
     expected_category: str,
 ) -> None:
     """
-    Test that a backend warning in a response header is correctly
-    parsed as a type of BentoWarning.
+    Test that a backend warning in a response header is correctly parsed as a
+    type of BentoWarning.
     """
     response = Response()
     expected = f'["{category}: {message}"]'
@@ -58,8 +58,7 @@ def test_multiple_backend_warning(
     header_field: str,
 ) -> None:
     """
-    Test that multiple backend warnings in a response header are
-    supported.
+    Test that multiple backend warnings in a response header are supported.
     """
     response = Response()
     backend_warnings = [

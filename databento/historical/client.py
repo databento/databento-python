@@ -32,6 +32,7 @@ class Historical:
     --------
     > import databento as db
     > client = db.Historical('YOUR_API_KEY')
+
     """
 
     def __init__(

@@ -22,7 +22,8 @@ M = TypeVar("M", bound=Enum)
 
 
 def coercible(enum_type: type[M]) -> type[M]:
-    """Decorate coercible enumerations.
+    """
+    Decorate coercible enumerations.
 
     Decorating an Enum class with this function will intercept calls to
     __new__ and perform a type coercion for the passed value. The type conversion
@@ -94,13 +95,12 @@ def coercible(enum_type: type[M]) -> type[M]:
 
 class StringyMixin:
     """
-    Mixin class for overloading __str__ on Enum types.
-    This will use the Enumerations subclass, if any, to modify
-    the behavior of str().
+    Mixin class for overloading __str__ on Enum types. This will use the
+    Enumerations subclass, if any, to modify the behavior of str().
 
-    For subclasses of enum.Flag a comma separated string of names is returned.
-    For integer enumerations, the lowercase member name is returned.
-    For string enumerations, the value is returned.
+    For subclasses of enum.Flag a comma separated string of names is
+    returned. For integer enumerations, the lowercase member name is
+    returned. For string enumerations, the value is returned.
 
     """
 
@@ -115,7 +115,9 @@ class StringyMixin:
 @unique
 @coercible
 class HistoricalGateway(StringyMixin, str, Enum):
-    """Represents a historical data center gateway location."""
+    """
+    Represents a historical data center gateway location.
+    """
 
     BO1 = "https://hist.databento.com"
 
@@ -123,7 +125,9 @@ class HistoricalGateway(StringyMixin, str, Enum):
 @unique
 @coercible
 class FeedMode(StringyMixin, str, Enum):
-    """Represents a data feed mode."""
+    """
+    Represents a data feed mode.
+    """
 
     HISTORICAL = "historical"
     HISTORICAL_STREAMING = "historical-streaming"
@@ -133,7 +137,9 @@ class FeedMode(StringyMixin, str, Enum):
 @unique
 @coercible
 class Dataset(StringyMixin, str, Enum):
-    """Represents a dataset code (string identifier)."""
+    """
+    Represents a dataset code (string identifier).
+    """
 
     GLBX_MDP3 = "GLBX.MDP3"
     XNAS_ITCH = "XNAS.ITCH"
@@ -142,7 +148,9 @@ class Dataset(StringyMixin, str, Enum):
 @unique
 @coercible
 class Schema(StringyMixin, str, Enum):
-    """Represents a data record schema."""
+    """
+    Represents a data record schema.
+    """
 
     MBO = "mbo"
     MBP_1 = "mbp-1"
@@ -188,7 +196,9 @@ class Schema(StringyMixin, str, Enum):
 @unique
 @coercible
 class Encoding(StringyMixin, str, Enum):
-    """Represents a data output encoding."""
+    """
+    Represents a data output encoding.
+    """
 
     DBN = "dbn"
     CSV = "csv"
@@ -198,7 +208,9 @@ class Encoding(StringyMixin, str, Enum):
 @unique
 @coercible
 class Compression(StringyMixin, str, Enum):
-    """Represents a data compression format (if any)."""
+    """
+    Represents a data compression format (if any).
+    """
 
     NONE = "none"
     ZSTD = "zstd"
@@ -207,7 +219,9 @@ class Compression(StringyMixin, str, Enum):
 @unique
 @coercible
 class SplitDuration(StringyMixin, str, Enum):
-    """Represents the duration before splitting for each batched data file."""
+    """
+    Represents the duration before splitting for each batched data file.
+    """
 
     DAY = "day"
     WEEK = "week"
@@ -218,7 +232,9 @@ class SplitDuration(StringyMixin, str, Enum):
 @unique
 @coercible
 class Packaging(StringyMixin, str, Enum):
-    """Represents the packaging method for batched data files."""
+    """
+    Represents the packaging method for batched data files.
+    """
 
     NONE = "none"
     ZIP = "zip"
@@ -228,7 +244,9 @@ class Packaging(StringyMixin, str, Enum):
 @unique
 @coercible
 class Delivery(StringyMixin, str, Enum):
-    """Represents the delivery mechanism for batched data."""
+    """
+    Represents the delivery mechanism for batched data.
+    """
 
     DOWNLOAD = "download"
     S3 = "s3"
@@ -238,7 +256,9 @@ class Delivery(StringyMixin, str, Enum):
 @unique
 @coercible
 class SType(StringyMixin, str, Enum):
-    """Represents a symbology type."""
+    """
+    Represents a symbology type.
+    """
 
     INSTRUMENT_ID = "instrument_id"
     RAW_SYMBOL = "raw_symbol"
@@ -249,7 +269,9 @@ class SType(StringyMixin, str, Enum):
 @unique
 @coercible
 class RollRule(StringyMixin, str, Enum):
-    """Represents a smart symbology roll rule."""
+    """
+    Represents a smart symbology roll rule.
+    """
 
     VOLUME = "volume"
     OPEN_INTEREST = "open_interst"
@@ -265,6 +287,7 @@ class SymbologyResolution(StringyMixin, str, Enum):
     - OK: All symbol mappings resolved.
     - PARTIAL: One or more symbols did not resolve on at least one date.
     - NOT_FOUND: One or more symbols where not found on any date in range.
+
     """
 
     OK = "ok"
@@ -276,7 +299,8 @@ class SymbologyResolution(StringyMixin, str, Enum):
 @coercible
 # Ignore type to work around mypy bug https://github.com/python/mypy/issues/9319
 class RecordFlags(StringyMixin, IntFlag):  # type: ignore
-    """Represents record flags.
+    """
+    Represents record flags.
 
     F_LAST
         Last message in the packet from the venue for a given `instrument_id`.
@@ -288,6 +312,7 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
         The `ts_recv` value is inaccurate (clock issues or reordering).
 
     Other bits are reserved and have no current meaning.
+
     """
 
     F_LAST = 128

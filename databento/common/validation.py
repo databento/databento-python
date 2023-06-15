@@ -43,8 +43,8 @@ def validate_enum(
     param: str,
 ) -> E:
     """
-    Validate whether the given value is either the correct Enum type, or a valid
-    value of that enum.
+    Validate whether the given value is either the correct Enum type, or a
+    valid value of that enum.
 
     Parameters
     ----------
@@ -147,6 +147,7 @@ def validate_gateway(
 def validate_semantic_string(value: str, param: str) -> str:
     """
     Validate whether a string contains a semantic value.
+
     A string is considered absent of meaning if:
         - It is empty.
         - It contains only whitespace.

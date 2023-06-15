@@ -165,9 +165,8 @@ class Live:
     @property
     def dataset(self) -> str:
         """
-        Return the dataset for this live client.
-        If no subscriptions have been made an empty
-        string will be returned.
+        Return the dataset for this live client. If no subscriptions have been
+        made an empty string will be returned.
 
         Returns
         -------
@@ -336,8 +335,8 @@ class Live:
 
     def stop(self) -> None:
         """
-        Stop the live client session as soon as possible.
-        Once stopped, a client cannot be restarted.
+        Stop the live client session as soon as possible. Once stopped, a
+        client cannot be restarted.
 
         Raises
         ------
@@ -367,10 +366,9 @@ class Live:
         start: str | int | None = None,
     ) -> None:
         """
-        Subscribe to a data stream.
-        Multiple subscription requests can be made for a streaming session.
-        Once one subscription has been made, future subscriptions must all
-        belong to the same dataset.
+        Subscribe to a data stream. Multiple subscription requests can be made
+        for a streaming session. Once one subscription has been made, future
+        subscriptions must all belong to the same dataset.
 
         When creating the first subscription this method will also create
         the TCP connection to the remote gateway. All subscriptions must
@@ -436,8 +434,8 @@ class Live:
 
     def terminate(self) -> None:
         """
-        Terminate the live client session and stop processing records as soon as
-        possible.
+        Terminate the live client session and stop processing records as soon
+        as possible.
 
         Raises
         ------
@@ -499,8 +497,8 @@ class Live:
         timeout: float | None = None,
     ) -> None:
         """
-        Coroutine to wait until the session closes or a timeout is reached.
-        A session will close after `stop()` is called or the remote gateway
+        Coroutine to wait until the session closes or a timeout is reached. A
+        session will close after `stop()` is called or the remote gateway
         disconnects.
 
         Parameters
@@ -542,8 +540,10 @@ class Live:
     async def _shutdown(self) -> None:
         """
         Coroutine to wait for a graceful shutdown.
-        This waits for protocol disconnection and all records to complete
-        processing.
+
+        This waits for protocol disconnection and all records to
+        complete processing.
+
         """
         if self._session is None:
             return

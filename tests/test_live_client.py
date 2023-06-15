@@ -1,4 +1,6 @@
-"""Unit tests for the Live client."""
+"""
+Unit tests for the Live client.
+"""
 from __future__ import annotations
 
 import pathlib
@@ -55,8 +57,11 @@ def test_live_connection_timeout(
     test_api_key: str,
 ) -> None:
     """
-    Test that a timeout raises a BentoError. Mock the create_connection
-    function so that it never completes and set a timeout of 0.
+    Test that a timeout raises a BentoError.
+
+    Mock the create_connection function so that it never completes and
+    set a timeout of 0.
+
     """
     monkeypatch.setattr(
         session,
@@ -93,8 +98,7 @@ def test_live_invalid_gateway(
     gateway: str,
 ) -> None:
     """
-    Test that specifying an invalid gateway raises a
-    ValueError.
+    Test that specifying an invalid gateway raises a ValueError.
     """
     with pytest.raises(ValueError):
         client.Live(
@@ -117,8 +121,7 @@ def test_live_invalid_port(
     port: object,
 ) -> None:
     """
-    Test that specifying an invalid port raises a
-    ValueError.
+    Test that specifying an invalid port raises a ValueError.
     """
     with pytest.raises(ValueError):
         client.Live(
@@ -134,8 +137,8 @@ def test_live_connection_cram_failure(
     test_api_key: str,
 ) -> None:
     """
-    Test that a failed auth message due to an incorrect CRAM
-    raies a BentoError.
+    Test that a failed auth message due to an incorrect CRAM raies a
+    BentoError.
     """
     # Dork up the API key in the mock client to fail CRAM
     bucket_id = test_api_key[-BUCKET_ID_LENGTH:]
@@ -168,8 +171,7 @@ def test_live_creation(
     dataset: Dataset,
 ) -> None:
     """
-    Test the live constructor and successful connection to
-    the MockLiveServer.
+    Test the live constructor and successful connection to the MockLiveServer.
     """
     live_client = client.Live(
         key=test_api_key,
@@ -194,8 +196,8 @@ def test_live_connect_auth(
     live_client: client.Live,
 ) -> None:
     """
-    Test the live sent a correct AuthenticationRequest message
-    after connecting.
+    Test the live sent a correct AuthenticationRequest message after
+    connecting.
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -217,8 +219,8 @@ def test_live_connect_auth_two_clients(
     test_api_key: str,
 ) -> None:
     """
-    Test the live sent a correct AuthenticationRequest message
-    after connecting two distinct clients.
+    Test the live sent a correct AuthenticationRequest message after connecting
+    two distinct clients.
     """
     first = client.Live(
         key=test_api_key,
@@ -265,8 +267,7 @@ def test_live_start(
     mock_live_server: MockLiveServer,
 ) -> None:
     """
-    Test the live sends a SesssionStart message upon calling
-    start().
+    Test the live sends a SesssionStart message upon calling start().
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -366,8 +367,7 @@ def test_live_stop(
     live_client: client.Live,
 ) -> None:
     """
-    Test that calling start() and stop() appropriately update the
-    client state.
+    Test that calling start() and stop() appropriately update the client state.
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -402,8 +402,7 @@ def test_live_block_for_close(
     live_client: client.Live,
 ) -> None:
     """
-    Test that block_for_close unblocks when the connection
-    is closed.
+    Test that block_for_close unblocks when the connection is closed.
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -425,8 +424,8 @@ def test_live_block_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that block_for_close terminates the session when
-    the timeout is reached.
+    Test that block_for_close terminates the session when the timeout is
+    reached.
     """
     monkeypatch.setattr(live_client, "terminate", MagicMock())
     live_client.subscribe(
@@ -445,8 +444,7 @@ async def test_live_wait_for_close(
     live_client: client.Live,
 ) -> None:
     """
-    Test that wait_for_close unblocks when the connection
-    is closed.
+    Test that wait_for_close unblocks when the connection is closed.
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -469,8 +467,8 @@ async def test_live_wait_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that wait_for_close terminates the session when
-    the timeout is reached.
+    Test that wait_for_close terminates the session when the timeout is
+    reached.
     """
     monkeypatch.setattr(live_client, "terminate", MagicMock())
 
@@ -520,8 +518,7 @@ def test_live_add_stream_invalid(
     live_client: client.Live,
 ) -> None:
     """
-    Test that passing a non-writable stream to add_stream raises
-    a ValueError.
+    Test that passing a non-writable stream to add_stream raises a ValueError.
     """
     with pytest.raises(ValueError):
         live_client.add_stream(object)  # type: ignore
@@ -566,9 +563,8 @@ async def test_live_async_iteration_backpressure(
     test_api_key: str,
 ) -> None:
     """
-    Test that a full queue disables reading on the
-    transport but will resume it when the queue is
-    depleted when iterating asynchronously.
+    Test that a full queue disables reading on the transport but will resume it
+    when the queue is depleted when iterating asynchronously.
     """
     monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 4)
 
@@ -605,8 +601,7 @@ async def test_live_async_iteration_dropped(
     test_api_key: str,
 ) -> None:
     """
-    Test that an artificially small queue size will
-    drop messages when full.
+    Test that an artificially small queue size will drop messages when full.
     """
     monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 1)
 
@@ -640,8 +635,8 @@ async def test_live_async_iteration_stop(
     live_client: client.Live,
 ) -> None:
     """
-    Test that stopping in the middle of iteration does
-    not prevent iterating the queue to completion.
+    Test that stopping in the middle of iteration does not prevent iterating
+    the queue to completion.
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -731,8 +726,8 @@ async def test_live_stream_to_dbn(
     schema: Schema,
 ) -> None:
     """
-    Test that DBN data streamed by the MockLiveServer is properly
-    re-constructed client side.
+    Test that DBN data streamed by the MockLiveServer is properly re-
+    constructed client side.
     """
     output = tmp_path / "output.dbn"
 
@@ -779,8 +774,8 @@ async def test_live_stream_to_dbn_with_tiny_buffer(
     buffer_size: int,
 ) -> None:
     """
-    Test that DBN data streamed by the MockLiveServer is properly
-    re-constructed client side when using the small values for MIN_BUFFER_SIZE.
+    Test that DBN data streamed by the MockLiveServer is properly re-
+    constructed client side when using the small values for MIN_BUFFER_SIZE.
     """
     monkeypatch.setattr(protocol, "MIN_BUFFER_SIZE", buffer_size)
     output = tmp_path / "output.dbn"
@@ -812,8 +807,10 @@ async def test_live_disconnect_async(
 ) -> None:
     """
     Simulates a disconnection event with an exception.
-    This tests that wait_for_close properly raises a
-    BentoError from the exception.
+
+    This tests that wait_for_close properly raises a BentoError from the
+    exception.
+
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -840,8 +837,10 @@ def test_live_disconnect(
 ) -> None:
     """
     Simulates a disconnection event with an exception.
-    This tests that block_for_close properly raises a
-    BentoError from the exception.
+
+    This tests that block_for_close properly raises a BentoError from
+    the exception.
+
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -890,8 +889,11 @@ async def test_live_iteration_with_reconnect(
     schema: Schema,
 ) -> None:
     """
-    Test that the client can reconnect to the same subscription
-    while iterating. The iteration should yield every record.
+    Test that the client can reconnect to the same subscription while
+    iterating.
+
+    The iteration should yield every record.
+
     """
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -946,8 +948,11 @@ async def test_live_callback_with_reconnect(
     schema: Schema,
 ) -> None:
     """
-    Test that the client can reconnect to the same subscription
-    with a callback. That callback should emit every record.
+    Test that the client can reconnect to the same subscription with a
+    callback.
+
+    That callback should emit every record.
+
     """
     records: list[DBNRecord] = []
     live_client.add_callback(records.append)
@@ -990,8 +995,11 @@ async def test_live_stream_with_reconnect(
     schema: Schema,
 ) -> None:
     """
-    Test that the client can reconnect to the same subscription
-    with an output stream. That output stream should be readable.
+    Test that the client can reconnect to the same subscription with an output
+    stream.
+
+    That output stream should be readable.
+
     """
     output = tmp_path / "output.dbn"
     live_client.add_stream(output.open("wb", buffering=0))
