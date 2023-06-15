@@ -110,8 +110,9 @@ def test_optional_symbols_list_to_string_int(
 ) -> None:
     """
     Test that integers are allowed for SType.INSTRUMENT_ID.
-    If integers are given for a different SType we expect
-    a ValueError.
+
+    If integers are given for a different SType we expect a ValueError.
+
     """
     if isinstance(expected, str):
         assert optional_symbols_list_to_string(symbols, stype) == expected
@@ -146,8 +147,9 @@ def test_optional_symbols_list_to_string_numpy(
 ) -> None:
     """
     Test that weird numpy types are allowed for SType.INSTRUMENT_ID.
-    If integers are given for a different SType we expect
-    a ValueError.
+
+    If integers are given for a different SType we expect a ValueError.
+
     """
     if isinstance(expected, str):
         assert optional_symbols_list_to_string(symbols, stype) == expected

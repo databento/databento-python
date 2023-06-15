@@ -27,7 +27,8 @@ def test_check_http_status(
     message: str,
 ) -> None:
     """
-    Test that responses with the given status code raise the expected exception.
+    Test that responses with the given status code raise the expected
+    exception.
     """
     response = requests.Response()
     response.status_code = status_code
@@ -53,7 +54,8 @@ async def test_check_http_status_async(
     message: str,
 ) -> None:
     """
-    Test that responses with the given status code raise the expected exception.
+    Test that responses with the given status code raise the expected
+    exception.
     """
     response = MagicMock(
         spec=aiohttp.ClientResponse,

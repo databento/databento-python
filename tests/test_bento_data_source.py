@@ -12,7 +12,9 @@ def test_memory_data_source(
     test_data: Callable[[Schema], bytes],
     schema: Schema,
 ) -> None:
-    """Test create of MemoryDataSource"""
+    """
+    Test create of MemoryDataSource.
+    """
     data = test_data(schema)
     data_source = MemoryDataSource(data)
 
@@ -25,7 +27,9 @@ def test_file_data_source(
     test_data_path: Callable[[Schema], pathlib.Path],
     schema: Schema,
 ) -> None:
-    """Test create of FileDataSource"""
+    """
+    Test create of FileDataSource.
+    """
     path = test_data_path(schema)
     data_source = FileDataSource(path)
 

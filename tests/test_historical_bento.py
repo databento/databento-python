@@ -734,8 +734,8 @@ def test_dbnstore_repr(
     schema: Schema,
 ) -> None:
     """
-    Check that a more meaningful string is returned
-    when calling `repr()` on a DBNStore.
+    Check that a more meaningful string is returned when calling `repr()` on a
+    DBNStore.
     """
     # Arrange
     stub_data = test_data(schema)
@@ -751,8 +751,8 @@ def test_dbnstore_iterable(
     test_data: Callable[[Schema], bytes],
 ) -> None:
     """
-    Tests the DBNStore iterable implementation to ensure records
-    can be accessed by iteration.
+    Tests the DBNStore iterable implementation to ensure records can be
+    accessed by iteration.
     """
     # Arrange
     stub_data = test_data(Schema.MBO)
@@ -801,9 +801,11 @@ def test_dbnstore_iterable_parallel(
     test_data: Callable[[Schema], bytes],
 ) -> None:
     """
-    Tests the DBNStore iterable implementation to ensure iterators are
-    not stateful. For example, calling next() on one iterator does
-    not affect another.
+    Tests the DBNStore iterable implementation to ensure iterators are not
+    stateful.
+
+    For example, calling next() on one iterator does not affect another.
+
     """
     # Arrange
     stub_data = test_data(Schema.MBO)
@@ -836,8 +838,10 @@ def test_dbnstore_compression_equality(
 ) -> None:
     """
     Test that a DBNStore constructed from compressed data contains the same
-    records as an uncompressed version. Note that stub data is compressed
-    with zstandard by default.
+    records as an uncompressed version.
+
+    Note that stub data is compressed with zstandard by default.
+
     """
     zstd_stub_data = test_data(schema)
     dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(zstd_stub_data).read()
@@ -855,8 +859,8 @@ def test_dbnstore_buffer_short(
     tmp_path: Path,
 ) -> None:
     """
-    Test that creating a DBNStore with missing bytes raises a
-    BentoError when decoding.
+    Test that creating a DBNStore with missing bytes raises a BentoError when
+    decoding.
     """
     # Arrange
     dbn_stub_data = (
@@ -888,8 +892,8 @@ def test_dbnstore_buffer_long(
     tmp_path: Path,
 ) -> None:
     """
-    Test that creating a DBNStore with excess bytes raises a
-    BentoError when decoding.
+    Test that creating a DBNStore with excess bytes raises a BentoError when
+    decoding.
     """
     # Arrange
     dbn_stub_data = (
@@ -936,8 +940,8 @@ def test_dbnstore_to_ndarray_with_schema(
     test_data: Callable[[Schema], bytes],
 ) -> None:
     """
-    Test that calling to_ndarray with schema produces an
-    identical result to without.
+    Test that calling to_ndarray with schema produces an identical result to
+    without.
     """
     # Arrange
     dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
@@ -972,8 +976,8 @@ def test_dbnstore_to_df_with_schema(
     test_data: Callable[[Schema], bytes],
 ) -> None:
     """
-    Test that calling to_df with schema produces an
-    identical result to without.
+    Test that calling to_df with schema produces an identical result to
+    without.
     """
     # Arrange
     dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()

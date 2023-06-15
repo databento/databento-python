@@ -55,8 +55,7 @@ if TYPE_CHECKING:
 
 def is_zstandard(reader: IO[bytes]) -> bool:
     """
-    Determine if an `IO[bytes]` reader contains zstandard compressed
-    data.
+    Determine if an `IO[bytes]` reader contains zstandard compressed data.
 
     Parameters
     ----------
@@ -96,7 +95,9 @@ def is_dbn(reader: IO[bytes]) -> bool:
 
 
 class DataSource(abc.ABC):
-    """Abstract base class for backing DBNStore instances with data."""
+    """
+    Abstract base class for backing DBNStore instances with data.
+    """
 
     def __init__(self, source: object) -> None:
         ...
@@ -244,8 +245,8 @@ class MemoryDataSource(DataSource):
     @property
     def reader(self) -> IO[bytes]:
         """
-        Return a reader for this buffer.
-        The reader beings at the start of the buffer.
+        Return a reader for this buffer. The reader beings at the start of the
+        buffer.
 
         Returns
         -------
@@ -500,8 +501,8 @@ class DBNStore:
     @property
     def compression(self) -> Compression:
         """
-        Return the data compression format (if any).
-        This is determined by inspecting the data.
+        Return the data compression format (if any). This is determined by
+        inspecting the data.
 
         Returns
         -------
@@ -525,8 +526,8 @@ class DBNStore:
     @property
     def end(self) -> pd.Timestamp | None:
         """
-        Return the query end for the data.
-        If None, the end time was not known when the data was generated.
+        Return the query end for the data. If None, the end time was not known
+        when the data was generated.
 
         Returns
         -------
@@ -632,8 +633,7 @@ class DBNStore:
     @property
     def schema(self) -> Schema | None:
         """
-        Return the DBN record schema.
-        If None, may contain one or more schemas.
+        Return the DBN record schema. If None, may contain one or more schemas.
 
         Returns
         -------
@@ -664,8 +664,8 @@ class DBNStore:
     @property
     def stype_in(self) -> SType | None:
         """
-        Return the query input symbology type for the data.
-        If None, the records may contain mixed STypes.
+        Return the query input symbology type for the data. If None, the
+        records may contain mixed STypes.
 
         Returns
         -------

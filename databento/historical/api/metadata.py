@@ -421,8 +421,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         limit: int | None = None,
     ) -> float:
         """
-        Request the cost in US dollars for historical streaming or batched files
-        from Databento.
+        Request the cost in US dollars for historical streaming or batched
+        files from Databento.
 
         Makes a `GET /metadata.get_cost` HTTP request.
 

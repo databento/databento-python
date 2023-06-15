@@ -63,8 +63,7 @@ def test_parse_authentication_request(
     expected: tuple[str, ...] | type[Exception],
 ) -> None:
     """
-    Test that a AuthenticationRequest is parsed from a string as
-    expected.
+    Test that a AuthenticationRequest is parsed from a string as expected.
     """
     if isinstance(expected, tuple):
         msg = AuthenticationRequest.parse(line)
@@ -123,8 +122,7 @@ def test_parse_authentication_response(
     expected: tuple[str, ...] | type[Exception],
 ) -> None:
     """
-    Test that a AuthenticationResponse is parsed from a string as
-    expected.
+    Test that a AuthenticationResponse is parsed from a string as expected.
     """
     if isinstance(expected, tuple):
         msg = AuthenticationResponse.parse(line)
@@ -176,8 +174,7 @@ def test_parse_challenge_request(
     expected: str | type[Exception],
 ) -> None:
     """
-    Test that a ChallengeRequest is parsed from a string as
-    expected.
+    Test that a ChallengeRequest is parsed from a string as expected.
     """
     if isinstance(expected, str):
         msg = ChallengeRequest.parse(line)
@@ -216,8 +213,7 @@ def test_parse_greeting(
     expected: str | type[Exception],
 ) -> None:
     """
-    Test that a Greeting is parsed from a string as
-    expected.
+    Test that a Greeting is parsed from a string as expected.
     """
     if isinstance(expected, str):
         msg = Greeting.parse(line)
@@ -256,8 +252,7 @@ def test_parse_session_start(
     expected: str | type[Exception],
 ) -> None:
     """
-    Test that a SessionStart is parsed from a string as
-    expected.
+    Test that a SessionStart is parsed from a string as expected.
     """
     if isinstance(expected, str):
         msg = SessionStart.parse(line)
@@ -314,8 +309,7 @@ def test_parse_subscription_request(
     expected: tuple[str, ...] | type[Exception],
 ) -> None:
     """
-    Test that a SubscriptionRequest is parsed from a string as
-    expected.
+    Test that a SubscriptionRequest is parsed from a string as expected.
     """
     if isinstance(expected, tuple):
         msg = SubscriptionRequest.parse(line)
@@ -379,8 +373,7 @@ def test_serialize_subscription_request(
 )
 def test_parse_bad_key(message_type: GatewayControl, line: str) -> None:
     """
-    Test that a ValueError is raised when parsing fails
-    for general cases.
+    Test that a ValueError is raised when parsing fails for general cases.
     """
     with pytest.raises(ValueError):
         message_type.parse(line)

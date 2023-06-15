@@ -29,7 +29,9 @@ WARNING_HEADER_FIELD: str = "X-Warning"
 
 
 class BentoHttpAPI:
-    """The base class for all Databento HTTP API endpoints."""
+    """
+    The base class for all Databento HTTP API endpoints.
+    """
 
     TIMEOUT = 100
 

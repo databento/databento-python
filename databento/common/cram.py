@@ -1,4 +1,6 @@
-"""Functions for handling challenge-response authentication"""
+"""
+Functions for handling challenge-response authentication.
+"""
 import argparse
 import hashlib
 import os
@@ -10,9 +12,8 @@ BUCKET_ID_LENGTH = 5
 
 def get_challenge_response(challenge: str, key: str) -> str:
     """
-    Return the response for a given challenge-response
-    authentication mechanism (CRAM) code provided by
-    a Databento service.
+    Return the response for a given challenge-response authentication mechanism
+    (CRAM) code provided by a Databento service.
 
     A valid API key is hashed with the challenge string.
 

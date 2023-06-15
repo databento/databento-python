@@ -1,4 +1,6 @@
-"""Unit tests for DBNStore compression."""
+"""
+Unit tests for DBNStore compression.
+"""
 from io import BytesIO
 
 import pytest
@@ -16,8 +18,7 @@ from databento.common.dbnstore import is_zstandard
 )
 def test_is_dbn(data: bytes, expected: bool) -> None:
     """
-    Test that buffers that start with DBN are identified
-    as DBN files.
+    Test that buffers that start with DBN are identified as DBN files.
     """
     reader = BytesIO(data)
     assert is_dbn(reader) == expected
@@ -49,8 +50,7 @@ def test_is_dbn(data: bytes, expected: bool) -> None:
 )
 def test_is_zstandard(data: bytes, expected: bool) -> None:
     """
-    Test that buffers that contain ZSTD data are correctly
-    identified.
+    Test that buffers that contain ZSTD data are correctly identified.
     """
     reader = BytesIO(data)
     assert is_zstandard(reader) == expected

@@ -21,6 +21,7 @@ class InstrumentIdMappingInterval:
         The raw symbol value.
     instrument_id : int
         The instrument ID value.
+
     """
 
     start_date: dt.date
