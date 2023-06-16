@@ -161,6 +161,42 @@ def test_optional_symbols_list_to_string_numpy(
 @pytest.mark.parametrize(
     "symbols, stype, expected",
     [
+        pytest.param(np.byte(120), SType.INSTRUMENT_ID, "120"),
+        pytest.param(np.short(32_000), SType.INSTRUMENT_ID, "32000"),
+        pytest.param(
+            [np.intc(12345), np.intc(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+        pytest.param(
+            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+        pytest.param(
+            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+        pytest.param(
+            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+        ),
+    ],
+)
+def test_optional_symbols_list_to_string_numpy(
+    symbols: list[Number] | Number | None,
+    stype: SType,
+    expected: str | type[Exception],
+) -> None:
+    """
+    Test that weird numpy types are allowed for SType.INSTRUMENT_ID.
+    If integers are given for a different SType we expect
+    a ValueError.
+    """
+    if isinstance(expected, str):
+        assert optional_symbols_list_to_string(symbols, stype) == expected
+    else:
+        with pytest.raises(expected):
+            optional_symbols_list_to_string(symbols, stype)
+
+
+@pytest.mark.parametrize(
+    "symbols, stype, expected",
+    [
         pytest.param("NVDA", SType.RAW_SYMBOL, "NVDA"),
         pytest.param(" nvda  ", SType.RAW_SYMBOL, "NVDA"),
         pytest.param("NVDA,amd", SType.RAW_SYMBOL, "NVDA,AMD"),

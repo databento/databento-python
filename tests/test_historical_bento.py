@@ -502,7 +502,7 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
     written = open(path, mode="rb").read()
     assert path.exists()
     expected = (
-        b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,instrument_id,order_id,act"  # noqa
+        b"ts_recv,ts_event,ts_in_delta,publisher_id,channel_id,instrument_id,order_id,act" # noqa
         b"ion,side,flags,price,size,sequence\n1609160400000704060,16091604000004298"  # noqa
         b"31,22993,1,0,5482,647784973705,C,A,128,3722750000000,1,1170352\n160916040"  # noqa
         b"0000711344,1609160400000431665,19621,1,0,5482,647784973631,C,A,128,372300000"  # noqa
