@@ -1,4 +1,6 @@
-"""Tests specific to releasing a version of databento-python"""
+"""
+Tests specific to releasing a version of databento-python.
+"""
 import operator
 import re
 from datetime import date
@@ -30,6 +32,7 @@ def fixture_changelog() -> str:
 def test_release_changelog(changelog: str) -> None:
     """
     Test that CHANGELOG.md contains correct version information.
+
     This test verifies that:
         - The version in `version.py` matches the latest release note.
         - The versions are unique.

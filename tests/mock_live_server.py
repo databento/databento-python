@@ -59,6 +59,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
     See Also
     --------
     `asyncio.BufferedProtocol`
+
     """
 
     def __init__(
@@ -87,8 +88,8 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
     @property
     def cram_challenge(self) -> str:
         """
-        Return the CRAM challenge string that will be used
-        to authenticate users.
+        Return the CRAM challenge string that will be used to authenticate
+        users.
 
         Returns
         -------
@@ -136,9 +137,9 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
     @property
     def user_api_keys(self) -> dict[str, str]:
         """
-        Return a dictionary of user api keys for testing.
-        The keys to this dictionary are the bucket_ids.
-        The value shoud be a single user API key.
+        Return a dictionary of user api keys for testing. The keys to this
+        dictionary are the bucket_ids. The value shoud be a single user API
+        key.
 
         Returns
         -------
@@ -232,9 +233,8 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
 
     def get_buffer(self, _: int) -> bytearray:
         """
-        Get the receive buffer.
-        This protocol allocates the buffer at initialization,
-        because of this the size_hint is unused.
+        Get the receive buffer. This protocol allocates the buffer at
+        initialization, because of this the size_hint is unused.
 
         Parameters
         ----------
@@ -294,6 +294,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         See Also
         --------
         asyncio.BufferedProtocol
+
         """
         logger.info("received eof from %s", self.peer)
         return bool(super().eof_received())
@@ -389,9 +390,8 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
 
 class MockLiveServer:
     """
-    A mock of the Databento Live Subscription Gateway.
-    This is used for unit testing instead of connecting to the
-    actual gateway.
+    A mock of the Databento Live Subscription Gateway. This is used for unit
+    testing instead of connecting to the actual gateway.
 
     Attributes
     ----------
@@ -487,8 +487,8 @@ class MockLiveServer:
         dbn_path: pathlib.Path = pathlib.Path.cwd(),
     ) -> MockLiveServer:
         """
-        Create a mock server instance. This factory method is the
-        preferred way to create an instance of MockLiveServer.
+        Create a mock server instance. This factory method is the preferred way
+        to create an instance of MockLiveServer.
 
         Parameters
         ----------
@@ -592,8 +592,8 @@ class MockLiveServer:
     ) -> G:
         """
         Return the next gateway message that is an instance of message_type
-        received from the client. Messages that are removed from the
-        queue until a match is found or the timeout expires, if specified.
+        received from the client. Messages that are removed from the queue
+        until a match is found or the timeout expires, if specified.
 
         Parameters
         ----------
@@ -626,7 +626,6 @@ class MockLiveServer:
     async def start(self) -> None:
         """
         Start the mock server.
-
         """
         logger.info(
             "starting %s on %s:%s",
@@ -642,7 +641,6 @@ class MockLiveServer:
     async def stop(self) -> None:
         """
         Stop the mock server.
-
         """
         logger.info(
             "stopping %s on %s:%s",

@@ -49,7 +49,9 @@ class DBNQueue(queue.Queue):  # type: ignore [type-arg]
     def enabled(self) -> bool:
         """
         True if the Queue will allow pushing.
+
         A queue should only be enabled when it has a consumer.
+
         """
         return self._enabled.is_set()
 
@@ -70,6 +72,7 @@ class SessionMetadata:
     ----------
     data : databento_dbn.Metadata, optional
         The encapsulated metadata.
+
     """
 
     data: databento_dbn.Metadata | None = dataclasses.field(default=None)
@@ -79,9 +82,8 @@ class SessionMetadata:
 
     def check(self, other: databento_dbn.Metadata) -> None:
         """
-        Verify the Metadata is compatible with another
-        Metadata message. This is used to ensure DBN
-        streams are compatible with one another.
+        Verify the Metadata is compatible with another Metadata message. This
+        is used to ensure DBN streams are compatible with one another.
 
         Parameters
         ----------
@@ -327,9 +329,7 @@ class Session:
 
     def abort(self) -> None:
         """
-        Abort the current connection immediately.
-        Buffered data will be lost.
-
+        Abort the current connection immediately. Buffered data will be lost.
 
         See Also
         --------
@@ -344,7 +344,6 @@ class Session:
     def close(self) -> None:
         """
         Close the current connection.
-
         """
         if self._transport is None:
             return
@@ -361,9 +360,8 @@ class Session:
         start: str | int | None = None,
     ) -> None:
         """
-        Send a subscription request on the current connection.
-        This will create a new connection if there is no active
-        connection to the gateway.
+        Send a subscription request on the current connection. This will create
+        a new connection if there is no active connection to the gateway.
 
         Parameters
         ----------
@@ -397,7 +395,6 @@ class Session:
     def resume_reading(self) -> None:
         """
         Resume reading from the connection.
-
         """
         if self._transport is None:
             return
@@ -419,8 +416,8 @@ class Session:
 
     async def wait_for_close(self) -> None:
         """
-        Coroutine to wait for the current connection
-        to disconnect and for all records to be processed.
+        Coroutine to wait for the current connection to disconnect and for all
+        records to be processed.
         """
         if self._protocol is None:
             return

@@ -1,18 +1,11 @@
-<a href="https://databento.com">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://dzv012k6yye9u.cloudfront.net/brand/logo-white.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://dzv012k6yye9u.cloudfront.net/brand/logo.png">
-    <img alt="Databento" src="https://dzv012k6yye9u.cloudfront.net/brand/logo-white.png" width="560px">
-  </picture>
-</a>
-
-# Pay as you go for market data
+# databento-python
 
 [![test](https://github.com/databento/databento-python/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/databento/databento-python/actions/workflows/test.yml)
 ![python](https://img.shields.io/badge/python-3.8+-blue.svg)
 [![pypi-version](https://img.shields.io/pypi/v/databento)](https://pypi.org/project/databento)
 [![license](https://img.shields.io/github/license/databento/databento-python?color=blue)](./LICENSE)
 [![code-style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Slack](https://img.shields.io/badge/join_Slack-community-darkblue.svg?logo=slack)](https://join.slack.com/t/databento-hq/shared_invite/zt-1xk498wxs-9fUs_xhz5ypaGD~mhI_hVQ)
 
 The official Python client library for [Databento](https://databento.com).
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import datetime as dt
+import functools
 import logging
 from collections.abc import Generator
 from io import BytesIO
@@ -55,8 +56,7 @@ if TYPE_CHECKING:
 
 def is_zstandard(reader: IO[bytes]) -> bool:
     """
-    Determine if an `IO[bytes]` reader contains zstandard compressed
-    data.
+    Determine if an `IO[bytes]` reader contains zstandard compressed data.
 
     Parameters
     ----------
@@ -96,7 +96,9 @@ def is_dbn(reader: IO[bytes]) -> bool:
 
 
 class DataSource(abc.ABC):
-    """Abstract base class for backing DBNStore instances with data."""
+    """
+    Abstract base class for backing DBNStore instances with data.
+    """
 
     def __init__(self, source: object) -> None:
         ...
@@ -136,6 +138,11 @@ class FileDataSource(DataSource):
 
         if not self._path.is_file() or not self._path.exists():
             raise FileNotFoundError(source)
+
+        if self._path.stat().st_size == 0:
+            raise ValueError(
+                f"Cannot create data source from empty file: {self._path.name}",
+            )
 
         self._name = self._path.name
         self.__buffer: IO[bytes] | None = None
@@ -244,8 +251,8 @@ class MemoryDataSource(DataSource):
     @property
     def reader(self) -> IO[bytes]:
         """
-        Return a reader for this buffer.
-        The reader beings at the start of the buffer.
+        Return a reader for this buffer. The reader beings at the start of the
+        buffer.
 
         Returns
         -------
@@ -306,6 +313,11 @@ class DBNStore:
     to_ndarray : np.ndarray
         The data as a numpy `ndarray`.
 
+    Raises
+    ------
+    BentoError
+        When the data_source does not contain valid DBN data or is corrupted.
+
     See Also
     --------
     https://docs.databento.com/knowledge-base/new-users/dbn-encoding
@@ -328,7 +340,7 @@ class DBNStore:
             buffer = data_source.reader
         else:
             # We don't know how to read this file
-            raise RuntimeError(
+            raise BentoError(
                 f"Could not determine compression format of {self._data_source.name}",
             )
 
@@ -452,10 +464,6 @@ class DBNStore:
         df: pd.DataFrame,
         schema: Schema,
     ) -> pd.DataFrame:
-        # Setup column ordering and index
-        df.set_index(self._get_index_column(schema), inplace=True)
-        df = df.reindex(columns=COLUMNS[schema])
-
         if schema == Schema.MBO or schema in DERIV_SCHEMAS:
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
             df["side"] = df["side"].str.decode("utf-8")
@@ -500,8 +508,8 @@ class DBNStore:
     @property
     def compression(self) -> Compression:
         """
-        Return the data compression format (if any).
-        This is determined by inspecting the data.
+        Return the data compression format (if any). This is determined by
+        inspecting the data.
 
         Returns
         -------
@@ -525,8 +533,8 @@ class DBNStore:
     @property
     def end(self) -> pd.Timestamp | None:
         """
-        Return the query end for the data.
-        If None, the end time was not known when the data was generated.
+        Return the query end for the data. If None, the end time was not known
+        when the data was generated.
 
         Returns
         -------
@@ -632,8 +640,7 @@ class DBNStore:
     @property
     def schema(self) -> Schema | None:
         """
-        Return the DBN record schema.
-        If None, may contain one or more schemas.
+        Return the DBN record schema. If None, may contain one or more schemas.
 
         Returns
         -------
@@ -664,8 +671,8 @@ class DBNStore:
     @property
     def stype_in(self) -> SType | None:
         """
-        Return the query input symbology type for the data.
-        If None, the records may contain mixed STypes.
+        Return the query input symbology type for the data. If None, the
+        records may contain mixed STypes.
 
         Returns
         -------
@@ -739,7 +746,9 @@ class DBNStore:
         Raises
         ------
         FileNotFoundError
-            If a empty or non-existant file is specified.
+            If a non-existant file is specified.
+        ValueError
+            If an empty file is specified.
 
         """
         return cls(FileDataSource(path))
@@ -760,8 +769,8 @@ class DBNStore:
 
         Raises
         ------
-        FileNotFoundError
-            If a empty or non-existant file is specified.
+        ValueError
+            If an empty buffer is specified.
 
         """
         return cls(MemoryDataSource(data))
@@ -941,7 +950,12 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        df = pd.DataFrame(self.to_ndarray(schema=schema))
+        df = pd.DataFrame(
+            self.to_ndarray(schema),
+            columns=COLUMNS[schema],
+        )
+        df.set_index(self._get_index_column(schema), inplace=True)
+
         df = self._prepare_dataframe(df, schema)
 
         if pretty_ts:
@@ -1049,12 +1063,10 @@ class DBNStore:
             self,
         )
 
-        result = []
-        for record in schema_records:
-            np_rec = np.frombuffer(
-                bytes(record),
-                dtype=STRUCT_MAP[schema],
-            )
-            result.append(np_rec[0])
+        decoder = functools.partial(np.frombuffer, dtype=STRUCT_MAP[schema])
+        result = tuple(map(decoder, map(bytes, schema_records)))
 
-        return np.asarray(result)
+        if not result:
+            return np.empty(shape=(0, 1), dtype=STRUCT_MAP[schema])
+
+        return np.ravel(result)

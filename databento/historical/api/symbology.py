@@ -5,6 +5,7 @@ from typing import Any
 
 from requests import Response
 
+from databento.common.enums import Dataset
 from databento.common.enums import SType
 from databento.common.parsing import datetime_to_date_string
 from databento.common.parsing import optional_date_to_string
@@ -26,13 +27,13 @@ class SymbologyHttpAPI(BentoHttpAPI):
 
     def resolve(
         self,
-        dataset: str,
+        dataset: Dataset | str,
         symbols: list[str] | str,
         stype_in: SType | str,
         stype_out: SType | str,
         start_date: date | str,
         end_date: date | str | None = None,
-        default_value: str | None = "",
+        default_value: str = "",
     ) -> dict[str, Any]:
         """
         Request symbology mappings resolution from Databento.

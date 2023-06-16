@@ -85,8 +85,8 @@ class ChallengeRequest(GatewayControl):
 @dataclasses.dataclass
 class AuthenticationResponse(GatewayControl):
     """
-    An authentication response is sent by the gateway after a
-    valid authentication request is sent to the gateway.
+    An authentication response is sent by the gateway after a valid
+    authentication request is sent to the gateway.
     """
 
     success: str
@@ -97,9 +97,11 @@ class AuthenticationResponse(GatewayControl):
 @dataclasses.dataclass
 class AuthenticationRequest(GatewayControl):
     """
-    An authentication request is sent to the gateway after a
-    challenge response is received. This is required to authenticate
-    a user.
+    An authentication request is sent to the gateway after a challenge response
+    is received.
+
+    This is required to authenticate a user.
+
     """
 
     auth: str
@@ -112,8 +114,7 @@ class AuthenticationRequest(GatewayControl):
 @dataclasses.dataclass
 class SubscriptionRequest(GatewayControl):
     """
-    A subscription request is sent to the gateway upon request from
-    the client.
+    A subscription request is sent to the gateway upon request from the client.
     """
 
     schema: Schema | str
@@ -125,8 +126,8 @@ class SubscriptionRequest(GatewayControl):
 @dataclasses.dataclass
 class SessionStart(GatewayControl):
     """
-    A session start message is sent to the gateway upon request from
-    the client.
+    A session start message is sent to the gateway upon request from the
+    client.
     """
 
     start_session: str = "0"
@@ -157,7 +158,6 @@ def parse_gateway_message(line: str) -> GatewayControl:
 class GatewayDecoder:
     """
     Decoder for gateway control messages.
-
     """
 
     def __init__(self) -> None:
@@ -177,8 +177,8 @@ class GatewayDecoder:
 
     def write(self, data: bytes) -> None:
         """
-        Write data to the decoder's buffer.
-        This will make the data available for decoding.
+        Write data to the decoder's buffer. This will make the data available
+        for decoding.
 
         Parameters
         ----------
@@ -191,8 +191,8 @@ class GatewayDecoder:
 
     def decode(self) -> list[GatewayControl]:
         """
-        Decode messages from the decoder's buffer.
-        This will consume decoded data from the buffer.
+        Decode messages from the decoder's buffer. This will consume decoded
+        data from the buffer.
 
         Returns
         -------

@@ -90,8 +90,8 @@ def optional_symbols_list_to_string(
 @optional_symbols_list_to_string.register
 def _(_: None, __: SType) -> str:
     """
-    Dispatch method for optional_symbols_list_to_string.
-    Handles None which defaults to ALL_SYMBOLS.
+    Dispatch method for optional_symbols_list_to_string. Handles None which
+    defaults to ALL_SYMBOLS.
 
     See Also
     --------
@@ -104,9 +104,8 @@ def _(_: None, __: SType) -> str:
 @optional_symbols_list_to_string.register
 def _(symbols: Number, stype_in: SType) -> str:
     """
-    Dispatch method for optional_symbols_list_to_string.
-    Handles numerical types, alerting when an integer is
-    given for STypes that expect strings.
+    Dispatch method for optional_symbols_list_to_string. Handles numerical
+    types, alerting when an integer is given for STypes that expect strings.
 
     See Also
     --------
@@ -124,8 +123,8 @@ def _(symbols: Number, stype_in: SType) -> str:
 @optional_symbols_list_to_string.register
 def _(symbols: str, stype_in: SType) -> str:
     """
-    Dispatch method for optional_symbols_list_to_string.
-    Handles str, splitting on commas and validating smart symbology.
+    Dispatch method for optional_symbols_list_to_string. Handles str, splitting
+    on commas and validating smart symbology.
 
     See Also
     --------
@@ -154,8 +153,8 @@ def _(symbols: str, stype_in: SType) -> str:
 @optional_symbols_list_to_string.register(cls=Iterable)
 def _(symbols: Iterable[str] | Iterable[int], stype_in: SType) -> str:
     """
-    Dispatch method for optional_symbols_list_to_string.
-    Handles Iterables by dispatching the individual members.
+    Dispatch method for optional_symbols_list_to_string. Handles Iterables by
+    dispatching the individual members.
 
     See Also
     --------
@@ -295,7 +294,8 @@ def optional_datetime_to_unix_nanoseconds(
     value: pd.Timestamp | str | int | None,
 ) -> int | None:
     """
-    Return a valid UNIX nanosecond timestamp from the given value (if not None).
+    Return a valid UNIX nanosecond timestamp from the given value (if not
+    None).
 
     Parameters
     ----------

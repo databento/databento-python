@@ -14,8 +14,8 @@ async def test_protocol_connection(
     test_api_key: str,
 ) -> None:
     """
-    Test the low-level DatabentoLiveProtocol can be used to establish
-    a connection to the live subscription gateway.
+    Test the low-level DatabentoLiveProtocol can be used to establish a
+    connection to the live subscription gateway.
     """
     transport, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
@@ -39,8 +39,8 @@ async def test_protocol_connection_streaming(
     test_api_key: str,
 ) -> None:
     """
-    Test the low-level DatabentoLiveProtocol can be used to stream
-    DBN records from the live subscription gateway.
+    Test the low-level DatabentoLiveProtocol can be used to stream DBN records
+    from the live subscription gateway.
     """
     monkeypatch.setattr(DatabentoLiveProtocol, "received_metadata", metadata_mock := MagicMock())
     monkeypatch.setattr(DatabentoLiveProtocol, "received_record", record_mock := MagicMock())

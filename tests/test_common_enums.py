@@ -1,4 +1,6 @@
-"""Unit tests for databento.common.enums"""
+"""
+Unit tests for databento.common.enums.
+"""
 from __future__ import annotations
 
 from enum import Enum
@@ -46,7 +48,9 @@ DATABENTO_ENUMS = (
 def test_int_enum_string_coercion(enum_type: type[Enum]) -> None:
     """
     Test the int coercion for integer enumerations.
+
     See: databento.common.enums.coercible
+
     """
     for enum in enum_type:
         assert enum == enum_type(str(enum.value))
@@ -61,7 +65,9 @@ def test_int_enum_string_coercion(enum_type: type[Enum]) -> None:
 def test_str_enum_case_coercion(enum_type: type[Enum]) -> None:
     """
     Test the lowercase name coercion for string enumerations.
+
     See: databento.common.enums.coercible
+
     """
     for enum in enum_type:
         assert enum == enum_type(enum.value.lower())
@@ -77,8 +83,10 @@ def test_str_enum_case_coercion(enum_type: type[Enum]) -> None:
 def test_enum_name_coercion(enum_type: type[Enum]) -> None:
     """
     Test that enums can be coerced from the member names.
+
     This includes case and dash conversion to underscores.
     See: databento.common.enums.coercible
+
     """
     for enum in enum_type:
         assert enum == enum_type(enum.name)
@@ -96,7 +104,9 @@ def test_enum_name_coercion(enum_type: type[Enum]) -> None:
 def test_enum_none_not_coercible(enum_type: type[Enum]) -> None:
     """
     Test that None type is not coercible and raises a TypeError.
+
     See: databento.common.enum.coercible
+
     """
     with pytest.raises(TypeError):
         enum_type(None)
@@ -109,7 +119,9 @@ def test_enum_none_not_coercible(enum_type: type[Enum]) -> None:
 def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     """
     Test the StringyMixin for integer enumerations.
+
     See: databento.common.enum.StringyMixin
+
     """
     if not issubclass(enum_type, StringyMixin):
         pytest.skip(f"{type(enum_type)} is not a subclass of StringyMixin")
@@ -124,7 +136,9 @@ def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
 def test_str_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     """
     Test the StringyMixin for string enumerations.
+
     See: databento.common.enum.StringyMixin
+
     """
     if not issubclass(enum_type, StringyMixin):
         pytest.skip(f"{type(enum_type)} is not a subclass of StringyMixin")

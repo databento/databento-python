@@ -135,7 +135,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         """
-        Asynchronously request a historical time series data stream from Databento.
+        Asynchronously request a historical time series data stream from
+        Databento.
 
         Makes a `GET /timeseries.get_range` HTTP request.
 

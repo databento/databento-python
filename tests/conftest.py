@@ -1,4 +1,6 @@
-"""Pytest fixtures"""
+"""
+Pytest fixtures.
+"""
 from __future__ import annotations
 
 import pathlib
@@ -21,8 +23,7 @@ from tests.mock_live_server import MockLiveServer
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
-    Customize pytest cli options.
-    This should not be invoked directly.
+    Customize pytest cli options. This should not be invoked directly.
 
     Parameters
     ----------
@@ -44,8 +45,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def pytest_configure(config: pytest.Config) -> None:
     """
-    Configure pytest.
-    This should not be invoked directly.
+    Configure pytest. This should not be invoked directly.
 
     Parameters
     ----------
@@ -65,8 +65,7 @@ def pytest_collection_modifyitems(
     items: Iterable[pytest.Item],
 ) -> None:
     """
-    Customize test items.
-    This should not be invoked directly.
+    Customize test items. This should not be invoked directly.
 
     Parameters
     ----------
@@ -143,9 +142,8 @@ def fixture_test_data(
 @pytest.fixture(name="test_api_key")
 def fixture_test_api_key() -> str:
     """
-    Generate a random API key for testing.
-    API keys are 32 characters in length, the first three of
-    which are "db-".
+    Generate a random API key for testing. API keys are 32 characters in
+    length, the first three of which are "db-".
 
     Returns
     -------
