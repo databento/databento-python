@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.14.1 - TBD
+## 0.14.1 - 2023-06-16
 - Fixed issue where `DBNStore.to_df()` would raise an exception if no records were present
 - Fixed exception message when creating a DBNStore from an empty data source
 
