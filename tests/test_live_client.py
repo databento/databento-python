@@ -593,7 +593,6 @@ async def test_live_async_iteration_backpressure(
     assert len(records) == 4
     assert live_client._dbn_queue.empty()
 
-
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_dropped(
     monkeypatch: pytest.MonkeyPatch,
