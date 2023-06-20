@@ -284,9 +284,10 @@ OHLCV_HEADER_COLUMNS = [
 DEFINITION_DROP_COLUMNS = [
     "length",
     "rtype",
-    "reserved1",
-    "reserved2",
-    "reserved3",
+    "_reserved1",
+    "_reserved2",
+    "_reserved3",
+    "_reserved4",
     "dummy",
 ]
 
