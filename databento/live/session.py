@@ -20,13 +20,14 @@ from databento.common.symbology import ALL_SYMBOLS
 from databento.live import AUTH_TIMEOUT_SECONDS
 from databento.live import CONNECT_TIMEOUT_SECONDS
 from databento.live import DBNRecord
+from databento.live import ExceptionCallback
+from databento.live import RecordCallback
 from databento.live.protocol import DatabentoLiveProtocol
 
 
 logger = logging.getLogger(__name__)
 
 
-UserCallback = Callable[[DBNRecord], None]
 DEFAULT_REMOTE_PORT = 13000
 
 
@@ -122,8 +123,8 @@ class _SessionProtocol(DatabentoLiveProtocol):
         api_key: str,
         dataset: Dataset | str,
         dbn_queue: DBNQueue,
-        user_callbacks: list[UserCallback],
-        user_streams: list[IO[bytes]],
+        user_callbacks: dict[RecordCallback, ExceptionCallback | None],
+        user_streams: dict[IO[bytes], ExceptionCallback | None],
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
@@ -140,8 +141,10 @@ class _SessionProtocol(DatabentoLiveProtocol):
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         if not self._metadata:
             self._metadata.data = metadata
-            for stream in self._user_streams:
-                task = self._loop.create_task(self._stream_task(stream, metadata))
+            for stream, exc_callback in self._user_streams.items():
+                task = self._loop.create_task(
+                    self._stream_task(stream, metadata, exc_callback),
+                )
                 task.add_done_callback(self._tasks.remove)
                 self._tasks.add(task)
         else:
@@ -149,13 +152,17 @@ class _SessionProtocol(DatabentoLiveProtocol):
         return super().received_metadata(metadata)
 
     def received_record(self, record: DBNRecord) -> None:
-        for callback in self._user_callbacks:
-            task = self._loop.create_task(self._callback_task(callback, record))
+        for callback, exc_callback in self._user_callbacks.items():
+            task = self._loop.create_task(
+                self._callback_task(callback, record, exc_callback),
+            )
             task.add_done_callback(self._tasks.remove)
             self._tasks.add(task)
 
-        for stream in self._user_streams:
-            task = self._loop.create_task(self._stream_task(stream, record))
+        for stream, exc_callback in self._user_streams.items():
+            task = self._loop.create_task(
+                self._stream_task(stream, record, exc_callback),
+            )
             task.add_done_callback(self._tasks.remove)
             self._tasks.add(task)
 
@@ -180,26 +187,29 @@ class _SessionProtocol(DatabentoLiveProtocol):
 
     async def _callback_task(
         self,
-        func: UserCallback,
+        record_callback: RecordCallback,
         record: DBNRecord,
+        exception_callback: ExceptionCallback | None,
     ) -> None:
         try:
-            func(record)
+            record_callback(record)
         except Exception as exc:
             logger.error(
                 "error dispatching %s to `%s` callback",
                 type(record).__name__,
-                func.__name__,
+                record_callback.__name__,
                 exc_info=exc,
             )
-            raise
+            if exception_callback is not None:
+                self._loop.call_soon_threadsafe(exception_callback, exc)
 
     async def _stream_task(
         self,
         stream: IO[bytes],
         record: databento_dbn.Metadata | DBNRecord,
+        exc_callback: ExceptionCallback | None,
     ) -> None:
-        has_ts_out = self._metadata and self._metadata.data.ts_out
+        has_ts_out = self._metadata.data and self._metadata.data.ts_out
         try:
             stream.write(bytes(record))
             if not isinstance(record, databento_dbn.Metadata) and has_ts_out:
@@ -212,7 +222,8 @@ class _SessionProtocol(DatabentoLiveProtocol):
                 stream_name,
                 exc_info=exc,
             )
-            raise
+            if exc_callback is not None:
+                self._loop.call_soon_threadsafe(exc_callback, exc)
 
     async def wait_for_processing(self) -> None:
         while self._tasks:

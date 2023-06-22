@@ -186,7 +186,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         asycnio.BufferedProtocol.eof_received
 
         """
-        logger.info("received EOF file from remote")
+        logger.info("received EOF from remote")
         return super().eof_received()
 
     def get_buffer(self, sizehint: int) -> bytearray:

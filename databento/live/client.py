@@ -8,7 +8,7 @@ import threading
 from collections.abc import Iterable
 from concurrent import futures
 from numbers import Number
-from typing import IO, Callable
+from typing import IO
 
 import databento_dbn
 
@@ -23,6 +23,8 @@ from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.live import DBNRecord
+from databento.live import ExceptionCallback
+from databento.live import RecordCallback
 from databento.live.session import DEFAULT_REMOTE_PORT
 from databento.live.session import DBNQueue
 from databento.live.session import Session
@@ -31,9 +33,6 @@ from databento.live.session import _SessionProtocol
 
 
 logger = logging.getLogger(__name__)
-
-UserCallback = Callable[[DBNRecord], None]
-
 DEFAULT_QUEUE_SIZE = 2048
 
 
@@ -89,8 +88,8 @@ class Live:
         self._dbn_queue: DBNQueue = DBNQueue(maxsize=DEFAULT_QUEUE_SIZE)
         self._metadata: SessionMetadata = SessionMetadata()
         self._symbology_map: dict[int, str | int] = {}
-        self._user_callbacks: list[UserCallback] = [self._map_symbol]
-        self._user_streams: list[IO[bytes]] = []
+        self._user_callbacks: dict[RecordCallback, ExceptionCallback | None] = {}
+        self._user_streams: dict[IO[bytes], ExceptionCallback | None] = {}
 
         def factory() -> _SessionProtocol:
             return _SessionProtocol(
@@ -269,15 +268,19 @@ class Live:
 
     def add_callback(
         self,
-        func: UserCallback,
+        record_callback: RecordCallback,
+        exception_callback: ExceptionCallback | None = None,
     ) -> None:
         """
         Add a callback for handling records.
 
         Parameters
         ----------
-        func : Callable[[DBNRecord], None]
+        record_callback : Callable[[DBNRecord], None]
             A callback to register for handling live records as they arrive.
+        exception_callback : Callable[[Exception], None], optional
+            An error handling callback to process exceptions that are raised
+            in `record_callback`.
 
         Raises
         ------
@@ -289,13 +292,21 @@ class Live:
         Live.add_stream
 
         """
-        if not callable(func):
-            raise ValueError(f"{func} is not callable")
-        callback_name = getattr(func, "__name__", str(func))
-        logger.info("adding user callback %s", callback_name)
-        self._user_callbacks.append(func)
+        if not callable(record_callback):
+            raise ValueError(f"{record_callback} is not callable")
 
-    def add_stream(self, stream: IO[bytes]) -> None:
+        if exception_callback is not None and not callable(exception_callback):
+            raise ValueError(f"{exception_callback} is not callable")
+
+        callback_name = getattr(record_callback, "__name__", str(record_callback))
+        logger.info("adding user callback %s", callback_name)
+        self._user_callbacks[record_callback] = exception_callback
+
+    def add_stream(
+        self,
+        stream: IO[bytes],
+        exception_callback: ExceptionCallback | None = None,
+    ) -> None:
         """
         Add an IO stream to write records to.
 
@@ -303,6 +314,9 @@ class Live:
         ----------
         stream : IO[bytes]
             The IO stream to write to when handling live records as they arrive.
+        exception_callback : Callable[[Exception], None], optional
+            An error handling callback to process exceptions that are raised
+            when writing to the stream.
 
         Raises
         ------
@@ -320,11 +334,14 @@ class Live:
         if not hasattr(stream, "writable") or not stream.writable():
             raise ValueError(f"{type(stream).__name__} is not a writable stream")
 
+        if exception_callback is not None and not callable(exception_callback):
+            raise ValueError(f"{exception_callback} is not callable")
+
         stream_name = getattr(stream, "name", str(stream))
         logger.info("adding user stream %s", stream_name)
         if self.metadata is not None:
             stream.write(bytes(self.metadata))
-        self._user_streams.append(stream)
+        self._user_streams[stream] = exception_callback
 
     def start(
         self,

@@ -497,7 +497,8 @@ def test_live_add_callback(
 
     live_client.add_callback(callback)
     assert callback in live_client._user_callbacks
-    assert live_client._user_streams == []
+    assert live_client._user_callbacks[callback] is None
+    assert live_client._user_streams == {}
 
 
 def test_live_add_stream(
@@ -509,7 +510,9 @@ def test_live_add_stream(
     stream = BytesIO()
 
     live_client.add_stream(stream)
-    assert live_client._user_streams == [stream]
+    assert stream in live_client._user_streams
+    assert live_client._user_streams[stream] is None
+    assert live_client._user_callbacks == {}
 
 
 def test_live_add_stream_invalid(
@@ -1064,3 +1067,55 @@ def test_live_connection_reconnect_cram_failure(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
     )
+
+async def test_live_callback_exception_handler(
+    live_client: client.Live,
+) -> None:
+    """
+    Test exceptions that occur during callbacks are dispatched to the assigned
+    exception handler.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    exceptions: list[Exception] = []
+
+    def callback(_: DBNRecord) -> None:
+        raise RuntimeError("this is a test")
+
+    live_client.add_callback(callback, exceptions.append)
+
+    live_client.start()
+
+    await live_client.wait_for_close()
+    assert len(exceptions) == 4
+
+
+async def test_live_stream_exception_handler(
+    live_client: client.Live,
+) -> None:
+    """
+    Test exceptions that occur during stream writes are dispatched to the
+    assigned exception handler.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    exceptions: list[Exception] = []
+
+    stream = BytesIO()
+    live_client.add_stream(stream, exceptions.append)
+    stream.close()
+
+    live_client.start()
+
+    await live_client.wait_for_close()
+    assert len(exceptions) == 5  # extra write from metadata
