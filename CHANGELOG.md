@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.15.0 - TBD
+
+### Enhancements
+- Added `symbology_map` property to `Live` client
+
 ## 0.14.1 - 2023-06-16
 
 - Fixed issue where `DBNStore.to_df()` would raise an exception if no records were present

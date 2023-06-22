@@ -88,7 +88,8 @@ class Live:
 
         self._dbn_queue: DBNQueue = DBNQueue(maxsize=DEFAULT_QUEUE_SIZE)
         self._metadata: SessionMetadata = SessionMetadata()
-        self._user_callbacks: list[UserCallback] = []
+        self._symbology_map: dict[int, str | int] = {}
+        self._user_callbacks: list[UserCallback] = [self._map_symbol]
         self._user_streams: list[IO[bytes]] = []
 
         def factory() -> _SessionProtocol:
@@ -236,6 +237,23 @@ class Live:
 
         """
         return self._port
+
+    @property
+    def symbology_map(self) -> dict[int, str | int]:
+        """
+        Return the symbology map for this client session. A symbol mapping is
+        added when the client receives a SymbolMappingMsg.
+
+        This can be used to transform an `instrument_id` in a DBN record
+        to the input symbology.
+
+        Returns
+        -------
+        dict[int, str | int]
+            A mapping of the exchange's instrument_id to the subscription symbology.
+
+        """
+        return self._symbology_map
 
     @property
     def ts_out(self) -> bool:
@@ -548,3 +566,11 @@ class Live:
         if self._session is None:
             return
         await self._session.wait_for_close()
+        self._symbology_map.clear()
+
+    def _map_symbol(self, record: DBNRecord) -> None:
+        if isinstance(record, databento_dbn.SymbolMappingMsg):
+            out_symbol = record.stype_out_symbol
+            instrument_id = record.instrument_id
+            self._symbology_map[instrument_id] = record.stype_out_symbol
+            logger.info("added symbology mapping %s to %d", out_symbol, instrument_id)

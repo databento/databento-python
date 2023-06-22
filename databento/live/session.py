@@ -470,15 +470,15 @@ class Session:
                 ),
                 timeout=CONNECT_TIMEOUT_SECONDS,
             )
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as exc:
             raise BentoError(
                 f"Connection to {gateway}:{port} timed out after "
                 f"{CONNECT_TIMEOUT_SECONDS} second(s).",
-            )
-        except OSError:
+            ) from exc
+        except OSError as exc:
             raise BentoError(
                 f"Connection to {gateway}:{port} failed.",
-            )
+            ) from exc
 
         logger.debug(
             "connected to %s:%d",
@@ -491,13 +491,13 @@ class Session:
                 protocol.authenticated,
                 timeout=AUTH_TIMEOUT_SECONDS,
             )
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as exc:
             raise BentoError(
                 f"Authentication with {gateway}:{port} timed out after "
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",
-            )
+            ) from exc
         except ValueError as exc:
-            raise BentoError(f"User authentication failed: {str(exc)}")
+            raise BentoError(f"User authentication failed: {str(exc)}") from exc
 
         logger.info(
             "authentication with remote gateway completed",

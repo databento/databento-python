@@ -496,7 +496,7 @@ def test_live_add_callback(
         pass
 
     live_client.add_callback(callback)
-    assert live_client._user_callbacks == [callback]
+    assert callback in live_client._user_callbacks
     assert live_client._user_streams == []
 
 
@@ -509,7 +509,6 @@ def test_live_add_stream(
     stream = BytesIO()
 
     live_client.add_stream(stream)
-    assert live_client._user_callbacks == []
     assert live_client._user_streams == [stream]
 
 
@@ -581,7 +580,9 @@ async def test_live_async_iteration_backpressure(
         symbols="TEST",
     )
 
-    monkeypatch.setattr(live_client._session._transport, "pause_reading", pause_mock:=MagicMock())
+    monkeypatch.setattr(
+        live_client._session._transport, "pause_reading", pause_mock := MagicMock(),
+    )
 
     live_client.start()
     it = live_client.__iter__()
@@ -618,7 +619,9 @@ async def test_live_async_iteration_dropped(
         symbols="TEST",
     )
 
-    monkeypatch.setattr(live_client._session._transport, "pause_reading", pause_mock:=MagicMock())
+    monkeypatch.setattr(
+        live_client._session._transport, "pause_reading", pause_mock := MagicMock(),
+    )
 
     live_client.start()
     it = live_client.__iter__()
@@ -629,6 +632,7 @@ async def test_live_async_iteration_dropped(
     records = list(it)
     assert len(records) == 1
     assert live_client._dbn_queue.empty()
+
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_stop(

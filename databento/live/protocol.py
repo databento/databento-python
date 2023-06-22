@@ -312,8 +312,22 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 logger.debug("dispatching %s", type(record).__name__)
                 if isinstance(record, databento_dbn.Metadata):
                     self.received_metadata(record)
-                else:
-                    self.received_record(record)
+                    continue
+
+                if isinstance(record, databento_dbn.ErrorMsg):
+                    logger.error(
+                        "gateway error: %s",
+                        record.err,
+                    )
+                if isinstance(record, databento_dbn.SystemMsg):
+                    if record.is_heartbeat:
+                        logger.debug("gateway heartbeat")
+                    else:
+                        logger.info(
+                            "gateway message: %s",
+                            record.msg,
+                        )
+                self.received_record(record)
 
     def _process_gateway(self, data: bytes) -> None:
         try:
