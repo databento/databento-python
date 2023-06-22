@@ -137,7 +137,7 @@ def test_live_connection_cram_failure(
     test_api_key: str,
 ) -> None:
     """
-    Test that a failed auth message due to an incorrect CRAM raies a
+    Test that a failed auth message due to an incorrect CRAM raises a
     BentoError.
     """
     # Dork up the API key in the mock client to fail CRAM
@@ -1029,3 +1029,38 @@ async def test_live_stream_with_reconnect(
     records = list(data)
     for record in records:
         assert isinstance(record, schema.get_record_type())
+
+def test_live_connection_reconnect_cram_failure(
+    mock_live_server: MockLiveServer,
+    monkeypatch: pytest.MonkeyPatch,
+    test_api_key: str,
+) -> None:
+    """
+    Test that a failed connection can reconnect.
+    """
+    # Dork up the API key in the mock client to fail CRAM
+    bucket_id = test_api_key[-BUCKET_ID_LENGTH:]
+    invalid_key = "db-invalidkey00000000000000FFFFF"
+    monkeypatch.setitem(mock_live_server._user_api_keys, bucket_id, invalid_key)
+
+    live_client = client.Live(
+        key=test_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
+
+    with pytest.raises(BentoError) as exc:
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=Schema.MBO,
+        )
+
+    # Ensure this was an authentication error
+    exc.match(r"User authentication failed:")
+
+    # Fix the key in the mock live server to connect
+    monkeypatch.setitem(mock_live_server._user_api_keys, bucket_id, test_api_key)
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
