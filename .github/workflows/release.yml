@@ -27,7 +27,7 @@ jobs:
           echo "RELEASE_NAME=$(poetry version)" >> $GITHUB_ENV
           echo "TAG_NAME=v$(poetry version -s)" >> $GITHUB_ENV
           echo "## Release notes" > NOTES.md
-          sed -n '4,/^$/p' CHANGELOG.md >> NOTES.md
+          sed -n '/^## /{n; :a; /^## /q; p; n; ba}' CHANGELOG.md >> NOTES.md
 
       - name: Release
         uses: softprops/action-gh-release@v1
