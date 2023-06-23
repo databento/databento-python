@@ -19,9 +19,12 @@ import databento_dbn
 import numpy as np
 import pandas as pd
 import zstandard
+from databento_dbn import Compression
 from databento_dbn import DBNDecoder
 from databento_dbn import ErrorMsg
 from databento_dbn import Metadata
+from databento_dbn import Schema
+from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 
@@ -30,10 +33,8 @@ from databento.common.data import DEFINITION_CHARARRAY_COLUMNS
 from databento.common.data import DEFINITION_PRICE_COLUMNS
 from databento.common.data import DEFINITION_TYPE_MAX_MAP
 from databento.common.data import DERIV_SCHEMAS
+from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.data import STRUCT_MAP
-from databento.common.enums import Compression
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import InstrumentIdMappingInterval
 from databento.common.validation import validate_maybe_enum
@@ -1059,7 +1060,7 @@ class DBNStore:
             schema = self.schema
 
         schema_records = filter(
-            lambda r: isinstance(r, schema.get_record_type()),  # type: ignore
+            lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]),  # type: ignore
             self,
         )
 

@@ -4,13 +4,13 @@ from datetime import date
 from typing import Any
 
 import pandas as pd
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
 from requests import Response
 
 from databento.common.enums import Dataset
-from databento.common.enums import Encoding
 from databento.common.enums import FeedMode
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
@@ -145,7 +145,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             A mapping of dataset to encoding to schema to field to data type.
 
         """
-        params: list[tuple[str, str | None]] = [
+        params: list[tuple[str, Dataset | Schema | Encoding | str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("schema", validate_maybe_enum(schema, Schema, "schema")),
             ("encoding", validate_maybe_enum(encoding, Encoding, "encoding")),
@@ -153,7 +153,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         response: Response = self._get(
             url=self._base_url + ".list_fields",
-            params=params,
+            params=params,  # type: ignore [arg-type]
             basic_auth=True,
         )
         return response.json()
@@ -185,7 +185,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             Otherwise, return a map of feed mode to schema to unit price.
 
         """
-        params: list[tuple[str, str | None]] = [
+        params: list[tuple[str, Dataset | FeedMode | Schema | str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("mode", validate_maybe_enum(mode, FeedMode, "mode")),
             ("schema", validate_maybe_enum(schema, Schema, "schema")),
@@ -193,7 +193,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         response: Response = self._get(
             url=self._base_url + ".list_unit_prices",
-            params=params,
+            params=params,  # type: ignore [arg-type]
             basic_auth=True,
         )
         return response.json()

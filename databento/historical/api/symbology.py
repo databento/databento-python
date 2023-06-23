@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
+from databento_dbn import SType
 from requests import Response
 
 from databento.common.enums import Dataset
-from databento.common.enums import SType
 from databento.common.parsing import datetime_to_date_string
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_symbols_list_to_string

@@ -8,20 +8,20 @@ from enum import Flag
 from itertools import combinations
 
 import pytest
-from databento.common.enums import Compression
 from databento.common.enums import Dataset
 from databento.common.enums import Delivery
-from databento.common.enums import Encoding
 from databento.common.enums import FeedMode
 from databento.common.enums import HistoricalGateway
 from databento.common.enums import Packaging
 from databento.common.enums import RecordFlags
 from databento.common.enums import RollRule
-from databento.common.enums import Schema
 from databento.common.enums import SplitDuration
 from databento.common.enums import StringyMixin
-from databento.common.enums import SType
 from databento.common.enums import SymbologyResolution
+from databento_dbn import Compression
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
 
 
 DATABENTO_ENUMS = (
@@ -88,7 +88,12 @@ def test_enum_name_coercion(enum_type: type[Enum]) -> None:
     See: databento.common.enums.coercible
 
     """
-    for enum in enum_type:
+    if enum_type in (Compression, Encoding, Schema, SType):
+        enum_it = iter(enum_type.variants())  # type: ignore [attr-defined]
+    else:
+        enum_it = iter(enum_type)
+
+    for enum in enum_it:
         assert enum == enum_type(enum.name)
         assert enum == enum_type(enum.name.replace("_", "-"))
         assert enum == enum_type(enum.name.lower())
@@ -108,8 +113,11 @@ def test_enum_none_not_coercible(enum_type: type[Enum]) -> None:
     See: databento.common.enum.coercible
 
     """
-    with pytest.raises(TypeError):
+    if enum_type == Compression:
         enum_type(None)
+    else:
+        with pytest.raises(ValueError):
+            enum_type(None)
 
 
 @pytest.mark.parametrize(

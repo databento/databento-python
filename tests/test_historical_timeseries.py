@@ -6,9 +6,9 @@ import databento as db
 import pytest
 import requests
 from databento import DBNStore
-from databento.common.enums import Schema
 from databento.common.error import BentoServerError
 from databento.historical.client import Historical
+from databento_dbn import Schema
 
 
 def test_get_range_given_invalid_schema_raises_error(

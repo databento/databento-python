@@ -10,7 +10,7 @@ import requests
 from databento import DBNStore
 from databento import Historical
 from databento.common.enums import HistoricalGateway
-from databento.common.enums import Schema
+from databento_dbn import Schema
 
 
 def test_key_returns_expected() -> None:

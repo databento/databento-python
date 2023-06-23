@@ -7,11 +7,11 @@ from functools import singledispatchmethod
 from numbers import Number
 
 import databento_dbn
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from databento.common import cram
 from databento.common.enums import Dataset
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_string

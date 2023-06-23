@@ -11,10 +11,10 @@ from numbers import Number
 from typing import IO, Callable
 
 import databento_dbn
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from databento.common.enums import Dataset
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import ALL_SYMBOLS
 from databento.live import AUTH_TIMEOUT_SECONDS

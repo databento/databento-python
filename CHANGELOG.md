@@ -2,10 +2,14 @@
 
 ## 0.15.0 - TBD
 
-### Enhancements
+#### Enhancements
 - Added `symbology_map` property to `Live` client
 - Changed `Live.add_callback` and `Live.add_stream` to accept an exception callback
-- Changed `Live.add_callback` and `Live.add_stream` `func` parameter to `record_callback`
+- Upgraded `databento-dbn` to 0.7.1
+- Removed `Encoding`, `Compression`, `Schema`, and `SType` enums as they are now exposed by `databento-dbn`
+
+#### Breaking changes
+- Renamed `func` parameter to `record_callback` for `Live.add_callback` and `Live.add_stream`
 
 ## 0.14.1 - 2023-06-16
 

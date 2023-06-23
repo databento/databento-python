@@ -69,7 +69,11 @@ def validate_enum(
     try:
         return enum(value)
     except ValueError as e:
-        valid = list(map(str, enum))
+        if hasattr(enum, "variants"):
+            valid = list(map(str, enum.variants()))  # type: ignore [attr-defined]
+        else:
+            valid = list(map(str, enum))
+
         raise ValueError(
             f"The `{param}` was not a valid value of {enum}, was '{value}'. "
             f"Use any of {valid}.",

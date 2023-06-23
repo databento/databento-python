@@ -4,10 +4,10 @@ from typing import Callable
 import pytest
 from databento.common.dbnstore import FileDataSource
 from databento.common.dbnstore import MemoryDataSource
-from databento.common.enums import Schema
+from databento_dbn import Schema
 
 
-@pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema])
+@pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema.variants()])
 def test_memory_data_source(
     test_data: Callable[[Schema], bytes],
     schema: Schema,
@@ -22,7 +22,7 @@ def test_memory_data_source(
     assert repr(data) == data_source.name
 
 
-@pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema])
+@pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema.variants()])
 def test_file_data_source(
     test_data_path: Callable[[Schema], pathlib.Path],
     schema: Schema,

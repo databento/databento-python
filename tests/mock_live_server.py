@@ -17,7 +17,6 @@ from typing import Callable, NewType, TypeVar
 
 import zstandard
 from databento.common import cram
-from databento.common.enums import Schema
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import AuthenticationResponse
 from databento.live.gateway import ChallengeRequest
@@ -26,6 +25,7 @@ from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 from databento.live.gateway import parse_gateway_message
+from databento_dbn import Schema
 
 
 LIVE_SERVER_VERSION: str = "1.0.0"

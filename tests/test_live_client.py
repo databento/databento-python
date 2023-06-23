@@ -13,11 +13,9 @@ import databento_dbn
 import pytest
 import zstandard
 from databento.common.cram import BUCKET_ID_LENGTH
+from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Dataset
-from databento.common.enums import Encoding
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import ALL_SYMBOLS
 from databento.live import DBNRecord
@@ -25,6 +23,9 @@ from databento.live import client
 from databento.live import gateway
 from databento.live import protocol
 from databento.live import session
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from tests.mock_live_server import MockLiveServer
 
@@ -309,11 +310,11 @@ def test_live_start_twice(
 
 @pytest.mark.parametrize(
     "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 @pytest.mark.parametrize(
     "stype_in",
-    [pytest.param(stype, id=str(stype)) for stype in SType],
+    [pytest.param(stype, id=str(stype)) for stype in SType.variants()],
 )
 @pytest.mark.parametrize(
     "symbols",
@@ -585,7 +586,9 @@ async def test_live_async_iteration_backpressure(
     )
 
     monkeypatch.setattr(
-        live_client._session._transport, "pause_reading", pause_mock := MagicMock(),
+        live_client._session._transport,
+        "pause_reading",
+        pause_mock := MagicMock(),
     )
 
     live_client.start()
@@ -624,7 +627,9 @@ async def test_live_async_iteration_dropped(
     )
 
     monkeypatch.setattr(
-        live_client._session._transport, "pause_reading", pause_mock := MagicMock(),
+        live_client._session._transport,
+        "pause_reading",
+        pause_mock := MagicMock(),
     )
 
     live_client.start()
@@ -725,7 +730,7 @@ async def test_live_callback(
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_stream_to_dbn(
     tmp_path: pathlib.Path,
@@ -763,7 +768,7 @@ async def test_live_stream_to_dbn(
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 @pytest.mark.parametrize(
     "buffer_size",
@@ -889,7 +894,7 @@ async def test_live_terminate(
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_iteration_with_reconnect(
     live_client: client.Live,
@@ -943,12 +948,12 @@ async def test_live_iteration_with_reconnect(
     records = list(my_iter)
     assert len(records) == 2 * len(list(dbn))
     for record in records:
-        assert isinstance(record, schema.get_record_type())
+        assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
 
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_callback_with_reconnect(
     live_client: client.Live,
@@ -990,12 +995,12 @@ async def test_live_callback_with_reconnect(
     assert len(records) == 5 * len(list(dbn))
 
     for record in records:
-        assert isinstance(record, schema.get_record_type())
+        assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
 
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_stream_with_reconnect(
     tmp_path: pathlib.Path,
@@ -1009,6 +1014,10 @@ async def test_live_stream_with_reconnect(
     That output stream should be readable.
 
     """
+    # TODO: Remove when status schema is available
+    if schema == "status":
+        pytest.skip("no stub data for status schema")
+
     output = tmp_path / "output.dbn"
     live_client.add_stream(output.open("wb", buffering=0))
 
@@ -1032,7 +1041,8 @@ async def test_live_stream_with_reconnect(
 
     records = list(data)
     for record in records:
-        assert isinstance(record, schema.get_record_type())
+        assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
+
 
 def test_live_connection_reconnect_cram_failure(
     mock_live_server: MockLiveServer,
@@ -1068,6 +1078,7 @@ def test_live_connection_reconnect_cram_failure(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
     )
+
 
 async def test_live_callback_exception_handler(
     live_client: client.Live,

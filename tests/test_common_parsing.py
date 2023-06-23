@@ -7,12 +7,12 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
-from databento.common.enums import SType
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_string
 from databento.common.parsing import optional_values_list_to_string
+from databento_dbn import SType
 
 
 # Set the type to `Any` to disable mypy type checking. Used to test if functions
@@ -104,7 +104,7 @@ def test_optional_symbols_list_to_string_given_valid_inputs_returns_expected(
     ],
 )
 def test_optional_symbols_list_to_string_int(
-    symbols: list[Number] |  Number | None,
+    symbols: list[Number] | Number | None,
     stype: SType,
     expected: str | type[Exception],
 ) -> None:
@@ -127,16 +127,24 @@ def test_optional_symbols_list_to_string_int(
         pytest.param(np.byte(120), SType.INSTRUMENT_ID, "120"),
         pytest.param(np.short(32_000), SType.INSTRUMENT_ID, "32000"),
         pytest.param(
-            [np.intc(12345), np.intc(67890)], SType.INSTRUMENT_ID, "12345,67890",
+            [np.intc(12345), np.intc(67890)],
+            SType.INSTRUMENT_ID,
+            "12345,67890",
         ),
         pytest.param(
-            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+            [np.int_(12345), np.longlong(67890)],
+            SType.INSTRUMENT_ID,
+            "12345,67890",
         ),
         pytest.param(
-            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+            [np.int_(12345), np.longlong(67890)],
+            SType.INSTRUMENT_ID,
+            "12345,67890",
         ),
         pytest.param(
-            [np.int_(12345), np.longlong(67890)], SType.INSTRUMENT_ID, "12345,67890",
+            [np.int_(12345), np.longlong(67890)],
+            SType.INSTRUMENT_ID,
+            "12345,67890",
         ),
     ],
 )

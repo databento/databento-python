@@ -1,6 +1,6 @@
 import databento as db
 from databento import DBNStore
-from databento.common.enums import Schema
+from databento_dbn import Schema
 
 
 if __name__ == "__main__":

@@ -2,9 +2,9 @@ import asyncio
 from unittest.mock import MagicMock
 
 import pytest
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.live.protocol import DatabentoLiveProtocol
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from tests.mock_live_server import MockLiveServer
 
@@ -42,8 +42,12 @@ async def test_protocol_connection_streaming(
     Test the low-level DatabentoLiveProtocol can be used to stream DBN records
     from the live subscription gateway.
     """
-    monkeypatch.setattr(DatabentoLiveProtocol, "received_metadata", metadata_mock := MagicMock())
-    monkeypatch.setattr(DatabentoLiveProtocol, "received_record", record_mock := MagicMock())
+    monkeypatch.setattr(
+        DatabentoLiveProtocol, "received_metadata", metadata_mock := MagicMock(),
+    )
+    monkeypatch.setattr(
+        DatabentoLiveProtocol, "received_record", record_mock := MagicMock(),
+    )
 
     transport, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
