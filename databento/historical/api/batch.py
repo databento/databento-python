@@ -119,43 +119,34 @@ class BatchHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: list[tuple[str, str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start", datetime_to_string(start)),
-            ("end", optional_datetime_to_string(end)),
-            ("symbols", str(symbols_list)),
-            ("schema", str(validate_enum(schema, Schema, "schema"))),
-            ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
-            ("encoding", str(validate_enum(encoding, Encoding, "encoding"))),
-            (
-                "compression",
-                str(validate_enum(compression, Compression, "compression"))
-                if compression
-                else None,
-            ),
-            (
-                "split_duration",
-                str(validate_enum(split_duration, SplitDuration, "split_duration")),
-            ),
-            (
-                "packaging",
-                str(validate_enum(packaging, Packaging, "packaging"))
-                if packaging
-                else None,
-            ),
-            ("delivery", str(validate_enum(delivery, Delivery, "delivery"))),
-        ]
+        data: dict[str, object | None] = {
+            "dataset": validate_semantic_string(dataset, "dataset"),
+            "start": datetime_to_string(start),
+            "end": optional_datetime_to_string(end),
+            "symbols": str(symbols_list),
+            "schema": str(validate_enum(schema, Schema, "schema")),
+            "stype_in": str(stype_in_valid),
+            "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
+            "encoding": str(validate_enum(encoding, Encoding, "encoding")),
+            "compression": str(validate_enum(compression, Compression, "compression"))
+            if compression
+            else None,
+            "split_duration": str(validate_enum(split_duration, SplitDuration, "split_duration")),
+            "packaging": str(validate_enum(packaging, Packaging, "packaging"))
+            if packaging
+            else None,
+            "delivery": str(validate_enum(delivery, Delivery, "delivery")),
+        }
 
         # Optional Parameters
         if limit is not None:
-            params.append(("limit", str(limit)))
+            data["limit"] = str(limit)
         if split_size is not None:
-            params.append(("split_size", str(split_size)))
+            data["split_size"] = str(split_size)
 
         return self._post(
             url=self._base_url + ".submit_job",
-            params=params,
+            data=data,
             basic_auth=True,
         ).json()
 

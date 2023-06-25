@@ -38,7 +38,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         """
         Request symbology mappings resolution from Databento.
 
-        Makes a `GET /symbology.resolve` HTTP request.
+        Makes a `POST /symbology.resolve` HTTP request.
 
         Parameters
         ----------
@@ -66,19 +66,19 @@ class SymbologyHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
-        params: list[tuple[str, str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("symbols", symbols_list),
-            ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
-            ("start_date", datetime_to_date_string(start_date)),
-            ("end_date", optional_date_to_string(end_date)),
-            ("default_value", default_value),
-        ]
+        data: dict[str, object | None] = {
+            "dataset": validate_semantic_string(dataset, "dataset"),
+            "symbols": symbols_list,
+            "stype_in": str(stype_in_valid),
+            "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
+            "start_date": datetime_to_date_string(start_date),
+            "end_date": optional_date_to_string(end_date),
+            "default_value": default_value,
+        }
 
-        response: Response = self._get(
+        response: Response = self._post(
             url=self._base_url + ".resolve",
-            params=params,
+            data=data,
             basic_auth=True,
         )
 

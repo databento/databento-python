@@ -106,7 +106,7 @@ def test_re_request_symbology_makes_expected_request(
     historical_client: Historical,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     bento = DBNStore.from_file(path=test_data_path(Schema.MBO))
 
@@ -114,20 +114,20 @@ def test_re_request_symbology_makes_expected_request(
     bento.request_symbology(historical_client)
 
     # Assert
-    call = mocked_get.call_args.kwargs
+    call = mocked_post.call_args.kwargs
     assert (
         call["url"]
         == f"{historical_client.gateway}/v{db.API_VERSION}/symbology.resolve"
     )
-    assert call["params"] == [
-        ("dataset", "GLBX.MDP3"),
-        ("symbols", "ESH1"),
-        ("stype_in", "raw_symbol"),
-        ("stype_out", "instrument_id"),
-        ("start_date", "2020-12-28"),
-        ("end_date", "2020-12-29"),
-        ("default_value", ""),
-    ]
+    assert call["data"] == {
+        "dataset": "GLBX.MDP3",
+        "symbols": "ESH1",
+        "stype_in": "raw_symbol",
+        "stype_out": "instrument_id",
+        "start_date": "2020-12-28",
+        "end_date": "2020-12-29",
+        "default_value": "",
+    }
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -142,7 +142,7 @@ def test_request_full_definitions_expected_request(
     historical_client: Historical,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Create an MBO bento
     bento = DBNStore.from_file(path=test_data_path(Schema.MBO))
@@ -159,22 +159,22 @@ def test_request_full_definitions_expected_request(
     definition_bento = bento.request_full_definitions(historical_client)
 
     # Assert
-    call = mocked_get.call_args.kwargs
+    call = mocked_post.call_args.kwargs
     assert (
         call["url"]
         == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
     )
-    assert call["params"] == [
-        ("dataset", "GLBX.MDP3"),
-        ("start", "2020-12-28T13:00:00+00:00"),
-        ("end", "2020-12-29T13:01:00+00:00"),
-        ("symbols", "ESH1"),
-        ("schema", "definition"),
-        ("stype_in", "raw_symbol"),
-        ("stype_out", "instrument_id"),
-        ("encoding", "dbn"),
-        ("compression", "zstd"),
-    ]
+    assert call["data"] == {
+        "dataset": "GLBX.MDP3",
+        "start": "2020-12-28T13:00:00+00:00",
+        "end": "2020-12-29T13:01:00+00:00",
+        "symbols": "ESH1",
+        "schema": "definition",
+        "stype_in": "raw_symbol",
+        "stype_out": "instrument_id",
+        "encoding": "dbn",
+        "compression": "zstd",
+    }
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))

@@ -233,7 +233,7 @@ def datetime_to_date_string(value: pd.Timestamp | date | str | int) -> str:
 
 
 def optional_datetime_to_string(
-    value: pd.Timestamp | date | str | int,
+    value: pd.Timestamp | date | str | int | None,
 ) -> str | None:
     """
     Return a valid datetime string from the given value (if not None).
