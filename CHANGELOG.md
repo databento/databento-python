@@ -21,10 +21,10 @@
 - Added support for emitting warnings in API response headers
 - Relaxed 10 minute minimum request time range restriction
 - Upgraded `aiohttp` to 3.8.3
-- Upgraded `numpy` to to 1.23.5
-- Upgraded `pandas` to to 1.5.3
-- Upgraded `requests` to to 2.28.1
-- Upgraded `zstandard` to to 0.21.0
+- Upgraded `numpy` to 1.23.5
+- Upgraded `pandas` to 1.5.3
+- Upgraded `requests` to 2.28.1
+- Upgraded `zstandard` to 0.21.0
 
 #### Breaking changes
 - Removed support for Python 3.7
