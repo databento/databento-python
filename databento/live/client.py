@@ -88,7 +88,9 @@ class Live:
         self._dbn_queue: DBNQueue = DBNQueue(maxsize=DEFAULT_QUEUE_SIZE)
         self._metadata: SessionMetadata = SessionMetadata()
         self._symbology_map: dict[int, str | int] = {}
-        self._user_callbacks: dict[RecordCallback, ExceptionCallback | None] = {}
+        self._user_callbacks: dict[RecordCallback, ExceptionCallback | None] = {
+            self._map_symbol: None,
+        }
         self._user_streams: dict[IO[bytes], ExceptionCallback | None] = {}
 
         def factory() -> _SessionProtocol:

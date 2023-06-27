@@ -179,6 +179,7 @@ def test_live_creation(
         port=mock_live_server.port,
     )
 
+    # Subscribe to connect
     live_client.subscribe(
         dataset=dataset,
         schema=Schema.MBO,
@@ -189,6 +190,7 @@ def test_live_creation(
     assert live_client._key == test_api_key
     assert live_client.dataset == dataset
     assert live_client.is_connected() is True
+    assert live_client._map_symbol in live_client._user_callbacks
 
 
 def test_live_connect_auth(
@@ -512,7 +514,6 @@ def test_live_add_stream(
     live_client.add_stream(stream)
     assert stream in live_client._user_streams
     assert live_client._user_streams[stream] is None
-    assert live_client._user_callbacks == {}
 
 
 def test_live_add_stream_invalid(
