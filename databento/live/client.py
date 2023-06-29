@@ -527,9 +527,9 @@ class Live:
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
-        except Exception as exc:
+        except Exception:
             logger.exception("exception encountered blocking for close")
-            raise BentoError("connection lost") from exc
+            raise BentoError("connection lost") from None
 
     async def wait_for_close(
         self,
@@ -572,9 +572,9 @@ class Live:
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
-        except Exception as exc:
+        except Exception:
             logger.exception("exception encountered waiting for close")
-            raise BentoError("connection lost") from exc
+            raise BentoError("connection lost") from None
 
     async def _shutdown(self) -> None:
         """

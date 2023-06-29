@@ -65,17 +65,17 @@ def coercible(enum_type: type[M]) -> type[M]:
             )
         try:
             return _new(enum, coerce_fn(value))
-        except ValueError as ve:
+        except ValueError:
             name_to_try = str(value).replace(".", "_").replace("-", "_").upper()
             named = enum._member_map_.get(name_to_try)
             if named is not None:
                 return named
-            enum_values = tuple(value for value in enum._value2member_map_)
+            enum_values = list(value for value in enum._value2member_map_)
 
             raise ValueError(
-                f"value `{value}` is not a member of {enum_type.__name__}. "
-                f"use one of {enum_values}.",
-            ) from ve
+                f"The `{value}` was not a valid value of {enum_type.__name__}"
+                f", was '{value}'. Use any of {enum_values}.",
+            ) from None
 
     setattr(enum_type, "__new__", coerced_new)
 

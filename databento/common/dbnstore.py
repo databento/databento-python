@@ -789,10 +789,9 @@ class DBNStore:
         for record in self:
             try:
                 callback(record)
-            except Exception as exc:
+            except Exception:
                 logger.exception(
                     "exception while replaying to user callback",
-                    exc_info=exc,
                 )
                 raise
 

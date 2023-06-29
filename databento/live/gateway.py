@@ -49,10 +49,10 @@ class GatewayControl:
 
         try:
             return cls(**data_dict)
-        except TypeError as type_err:
+        except TypeError:
             raise ValueError(
                 f"`{line.strip()} is not a parsible {cls.__name__}",
-            ) from type_err
+            ) from None
 
     def __str__(self) -> str:
         fields = tuple(map(attrgetter("name"), dataclasses.fields(self)))

@@ -45,16 +45,16 @@ def test_release_changelog(changelog: str) -> None:
     try:
         versions = list(map(operator.itemgetter(0), releases))
         version_tuples = [tuple(map(int, v.split("."))) for v in versions]
-    except Exception as exc:
+    except Exception:
         # This could happen if we have an irregular version string.
-        raise AssertionError("Failed to parse version from CHANGELOG.md") from exc
+        raise AssertionError("Failed to parse version from CHANGELOG.md")
 
     try:
         date_strings = list(map(operator.itemgetter(1), releases))
         dates = list(map(date.fromisoformat, date_strings))
-    except Exception as exc:
+    except Exception:
         # This could happen if we have TBD as the release date.
-        raise AssertionError("Failed to parse release date from CHANGELOG.md") from exc
+        raise AssertionError("Failed to parse release date from CHANGELOG.md")
 
     # Ensure latest version matches `__version__`
     assert databento.__version__ == versions[0]
