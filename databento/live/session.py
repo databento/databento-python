@@ -258,6 +258,7 @@ class Session:
         port: int = DEFAULT_REMOTE_PORT,
         ts_out: bool = False,
     ) -> None:
+        self._lock = threading.RLock()
         self._loop = loop
         self._ts_out = ts_out
         self._protocol_factory = protocol_factory
@@ -277,13 +278,14 @@ class Session:
         bool
 
         """
-        if self._protocol is None:
-            return False
-        try:
-            self._protocol.authenticated.result()
-        except (asyncio.InvalidStateError, asyncio.CancelledError, BentoError):
-            return False
-        return True
+        with self._lock:
+            if self._protocol is None:
+                return False
+            try:
+                self._protocol.authenticated.result()
+            except (asyncio.InvalidStateError, asyncio.CancelledError, BentoError):
+                return False
+            return True
 
     def is_disconnected(self) -> bool:
         """
@@ -294,9 +296,10 @@ class Session:
         bool
 
         """
-        if self._protocol is None:
-            return True
-        return self._protocol.disconnected.done()
+        with self._lock:
+            if self._protocol is None:
+                return True
+            return self._protocol.disconnected.done()
 
     def is_reading(self) -> bool:
         """
@@ -307,9 +310,10 @@ class Session:
         bool
 
         """
-        if self._transport is None:
-            return False
-        return self._transport.is_reading()
+        with self._lock:
+            if self._transport is None:
+                return False
+            return self._transport.is_reading()
 
     def is_started(self) -> bool:
         """
@@ -320,9 +324,10 @@ class Session:
         bool
 
         """
-        if self._protocol is None:
-            return False
-        return self._protocol.started.is_set()
+        with self._lock:
+            if self._protocol is None:
+                return False
+            return self._protocol.started.is_set()
 
     @property
     def metadata(self) -> databento_dbn.Metadata | None:
@@ -334,9 +339,10 @@ class Session:
         databento_dbn.Metadata
 
         """
-        if self._protocol is None:
-            return None
-        return self._protocol._metadata.data
+        with self._lock:
+            if self._protocol is None:
+                return None
+            return self._protocol._metadata.data
 
     def abort(self) -> None:
         """
@@ -347,20 +353,22 @@ class Session:
         Session.close
 
         """
-        if self._transport is None:
-            return
-        self._transport.abort()
-        self._protocol = None
+        with self._lock:
+            if self._transport is None:
+                return
+            self._transport.abort()
+            self._protocol = None
 
     def close(self) -> None:
         """
         Close the current connection.
         """
-        if self._transport is None:
-            return
-        if self._transport.can_write_eof():
-            self._loop.call_soon_threadsafe(self._transport.write_eof)
-        self._loop.call_soon_threadsafe(self._transport.close)
+        with self._lock:
+            if self._transport is None:
+                return
+            if self._transport.can_write_eof():
+                self._loop.call_soon_threadsafe(self._transport.write_eof)
+            self._loop.call_soon_threadsafe(self._transport.close)
 
     def subscribe(
         self,
@@ -389,27 +397,29 @@ class Session:
             within 24 hours.
 
         """
-        if self._protocol is None:
-            self._connect(
-                dataset=dataset,
-                port=self._port,
-                loop=self._loop,
-            )
+        with self._lock:
+            if self._protocol is None:
+                self._connect(
+                    dataset=dataset,
+                    port=self._port,
+                    loop=self._loop,
+                )
 
-        self._protocol.subscribe(
-            schema=schema,
-            symbols=symbols,
-            stype_in=stype_in,
-            start=start,
-        )
+            self._protocol.subscribe(
+                schema=schema,
+                symbols=symbols,
+                stype_in=stype_in,
+                start=start,
+            )
 
     def resume_reading(self) -> None:
         """
         Resume reading from the connection.
         """
-        if self._transport is None:
-            return
-        self._loop.call_soon_threadsafe(self._transport.resume_reading)
+        with self._lock:
+            if self._transport is None:
+                return
+            self._loop.call_soon_threadsafe(self._transport.resume_reading)
 
     def start(self) -> None:
         """
@@ -421,9 +431,10 @@ class Session:
             If there is no connection.
 
         """
-        if self._protocol is None:
-            raise ValueError("session is not connected")
-        self._protocol.start()
+        with self._lock:
+            if self._protocol is None:
+                raise ValueError("session is not connected")
+            self._protocol.start()
 
     async def wait_for_close(self) -> None:
         """
@@ -433,14 +444,21 @@ class Session:
         if self._protocol is None:
             return
 
+        await self._protocol.authenticated
         await self._protocol.disconnected
-        disconnect_exc = self._protocol.disconnected.exception()
-
         await self._protocol.wait_for_processing()
-        self._protocol = self._transport = None
 
-        if disconnect_exc is not None:
-            raise BentoError(disconnect_exc)
+        try:
+            self._protocol.authenticated.result()
+        except Exception as exc:
+            raise BentoError(exc)
+
+        try:
+            self._protocol.disconnected.result()
+        except Exception as exc:
+            raise BentoError(exc)
+
+        self._protocol = self._transport = None
 
     def _connect(
         self,
@@ -448,29 +466,30 @@ class Session:
         port: int,
         loop: asyncio.AbstractEventLoop,
     ) -> None:
-        if self._user_gateway is None:
-            subdomain = dataset.lower().replace(".", "-")
-            gateway = f"{subdomain}.lsg.databento.com"
-            logger.debug("using default gateway for dataset %s", dataset)
-        else:
-            gateway = self._user_gateway
-            logger.debug("using user specified gateway: %s", gateway)
+        with self._lock:
+            if not self.is_disconnected():
+                return
+            if self._user_gateway is None:
+                subdomain = dataset.lower().replace(".", "-")
+                gateway = f"{subdomain}.lsg.databento.com"
+                logger.debug("using default gateway for dataset %s", dataset)
+            else:
+                gateway = self._user_gateway
+                logger.debug("using user specified gateway: %s", gateway)
 
-        asyncio.run_coroutine_threadsafe(
-            coro=self._connect_task(
-                gateway=gateway,
-                port=port,
-            ),
-            loop=loop,
-        ).result()
+            self._transport, self._protocol = asyncio.run_coroutine_threadsafe(
+                coro=self._connect_task(
+                    gateway=gateway,
+                    port=port,
+                ),
+                loop=loop,
+            ).result()
 
     async def _connect_task(
         self,
         gateway: str,
         port: int,
-    ) -> None:
-        if not self.is_disconnected():
-            return
+    ) -> tuple[asyncio.Transport, _SessionProtocol]:
         logger.info("connecting to remote gateway")
         try:
             transport, protocol = await asyncio.wait_for(
@@ -514,5 +533,4 @@ class Session:
             "authentication with remote gateway completed",
         )
 
-        self._transport = transport
-        self._protocol = protocol
+        return transport, protocol

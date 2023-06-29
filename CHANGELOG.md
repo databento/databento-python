@@ -5,6 +5,7 @@
 #### Enhancements
 - Added `symbology_map` property to `Live` client
 - Changed `Live.add_callback` and `Live.add_stream` to accept an exception callback
+- Changed `Live.__iter__()` and `Live.__aiter__()` to send the session start message if the session is connected but not started
 - Upgraded `databento-dbn` to 0.7.1
 - Removed `Encoding`, `Compression`, `Schema`, and `SType` enums as they are now exposed by `databento-dbn`
 

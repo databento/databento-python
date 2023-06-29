@@ -547,8 +547,6 @@ async def test_live_async_iteration(
         symbols="TEST",
     )
 
-    live_client.start()
-
     records: list[DBNRecord] = []
     async for record in live_client:
         records.append(record)
@@ -591,13 +589,12 @@ async def test_live_async_iteration_backpressure(
         pause_mock := MagicMock(),
     )
 
-    live_client.start()
-    it = live_client.__iter__()
+    live_it = iter(live_client)
     await live_client.wait_for_close()
 
-    assert pause_mock.called
+    pause_mock.assert_called()
 
-    records = list(it)
+    records: list[DBNRecord] = list(live_it)
     assert len(records) == 4
     assert live_client._dbn_queue.empty()
 
@@ -632,13 +629,12 @@ async def test_live_async_iteration_dropped(
         pause_mock := MagicMock(),
     )
 
-    live_client.start()
-    it = live_client.__iter__()
+    live_it = iter(live_client)
     await live_client.wait_for_close()
 
-    assert pause_mock.called
+    pause_mock.assert_called()
 
-    records = list(it)
+    records = list(live_it)
     assert len(records) == 1
     assert live_client._dbn_queue.empty()
 
@@ -657,8 +653,6 @@ async def test_live_async_iteration_stop(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
-
-    live_client.start()
 
     records = []
     async for record in live_client:
@@ -682,8 +676,6 @@ def test_live_sync_iteration(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
-
-    live_client.start()
 
     records = []
     for record in live_client:
@@ -918,7 +910,6 @@ async def test_live_iteration_with_reconnect(
     assert live_client.is_connected()
     assert live_client.dataset == Dataset.GLBX_MDP3
 
-    live_client.start()
     my_iter = iter(live_client)
 
     await live_client.wait_for_close()

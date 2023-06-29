@@ -128,13 +128,15 @@ class Live:
     def __iter__(self) -> Live:
         logger.debug("starting iteration")
         self._dbn_queue._enabled.set()
+        if not self._session.is_started() and self.is_connected():
+            self.start()
         return self
 
     def __next__(self) -> DBNRecord:
         if self._dbn_queue is None:
             raise ValueError("iteration has not started")
 
-        while not self._session.is_disconnected() or self._dbn_queue._qsize() > 0:
+        while not self._session.is_disconnected() or self._dbn_queue.qsize() > 0:
             try:
                 record = self._dbn_queue.get(block=False)
             except queue.Empty:
