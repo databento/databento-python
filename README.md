@@ -32,10 +32,10 @@ The library is fully compatible with the latest distribution of Anaconda 3.8 and
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
 - python = "^3.8"
 - aiohttp = "^3.8.3"
-- databento-dbn = "0.6.1"
+- databento-dbn = "0.7.1"
 - numpy= ">=1.23.5"
 - pandas = ">=1.5.3"
-- requests = ">=2.28.1"
+- requests = ">=2.24.0"
 - zstandard = ">=0.21.0"
 
 ## Installation
