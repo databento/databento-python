@@ -13,7 +13,7 @@ from databento.common.dbnstore import DBNStore
 from databento.common.enums import Dataset
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
-from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.historical.api import API_VERSION
@@ -95,7 +95,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
         start_valid = datetime_to_string(start)
         end_valid = optional_datetime_to_string(end)
@@ -103,7 +103,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": start_valid,
             "end": end_valid,
-            "symbols": symbols_list,
+            "symbols": ",".join(symbols_list),
             "schema": str(schema_valid),
             "stype_in": str(stype_in_valid),
             "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
@@ -189,7 +189,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
         start_valid = datetime_to_string(start)
         end_valid = optional_datetime_to_string(end)
@@ -197,7 +197,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": start_valid,
             "end": end_valid,
-            "symbols": symbols_list,
+            "symbols": ",".join(symbols_list),
             "schema": str(schema_valid),
             "stype_in": str(stype_in_valid),
             "stype_out": str(validate_enum(stype_out, SType, "stype_out")),

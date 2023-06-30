@@ -18,7 +18,6 @@ from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.enums import Dataset
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
-from databento.common.parsing import optional_symbols_list_to_string
 from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
@@ -453,7 +452,6 @@ class Live:
         dataset = validate_semantic_string(dataset, "dataset")
         schema = validate_enum(schema, Schema, "schema")
         stype_in = validate_enum(stype_in, SType, "stype_in")
-        symbols = optional_symbols_list_to_string(symbols, stype_in)
         start = optional_datetime_to_unix_nanoseconds(start)
 
         if not self.dataset:

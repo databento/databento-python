@@ -22,7 +22,7 @@ from databento.common.enums import Packaging
 from databento.common.enums import SplitDuration
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
-from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.parsing import optional_values_list_to_string
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_path
@@ -118,12 +118,12 @@ class BatchHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": datetime_to_string(start),
             "end": optional_datetime_to_string(end),
-            "symbols": str(symbols_list),
+            "symbols": ",".join(symbols_list),
             "schema": str(validate_enum(schema, Schema, "schema")),
             "stype_in": str(stype_in_valid),
             "stype_out": str(validate_enum(stype_out, SType, "stype_out")),

@@ -14,7 +14,7 @@ from databento.common.enums import FeedMode
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
-from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_maybe_enum
 from databento.common.validation import validate_semantic_string
@@ -318,10 +318,10 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("symbols", symbols_list),
+            ("symbols", ",".join(symbols_list)),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("start", optional_datetime_to_string(start)),
             ("end", optional_datetime_to_string(end)),
@@ -387,12 +387,12 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", optional_datetime_to_string(end)),
-            ("symbols", symbols_list),
+            ("symbols", ",".join(symbols_list)),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("stype_in", str(stype_in_valid)),
             ("stype_out", str(SType.INSTRUMENT_ID)),
@@ -459,12 +459,12 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         params: list[tuple[str, str | None]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
             ("start", datetime_to_string(start)),
             ("end", optional_datetime_to_string(end)),
-            ("symbols", symbols_list),
+            ("symbols", ",".join(symbols_list)),
             ("schema", str(validate_enum(schema, Schema, "schema"))),
             ("stype_in", str(stype_in_valid)),
             ("stype_out", str(SType.INSTRUMENT_ID)),

@@ -58,12 +58,13 @@ def optional_values_list_to_string(
 
 
 @singledispatch
-def optional_symbols_list_to_string(
+def optional_symbols_list_to_list(
     symbols: Iterable[str] | Iterable[Number] | str | Number | None,
     stype_in: SType,
-) -> str:
+) -> list[str]:
     """
-    Concatenate a symbols string or iterable of symbol strings (if not None).
+    Create a list from a symbols string or iterable of symbol strings (if not
+    None).
 
     Parameters
     ----------
@@ -74,11 +75,11 @@ def optional_symbols_list_to_string(
 
     Returns
     -------
-    str
+    list[str]
 
     Notes
     -----
-    If None is given, ALL_SYMBOLS is returned.
+    If None is given, [ALL_SYMBOLS] is returned.
 
     """
     raise TypeError(
@@ -87,48 +88,48 @@ def optional_symbols_list_to_string(
     )
 
 
-@optional_symbols_list_to_string.register
-def _(_: None, __: SType) -> str:
+@optional_symbols_list_to_list.register
+def _(_: None, __: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_string. Handles None which
-    defaults to ALL_SYMBOLS.
+    Dispatch method for optional_symbols_list_to_list. Handles None which
+    defaults to [ALL_SYMBOLS].
 
     See Also
     --------
-    optional_symbols_list_to_string
+    optional_symbols_list_to_list
 
     """
-    return ALL_SYMBOLS
+    return [ALL_SYMBOLS]
 
 
-@optional_symbols_list_to_string.register
-def _(symbols: Number, stype_in: SType) -> str:
+@optional_symbols_list_to_list.register
+def _(symbols: Number, stype_in: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_string. Handles numerical
-    types, alerting when an integer is given for STypes that expect strings.
+    Dispatch method for optional_symbols_list_to_list. Handles numerical types,
+    alerting when an integer is given for STypes that expect strings.
 
     See Also
     --------
-    optional_symbols_list_to_string
+    optional_symbols_list_to_list
 
     """
     if stype_in == SType.INSTRUMENT_ID:
-        return str(symbols)
+        return [str(symbols)]
     raise ValueError(
         f"value `{symbols}` is not a valid symbol for stype {stype_in}; "
         "did you mean to use `instrument_id`?",
     )
 
 
-@optional_symbols_list_to_string.register
-def _(symbols: str, stype_in: SType) -> str:
+@optional_symbols_list_to_list.register
+def _(symbols: str, stype_in: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_string. Handles str, splitting
+    Dispatch method for optional_symbols_list_to_list. Handles str, splitting
     on commas and validating smart symbology.
 
     See Also
     --------
-    optional_symbols_list_to_string
+    optional_symbols_list_to_list
 
     """
     if not symbols:
@@ -137,35 +138,33 @@ def _(symbols: str, stype_in: SType) -> str:
             "an empty string is not allowed",
         )
 
-    if "," in symbols:
-        symbol_to_string = partial(
-            optional_symbols_list_to_string,
-            stype_in=stype_in,
-        )
-        symbol_list = symbols.strip().strip(",").split(",")
-        return ",".join(map(symbol_to_string, symbol_list))
+    symbol_list = symbols.strip().strip(",").split(",")
 
     if stype_in in (SType.PARENT, SType.CONTINUOUS):
-        return validate_smart_symbol(symbols)
-    return symbols.strip().upper()
+        return list(map(str.strip, map(validate_smart_symbol, symbol_list)))
+
+    return list(map(str.upper, map(str.strip, symbol_list)))
 
 
-@optional_symbols_list_to_string.register(cls=Iterable)
-def _(symbols: Iterable[str] | Iterable[int], stype_in: SType) -> str:
+@optional_symbols_list_to_list.register(cls=Iterable)
+def _(symbols: Iterable[str] | Iterable[int], stype_in: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_string. Handles Iterables by
+    Dispatch method for optional_symbols_list_to_list. Handles Iterables by
     dispatching the individual members.
 
     See Also
     --------
-    optional_symbols_list_to_string
+    optional_symbols_list_to_list
 
     """
-    symbol_to_string = partial(
-        optional_symbols_list_to_string,
+    symbol_to_list = partial(
+        optional_symbols_list_to_list,
         stype_in=stype_in,
     )
-    return ",".join(map(symbol_to_string, symbols))
+    aggregated: list[str] = []
+    for sym in map(symbol_to_list, symbols):
+        aggregated.extend(sym)
+    return aggregated
 
 
 def optional_date_to_string(value: date | str | None) -> str | None:

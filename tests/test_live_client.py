@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import pathlib
 import platform
+import random
+import string
 from io import BytesIO
 from typing import Callable
 from unittest.mock import MagicMock
@@ -363,6 +365,38 @@ def test_live_subscribe(
     assert message.stype_in == stype_in
     assert message.symbols == symbols
     assert message.start == start
+
+
+async def test_live_subscribe_large_symbol_list(
+    live_client: client.Live,
+    mock_live_server: MockLiveServer,
+) -> None:
+    """
+    Test that sending a subscription with a large symbol list breaks that list
+    up into multiple messages.
+    """
+    large_symbol_list = list(
+        random.choices(string.ascii_uppercase, k=256),  # noqa: S311
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=large_symbol_list,
+    )
+
+    first_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    )
+
+    second_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    )
+
+    reconstructed = first_message.symbols.split(",") + second_message.symbols.split(",")
+    assert reconstructed == large_symbol_list
 
 
 @pytest.mark.usefixtures("mock_live_server")

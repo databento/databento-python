@@ -4,14 +4,19 @@
 
 #### Enhancements
 - Added `symbology_map` property to `Live` client
+- Added `optional_symbols_list_to_list` parsing function
 - Changed `Live.add_callback` and `Live.add_stream` to accept an exception callback
 - Changed `Live.__iter__()` and `Live.__aiter__()` to send the session start message if the session is connected but not started
 - Upgraded `databento-dbn` to 0.7.1
 - Removed `Encoding`, `Compression`, `Schema`, and `SType` enums as they are now exposed by `databento-dbn`
 - Removed exception chaining from exceptions emitted by the library
 
+#### Bug fixes
+- Fixed issue where a large unreadable symbol subscription message could be sent
+
 #### Breaking changes
 - Renamed `func` parameter to `record_callback` for `Live.add_callback` and `Live.add_stream`
+- Removed `optional_symbols_list_to_string` parsing function
 
 ## 0.14.1 - 2023-06-16
 

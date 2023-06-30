@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="GatewayControl")
 
-
 @dataclasses.dataclass
 class GatewayControl:
     """
