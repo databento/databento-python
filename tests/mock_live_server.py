@@ -619,7 +619,7 @@ class MockLiveServer:
             try:
                 message = self._message_queue.get(timeout=remaining_time)
             except queue.Empty:
-                continue
+                break
 
             if isinstance(message, message_type):
                 return message

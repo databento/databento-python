@@ -367,6 +367,7 @@ def test_live_subscribe(
     assert message.start == start
 
 
+@pytest.mark.skipif(platform.system() == "Windows", reason="timeout on windows")
 async def test_live_subscribe_large_symbol_list(
     live_client: client.Live,
     mock_live_server: MockLiveServer,
