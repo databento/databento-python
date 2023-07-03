@@ -616,7 +616,10 @@ class MockLiveServer:
         end_time = self._loop.time() + timeout
         while start_time < end_time:
             remaining_time = abs(end_time - self._loop.time())
-            message = self._message_queue.get(timeout=remaining_time)
+            try:
+                message = self._message_queue.get(timeout=remaining_time)
+            except queue.Empty:
+                continue
 
             if isinstance(message, message_type):
                 return message

@@ -88,7 +88,7 @@ def optional_symbols_list_to_list(
     )
 
 
-@optional_symbols_list_to_list.register
+@optional_symbols_list_to_list.register(cls=type(None))
 def _(_: None, __: SType) -> list[str]:
     """
     Dispatch method for optional_symbols_list_to_list. Handles None which
@@ -102,7 +102,7 @@ def _(_: None, __: SType) -> list[str]:
     return [ALL_SYMBOLS]
 
 
-@optional_symbols_list_to_list.register
+@optional_symbols_list_to_list.register(cls=Number)
 def _(symbols: Number, stype_in: SType) -> list[str]:
     """
     Dispatch method for optional_symbols_list_to_list. Handles numerical types,
@@ -121,7 +121,7 @@ def _(symbols: Number, stype_in: SType) -> list[str]:
     )
 
 
-@optional_symbols_list_to_list.register
+@optional_symbols_list_to_list.register(cls=str)
 def _(symbols: str, stype_in: SType) -> list[str]:
     """
     Dispatch method for optional_symbols_list_to_list. Handles str, splitting

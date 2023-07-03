@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.15.1 - TBD
+
+#### Bug Fixes
+- Fixed an `ImportError` observed in Python 3.8
+
 ## 0.15.0 - 2023-07-03
 
 #### Enhancements
