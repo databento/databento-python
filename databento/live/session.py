@@ -11,22 +11,23 @@ from numbers import Number
 from typing import IO, Callable
 
 import databento_dbn
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from databento.common.enums import Dataset
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import ALL_SYMBOLS
 from databento.live import AUTH_TIMEOUT_SECONDS
 from databento.live import CONNECT_TIMEOUT_SECONDS
 from databento.live import DBNRecord
+from databento.live import ExceptionCallback
+from databento.live import RecordCallback
 from databento.live.protocol import DatabentoLiveProtocol
 
 
 logger = logging.getLogger(__name__)
 
 
-UserCallback = Callable[[DBNRecord], None]
 DEFAULT_REMOTE_PORT = 13000
 
 
@@ -122,8 +123,8 @@ class _SessionProtocol(DatabentoLiveProtocol):
         api_key: str,
         dataset: Dataset | str,
         dbn_queue: DBNQueue,
-        user_callbacks: list[UserCallback],
-        user_streams: list[IO[bytes]],
+        user_callbacks: dict[RecordCallback, ExceptionCallback | None],
+        user_streams: dict[IO[bytes], ExceptionCallback | None],
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
@@ -140,8 +141,10 @@ class _SessionProtocol(DatabentoLiveProtocol):
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         if not self._metadata:
             self._metadata.data = metadata
-            for stream in self._user_streams:
-                task = self._loop.create_task(self._stream_task(stream, metadata))
+            for stream, exc_callback in self._user_streams.items():
+                task = self._loop.create_task(
+                    self._stream_task(stream, metadata, exc_callback),
+                )
                 task.add_done_callback(self._tasks.remove)
                 self._tasks.add(task)
         else:
@@ -149,13 +152,17 @@ class _SessionProtocol(DatabentoLiveProtocol):
         return super().received_metadata(metadata)
 
     def received_record(self, record: DBNRecord) -> None:
-        for callback in self._user_callbacks:
-            task = self._loop.create_task(self._callback_task(callback, record))
+        for callback, exc_callback in self._user_callbacks.items():
+            task = self._loop.create_task(
+                self._callback_task(callback, record, exc_callback),
+            )
             task.add_done_callback(self._tasks.remove)
             self._tasks.add(task)
 
-        for stream in self._user_streams:
-            task = self._loop.create_task(self._stream_task(stream, record))
+        for stream, exc_callback in self._user_streams.items():
+            task = self._loop.create_task(
+                self._stream_task(stream, record, exc_callback),
+            )
             task.add_done_callback(self._tasks.remove)
             self._tasks.add(task)
 
@@ -180,26 +187,29 @@ class _SessionProtocol(DatabentoLiveProtocol):
 
     async def _callback_task(
         self,
-        func: UserCallback,
+        record_callback: RecordCallback,
         record: DBNRecord,
+        exception_callback: ExceptionCallback | None,
     ) -> None:
         try:
-            func(record)
+            record_callback(record)
         except Exception as exc:
             logger.error(
                 "error dispatching %s to `%s` callback",
                 type(record).__name__,
-                func.__name__,
+                record_callback.__name__,
                 exc_info=exc,
             )
-            raise
+            if exception_callback is not None:
+                self._loop.call_soon_threadsafe(exception_callback, exc)
 
     async def _stream_task(
         self,
         stream: IO[bytes],
         record: databento_dbn.Metadata | DBNRecord,
+        exc_callback: ExceptionCallback | None,
     ) -> None:
-        has_ts_out = self._metadata and self._metadata.data.ts_out
+        has_ts_out = self._metadata.data and self._metadata.data.ts_out
         try:
             stream.write(bytes(record))
             if not isinstance(record, databento_dbn.Metadata) and has_ts_out:
@@ -212,7 +222,8 @@ class _SessionProtocol(DatabentoLiveProtocol):
                 stream_name,
                 exc_info=exc,
             )
-            raise
+            if exc_callback is not None:
+                self._loop.call_soon_threadsafe(exc_callback, exc)
 
     async def wait_for_processing(self) -> None:
         while self._tasks:
@@ -247,6 +258,7 @@ class Session:
         port: int = DEFAULT_REMOTE_PORT,
         ts_out: bool = False,
     ) -> None:
+        self._lock = threading.RLock()
         self._loop = loop
         self._ts_out = ts_out
         self._protocol_factory = protocol_factory
@@ -266,13 +278,14 @@ class Session:
         bool
 
         """
-        if self._protocol is None:
-            return False
-        try:
-            self._protocol.authenticated.result()
-        except (asyncio.InvalidStateError, asyncio.CancelledError, BentoError):
-            return False
-        return True
+        with self._lock:
+            if self._protocol is None:
+                return False
+            try:
+                self._protocol.authenticated.result()
+            except (asyncio.InvalidStateError, asyncio.CancelledError, BentoError):
+                return False
+            return True
 
     def is_disconnected(self) -> bool:
         """
@@ -283,9 +296,10 @@ class Session:
         bool
 
         """
-        if self._protocol is None:
-            return True
-        return self._protocol.disconnected.done()
+        with self._lock:
+            if self._protocol is None:
+                return True
+            return self._protocol.disconnected.done()
 
     def is_reading(self) -> bool:
         """
@@ -296,9 +310,10 @@ class Session:
         bool
 
         """
-        if self._transport is None:
-            return False
-        return self._transport.is_reading()
+        with self._lock:
+            if self._transport is None:
+                return False
+            return self._transport.is_reading()
 
     def is_started(self) -> bool:
         """
@@ -309,9 +324,10 @@ class Session:
         bool
 
         """
-        if self._protocol is None:
-            return False
-        return self._protocol.started.is_set()
+        with self._lock:
+            if self._protocol is None:
+                return False
+            return self._protocol.started.is_set()
 
     @property
     def metadata(self) -> databento_dbn.Metadata | None:
@@ -323,9 +339,10 @@ class Session:
         databento_dbn.Metadata
 
         """
-        if self._protocol is None:
-            return None
-        return self._protocol._metadata.data
+        with self._lock:
+            if self._protocol is None:
+                return None
+            return self._protocol._metadata.data
 
     def abort(self) -> None:
         """
@@ -336,20 +353,22 @@ class Session:
         Session.close
 
         """
-        if self._transport is None:
-            return
-        self._transport.abort()
-        self._protocol = None
+        with self._lock:
+            if self._transport is None:
+                return
+            self._transport.abort()
+            self._protocol = None
 
     def close(self) -> None:
         """
         Close the current connection.
         """
-        if self._transport is None:
-            return
-        if self._transport.can_write_eof():
-            self._loop.call_soon_threadsafe(self._transport.write_eof)
-        self._loop.call_soon_threadsafe(self._transport.close)
+        with self._lock:
+            if self._transport is None:
+                return
+            if self._transport.can_write_eof():
+                self._loop.call_soon_threadsafe(self._transport.write_eof)
+            self._loop.call_soon_threadsafe(self._transport.close)
 
     def subscribe(
         self,
@@ -378,27 +397,29 @@ class Session:
             within 24 hours.
 
         """
-        if self._protocol is None:
-            self._connect(
-                dataset=dataset,
-                port=self._port,
-                loop=self._loop,
-            )
+        with self._lock:
+            if self._protocol is None:
+                self._connect(
+                    dataset=dataset,
+                    port=self._port,
+                    loop=self._loop,
+                )
 
-        self._protocol.subscribe(
-            schema=schema,
-            symbols=symbols,
-            stype_in=stype_in,
-            start=start,
-        )
+            self._protocol.subscribe(
+                schema=schema,
+                symbols=symbols,
+                stype_in=stype_in,
+                start=start,
+            )
 
     def resume_reading(self) -> None:
         """
         Resume reading from the connection.
         """
-        if self._transport is None:
-            return
-        self._loop.call_soon_threadsafe(self._transport.resume_reading)
+        with self._lock:
+            if self._transport is None:
+                return
+            self._loop.call_soon_threadsafe(self._transport.resume_reading)
 
     def start(self) -> None:
         """
@@ -410,9 +431,10 @@ class Session:
             If there is no connection.
 
         """
-        if self._protocol is None:
-            raise ValueError("session is not connected")
-        self._protocol.start()
+        with self._lock:
+            if self._protocol is None:
+                raise ValueError("session is not connected")
+            self._protocol.start()
 
     async def wait_for_close(self) -> None:
         """
@@ -422,14 +444,21 @@ class Session:
         if self._protocol is None:
             return
 
+        await self._protocol.authenticated
         await self._protocol.disconnected
-        disconnect_exc = self._protocol.disconnected.exception()
-
         await self._protocol.wait_for_processing()
-        self._protocol = self._transport = None
 
-        if disconnect_exc is not None:
-            raise BentoError(disconnect_exc)
+        try:
+            self._protocol.authenticated.result()
+        except Exception as exc:
+            raise BentoError(exc)
+
+        try:
+            self._protocol.disconnected.result()
+        except Exception as exc:
+            raise BentoError(exc)
+
+        self._protocol = self._transport = None
 
     def _connect(
         self,
@@ -437,29 +466,30 @@ class Session:
         port: int,
         loop: asyncio.AbstractEventLoop,
     ) -> None:
-        if self._user_gateway is None:
-            subdomain = dataset.lower().replace(".", "-")
-            gateway = f"{subdomain}.lsg.databento.com"
-            logger.debug("using default gateway for dataset %s", dataset)
-        else:
-            gateway = self._user_gateway
-            logger.debug("using user specified gateway: %s", gateway)
+        with self._lock:
+            if not self.is_disconnected():
+                return
+            if self._user_gateway is None:
+                subdomain = dataset.lower().replace(".", "-")
+                gateway = f"{subdomain}.lsg.databento.com"
+                logger.debug("using default gateway for dataset %s", dataset)
+            else:
+                gateway = self._user_gateway
+                logger.debug("using user specified gateway: %s", gateway)
 
-        asyncio.run_coroutine_threadsafe(
-            coro=self._connect_task(
-                gateway=gateway,
-                port=port,
-            ),
-            loop=loop,
-        ).result()
+            self._transport, self._protocol = asyncio.run_coroutine_threadsafe(
+                coro=self._connect_task(
+                    gateway=gateway,
+                    port=port,
+                ),
+                loop=loop,
+            ).result()
 
     async def _connect_task(
         self,
         gateway: str,
         port: int,
-    ) -> None:
-        if not self.is_disconnected():
-            return
+    ) -> tuple[asyncio.Transport, _SessionProtocol]:
         logger.info("connecting to remote gateway")
         try:
             transport, protocol = await asyncio.wait_for(
@@ -474,11 +504,11 @@ class Session:
             raise BentoError(
                 f"Connection to {gateway}:{port} timed out after "
                 f"{CONNECT_TIMEOUT_SECONDS} second(s).",
-            )
-        except OSError:
+            ) from None
+        except OSError as exc:
             raise BentoError(
-                f"Connection to {gateway}:{port} failed.",
-            )
+                f"Connection to {gateway}:{port} failed: {exc}",
+            ) from None
 
         logger.debug(
             "connected to %s:%d",
@@ -495,13 +525,12 @@ class Session:
             raise BentoError(
                 f"Authentication with {gateway}:{port} timed out after "
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",
-            )
+            ) from None
         except ValueError as exc:
-            raise BentoError(f"User authentication failed: {str(exc)}")
+            raise BentoError(f"User authentication failed: {str(exc)}") from None
 
         logger.info(
             "authentication with remote gateway completed",
         )
 
-        self._transport = transport
-        self._protocol = protocol
+        return transport, protocol

@@ -7,8 +7,8 @@ import pytest
 import requests
 from databento.common.enums import Dataset
 from databento.common.enums import FeedMode
-from databento.common.enums import Schema
 from databento.historical.client import Historical
+from databento_dbn import Schema
 
 
 def test_list_publishers_sends_expected_request(

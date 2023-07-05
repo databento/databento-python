@@ -14,11 +14,11 @@ import pytest
 import zstandard
 from databento.common.data import DEFINITION_DROP_COLUMNS
 from databento.common.dbnstore import DBNStore
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.live import DBNRecord
 from databento_dbn import MBOMsg
+from databento_dbn import Schema
+from databento_dbn import SType
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:
@@ -270,7 +270,7 @@ def test_replay_with_stub_data_record_passes_to_callback(
     "schema",
     [
         s
-        for s in Schema
+        for s in Schema.variants()
         if s
         not in (
             Schema.OHLCV_1H,
@@ -298,7 +298,7 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
 
 @pytest.mark.parametrize(
     "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_to_df_drop_columns(
     test_data: Callable[[Schema], bytes],
@@ -451,7 +451,7 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
 
 @pytest.mark.parametrize(
     "expected_schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_from_file_given_various_paths_returns_expected_metadata(
     test_data_path: Callable[[Schema], Path],
@@ -746,7 +746,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
 
 @pytest.mark.parametrize(
     "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_repr(
     test_data: Callable[[Schema], bytes],
@@ -839,7 +839,7 @@ def test_dbnstore_iterable_parallel(
 
 @pytest.mark.parametrize(
     "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_compression_equality(
     test_data: Callable[[Schema], bytes],
@@ -932,7 +932,7 @@ def test_dbnstore_buffer_long(
 
 @pytest.mark.parametrize(
     "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_to_ndarray_with_schema(
     schema: Schema,
@@ -979,7 +979,7 @@ def test_dbnstore_to_ndarray_with_schema_empty(
 
 @pytest.mark.parametrize(
     "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_to_df_with_schema(
     schema: Schema,

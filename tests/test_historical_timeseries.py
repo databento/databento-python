@@ -6,9 +6,9 @@ import databento as db
 import pytest
 import requests
 from databento import DBNStore
-from databento.common.enums import Schema
 from databento.common.error import BentoServerError
 from databento.historical.client import Historical
+from databento_dbn import Schema
 
 
 def test_get_range_given_invalid_schema_raises_error(
@@ -63,7 +63,7 @@ def test_get_range_error_no_file_write(
     # Arrange
     mocked_response = MagicMock()
     mocked_response.__enter__.return_value = MagicMock(status_code=500)
-    monkeypatch.setattr(requests, "get", MagicMock(return_value=mocked_response))
+    monkeypatch.setattr(requests, "post", MagicMock(return_value=mocked_response))
 
     output_file = tmp_path / "output.dbn"
 
@@ -89,7 +89,7 @@ def test_get_range_sends_expected_request(
     historical_client: Historical,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
     stream_bytes = test_data(Schema.TRADES)
 
     monkeypatch.setattr(
@@ -109,7 +109,7 @@ def test_get_range_sends_expected_request(
     )
 
     # Assert
-    call = mocked_get.call_args.kwargs
+    call = mocked_post.call_args.kwargs
     assert (
         call["url"]
         == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
@@ -117,17 +117,17 @@ def test_get_range_sends_expected_request(
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
-    assert call["params"] == [
-        ("dataset", "GLBX.MDP3"),
-        ("start", "2020-12-28T12:00"),
-        ("end", "2020-12-29"),
-        ("symbols", "ES.c.0"),
-        ("schema", "trades"),
-        ("stype_in", "continuous"),
-        ("stype_out", "instrument_id"),
-        ("encoding", "dbn"),
-        ("compression", "zstd"),
-    ]
+    assert call["data"] == {
+        "dataset": "GLBX.MDP3",
+        "start": "2020-12-28T12:00",
+        "end": "2020-12-29",
+        "symbols": "ES.c.0",
+        "schema": "trades",
+        "stype_in": "continuous",
+        "stype_out": "instrument_id",
+        "encoding": "dbn",
+        "compression": "zstd",
+    }
     assert call["timeout"] == (100, 100)
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -138,7 +138,7 @@ def test_get_range_with_limit_sends_expected_request(
     historical_client: Historical,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Mock from_bytes with the definition stub
     stream_bytes = test_data(Schema.TRADES)
@@ -159,7 +159,7 @@ def test_get_range_with_limit_sends_expected_request(
     )
 
     # Assert
-    call = mocked_get.call_args.kwargs
+    call = mocked_post.call_args.kwargs
     assert (
         call["url"]
         == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
@@ -167,17 +167,17 @@ def test_get_range_with_limit_sends_expected_request(
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
-    assert call["params"] == [
-        ("dataset", "GLBX.MDP3"),
-        ("start", "2020-12-28T12:00"),
-        ("end", "2020-12-29"),
-        ("symbols", "ESH1"),
-        ("schema", "trades"),
-        ("stype_in", "raw_symbol"),
-        ("stype_out", "instrument_id"),
-        ("encoding", "dbn"),
-        ("compression", "zstd"),
-        ("limit", "1000000"),
-    ]
+    assert call["data"] == {
+        "dataset": "GLBX.MDP3",
+        "start": "2020-12-28T12:00",
+        "end": "2020-12-29",
+        "limit": "1000000",
+        "symbols": "ESH1",
+        "schema": "trades",
+        "stype_in": "raw_symbol",
+        "stype_out": "instrument_id",
+        "encoding": "dbn",
+        "compression": "zstd",
+    }
     assert call["timeout"] == (100, 100)
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

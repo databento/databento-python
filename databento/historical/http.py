@@ -24,7 +24,7 @@ from databento.common.error import BentoWarning
 from databento.version import __version__
 
 
-_32KB = 1024 * 32  # 32_768
+_32KIB = 1024 * 32  # 32_768
 WARNING_HEADER_FIELD: str = "X-Warning"
 
 
@@ -94,6 +94,7 @@ class BentoHttpAPI:
     def _post(
         self,
         url: str,
+        data: dict[str, object | None] | None = None,
         params: Iterable[tuple[str, str | None]] | None = None,
         basic_auth: bool = False,
     ) -> Response:
@@ -101,6 +102,7 @@ class BentoHttpAPI:
 
         with requests.post(
             url=url,
+            data=data,
             params=params,
             headers=self._headers,
             auth=HTTPBasicAuth(username=self._key, password="") if basic_auth else None,
@@ -113,15 +115,15 @@ class BentoHttpAPI:
     def _stream(
         self,
         url: str,
-        params: Iterable[tuple[str, str | None]],
+        data: dict[str, object | None],
         basic_auth: bool,
         path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         self._check_api_key()
 
-        with requests.get(
+        with requests.post(
             url=url,
-            params=params,
+            data=data,
             headers=self._headers,
             auth=HTTPBasicAuth(username=self._key, password="") if basic_auth else None,
             timeout=(self.TIMEOUT, self.TIMEOUT),
@@ -135,7 +137,7 @@ class BentoHttpAPI:
             else:
                 writer = open(path, "x+b")
 
-            for chunk in response.iter_content(chunk_size=_32KB):
+            for chunk in response.iter_content(chunk_size=_32KIB):
                 writer.write(chunk)
 
             if path is None:
@@ -148,16 +150,16 @@ class BentoHttpAPI:
     async def _stream_async(
         self,
         url: str,
-        params: Iterable[tuple[str, str | None]],
+        data: dict[str, object | None] | None,
         basic_auth: bool,
         path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         self._check_api_key()
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(
+            async with session.post(
                 url=url,
-                params=[x for x in params if x[1] is not None],
+                data=data,
                 headers=self._headers,
                 auth=aiohttp.BasicAuth(login=self._key, password="", encoding="utf-8")
                 if basic_auth

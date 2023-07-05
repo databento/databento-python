@@ -4,18 +4,19 @@ import dataclasses
 import logging
 from functools import partial
 from io import BytesIO
+from operator import attrgetter
 from typing import TypeVar
 
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
+
 from databento.common.enums import Dataset
-from databento.common.enums import Encoding
-from databento.common.enums import Schema
-from databento.common.enums import SType
 
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="GatewayControl")
-
 
 @dataclasses.dataclass
 class GatewayControl:
@@ -47,17 +48,15 @@ class GatewayControl:
 
         try:
             return cls(**data_dict)
-        except TypeError as type_err:
+        except TypeError:
             raise ValueError(
                 f"`{line.strip()} is not a parsible {cls.__name__}",
-            ) from type_err
+            ) from None
 
     def __str__(self) -> str:
-        tokens = "|".join(
-            f"{k}={str(v)}"
-            for k, v in dataclasses.asdict(self).items()
-            if v is not None
-        )
+        fields = tuple(map(attrgetter("name"), dataclasses.fields(self)))
+        values = tuple(getattr(self, f) for f in fields)
+        tokens = "|".join(f"{k}={v}" for k, v in zip(fields, values) if v is not None)
         return f"{tokens}\n"
 
     def __bytes__(self) -> bytes:

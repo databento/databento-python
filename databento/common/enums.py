@@ -6,17 +6,6 @@ from enum import IntFlag
 from enum import unique
 from typing import Callable, TypeVar
 
-from databento_dbn import ImbalanceMsg
-from databento_dbn import InstrumentDefMsg
-from databento_dbn import MBOMsg
-from databento_dbn import MBP1Msg
-from databento_dbn import MBP10Msg
-from databento_dbn import OHLCVMsg
-from databento_dbn import StatMsg
-from databento_dbn import TradeMsg
-
-from databento.live import DBNRecord
-
 
 M = TypeVar("M", bound=Enum)
 
@@ -71,22 +60,22 @@ def coercible(enum_type: type[M]) -> type[M]:
 
     def coerced_new(enum: type[M], value: object) -> M:
         if value is None:
-            raise TypeError(
+            raise ValueError(
                 f"value `{value}` is not coercible to {enum_type.__name__}.",
             )
         try:
             return _new(enum, coerce_fn(value))
-        except ValueError as ve:
+        except ValueError:
             name_to_try = str(value).replace(".", "_").replace("-", "_").upper()
             named = enum._member_map_.get(name_to_try)
             if named is not None:
                 return named
-            enum_values = tuple(value for value in enum._value2member_map_)
+            enum_values = list(value for value in enum._value2member_map_)
 
             raise ValueError(
-                f"value `{value}` is not a member of {enum_type.__name__}. "
-                f"use one of {enum_values}.",
-            ) from ve
+                f"The `{value}` was not a valid value of {enum_type.__name__}"
+                f", was '{value}'. Use any of {enum_values}.",
+            ) from None
 
     setattr(enum_type, "__new__", coerced_new)
 
@@ -110,7 +99,6 @@ class StringyMixin:
         if isinstance(self, int):
             return getattr(self, "name").lower()
         return getattr(self, "value")
-
 
 @unique
 @coercible
@@ -143,77 +131,6 @@ class Dataset(StringyMixin, str, Enum):
 
     GLBX_MDP3 = "GLBX.MDP3"
     XNAS_ITCH = "XNAS.ITCH"
-
-
-@unique
-@coercible
-class Schema(StringyMixin, str, Enum):
-    """
-    Represents a data record schema.
-    """
-
-    MBO = "mbo"
-    MBP_1 = "mbp-1"
-    MBP_10 = "mbp-10"
-    TBBO = "tbbo"
-    TRADES = "trades"
-    OHLCV_1S = "ohlcv-1s"
-    OHLCV_1M = "ohlcv-1m"
-    OHLCV_1H = "ohlcv-1h"
-    OHLCV_1D = "ohlcv-1d"
-    DEFINITION = "definition"
-    IMBALANCE = "imbalance"
-    STATISTICS = "statistics"
-
-    def get_record_type(self) -> type[DBNRecord]:
-        if self == Schema.MBO:
-            return MBOMsg
-        if self == Schema.MBP_1:
-            return MBP1Msg
-        if self == Schema.MBP_10:
-            return MBP10Msg
-        if self == Schema.TBBO:
-            return MBP1Msg
-        if self == Schema.TRADES:
-            return TradeMsg
-        if self == Schema.OHLCV_1S:
-            return OHLCVMsg
-        if self == Schema.OHLCV_1M:
-            return OHLCVMsg
-        if self == Schema.OHLCV_1H:
-            return OHLCVMsg
-        if self == Schema.OHLCV_1D:
-            return OHLCVMsg
-        if self == Schema.DEFINITION:
-            return InstrumentDefMsg
-        if self == Schema.IMBALANCE:
-            return ImbalanceMsg
-        if self == Schema.STATISTICS:
-            return StatMsg
-        raise NotImplementedError(f"No message type for {self}")
-
-
-@unique
-@coercible
-class Encoding(StringyMixin, str, Enum):
-    """
-    Represents a data output encoding.
-    """
-
-    DBN = "dbn"
-    CSV = "csv"
-    JSON = "json"
-
-
-@unique
-@coercible
-class Compression(StringyMixin, str, Enum):
-    """
-    Represents a data compression format (if any).
-    """
-
-    NONE = "none"
-    ZSTD = "zstd"
 
 
 @unique
@@ -251,19 +168,6 @@ class Delivery(StringyMixin, str, Enum):
     DOWNLOAD = "download"
     S3 = "s3"
     DISK = "disk"
-
-
-@unique
-@coercible
-class SType(StringyMixin, str, Enum):
-    """
-    Represents a symbology type.
-    """
-
-    INSTRUMENT_ID = "instrument_id"
-    RAW_SYMBOL = "raw_symbol"
-    PARENT = "parent"
-    CONTINUOUS = "continuous"
 
 
 @unique

@@ -15,7 +15,7 @@ import pytest
 import pytest_asyncio
 from databento import historical
 from databento import live
-from databento.common.enums import Schema
+from databento_dbn import Schema
 
 from tests import TESTS_ROOT
 from tests.mock_live_server import MockLiveServer
@@ -106,7 +106,10 @@ def fixture_test_data_path() -> Callable[[Schema], pathlib.Path]:
     """
 
     def func(schema: Schema) -> pathlib.Path:
-        return pathlib.Path(TESTS_ROOT) / "data" / f"test_data.{schema}.dbn.zst"
+        path = pathlib.Path(TESTS_ROOT) / "data" / f"test_data.{schema}.dbn.zst"
+        if not path.exists():
+            pytest.skip(f"no test data for schema: {schema}")
+        return path
 
     return func
 

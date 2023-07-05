@@ -30,11 +30,11 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
     """
     try:
         return Path(value)
-    except TypeError as e:
+    except TypeError:
         raise TypeError(
             f"The `{param}` was not a valid path type. "
             "Use any of [str, bytes, os.PathLike].",
-        ) from e
+        ) from None
 
 
 def validate_enum(
@@ -68,12 +68,16 @@ def validate_enum(
     """
     try:
         return enum(value)
-    except ValueError as e:
-        valid = list(map(str, enum))
+    except ValueError:
+        if hasattr(enum, "variants"):
+            valid = list(map(str, enum.variants()))  # type: ignore [attr-defined]
+        else:
+            valid = list(map(str, enum))
+
         raise ValueError(
-            f"The `{param}` was not a valid value of {enum}, was '{value}'. "
-            f"Use any of {valid}.",
-        ) from e
+            f"The `{param}` was not a valid value of {enum.__name__}"
+            f", was '{value}'. Use any of {valid}.",
+        ) from None
 
 
 def validate_maybe_enum(

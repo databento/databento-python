@@ -8,21 +8,22 @@ import threading
 from collections.abc import Iterable
 from concurrent import futures
 from numbers import Number
-from typing import IO, Callable
+from typing import IO
 
 import databento_dbn
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.enums import Dataset
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
-from databento.common.parsing import optional_symbols_list_to_string
 from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.live import DBNRecord
+from databento.live import ExceptionCallback
+from databento.live import RecordCallback
 from databento.live.session import DEFAULT_REMOTE_PORT
 from databento.live.session import DBNQueue
 from databento.live.session import Session
@@ -31,9 +32,6 @@ from databento.live.session import _SessionProtocol
 
 
 logger = logging.getLogger(__name__)
-
-UserCallback = Callable[[DBNRecord], None]
-
 DEFAULT_QUEUE_SIZE = 2048
 
 
@@ -88,8 +86,11 @@ class Live:
 
         self._dbn_queue: DBNQueue = DBNQueue(maxsize=DEFAULT_QUEUE_SIZE)
         self._metadata: SessionMetadata = SessionMetadata()
-        self._user_callbacks: list[UserCallback] = []
-        self._user_streams: list[IO[bytes]] = []
+        self._symbology_map: dict[int, str | int] = {}
+        self._user_callbacks: dict[RecordCallback, ExceptionCallback | None] = {
+            self._map_symbol: None,
+        }
+        self._user_streams: dict[IO[bytes], ExceptionCallback | None] = {}
 
         def factory() -> _SessionProtocol:
             return _SessionProtocol(
@@ -126,13 +127,15 @@ class Live:
     def __iter__(self) -> Live:
         logger.debug("starting iteration")
         self._dbn_queue._enabled.set()
+        if not self._session.is_started() and self.is_connected():
+            self.start()
         return self
 
     def __next__(self) -> DBNRecord:
         if self._dbn_queue is None:
             raise ValueError("iteration has not started")
 
-        while not self._session.is_disconnected() or self._dbn_queue._qsize() > 0:
+        while not self._session.is_disconnected() or self._dbn_queue.qsize() > 0:
             try:
                 record = self._dbn_queue.get(block=False)
             except queue.Empty:
@@ -238,6 +241,23 @@ class Live:
         return self._port
 
     @property
+    def symbology_map(self) -> dict[int, str | int]:
+        """
+        Return the symbology map for this client session. A symbol mapping is
+        added when the client receives a SymbolMappingMsg.
+
+        This can be used to transform an `instrument_id` in a DBN record
+        to the input symbology.
+
+        Returns
+        -------
+        dict[int, str | int]
+            A mapping of the exchange's instrument_id to the subscription symbology.
+
+        """
+        return self._symbology_map
+
+    @property
     def ts_out(self) -> bool:
         """
         Returns the value of the ts_out flag.
@@ -251,15 +271,19 @@ class Live:
 
     def add_callback(
         self,
-        func: UserCallback,
+        record_callback: RecordCallback,
+        exception_callback: ExceptionCallback | None = None,
     ) -> None:
         """
         Add a callback for handling records.
 
         Parameters
         ----------
-        func : Callable[[DBNRecord], None]
+        record_callback : Callable[[DBNRecord], None]
             A callback to register for handling live records as they arrive.
+        exception_callback : Callable[[Exception], None], optional
+            An error handling callback to process exceptions that are raised
+            in `record_callback`.
 
         Raises
         ------
@@ -271,13 +295,21 @@ class Live:
         Live.add_stream
 
         """
-        if not callable(func):
-            raise ValueError(f"{func} is not callable")
-        callback_name = getattr(func, "__name__", str(func))
-        logger.info("adding user callback %s", callback_name)
-        self._user_callbacks.append(func)
+        if not callable(record_callback):
+            raise ValueError(f"{record_callback} is not callable")
 
-    def add_stream(self, stream: IO[bytes]) -> None:
+        if exception_callback is not None and not callable(exception_callback):
+            raise ValueError(f"{exception_callback} is not callable")
+
+        callback_name = getattr(record_callback, "__name__", str(record_callback))
+        logger.info("adding user callback %s", callback_name)
+        self._user_callbacks[record_callback] = exception_callback
+
+    def add_stream(
+        self,
+        stream: IO[bytes],
+        exception_callback: ExceptionCallback | None = None,
+    ) -> None:
         """
         Add an IO stream to write records to.
 
@@ -285,6 +317,9 @@ class Live:
         ----------
         stream : IO[bytes]
             The IO stream to write to when handling live records as they arrive.
+        exception_callback : Callable[[Exception], None], optional
+            An error handling callback to process exceptions that are raised
+            when writing to the stream.
 
         Raises
         ------
@@ -302,11 +337,14 @@ class Live:
         if not hasattr(stream, "writable") or not stream.writable():
             raise ValueError(f"{type(stream).__name__} is not a writable stream")
 
+        if exception_callback is not None and not callable(exception_callback):
+            raise ValueError(f"{exception_callback} is not callable")
+
         stream_name = getattr(stream, "name", str(stream))
         logger.info("adding user stream %s", stream_name)
         if self.metadata is not None:
             stream.write(bytes(self.metadata))
-        self._user_streams.append(stream)
+        self._user_streams[stream] = exception_callback
 
     def start(
         self,
@@ -414,7 +452,6 @@ class Live:
         dataset = validate_semantic_string(dataset, "dataset")
         schema = validate_enum(schema, Schema, "schema")
         stype_in = validate_enum(stype_in, SType, "stype_in")
-        symbols = optional_symbols_list_to_string(symbols, stype_in)
         start = optional_datetime_to_unix_nanoseconds(start)
 
         if not self.dataset:
@@ -488,9 +525,9 @@ class Live:
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
-        except Exception as exc:
+        except Exception:
             logger.exception("exception encountered blocking for close")
-            raise BentoError("connection lost") from exc
+            raise BentoError("connection lost") from None
 
     async def wait_for_close(
         self,
@@ -533,9 +570,9 @@ class Live:
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
-        except Exception as exc:
+        except Exception:
             logger.exception("exception encountered waiting for close")
-            raise BentoError("connection lost") from exc
+            raise BentoError("connection lost") from None
 
     async def _shutdown(self) -> None:
         """
@@ -548,3 +585,11 @@ class Live:
         if self._session is None:
             return
         await self._session.wait_for_close()
+        self._symbology_map.clear()
+
+    def _map_symbol(self, record: DBNRecord) -> None:
+        if isinstance(record, databento_dbn.SymbolMappingMsg):
+            out_symbol = record.stype_out_symbol
+            instrument_id = record.instrument_id
+            self._symbology_map[instrument_id] = record.stype_out_symbol
+            logger.info("added symbology mapping %s to %d", out_symbol, instrument_id)

@@ -4,13 +4,13 @@ from enum import Enum
 from typing import Any
 
 import pytest
-from databento.common.enums import Encoding
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_gateway
 from databento.common.validation import validate_maybe_enum
 from databento.common.validation import validate_path
 from databento.common.validation import validate_semantic_string
 from databento.common.validation import validate_smart_symbol
+from databento_dbn import Encoding
 
 
 @pytest.mark.parametrize(
@@ -37,7 +37,7 @@ def test_validate_enum_given_wrong_types_raises_type_error(
     enum: type[Enum],
 ) -> None:
     # Arrange, Act, Assert
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         validate_enum(value, enum, "param")
 
 def test_validate_enum_given_invalid_value_raises_value_error() -> None:

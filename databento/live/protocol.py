@@ -1,20 +1,22 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 import logging
 from collections.abc import Iterable
 from functools import singledispatchmethod
 from numbers import Number
+from typing import TypeVar
 
 import databento_dbn
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from databento.common import cram
 from databento.common.enums import Dataset
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
-from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
@@ -32,6 +34,38 @@ from databento.live.gateway import SubscriptionRequest
 MIN_BUFFER_SIZE: int = 64 * 1024  # 64kb
 
 logger = logging.getLogger(__name__)
+
+
+_C = TypeVar("_C")
+
+
+def chunk(iterable: Iterable[_C], size: int) -> Iterable[tuple[_C, ...]]:
+    """
+    Break an iterable into chunks with a length of
+    at most `size`.
+
+    Parameters
+    ----------
+    iterable: Iterable[_C]
+        The iterable to break up.
+    size : int
+        The maximum size of each chunk.
+
+    Returns
+    -------
+    Iterable[_C]
+
+    Raises
+    ------
+    ValueError
+        If `size` is less than 1.
+
+    """
+    if size < 1:
+        raise ValueError("size must be at least 1")
+
+    it = iter(iterable)
+    return iter(lambda: tuple(itertools.islice(it, size)), ())
 
 
 class DatabentoLiveProtocol(asyncio.BufferedProtocol):
@@ -186,7 +220,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         asycnio.BufferedProtocol.eof_received
 
         """
-        logger.info("received EOF file from remote")
+        logger.info("received EOF from remote")
         return super().eof_received()
 
     def get_buffer(self, sizehint: int) -> bytearray:
@@ -274,14 +308,18 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             start if start is not None else "now",
         )
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        message = SubscriptionRequest(
-            schema=validate_enum(schema, Schema, "schema"),
-            stype_in=stype_in_valid,
-            symbols=optional_symbols_list_to_string(symbols, stype_in_valid),
-            start=optional_datetime_to_unix_nanoseconds(start),
-        )
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
 
-        self.transport.write(bytes(message))
+        for batch in chunk(symbols_list, 128):
+            batch_str = ",".join(batch)
+            message = SubscriptionRequest(
+                schema=validate_enum(schema, Schema, "schema"),
+                stype_in=stype_in_valid,
+                symbols=batch_str,
+                start=optional_datetime_to_unix_nanoseconds(start),
+            )
+
+            self.transport.write(bytes(message))
 
     def start(
         self,
@@ -312,8 +350,22 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 logger.debug("dispatching %s", type(record).__name__)
                 if isinstance(record, databento_dbn.Metadata):
                     self.received_metadata(record)
-                else:
-                    self.received_record(record)
+                    continue
+
+                if isinstance(record, databento_dbn.ErrorMsg):
+                    logger.error(
+                        "gateway error: %s",
+                        record.err,
+                    )
+                if isinstance(record, databento_dbn.SystemMsg):
+                    if record.is_heartbeat:
+                        logger.debug("gateway heartbeat")
+                    else:
+                        logger.info(
+                            "gateway message: %s",
+                            record.msg,
+                        )
+                self.received_record(record)
 
     def _process_gateway(self, data: bytes) -> None:
         try:

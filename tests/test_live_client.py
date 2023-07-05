@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import pathlib
 import platform
+import random
+import string
 from io import BytesIO
 from typing import Callable
 from unittest.mock import MagicMock
@@ -13,11 +15,9 @@ import databento_dbn
 import pytest
 import zstandard
 from databento.common.cram import BUCKET_ID_LENGTH
+from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Dataset
-from databento.common.enums import Encoding
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.error import BentoError
 from databento.common.symbology import ALL_SYMBOLS
 from databento.live import DBNRecord
@@ -25,6 +25,9 @@ from databento.live import client
 from databento.live import gateway
 from databento.live import protocol
 from databento.live import session
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from tests.mock_live_server import MockLiveServer
 
@@ -137,7 +140,7 @@ def test_live_connection_cram_failure(
     test_api_key: str,
 ) -> None:
     """
-    Test that a failed auth message due to an incorrect CRAM raies a
+    Test that a failed auth message due to an incorrect CRAM raises a
     BentoError.
     """
     # Dork up the API key in the mock client to fail CRAM
@@ -179,6 +182,7 @@ def test_live_creation(
         port=mock_live_server.port,
     )
 
+    # Subscribe to connect
     live_client.subscribe(
         dataset=dataset,
         schema=Schema.MBO,
@@ -189,6 +193,7 @@ def test_live_creation(
     assert live_client._key == test_api_key
     assert live_client.dataset == dataset
     assert live_client.is_connected() is True
+    assert live_client._map_symbol in live_client._user_callbacks
 
 
 def test_live_connect_auth(
@@ -307,11 +312,11 @@ def test_live_start_twice(
 
 @pytest.mark.parametrize(
     "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema],
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 @pytest.mark.parametrize(
     "stype_in",
-    [pytest.param(stype, id=str(stype)) for stype in SType],
+    [pytest.param(stype, id=str(stype)) for stype in SType.variants()],
 )
 @pytest.mark.parametrize(
     "symbols",
@@ -360,6 +365,39 @@ def test_live_subscribe(
     assert message.stype_in == stype_in
     assert message.symbols == symbols
     assert message.start == start
+
+
+@pytest.mark.skipif(platform.system() == "Windows", reason="timeout on windows")
+async def test_live_subscribe_large_symbol_list(
+    live_client: client.Live,
+    mock_live_server: MockLiveServer,
+) -> None:
+    """
+    Test that sending a subscription with a large symbol list breaks that list
+    up into multiple messages.
+    """
+    large_symbol_list = list(
+        random.choices(string.ascii_uppercase, k=256),  # noqa: S311
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=large_symbol_list,
+    )
+
+    first_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    )
+
+    second_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    )
+
+    reconstructed = first_message.symbols.split(",") + second_message.symbols.split(",")
+    assert reconstructed == large_symbol_list
 
 
 @pytest.mark.usefixtures("mock_live_server")
@@ -496,8 +534,9 @@ def test_live_add_callback(
         pass
 
     live_client.add_callback(callback)
-    assert live_client._user_callbacks == [callback]
-    assert live_client._user_streams == []
+    assert callback in live_client._user_callbacks
+    assert live_client._user_callbacks[callback] is None
+    assert live_client._user_streams == {}
 
 
 def test_live_add_stream(
@@ -509,8 +548,8 @@ def test_live_add_stream(
     stream = BytesIO()
 
     live_client.add_stream(stream)
-    assert live_client._user_callbacks == []
-    assert live_client._user_streams == [stream]
+    assert stream in live_client._user_streams
+    assert live_client._user_streams[stream] is None
 
 
 def test_live_add_stream_invalid(
@@ -542,8 +581,6 @@ async def test_live_async_iteration(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
-
-    live_client.start()
 
     records: list[DBNRecord] = []
     async for record in live_client:
@@ -581,15 +618,18 @@ async def test_live_async_iteration_backpressure(
         symbols="TEST",
     )
 
-    monkeypatch.setattr(live_client._session._transport, "pause_reading", pause_mock:=MagicMock())
+    monkeypatch.setattr(
+        live_client._session._transport,
+        "pause_reading",
+        pause_mock := MagicMock(),
+    )
 
-    live_client.start()
-    it = live_client.__iter__()
+    live_it = iter(live_client)
     await live_client.wait_for_close()
 
-    assert pause_mock.called
+    pause_mock.assert_called()
 
-    records = list(it)
+    records: list[DBNRecord] = list(live_it)
     assert len(records) == 4
     assert live_client._dbn_queue.empty()
 
@@ -618,17 +658,21 @@ async def test_live_async_iteration_dropped(
         symbols="TEST",
     )
 
-    monkeypatch.setattr(live_client._session._transport, "pause_reading", pause_mock:=MagicMock())
+    monkeypatch.setattr(
+        live_client._session._transport,
+        "pause_reading",
+        pause_mock := MagicMock(),
+    )
 
-    live_client.start()
-    it = live_client.__iter__()
+    live_it = iter(live_client)
     await live_client.wait_for_close()
 
-    assert pause_mock.called
+    pause_mock.assert_called()
 
-    records = list(it)
+    records = list(live_it)
     assert len(records) == 1
     assert live_client._dbn_queue.empty()
+
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_stop(
@@ -644,8 +688,6 @@ async def test_live_async_iteration_stop(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
-
-    live_client.start()
 
     records = []
     async for record in live_client:
@@ -669,8 +711,6 @@ def test_live_sync_iteration(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
-
-    live_client.start()
 
     records = []
     for record in live_client:
@@ -717,7 +757,7 @@ async def test_live_callback(
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_stream_to_dbn(
     tmp_path: pathlib.Path,
@@ -755,7 +795,7 @@ async def test_live_stream_to_dbn(
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 @pytest.mark.parametrize(
     "buffer_size",
@@ -881,7 +921,7 @@ async def test_live_terminate(
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_iteration_with_reconnect(
     live_client: client.Live,
@@ -905,7 +945,6 @@ async def test_live_iteration_with_reconnect(
     assert live_client.is_connected()
     assert live_client.dataset == Dataset.GLBX_MDP3
 
-    live_client.start()
     my_iter = iter(live_client)
 
     await live_client.wait_for_close()
@@ -935,12 +974,12 @@ async def test_live_iteration_with_reconnect(
     records = list(my_iter)
     assert len(records) == 2 * len(list(dbn))
     for record in records:
-        assert isinstance(record, schema.get_record_type())
+        assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
 
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_callback_with_reconnect(
     live_client: client.Live,
@@ -982,12 +1021,12 @@ async def test_live_callback_with_reconnect(
     assert len(records) == 5 * len(list(dbn))
 
     for record in records:
-        assert isinstance(record, schema.get_record_type())
+        assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
 
 
 @pytest.mark.parametrize(
     "schema",
-    (pytest.param(schema, id=str(schema)) for schema in Schema),
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_stream_with_reconnect(
     tmp_path: pathlib.Path,
@@ -1001,6 +1040,10 @@ async def test_live_stream_with_reconnect(
     That output stream should be readable.
 
     """
+    # TODO: Remove when status schema is available
+    if schema == "status":
+        pytest.skip("no stub data for status schema")
+
     output = tmp_path / "output.dbn"
     live_client.add_stream(output.open("wb", buffering=0))
 
@@ -1024,4 +1067,93 @@ async def test_live_stream_with_reconnect(
 
     records = list(data)
     for record in records:
-        assert isinstance(record, schema.get_record_type())
+        assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
+
+
+def test_live_connection_reconnect_cram_failure(
+    mock_live_server: MockLiveServer,
+    monkeypatch: pytest.MonkeyPatch,
+    test_api_key: str,
+) -> None:
+    """
+    Test that a failed connection can reconnect.
+    """
+    # Dork up the API key in the mock client to fail CRAM
+    bucket_id = test_api_key[-BUCKET_ID_LENGTH:]
+    invalid_key = "db-invalidkey00000000000000FFFFF"
+    monkeypatch.setitem(mock_live_server._user_api_keys, bucket_id, invalid_key)
+
+    live_client = client.Live(
+        key=test_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
+
+    with pytest.raises(BentoError) as exc:
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=Schema.MBO,
+        )
+
+    # Ensure this was an authentication error
+    exc.match(r"User authentication failed:")
+
+    # Fix the key in the mock live server to connect
+    monkeypatch.setitem(mock_live_server._user_api_keys, bucket_id, test_api_key)
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+
+async def test_live_callback_exception_handler(
+    live_client: client.Live,
+) -> None:
+    """
+    Test exceptions that occur during callbacks are dispatched to the assigned
+    exception handler.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    exceptions: list[Exception] = []
+
+    def callback(_: DBNRecord) -> None:
+        raise RuntimeError("this is a test")
+
+    live_client.add_callback(callback, exceptions.append)
+
+    live_client.start()
+
+    await live_client.wait_for_close()
+    assert len(exceptions) == 4
+
+
+async def test_live_stream_exception_handler(
+    live_client: client.Live,
+) -> None:
+    """
+    Test exceptions that occur during stream writes are dispatched to the
+    assigned exception handler.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    exceptions: list[Exception] = []
+
+    stream = BytesIO()
+    live_client.add_stream(stream, exceptions.append)
+    stream.close()
+
+    live_client.start()
+
+    await live_client.wait_for_close()
+    assert len(exceptions) == 5  # extra write from metadata

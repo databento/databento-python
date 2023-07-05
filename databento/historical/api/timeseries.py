@@ -4,16 +4,16 @@ from datetime import date
 from os import PathLike
 
 import pandas as pd
+from databento_dbn import Compression
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
 
 from databento.common.dbnstore import DBNStore
-from databento.common.enums import Compression
 from databento.common.enums import Dataset
-from databento.common.enums import Encoding
-from databento.common.enums import Schema
-from databento.common.enums import SType
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
-from databento.common.parsing import optional_symbols_list_to_string
+from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.historical.api import API_VERSION
@@ -31,7 +31,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
     def get_range(
         self,
-        dataset: Dataset | str | None,
+        dataset: Dataset | str,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
         symbols: list[str] | str | None = None,
@@ -44,7 +44,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         """
         Request a historical time series data stream from Databento.
 
-        Makes a `GET /timeseries.get_range` HTTP request.
+        Makes a `POST /timeseries.get_range` HTTP request.
 
         Primary method for getting historical intraday market data, daily data,
         instrument definitions and market status data directly into your application.
@@ -95,36 +95,36 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
         start_valid = datetime_to_string(start)
         end_valid = optional_datetime_to_string(end)
-        params: list[tuple[str, str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start", start_valid),
-            ("end", end_valid),
-            ("symbols", symbols_list),
-            ("schema", str(schema_valid)),
-            ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
-            ("encoding", str(Encoding.DBN)),  # Always request dbn
-            ("compression", str(Compression.ZSTD)),  # Always request zstd
-        ]
+        data: dict[str, object | None] = {
+            "dataset": validate_semantic_string(dataset, "dataset"),
+            "start": start_valid,
+            "end": end_valid,
+            "symbols": ",".join(symbols_list),
+            "schema": str(schema_valid),
+            "stype_in": str(stype_in_valid),
+            "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
+            "encoding": str(Encoding.DBN),  # Always request dbn
+            "compression": str(Compression.ZSTD),  # Always request zstd
+        }
 
         # Optional Parameters
         if limit is not None:
-            params.append(("limit", str(limit)))
+            data["limit"] = str(limit)
 
         return self._stream(
             url=self._base_url + ".get_range",
-            params=params,
+            data=data,
             basic_auth=True,
             path=path,
         )
 
     async def get_range_async(
         self,
-        dataset: Dataset | str | None,
+        dataset: Dataset | str,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
         symbols: list[str] | str | None = None,
@@ -138,7 +138,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         Asynchronously request a historical time series data stream from
         Databento.
 
-        Makes a `GET /timeseries.get_range` HTTP request.
+        Makes a `POST /timeseries.get_range` HTTP request.
 
         Primary method for getting historical intraday market data, daily data,
         instrument definitions and market status data directly into your application.
@@ -189,29 +189,29 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_string(symbols, stype_in_valid)
+        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         schema_valid = validate_enum(schema, Schema, "schema")
         start_valid = datetime_to_string(start)
         end_valid = optional_datetime_to_string(end)
-        params: list[tuple[str, str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start", start_valid),
-            ("end", end_valid),
-            ("symbols", symbols_list),
-            ("schema", str(schema_valid)),
-            ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(validate_enum(stype_out, SType, "stype_out"))),
-            ("encoding", str(Encoding.DBN)),  # Always request dbn
-            ("compression", str(Compression.ZSTD)),  # Always request zstd
-        ]
+        data: dict[str, object | None] = {
+            "dataset": validate_semantic_string(dataset, "dataset"),
+            "start": start_valid,
+            "end": end_valid,
+            "symbols": ",".join(symbols_list),
+            "schema": str(schema_valid),
+            "stype_in": str(stype_in_valid),
+            "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
+            "encoding": str(Encoding.DBN),  # Always request dbn
+            "compression": str(Compression.ZSTD),  # Always request zstd
+        }
 
         # Optional Parameters
         if limit is not None:
-            params.append(("limit", str(limit)))
+            data["limit"] = str(limit)
 
         return await self._stream_async(
             url=self._base_url + ".get_range",
-            params=params,
+            data=data,
             basic_auth=True,
             path=path,
         )
