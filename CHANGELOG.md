@@ -1,11 +1,12 @@
 # Changelog
 
-## 0.15.1 - 2023-07-05
+## 0.15.1 - 2023-07-06
 
-#### Bug Fixes
-- Fixed an `ImportError` observed in Python 3.8
+#### Bug fixes
+- Fixed an issue with release tests
+- Fixed an issue with release workflow
 
-## 0.15.0 - 2023-07-03
+## 0.15.0 - 2023-07-05
 
 #### Enhancements
 - Added `symbology_map` property to `Live` client
@@ -17,6 +18,7 @@
 
 #### Bug fixes
 - Fixed issue where a large unreadable symbol subscription message could be sent
+- Fixed an `ImportError` observed in Python 3.8
 
 #### Breaking changes
 - Removed `Encoding`, `Compression`, `Schema`, and `SType` enums as they are now exposed by `databento-dbn`
