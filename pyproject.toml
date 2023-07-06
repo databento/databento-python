@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "databento"
-version = "0.15.0"
+version = "0.15.1"
 description = "Official Python client library for Databento"
 authors = [
     "Databento <support@databento.com>",
@@ -39,6 +39,7 @@ pytest = ">=7.3.1"
 pytest-asyncio = ">=0.21.0"
 ruff = "^0.0.270"
 types-requests = "^2.30.0.0"
+tomli = "^2.0.1"
 
 [build-system]
 requires = ["poetry-core"]

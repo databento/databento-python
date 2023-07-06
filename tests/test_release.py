@@ -1,12 +1,15 @@
 """
 Tests specific to releasing a version of databento-python.
 """
+from __future__ import annotations
+
 import operator
 import re
 from datetime import date
 
 import databento
 import pytest
+import tomli
 
 from tests import PROJECT_ROOT
 
@@ -28,13 +31,29 @@ def fixture_changelog() -> str:
         return changelog.read()
 
 
-@pytest.mark.release
-def test_release_changelog(changelog: str) -> None:
+@pytest.fixture(name="pyproject_version")
+def fixture_pyproject_version() -> str:
     """
-    Test that CHANGELOG.md contains correct version information.
+    Fixture for the version text of project.toml.
+
+    Returns
+    -------
+    str
+
+    """
+    with open(PROJECT_ROOT / "pyproject.toml", "rb") as pyproject:
+        data = tomli.load(pyproject)
+    return data["tool"]["poetry"]["version"]
+
+@pytest.mark.release
+def test_release_changelog(changelog: str, pyproject_version: str) -> None:
+    """
+    Test that CHANGELOG.md and pyproject.toml contain correct version
+    information.
 
     This test verifies that:
-        - The version in `version.py` matches the latest release note.
+        - The version in `version.py` matches the latest release note
+        - The version in `version.py` matches the version in `pyproject.toml`
         - The versions are unique.
         - The versions are ascending.
         - The release dates are chronological.
@@ -58,6 +77,9 @@ def test_release_changelog(changelog: str) -> None:
 
     # Ensure latest version matches `__version__`
     assert databento.__version__ == versions[0]
+
+    # Ensure latest version matches pyproject.toml
+    assert databento.__version__ == pyproject_version
 
     # Ensure versions are unique
     assert len(versions) == len(set(versions))
