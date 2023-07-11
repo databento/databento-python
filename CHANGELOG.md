@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.15.2 - TBD
+
+#### Bug Fixes
+- Fixed and issue where the `end` parameter in `timeseries.get_range_async` did not support a value of `None`
+
 ## 0.15.1 - 2023-07-06
 
 #### Bug fixes

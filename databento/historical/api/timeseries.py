@@ -102,7 +102,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": start_valid,
-            "end": end_valid,
             "symbols": ",".join(symbols_list),
             "schema": str(schema_valid),
             "stype_in": str(stype_in_valid),
@@ -114,6 +113,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         # Optional Parameters
         if limit is not None:
             data["limit"] = str(limit)
+        if end is not None:
+            data["end"] = end_valid
 
         return self._stream(
             url=self._base_url + ".get_range",
@@ -196,7 +197,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": start_valid,
-            "end": end_valid,
             "symbols": ",".join(symbols_list),
             "schema": str(schema_valid),
             "stype_in": str(stype_in_valid),
@@ -208,6 +208,8 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         # Optional Parameters
         if limit is not None:
             data["limit"] = str(limit)
+        if end is not None:
+            data["end"] = end_valid
 
         return await self._stream_async(
             url=self._base_url + ".get_range",
