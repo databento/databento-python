@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from enum import Enum
 from os import PathLike
 from pathlib import Path
@@ -27,6 +28,11 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
     Path
         A valid path.
 
+    Raises
+    ------
+    TypeError
+        If value is not a valid path.
+
     """
     try:
         return Path(value)
@@ -35,6 +41,42 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
             f"The `{param}` was not a valid path type. "
             "Use any of [str, bytes, os.PathLike].",
         ) from None
+
+
+def validate_file_write_path(value: PathLike[str] | str, param: str) -> Path:
+    """
+    Validate whether the given value is a valid path to a writable file.
+
+    Parameters
+    ----------
+    value: PathLike or str
+        The value to validate.
+    param : str
+        The name of the parameter being validated (for any error message).
+
+    Returns
+    -------
+    Path
+        A valid path to a writable file.
+
+    Raises
+    ------
+    IsADirectoryError
+        If path is a directory.
+    FileExistsError
+        If path exists.
+    PermissionError
+        If path is not writable.
+
+    """
+    path_valid = validate_path(value, param)
+    if not os.access(path_valid.parent, os.W_OK):
+        raise PermissionError(f"The file `{value}` is not writable.")
+    if path_valid.is_dir():
+        raise IsADirectoryError(f"The `{param}` was not a path to a file.")
+    if path_valid.is_file():
+        raise FileExistsError(f"The file `{value}` already exists.")
+    return path_valid
 
 
 def validate_enum(

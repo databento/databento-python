@@ -4,6 +4,7 @@
 
 #### Bug Fixes
 - Fixed and issue where the `end` parameter in `timeseries.get_range_async` did not support a value of `None`
+- Fixed an issue where `timeseries.get_range` requests would begin with an invalid `path` parameter
 
 ## 0.15.1 - 2023-07-06
 
