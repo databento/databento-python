@@ -227,8 +227,8 @@ class MemoryDataSource(DataSource):
     @property
     def name(self) -> str:
         """
-        Return the name of the source buffer.
-        Equivelant to `repr` of the input.
+        Return the name of the source buffer. Equivalent to `repr` of the
+        input.
 
         Returns
         -------
