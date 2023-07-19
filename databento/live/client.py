@@ -193,8 +193,8 @@ class Live:
     @property
     def metadata(self) -> databento_dbn.Metadata | None:
         """
-        The DBN metadata header for this session, or `None` if the
-        metadata has not been received yet.
+        The DBN metadata header for this session, or `None` if the metadata has
+        not been received yet.
 
         Returns
         -------

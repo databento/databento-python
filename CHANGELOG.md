@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.2 - 2023-07-19
+
+#### Bug fixes
+- Fixed an issue where the `end` parameter in `timeseries.get_range_async` did not support a value of `None`
+- Fixed an issue where `timeseries.get_range` requests would begin with an invalid `path` parameter
+
 ## 0.15.1 - 2023-07-06
 
 #### Bug fixes
@@ -27,6 +33,7 @@
 
 ## 0.14.1 - 2023-06-16
 
+#### Bug fixes
 - Fixed issue where `DBNStore.to_df()` would raise an exception if no records were present
 - Fixed exception message when creating a DBNStore from an empty data source
 
@@ -101,6 +108,7 @@
 
 ## 0.11.0 - 2023-04-13
 
+#### Bug fixes
 - Changed `end` and `end_date` to optional to support new forward-fill behaviour
 - Upgraded `zstandard` to 0.20.0
 

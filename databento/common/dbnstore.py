@@ -37,6 +37,7 @@ from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.data import STRUCT_MAP
 from databento.common.error import BentoError
 from databento.common.symbology import InstrumentIdMappingInterval
+from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
 from databento.live import DBNRecord
 
@@ -227,8 +228,8 @@ class MemoryDataSource(DataSource):
     @property
     def name(self) -> str:
         """
-        Return the name of the source buffer.
-        Equivelant to `repr` of the input.
+        Return the name of the source buffer. Equivalent to `repr` of the
+        input.
 
         Returns
         -------
@@ -978,10 +979,20 @@ class DBNStore:
         path : str
             The file path to write to.
 
+        Raises
+        ------
+        IsADirectoryError
+            If path is a directory.
+        FileExistsError
+            If path exists.
+        PermissionError
+            If path is not writable.
+
         """
-        with open(path, mode="xb") as f:
+        file_path = validate_file_write_path(path, "path")
+        with open(file_path, mode="xb") as f:
             f.write(self._data_source.reader.read())
-        self._data_source = FileDataSource(path)
+        self._data_source = FileDataSource(file_path)
 
     def to_json(
         self,

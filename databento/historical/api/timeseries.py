@@ -15,6 +15,7 @@ from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.validation import validate_enum
+from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -79,7 +80,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
         path : PathLike or str, optional
-            The path to stream the data to on disk (will then return a `DBNStore`).
+            The file path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns
         -------
@@ -102,7 +103,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": start_valid,
-            "end": end_valid,
             "symbols": ",".join(symbols_list),
             "schema": str(schema_valid),
             "stype_in": str(stype_in_valid),
@@ -114,6 +114,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         # Optional Parameters
         if limit is not None:
             data["limit"] = str(limit)
+        if end is not None:
+            data["end"] = end_valid
+        if path is not None:
+            path = validate_file_write_path(path, "path")
 
         return self._stream(
             url=self._base_url + ".get_range",
@@ -173,7 +177,7 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
         path : PathLike or str, optional
-            The path to stream the data to on disk (will then return a `DBNStore`).
+            The file path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns
         -------
@@ -196,7 +200,6 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": start_valid,
-            "end": end_valid,
             "symbols": ",".join(symbols_list),
             "schema": str(schema_valid),
             "stype_in": str(stype_in_valid),
@@ -208,6 +211,10 @@ class TimeSeriesHttpAPI(BentoHttpAPI):
         # Optional Parameters
         if limit is not None:
             data["limit"] = str(limit)
+        if end is not None:
+            data["end"] = end_valid
+        if path is not None:
+            path = validate_file_write_path(path, "path")
 
         return await self._stream_async(
             url=self._base_url + ".get_range",

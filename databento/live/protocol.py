@@ -41,8 +41,7 @@ _C = TypeVar("_C")
 
 def chunk(iterable: Iterable[_C], size: int) -> Iterable[tuple[_C, ...]]:
     """
-    Break an iterable into chunks with a length of
-    at most `size`.
+    Break an iterable into chunks with a length of at most `size`.
 
     Parameters
     ----------

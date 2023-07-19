@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import pytest
 from databento.common.validation import validate_enum
+from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_gateway
 from databento.common.validation import validate_maybe_enum
 from databento.common.validation import validate_path
@@ -25,6 +27,29 @@ def test_validate_path_given_wrong_types_raises_type_error(
     # Arrange, Act, Assert
     with pytest.raises(TypeError):
         validate_path(value, "param")
+
+def test_validate_file_write_path(
+    tmp_path: Path,
+) -> None:
+    # Arrange, Act, Assert
+    test_file = tmp_path / "test.file"
+    validate_file_write_path(test_file, "param")
+
+def test_validate_file_write_path_is_dir(
+    tmp_path: Path,
+) -> None:
+    # Arrange, Act, Assert
+    with pytest.raises(IsADirectoryError):
+        validate_file_write_path(tmp_path, "param")
+
+def test_validate_file_write_path_exists(
+    tmp_path: Path,
+) -> None:
+    # Arrange, Act, Assert
+    test_file = tmp_path / "test.file"
+    test_file.touch()
+    with pytest.raises(FileExistsError):
+        validate_file_write_path(test_file, "param")
 
 @pytest.mark.parametrize(
     "value, enum",
