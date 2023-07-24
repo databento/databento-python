@@ -40,8 +40,8 @@ def get_deriv_ba_types(level: int) -> list[tuple[str, type | str]]:
         (f"ask_px_{level:02d}", np.int64),
         (f"bid_sz_{level:02d}", np.uint32),
         (f"ask_sz_{level:02d}", np.uint32),
-        (f"bid_ct_{level:02d}", np.uint32),
-        (f"ask_ct_{level:02d}", np.uint32),
+        (f"bid_oq_{level:02d}", np.uint32),
+        (f"ask_oq_{level:02d}", np.uint32),
     ]
 
 
@@ -274,8 +274,8 @@ def get_deriv_ba_fields(level: int) -> list[str]:
         f"ask_px_{level:02d}",
         f"bid_sz_{level:02d}",
         f"ask_sz_{level:02d}",
-        f"bid_ct_{level:02d}",
-        f"ask_ct_{level:02d}",
+        f"bid_oq_{level:02d}",
+        f"ask_oq_{level:02d}",
     ]
 
 
