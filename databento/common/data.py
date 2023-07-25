@@ -40,8 +40,8 @@ def get_deriv_ba_types(level: int) -> list[tuple[str, type | str]]:
         (f"ask_px_{level:02d}", np.int64),
         (f"bid_sz_{level:02d}", np.uint32),
         (f"ask_sz_{level:02d}", np.uint32),
-        (f"bid_oq_{level:02d}", np.uint32),
-        (f"ask_oq_{level:02d}", np.uint32),
+        (f"bid_ct_{level:02d}", np.uint32),
+        (f"ask_ct_{level:02d}", np.uint32),
     ]
 
 
@@ -274,28 +274,30 @@ def get_deriv_ba_fields(level: int) -> list[str]:
         f"ask_px_{level:02d}",
         f"bid_sz_{level:02d}",
         f"ask_sz_{level:02d}",
-        f"bid_oq_{level:02d}",
-        f"ask_oq_{level:02d}",
+        f"bid_ct_{level:02d}",
+        f"ask_ct_{level:02d}",
     ]
 
 
-DERIV_HEADER_COLUMNS = [
+MBP_COLUMNS = [
     "ts_recv",
     "ts_event",
-    "ts_in_delta",
+    "rtype",
     "publisher_id",
     "instrument_id",
     "action",
     "side",
     "depth",
-    "flags",
     "price",
     "size",
+    "flags",
+    "ts_in_delta",
     "sequence",
 ]
 
-OHLCV_HEADER_COLUMNS = [
+OHLCV_COLUMNS = [
     "ts_event",
+    "rtype",
     "publisher_id",
     "instrument_id",
     "open",
@@ -305,62 +307,136 @@ OHLCV_HEADER_COLUMNS = [
     "volume",
 ]
 
-DEFINITION_DROP_COLUMNS = [
-    "length",
-    "rtype",
-    "_reserved1",
-    "_reserved2",
-    "_reserved3",
-    "_reserved4",
-    "dummy",
-]
-
-IMBALANCE_DROP_COLUMNS = [
-    "length",
-    "rtype",
-    "dummy",
-]
-
-STATISTICS_DROP_COLUMNS = [
-    "length",
-    "rtype",
-    "dummy",
-]
-
 DEFINITION_COLUMNS = [
-    x
-    for x in (np.dtype(DEFINITION_MSG).names or ())
-    if x not in DEFINITION_DROP_COLUMNS
-]
-
-IMBALANCE_COLUMNS = [
-    x for x in (np.dtype(IMBALANCE_MSG).names or ()) if x not in IMBALANCE_DROP_COLUMNS
+    "ts_recv",
+    "ts_event",
+    "rtype",
+    "publisher_id",
+    "instrument_id",
+    "raw_symbol",
+    "security_update_action",
+    "instrument_class",
+    "min_price_increment",
+    "display_factor",
+    "expiration",
+    "activation",
+    "high_limit_price",
+    "low_limit_price",
+    "max_price_variation",
+    "trading_reference_price",
+    "unit_of_measure_qty",
+    "min_price_increment_amount",
+    "price_ratio",
+    "inst_attrib_value",
+    "underlying_id",
+    "market_depth_implied",
+    "market_depth",
+    "market_segment_id",
+    "max_trade_vol",
+    "min_lot_size",
+    "min_lot_size_block",
+    "min_lot_size_round_lot",
+    "min_trade_vol",
+    "contract_multiplier",
+    "decay_quantity",
+    "original_contract_size",
+    "trading_reference_date",
+    "appl_id",
+    "maturity_year",
+    "decay_start_date",
+    "channel_id",
+    "currency",
+    "settl_currency",
+    "secsubtype",
+    "group",
+    "exchange",
+    "asset",
+    "cfi",
+    "security_type",
+    "unit_of_measure",
+    "underlying",
+    "strike_price_currency",
+    "strike_price",
+    "match_algorithm",
+    "md_security_trading_status",
+    "main_fraction",
+    "price_display_format",
+    "settl_price_type",
+    "sub_fraction",
+    "underlying_product",
+    "maturity_month",
+    "maturity_day",
+    "maturity_week",
+    "user_defined_instrument",
+    "contract_multiplier_unit",
+    "flow_schedule_type",
+    "tick_rule",
 ]
 
 STATISTICS_COLUMNS = [
-    x
-    for x in (np.dtype(STATISTICS_MSG).names or ())
-    if x not in STATISTICS_DROP_COLUMNS
+    "ts_recv",
+    "ts_event",
+    "rtype",
+    "publisher_id",
+    "instrument_id",
+    "ts_ref",
+    "price",
+    "quantity",
+    "sequence",
+    "ts_in_delta",
+    "stat_type",
+    "channel_id",
+    "update_action",
+    "stat_flags",
+]
+
+IMBALANCE_COLUMNS = [
+    "ts_recv",
+    "ts_event",
+    "rtype",
+    "publisher_id",
+    "instrument_id",
+    "ref_price",
+    "auction_time",
+    "cont_book_clr_price",
+    "auct_interest_clr_price",
+    "ssr_filling_price",
+    "ind_match_price",
+    "upper_collar",
+    "lower_collar",
+    "paired_qty","total_imbalance_qty",
+    "market_imbalance_qty",
+    "unpaired_qty",
+    "auction_type",
+    "side",
+    "auction_status",
+    "freeze_status",
+    "num_extensions",
+    "unpaired_side",
+    "significant_imbalance",
+]
+
+MBO_COLUMNS = [
+    "ts_recv",
+    "ts_event",
+    "rtype",
+    "publisher_id",
+    "instrument_id",
+    "action",
+    "side",
+    "price",
+    "size",
+    "channel_id",
+    "order_id",
+    "flags",
+    "ts_in_delta",
+    "sequence",
 ]
 
 COLUMNS = {
-    Schema.MBO: [
-        "ts_recv",
-        "ts_event",
-        "ts_in_delta",
-        "publisher_id",
-        "channel_id",
-        "instrument_id",
-        "order_id",
-        "action",
-        "side",
-        "flags",
-        "price",
-        "size",
-        "sequence",
-    ],
-    Schema.MBP_1: DERIV_HEADER_COLUMNS + get_deriv_ba_fields(0),
-    Schema.MBP_10: DERIV_HEADER_COLUMNS
+    Schema.MBO: MBO_COLUMNS,
+    Schema.MBP_1: MBP_COLUMNS + get_deriv_ba_fields(0),
+    Schema.MBP_10: MBP_COLUMNS
     + get_deriv_ba_fields(0)
     + get_deriv_ba_fields(1)
     + get_deriv_ba_fields(2)
@@ -371,12 +447,12 @@ COLUMNS = {
     + get_deriv_ba_fields(7)
     + get_deriv_ba_fields(8)
     + get_deriv_ba_fields(9),
-    Schema.TBBO: DERIV_HEADER_COLUMNS + get_deriv_ba_fields(0),
-    Schema.TRADES: DERIV_HEADER_COLUMNS,
-    Schema.OHLCV_1S: OHLCV_HEADER_COLUMNS,
-    Schema.OHLCV_1M: OHLCV_HEADER_COLUMNS,
-    Schema.OHLCV_1H: OHLCV_HEADER_COLUMNS,
-    Schema.OHLCV_1D: OHLCV_HEADER_COLUMNS,
+    Schema.TBBO: MBP_COLUMNS + get_deriv_ba_fields(0),
+    Schema.TRADES: MBP_COLUMNS,
+    Schema.OHLCV_1S: OHLCV_COLUMNS,
+    Schema.OHLCV_1M: OHLCV_COLUMNS,
+    Schema.OHLCV_1H: OHLCV_COLUMNS,
+    Schema.OHLCV_1D: OHLCV_COLUMNS,
     Schema.DEFINITION: DEFINITION_COLUMNS,
     Schema.IMBALANCE: IMBALANCE_COLUMNS,
     Schema.STATISTICS: STATISTICS_COLUMNS,
