@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import datetime as dt
+import sys
 from io import BytesIO
 from pathlib import Path
 from typing import Callable
@@ -488,6 +489,9 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
         b",A,3723500000000,1,0,647784973094,128,17883,1170355\n"
     )
 
+    if sys.platform == "win32":
+        expected = expected.replace(b"\n", b"\r\n")
+
     assert written == expected
 
 
@@ -522,6 +526,9 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
         b"967,1609160400007169135,1,1,5482,C,A,0,3720500000000,1,128,17361,1170366,37202500000"
         b"00,3720500000000,26,11,16,9\n"
     )
+
+    if sys.platform == "win32":
+        expected = expected.replace(b"\n", b"\r\n")
 
     assert written == expected
 
@@ -559,6 +566,9 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
         b"0967+00:00,2020-12-28 13:00:00.007169135+00:00,1,1,5482,C,A,0,3720.5000000000005,1,1"
         b"28,17361,1170366,3720.2500000000005,3720.5000000000005,26,11,16,9,ESH1\n"
     )
+
+    if sys.platform == "win32":
+        expected = expected.replace(b"\n", b"\r\n")
 
     assert written == expected
 
