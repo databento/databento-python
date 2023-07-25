@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.16.0 - TBD
+## 0.16.0 - 2023-07-25
 
 This release includes updates to the fields in text encodings (CSV and JSON), you can read more about the changes [here](https://databento.com/blog/CSV-JSON-updates-july-2023).
 
