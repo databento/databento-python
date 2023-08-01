@@ -357,6 +357,7 @@ class Live:
         ValueError
             If `start()` is called before a subscription has been made.
             If `start()` is called after streaming has already started.
+            If `start()` is called after the live session has closed.
 
         See Also
         --------
@@ -365,6 +366,8 @@ class Live:
         """
         logger.info("starting live client")
         if not self.is_connected():
+            if self.dataset == "":
+                raise ValueError("cannot start a live client without a subscription")
             raise ValueError("cannot start a live client after it is closed")
         if self._session.is_started():
             raise ValueError("client is already started")
