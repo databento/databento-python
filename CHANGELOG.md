@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.16.1 - TBD
+## 0.16.1 - 2023-08-03
 
 #### Bug fixes
 - Fixed an issue where starting a `Live` client before subscribing gave an incorrect error message
