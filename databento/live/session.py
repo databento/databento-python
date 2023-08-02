@@ -197,7 +197,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
             logger.error(
                 "error dispatching %s to `%s` callback",
                 type(record).__name__,
-                record_callback.__name__,
+                getattr(record_callback, "__name__", str(record_callback)),
                 exc_info=exc,
             )
             if exception_callback is not None:

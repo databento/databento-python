@@ -4,6 +4,7 @@
 
 #### Bug fixes
 - Fixed an issue where starting a `Live` client before subscribing gave an incorrect error message
+- Fixed an issue where a `Live` client exception callback would fail when the callback function does not have a `__name__` attribute
 
 ## 0.16.0 - 2023-07-25
 
