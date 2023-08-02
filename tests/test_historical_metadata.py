@@ -176,7 +176,7 @@ def test_get_dataset_condition_sends_expected_request(
     call = mocked_get.call_args.kwargs
     assert (
         call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_dataset_condition"  # noqa
+        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_dataset_condition"
     )
     assert ("dataset", "GLBX.MDP3") in call["params"]
     assert ("start_date", "2018-01-01") in call["params"]
@@ -202,7 +202,7 @@ def test_get_dataset_range_sends_expected_request(
     call = mocked_get.call_args.kwargs
     assert (
         call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_dataset_range"  # noqa
+        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_dataset_range"
     )
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
@@ -274,7 +274,7 @@ def test_get_billable_size_sends_expected_request(
     call = mocked_get.call_args.kwargs
     assert (
         call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_billable_size"  # noqa
+        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_billable_size"
     )
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"

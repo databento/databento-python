@@ -527,7 +527,7 @@ class Session:
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",
             ) from None
         except ValueError as exc:
-            raise BentoError(f"User authentication failed: {str(exc)}") from None
+            raise BentoError(f"User authentication failed: {exc!s}") from None
 
         logger.info(
             "authentication with remote gateway completed",

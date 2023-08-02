@@ -86,7 +86,8 @@ MBP_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
 ]
 
 
-OHLCV_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
+OHLCV_MSG: list[tuple[str, type | str]] = [
+    *RECORD_HEADER,
     ("open", np.int64),
     ("high", np.int64),
     ("low", np.int64),
@@ -162,7 +163,8 @@ DEFINITION_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("dummy", "S3"),  # 3 byte chararray (Adjustment filler for 8-bytes alignment)
 ]
 
-IMBALANCE_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
+IMBALANCE_MSG: list[tuple[str, type | str]] = [
+    *RECORD_HEADER,
     ("ts_recv", np.uint64),
     ("ref_price", np.int64),
     ("auction_time", np.uint64),
@@ -186,7 +188,8 @@ IMBALANCE_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
     ("dummy", "S1"),
 ]
 
-STATISTICS_MSG: list[tuple[str, type | str]] = RECORD_HEADER + [
+STATISTICS_MSG: list[tuple[str, type | str]] = [
+    *RECORD_HEADER,
     ("ts_recv", np.uint64),
     ("ts_ref", np.uint64),
     ("price", np.int64),
@@ -404,7 +407,8 @@ IMBALANCE_COLUMNS = [
     "ind_match_price",
     "upper_collar",
     "lower_collar",
-    "paired_qty","total_imbalance_qty",
+    "paired_qty",
+    "total_imbalance_qty",
     "market_imbalance_qty",
     "unpaired_qty",
     "auction_type",
