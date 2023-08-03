@@ -197,7 +197,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
             logger.error(
                 "error dispatching %s to `%s` callback",
                 type(record).__name__,
-                record_callback.__name__,
+                getattr(record_callback, "__name__", str(record_callback)),
                 exc_info=exc,
             )
             if exception_callback is not None:
@@ -527,7 +527,7 @@ class Session:
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",
             ) from None
         except ValueError as exc:
-            raise BentoError(f"User authentication failed: {str(exc)}") from None
+            raise BentoError(f"User authentication failed: {exc!s}") from None
 
         logger.info(
             "authentication with remote gateway completed",

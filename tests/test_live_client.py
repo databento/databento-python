@@ -309,6 +309,14 @@ def test_live_start_twice(
     with pytest.raises(ValueError):
         live_client.start()
 
+def test_live_start_before_subscribe(
+    live_client: client.Live,
+) -> None:
+    """
+    Test that calling start() before subscribe raises a ValueError.
+    """
+    with pytest.raises(ValueError):
+        live_client.start()
 
 @pytest.mark.parametrize(
     "schema",

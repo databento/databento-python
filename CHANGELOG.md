@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.16.1 - 2023-08-03
+
+#### Bug fixes
+- Fixed an issue where starting a `Live` client before subscribing gave an incorrect error message
+- Fixed an issue where a `Live` client exception callback would fail when the callback function does not have a `__name__` attribute
+
 ## 0.16.0 - 2023-07-25
 
 This release includes updates to the fields in text encodings (CSV and JSON), you can read more about the changes [here](https://databento.com/blog/CSV-JSON-updates-july-2023).
