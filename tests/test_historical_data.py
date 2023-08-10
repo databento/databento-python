@@ -1,6 +1,6 @@
 import databento
 import pytest
-from databento.common.data import COLUMNS
+from databento.common.data import SCHEMA_COLUMNS
 from databento.common.data import SCHEMA_STRUCT_MAP
 
 
@@ -9,9 +9,9 @@ def test_mbo_fields() -> None:
     Test that columns match the MBO struct.
     """
     struct = SCHEMA_STRUCT_MAP[databento.Schema.MBO]
-    columns = COLUMNS[databento.Schema.MBO]
+    columns = SCHEMA_COLUMNS[databento.Schema.MBO]
 
-    fields = set(f for f in dir(struct) if not f.startswith("_"))
+    fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
@@ -36,9 +36,9 @@ def test_mbp_fields(
     Test that columns match the MBP structs.
     """
     struct = SCHEMA_STRUCT_MAP[schema]
-    columns = COLUMNS[schema]
+    columns = SCHEMA_COLUMNS[schema]
 
-    fields = set(f for f in dir(struct) if not f.startswith("_"))
+    fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
@@ -67,9 +67,9 @@ def test_ohlcv_fields(
     Test that columns match the OHLCV structs.
     """
     struct = SCHEMA_STRUCT_MAP[schema]
-    columns = COLUMNS[schema]
+    columns = SCHEMA_COLUMNS[schema]
 
-    fields = set(f for f in dir(struct) if not f.startswith("_"))
+    fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
@@ -83,9 +83,9 @@ def test_trades_struct() -> None:
     Test that columns match the Trades struct.
     """
     struct = SCHEMA_STRUCT_MAP[databento.Schema.TRADES]
-    columns = COLUMNS[databento.Schema.TRADES]
+    columns = SCHEMA_COLUMNS[databento.Schema.TRADES]
 
-    fields = set(f for f in dir(struct) if not f.startswith("_"))
+    fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
@@ -99,12 +99,14 @@ def test_definition_struct() -> None:
     Test that columns match the Definition struct.
     """
     struct = SCHEMA_STRUCT_MAP[databento.Schema.DEFINITION]
-    columns = COLUMNS[databento.Schema.DEFINITION]
+    columns = SCHEMA_COLUMNS[databento.Schema.DEFINITION]
 
-    fields = set(f for f in dir(struct) if not f.startswith("_"))
+    fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
+
+    columns.remove("raw_instrument_id")  # TODO: Remove after databento_dbn 0.8.3
 
     difference = fields.symmetric_difference(set(columns))
     assert not difference
@@ -115,9 +117,9 @@ def test_imbalance_struct() -> None:
     Test that columns match the Imbalance struct.
     """
     struct = SCHEMA_STRUCT_MAP[databento.Schema.IMBALANCE]
-    columns = COLUMNS[databento.Schema.IMBALANCE]
+    columns = SCHEMA_COLUMNS[databento.Schema.IMBALANCE]
 
-    fields = set(f for f in dir(struct) if not f.startswith("_"))
+    fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
@@ -131,9 +133,9 @@ def test_statistics_struct() -> None:
     Test that columns match the Statistics struct.
     """
     struct = SCHEMA_STRUCT_MAP[databento.Schema.STATISTICS]
-    columns = COLUMNS[databento.Schema.STATISTICS]
+    columns = SCHEMA_COLUMNS[databento.Schema.STATISTICS]
 
-    fields = set(f for f in dir(struct) if not f.startswith("_"))
+    fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")

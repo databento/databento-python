@@ -16,7 +16,6 @@ from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.validation import validate_enum
-from databento.common.validation import validate_maybe_enum
 from databento.common.validation import validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
@@ -31,17 +30,17 @@ class MetadataHttpAPI(BentoHttpAPI):
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/metadata"
 
-    def list_publishers(self) -> dict[str, int]:
+    def list_publishers(self) -> list[dict[str, Any]]:
         """
         Request all publishers from Databento.
 
         Makes a `GET /metadata.list_publishers` HTTP request.
 
-        Use this method to list the mappings of publisher names to publisher IDs.
+        Use this method to list the details of publishers, including their dataset and venue mappings.
 
         Returns
         -------
-        dict[str, int]
+        list[dict[str, Any]]
 
         """
         response: Response = self._get(
@@ -56,11 +55,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         end_date: date | str | None = None,
     ) -> list[str]:
         """
-        Request all available datasets from Databento.
+        Request all available dataset codes from Databento.
 
         Makes a `GET /metadata.list_datasets` HTTP request.
 
-        Use this method to list the _names_ of all available datasets, so you
+        Use this method to list the available dataset _codes (string identifiers), so you
         can use other methods which take the `dataset` parameter.
 
         Parameters
@@ -118,42 +117,35 @@ class MetadataHttpAPI(BentoHttpAPI):
 
     def list_fields(
         self,
-        dataset: Dataset | str,
-        schema: Schema | str | None = None,
-        encoding: Encoding | str | None = None,
-    ) -> dict[str, dict[str, str]]:
+        schema: Schema | str,
+        encoding: Encoding | str,
+    ) -> list[dict[str, Any]]:
         """
-        Request all fields for a dataset, schema and encoding from Databento.
+        List all fields for a particular schema and encoding from Databento.
 
         Makes a `GET /metadata.list_fields` HTTP request.
 
-        The `schema` and `encoding` parameters act as optional filters. All
-        metadata for that parameter is returned if they are not specified.
-
         Parameters
         ----------
-        dataset : Dataset or str
-            The dataset code (string identifier) for the request.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
+        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'},
             The data record schema for the request.
-        encoding : Encoding or str {'dbn', 'csv', 'json'}, optional
+        encoding : Encoding or str {'dbn', 'csv', 'json'}
             The data encoding.
 
         Returns
         -------
-        dict[str, dict[str, str]]
-            A mapping of dataset to encoding to schema to field to data type.
+        list[dict[str, Any]]
+            A list of field details.
 
         """
-        params: list[tuple[str, Dataset | Schema | Encoding | str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("schema", validate_maybe_enum(schema, Schema, "schema")),
-            ("encoding", validate_maybe_enum(encoding, Encoding, "encoding")),
+        params: list[tuple[str, str | Any]] = [
+            ("schema", validate_enum(schema, Schema, "schema")),
+            ("encoding", validate_enum(encoding, Encoding, "encoding")),
         ]
 
         response: Response = self._get(
             url=self._base_url + ".list_fields",
-            params=params,  # type: ignore [arg-type]
+            params=params,
             basic_auth=True,
         )
         return response.json()
@@ -161,11 +153,10 @@ class MetadataHttpAPI(BentoHttpAPI):
     def list_unit_prices(
         self,
         dataset: Dataset | str,
-        mode: FeedMode | str | None = None,
-        schema: Schema | str | None = None,
-    ) -> float | dict[str, Any]:
+    ) -> list[dict[str, Any]]:
         """
-        List unit prices for each data schema in US dollars per gigabyte.
+        List unit prices for each feed mode and data schema in US dollars per
+        gigabyte.
 
         Makes a `GET /metadata.list_unit_prices` HTTP request.
 
@@ -173,27 +164,20 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
-        mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, optional
-            The data feed mode for the request.
-        schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, optional  # noqa
-            The data record schema for the request.
 
         Returns
         -------
-        float or dict[str, Any]
-            If both `mode` and `schema` are specified, the unit price is returned as a single number.
-            Otherwise, return a map of feed mode to schema to unit price.
+        list[dict[str, Any]]
+            A list of maps of feed mode to schema to unit price.
 
         """
-        params: list[tuple[str, Dataset | FeedMode | Schema | str | None]] = [
+        params: list[tuple[str, Dataset | str]] = [
             ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("mode", validate_maybe_enum(mode, FeedMode, "mode")),
-            ("schema", validate_maybe_enum(schema, Schema, "schema")),
         ]
 
         response: Response = self._get(
             url=self._base_url + ".list_unit_prices",
-            params=params,  # type: ignore [arg-type]
+            params=params,
             basic_auth=True,
         )
         return response.json()

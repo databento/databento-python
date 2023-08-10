@@ -28,13 +28,13 @@ from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 
-from databento.common.data import COLUMNS
 from databento.common.data import DEFINITION_CHARARRAY_COLUMNS
 from databento.common.data import DEFINITION_PRICE_COLUMNS
 from databento.common.data import DEFINITION_TYPE_MAX_MAP
 from databento.common.data import DERIV_SCHEMAS
+from databento.common.data import SCHEMA_COLUMNS
+from databento.common.data import SCHEMA_DTYPES_MAP
 from databento.common.data import SCHEMA_STRUCT_MAP
-from databento.common.data import STRUCT_MAP
 from databento.common.error import BentoError
 from databento.common.symbology import InstrumentIdMappingInterval
 from databento.common.validation import validate_file_write_path
@@ -953,7 +953,7 @@ class DBNStore:
 
         df = pd.DataFrame(
             self.to_ndarray(schema),
-            columns=COLUMNS[schema],
+            columns=SCHEMA_COLUMNS[schema],
         )
         df.set_index(self._get_index_column(schema), inplace=True)
 
@@ -1074,10 +1074,10 @@ class DBNStore:
             self,
         )
 
-        decoder = functools.partial(np.frombuffer, dtype=STRUCT_MAP[schema])
+        decoder = functools.partial(np.frombuffer, dtype=SCHEMA_DTYPES_MAP[schema])
         result = tuple(map(decoder, map(bytes, schema_records)))
 
         if not result:
-            return np.empty(shape=(0, 1), dtype=STRUCT_MAP[schema])
+            return np.empty(shape=(0, 1), dtype=SCHEMA_DTYPES_MAP[schema])
 
         return np.ravel(result)

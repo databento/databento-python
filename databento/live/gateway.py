@@ -12,6 +12,7 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from databento.common.enums import Dataset
+from databento.version import __version__
 
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,7 @@ class AuthenticationRequest(GatewayControl):
     encoding: Encoding = Encoding.DBN
     details: str | None = None
     ts_out: str = "0"
+    client: str = f"Python {__version__}"
 
 
 @dataclasses.dataclass
