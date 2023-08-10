@@ -55,11 +55,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         end_date: date | str | None = None,
     ) -> list[str]:
         """
-        Request all valid dataset codes from Databento.
+        Request all available dataset codes from Databento.
 
         Makes a `GET /metadata.list_datasets` HTTP request.
 
-        Use this method to list the valid dataset _codes (string identifiers), so you
+        Use this method to list the available dataset _codes (string identifiers), so you
         can use other methods which take the `dataset` parameter.
 
         Parameters
