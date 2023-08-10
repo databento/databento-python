@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.17.0 - TBD
+## 0.17.0 - 2023-08-10
 
 This release includes improvements to the ergonomics of the clients metadata API, you can read more about the changes [here](https://databento.com/blog/api-improvements-august-2023).
 
