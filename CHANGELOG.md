@@ -1,8 +1,11 @@
 # Changelog
 
-## TBD
+## 0.17.0 - TBD
 
 This release includes improvements to the ergonomics of the clients metadata API, you can read more about the changes [here](https://databento.com/blog/api-improvements-august-2023).
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.8.2
 
 #### Breaking changes
 - Changed `metadata.list_publishers()` to return a list of publisher details objects

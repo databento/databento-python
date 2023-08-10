@@ -1051,6 +1051,8 @@ async def test_live_stream_with_reconnect(
     # TODO: Remove when status schema is available
     if schema == "status":
         pytest.skip("no stub data for status schema")
+    if schema == "ohlcv-eod":
+        pytest.skip("no stub data for ohlcv-eod schema")
 
     output = tmp_path / "output.dbn"
     live_client.add_stream(output.open("wb", buffering=0))
