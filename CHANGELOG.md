@@ -1,5 +1,18 @@
 # Changelog
 
+## TBD
+
+This release includes improvements to the ergonomics of the clients metadata API, you can read more about the changes [here](https://databento.com/blog/api-improvements-august-2023).
+
+#### Breaking changes
+- Changed `metadata.list_publishers()` to return a list of publisher details objects
+- Changed `metadata.list_fields(...)` to return a list of field detail objects for a particular schema and encoding
+- Changed `metadata.list_fields(...)` to require the `schema` and `encoding` parameters
+- Changed `metadata.list_unit_prices(...)` to return a list of unit prices for each feed mode and data schema
+- Changed `metadata.list_unit_prices(...)` to require the `dataset` parameter
+- Removed `metadata.list_unit_prices(...)` `mode` and `schema` parameters
+- Removed `metadata.list_fields(...)` `dataset` parameter
+
 ## 0.16.1 - 2023-08-03
 
 #### Bug fixes

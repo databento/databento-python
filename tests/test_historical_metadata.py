@@ -6,9 +6,7 @@ import databento as db
 import pytest
 import requests
 from databento.common.enums import Dataset
-from databento.common.enums import FeedMode
 from databento.historical.client import Historical
-from databento_dbn import Schema
 
 
 def test_list_publishers_sends_expected_request(
@@ -95,7 +93,6 @@ def test_list_fields_sends_expected_request(
 
     # Act
     historical_client.metadata.list_fields(
-        dataset="GLBX.MDP3",
         schema="mbo",
         encoding="dbn",
     )
@@ -106,7 +103,6 @@ def test_list_fields_sends_expected_request(
         call["url"]
         == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_fields"
     )
-    assert ("dataset", "GLBX.MDP3") in call["params"]
     assert ("schema", "mbo") in call["params"]
     assert ("encoding", "dbn") in call["params"]
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
@@ -117,28 +113,22 @@ def test_list_fields_sends_expected_request(
 
 
 @pytest.mark.parametrize(
-    "dataset, schema, mode",
+    "dataset",
     [
-        ["GLBX.MDP3", "mbo", "live"],
-        [Dataset.GLBX_MDP3, Schema.MBO, FeedMode.LIVE],
+        "GLBX.MDP3",
+        Dataset.GLBX_MDP3,
     ],
 )
 def test_list_unit_price_sends_expected_request(
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,
     dataset: Dataset | str,
-    schema: Schema | str,
-    mode: FeedMode | str,
 ) -> None:
     # Arrange
     monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
 
     # Act
-    historical_client.metadata.list_unit_prices(
-        dataset=dataset,
-        schema=schema,
-        mode=mode,
-    )
+    historical_client.metadata.list_unit_prices(dataset=dataset)
 
     # Assert
     call = mocked_get.call_args.kwargs
@@ -151,8 +141,6 @@ def test_list_unit_price_sends_expected_request(
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
     assert call["params"] == [
         ("dataset", "GLBX.MDP3"),
-        ("mode", "live"),
-        ("schema", "mbo"),
     ]
     assert call["timeout"] == (100, 100)
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
