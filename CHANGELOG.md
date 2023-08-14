@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.17.1 - TBD
+## 0.18.0 - 2023-08-14
 
 #### Breaking changes
 - Renamed the `TimeSeriesHttpAPI` class to `TimeseriesHttpAPI`
