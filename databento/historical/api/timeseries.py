@@ -21,7 +21,7 @@ from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 
 
-class TimeSeriesHttpAPI(BentoHttpAPI):
+class TimeseriesHttpAPI(BentoHttpAPI):
     """
     Provides request methods for the time series HTTP API endpoints.
     """
