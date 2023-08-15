@@ -8,7 +8,7 @@ from databento.common.validation import validate_gateway
 from databento.historical.api.batch import BatchHttpAPI
 from databento.historical.api.metadata import MetadataHttpAPI
 from databento.historical.api.symbology import SymbologyHttpAPI
-from databento.historical.api.timeseries import TimeSeriesHttpAPI
+from databento.historical.api.timeseries import TimeseriesHttpAPI
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class Historical:
         self.batch = BatchHttpAPI(key=key, gateway=gateway)
         self.metadata = MetadataHttpAPI(key=key, gateway=gateway)
         self.symbology = SymbologyHttpAPI(key=key, gateway=gateway)
-        self.timeseries = TimeSeriesHttpAPI(key=key, gateway=gateway)
+        self.timeseries = TimeseriesHttpAPI(key=key, gateway=gateway)
 
         # Not logging security sensitive `key`
         logger.info("Initialized %s(gateway=%s)", type(self).__name__, self.gateway)

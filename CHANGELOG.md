@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.0 - 2023-08-14
+
+#### Breaking changes
+- Renamed the `TimeSeriesHttpAPI` class to `TimeseriesHttpAPI`
+
+#### Bug Fixes
+- Fixed an issue where `DBNStore.to_csv()`, `DBNStore.to_df()`, `DBNStore.to_json()`, and `DBNStore.to_ndarray()` would consume large amounts of memory.
+
 ## 0.17.0 - 2023-08-10
 
 This release includes improvements to the ergonomics of the clients metadata API, you can read more about the changes [here](https://databento.com/blog/api-improvements-august-2023).

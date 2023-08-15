@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import abc
 import datetime as dt
-import functools
 import logging
 from collections.abc import Generator
 from io import BytesIO
@@ -1069,15 +1068,16 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        schema_records = filter(
-            lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]),  # type: ignore
-            self,
+        record_buffer = BytesIO()
+        num_records = 0
+        for record in filter(lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]), self):  # type: ignore [arg-type]
+            num_records += 1
+            record_buffer.write(bytes(record))
+
+        result = np.frombuffer(
+            record_buffer.getvalue(),
+            dtype=SCHEMA_DTYPES_MAP[schema],
+            count=num_records,
         )
 
-        decoder = functools.partial(np.frombuffer, dtype=SCHEMA_DTYPES_MAP[schema])
-        result = tuple(map(decoder, map(bytes, schema_records)))
-
-        if not result:
-            return np.empty(shape=(0, 1), dtype=SCHEMA_DTYPES_MAP[schema])
-
-        return np.ravel(result)
+        return result
