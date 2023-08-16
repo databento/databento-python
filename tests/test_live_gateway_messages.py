@@ -9,7 +9,6 @@ from databento.live.gateway import GatewayControl
 from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
-from databento.version import __version__
 from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -30,29 +29,27 @@ ALL_MESSAGES = (
     "line, expected",
     [
         pytest.param(
-            f"auth=abcd1234|dataset=GLBX.MDP3|encoding=json|client=Python {__version__}\n",
-            ("abcd1234", "GLBX.MDP3", "json", None, "0", f"Python {__version__}"),
+            "auth=abcd1234|dataset=GLBX.MDP3|encoding=json\n",
+            ("abcd1234", "GLBX.MDP3", "json", None, "0"),
         ),
         pytest.param(
-            f"auth=abcd1234|dataset=GLBX.MDP3|ts_out=1|client=Python {__version__}\n",
+            "auth=abcd1234|dataset=GLBX.MDP3|ts_out=1\n",
             (
                 "abcd1234",
                 "GLBX.MDP3",
                 str(Encoding.DBN),
                 None,
                 "1",
-                f"Python {__version__}",
             ),
         ),
         pytest.param(
-            f"auth=abcd1234|dataset=XNAS.ITCH|client=Python {__version__}\n",
+            "auth=abcd1234|dataset=XNAS.ITCH\n",
             (
                 "abcd1234",
                 "XNAS.ITCH",
                 str(Encoding.DBN),
                 None,
                 "0",
-                f"Python {__version__}",
             ),
         ),
         pytest.param(
@@ -76,7 +73,6 @@ def test_parse_authentication_request(
             msg.encoding,
             msg.details,
             msg.ts_out,
-            msg.client,
         ) == expected
     else:
         with pytest.raises(expected):
@@ -91,7 +87,7 @@ def test_parse_authentication_request(
                 auth="abcd1234",
                 dataset=Dataset.GLBX_MDP3,
             ),
-            f"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=0|client=Python {__version__}\n".encode(),
+            b"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=0\n",
         ),
         pytest.param(
             AuthenticationRequest(
@@ -99,7 +95,7 @@ def test_parse_authentication_request(
                 dataset=Dataset.XNAS_ITCH,
                 ts_out="1",
             ),
-            f"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1|client=Python {__version__}\n".encode(),
+            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1\n",
         ),
     ],
 )
