@@ -1,12 +1,17 @@
 # Changelog
 
+## 0.18.1 - 2023-08-16
+
+#### Bug fixes
+- Fixed issue where extra `python` key was sent by the `Live` client
+
 ## 0.18.0 - 2023-08-14
 
 #### Breaking changes
 - Renamed the `TimeSeriesHttpAPI` class to `TimeseriesHttpAPI`
 
-#### Bug Fixes
-- Fixed an issue where `DBNStore.to_csv()`, `DBNStore.to_df()`, `DBNStore.to_json()`, and `DBNStore.to_ndarray()` would consume large amounts of memory.
+#### Bug fixes
+- Fixed an issue where `DBNStore.to_csv()`, `DBNStore.to_df()`, `DBNStore.to_json()`, and `DBNStore.to_ndarray()` would consume large amounts of memory
 
 ## 0.17.0 - 2023-08-10
 
