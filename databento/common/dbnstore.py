@@ -48,6 +48,9 @@ NON_SCHEMA_RECORD_TYPES = [
     Metadata,
 ]
 
+INT64_NULL = 9223372036854775807
+NAN = float("NaN")
+
 
 logger = logging.getLogger(__name__)
 
@@ -420,11 +423,11 @@ class DBNStore:
                 or column.startswith("bid_px")  # MBP
                 or column.startswith("ask_px")  # MBP
             ):
-                df[column] = df[column] * 1e-9
+                df[column] = df[column].replace(INT64_NULL, NAN) * 1e-9
 
         if self.schema == Schema.DEFINITION:
             for column in DEFINITION_PRICE_COLUMNS:
-                df[column] = df[column] * 1e-9
+                df[column] = df[column].replace(INT64_NULL, NAN) * 1e-9
 
         return df
 
@@ -882,7 +885,8 @@ class DBNStore:
             `int` to `pd.Timestamp` tz-aware (UTC).
         pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at
-            the correct scale (using the fixed precision scalar 1e-9).
+            the correct scale (using the fixed precision scalar 1e-9). Null
+            prices are replaced with an empty string.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its native symbol for
@@ -925,7 +929,8 @@ class DBNStore:
             `int` to `pd.Timestamp` tz-aware (UTC).
         pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at
-            the correct scale (using the fixed precision scalar 1e-9).
+            the correct scale (using the fixed precision scalar 1e-9). Null
+            prices are replaced with NaN.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its native symbol for

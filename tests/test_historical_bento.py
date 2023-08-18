@@ -426,6 +426,21 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
         assert isinstance(df[column].iloc(0)[1], float)
     # TODO(cs): Check float values once display factor fixed
 
+def test_to_df_with_pretty_px_handles_null(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    # Arrange
+    stub_data = test_data(Schema.DEFINITION)
+    data = DBNStore.from_bytes(data=stub_data)
+
+    # Act
+    df_plain = data.to_df(pretty_px=False)
+    df_pretty = data.to_df(pretty_px=True)
+
+    # Assert
+    assert all(df_plain["strike_price"] == 9223372036854775807)
+    assert all(np.isnan(df_pretty["strike_price"]))
+
 
 @pytest.mark.parametrize(
     "expected_schema",
