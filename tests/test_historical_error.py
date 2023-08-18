@@ -60,7 +60,7 @@ async def test_check_http_status_async(
     response = MagicMock(
         spec=aiohttp.ClientResponse,
         status=status_code,
-        json=AsyncMock(return_value=MagicMock()),
+        json=AsyncMock(return_value={}),
     )
     with pytest.raises(expected_exception) as exc:
         await check_http_error_async(response)

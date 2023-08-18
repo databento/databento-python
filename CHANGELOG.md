@@ -1,5 +1,14 @@
 # Changelog
 
+### 0.19.0 - TBD
+
+#### Enhancements
+- Added the `Publisher`, `Venue`, and `Dataset` enums.
+- Replace null prices with `NaN` when `pretty_px=True` in `DBNStore.to_df()`
+
+#### Bug fixes
+- Fixed issue where exception messages were displaying JSON encoded data
+
 ## 0.18.1 - 2023-08-16
 
 #### Bug fixes
