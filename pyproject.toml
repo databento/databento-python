@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "databento"
-version = "0.18.1"
+version = "0.19.0"
 description = "Official Python client library for Databento"
 authors = [
     "Databento <support@databento.com>",
@@ -26,7 +26,7 @@ repository = "https://github.com/databento/databento-python"
 [tool.poetry.dependencies]
 python = "^3.8"
 aiohttp = "^3.8.3"
-databento-dbn = "0.8.2"
+databento-dbn = "0.8.3"
 numpy= ">=1.23.5"
 pandas = ">=1.5.3"
 requests = ">=2.24.0"

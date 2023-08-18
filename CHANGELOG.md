@@ -1,10 +1,11 @@
 # Changelog
 
-### 0.19.0 - TBD
+## 0.19.0 - TBD
 
 #### Enhancements
-- Added the `Publisher`, `Venue`, and `Dataset` enums.
+- Added the `Publisher`, `Venue`, and `Dataset` enums
 - Replace null prices with `NaN` when `pretty_px=True` in `DBNStore.to_df()`
+- Upgraded `databento-dbn` to 0.8.3
 
 #### Bug fixes
 - Fixed issue where exception messages were displaying JSON encoded data
