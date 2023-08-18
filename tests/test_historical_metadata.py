@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import databento as db
 import pytest
 import requests
-from databento.common.enums import Dataset
+from databento.common.publishers import Dataset
 from databento.historical.client import Historical
 
 

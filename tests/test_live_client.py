@@ -17,8 +17,8 @@ import zstandard
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
-from databento.common.enums import Dataset
 from databento.common.error import BentoError
+from databento.common.publishers import Dataset
 from databento.common.symbology import ALL_SYMBOLS
 from databento.live import DBNRecord
 from databento.live import client

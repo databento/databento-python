@@ -14,8 +14,8 @@ import databento_dbn
 from databento_dbn import Schema
 from databento_dbn import SType
 
-from databento.common.enums import Dataset
 from databento.common.error import BentoError
+from databento.common.publishers import Dataset
 from databento.common.symbology import ALL_SYMBOLS
 from databento.live import AUTH_TIMEOUT_SECONDS
 from databento.live import CONNECT_TIMEOUT_SECONDS
