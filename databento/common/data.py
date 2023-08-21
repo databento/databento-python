@@ -51,36 +51,6 @@ SCHEMA_DTYPES_MAP: dict[Schema, list[tuple[str, str]]] = {
     Schema.STATISTICS: StatMsg._dtypes,
 }
 
-DEFINITION_CHARARRAY_COLUMNS = [
-    "currency",
-    "settl_currency",
-    "secsubtype",
-    "raw_symbol",
-    "group",
-    "exchange",
-    "asset",
-    "cfi",
-    "security_type",
-    "unit_of_measure",
-    "underlying",
-    "strike_price_currency",
-    "instrument_class",
-    "match_algorithm",
-    "security_update_action",
-    "user_defined_instrument",
-]
-
-DEFINITION_PRICE_COLUMNS = [
-    "min_price_increment",
-    "high_limit_price",
-    "low_limit_price",
-    "max_price_variation",
-    "trading_reference_price",
-    "min_price_increment_amount",
-    "price_ratio",
-    "strike_price",
-]
-
 DEFINITION_TYPE_MAX_MAP = {
     x[0]: np.iinfo(x[1]).max
     for x in InstrumentDefMsg._dtypes

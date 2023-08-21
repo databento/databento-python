@@ -18,6 +18,7 @@ import databento_dbn
 import numpy as np
 import pandas as pd
 import zstandard
+from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import Compression
 from databento_dbn import DBNDecoder
 from databento_dbn import ErrorMsg
@@ -27,8 +28,6 @@ from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 
-from databento.common.data import DEFINITION_CHARARRAY_COLUMNS
-from databento.common.data import DEFINITION_PRICE_COLUMNS
 from databento.common.data import DEFINITION_TYPE_MAX_MAP
 from databento.common.data import DERIV_SCHEMAS
 from databento.common.data import SCHEMA_COLUMNS
@@ -49,7 +48,6 @@ NON_SCHEMA_RECORD_TYPES = [
 ]
 
 INT64_NULL = 9223372036854775807
-NAN = float("NaN")
 
 
 logger = logging.getLogger(__name__)
@@ -398,36 +396,16 @@ class DBNStore:
 
     def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
         df.index = pd.to_datetime(df.index, utc=True)
-        for column in df.columns:
-            if column.startswith("ts_") and "delta" not in column:
-                df[column] = pd.to_datetime(df[column], errors="coerce", utc=True)
-
-        if self.schema == Schema.DEFINITION:
-            df["expiration"] = pd.to_datetime(
-                df["expiration"],
-                errors="coerce",
-                utc=True,
-            )
-            df["activation"] = pd.to_datetime(
-                df["activation"],
-                errors="coerce",
-                utc=True,
-            )
+        for column in SCHEMA_STRUCT_MAP[self.schema]._timestamp_fields:
+            if df.index.name == column:
+                continue
+            df[column] = pd.to_datetime(df[column], errors="coerce", utc=True)
 
         return df
 
     def _apply_pretty_px(self, df: pd.DataFrame) -> pd.DataFrame:
-        for column in list(df.columns):
-            if (
-                column in ("price", "open", "high", "low", "close")
-                or column.startswith("bid_px")  # MBP
-                or column.startswith("ask_px")  # MBP
-            ):
-                df[column] = df[column].replace(INT64_NULL, NAN) * 1e-9
-
-        if self.schema == Schema.DEFINITION:
-            for column in DEFINITION_PRICE_COLUMNS:
-                df[column] = df[column].replace(INT64_NULL, NAN) * 1e-9
+        for column in SCHEMA_STRUCT_MAP[self.schema]._price_fields:
+            df[column] = df[column].replace(INT64_NULL, np.nan) / FIXED_PRICE_SCALE
 
         return df
 
@@ -468,13 +446,14 @@ class DBNStore:
         df: pd.DataFrame,
         schema: Schema,
     ) -> pd.DataFrame:
+        # char array columns
+        hidden_fields = SCHEMA_STRUCT_MAP[self.schema]._hidden_fields
+        for column, dtype  in SCHEMA_DTYPES_MAP[self.schema]:
+            if dtype.startswith("S") and column not in hidden_fields:
+                df[column] = df[column].str.decode("utf-8")
         if schema == Schema.MBO or schema in DERIV_SCHEMAS:
             df["flags"] = df["flags"] & 0xFF  # Apply bitmask
-            df["side"] = df["side"].str.decode("utf-8")
-            df["action"] = df["action"].str.decode("utf-8")
         elif schema == Schema.DEFINITION:
-            for column in DEFINITION_CHARARRAY_COLUMNS:
-                df[column] = df[column].str.decode("utf-8")
             for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
                 if column in df.columns:
                     df[column] = df[column].where(df[column] != type_max, np.nan)
@@ -715,7 +694,7 @@ class DBNStore:
             "stype_in": str(self.stype_in),
             "stype_out": str(self.stype_out),
             "start_date": str(self.start.date()),
-            "end_date": str(self.end.date()),
+            "end_date": str(self.end.date()) if self.end else None,
             "partial": self._metadata.partial,
             "not_found": self._metadata.not_found,
             "mappings": self.mappings,
@@ -862,7 +841,7 @@ class DBNStore:
             stype_in=self.stype_in,
             stype_out=self.stype_out,
             start_date=self.start.date(),
-            end_date=self.end.date(),
+            end_date=self.end.date() if self.end else None,
         )
 
     def to_csv(

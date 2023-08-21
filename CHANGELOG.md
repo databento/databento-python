@@ -9,6 +9,7 @@
 
 #### Bug fixes
 - Fixed issue where exception messages were displaying JSON encoded data
+- Reduced floating error when converting prices to floats with `pretty_px=True`
 
 ## 0.18.1 - 2023-08-16
 
