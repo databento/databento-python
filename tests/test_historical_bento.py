@@ -5,7 +5,7 @@ import datetime as dt
 import sys
 from io import BytesIO
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 import databento
 import numpy as np
@@ -426,6 +426,7 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
         assert isinstance(df[column].iloc(0)[1], float)
     # TODO(cs): Check float values once display factor fixed
 
+
 def test_to_df_with_pretty_px_handles_null(
     test_data: Callable[[Schema], bytes],
 ) -> None:
@@ -587,6 +588,7 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
 
     assert written == expected
 
+
 def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
@@ -619,8 +621,9 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
         b'"sequence":1170354}\n{"ts_event":1609160400000434353,"rtype":160,"publisher_id":1'
         b',"instrument_id":5482,"action":"C","side":"A","price":3723500000000,"size":1,"channe'
         b'l_id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":11703'
-        b'55}'
+        b"55}"
     )
+
 
 def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
@@ -656,6 +659,7 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
         b'id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":1170355,"sy'
         b'mbol":"ESH1"}'
     )
+
 
 def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
@@ -695,6 +699,7 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
         b'500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,"ask_ct_00":9}'
     )
 
+
 def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
     tmp_path: Path,
@@ -732,6 +737,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
         b'"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
         b'"ask_ct_00":9,"symbol":"ESH1"}'
     )
+
 
 @pytest.mark.parametrize(
     "schema",
@@ -923,6 +929,45 @@ def test_dbnstore_buffer_long(
     "schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
+@pytest.mark.parametrize(
+    "count",
+    [
+        1,
+        2,
+        3,
+    ],
+)
+def test_dbnstore_to_ndarray_with_count(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+    count: int,
+) -> None:
+    """
+    Test that calling to_ndarray with count produces an identical result to
+    without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    nd_iter = dbnstore.to_ndarray(count=count)
+    expected = dbnstore.to_ndarray()
+
+    # Assert
+    aggregator: list[np.ndarray[Any, Any]] = []
+    for batch in nd_iter:
+        assert len(batch) <= count
+        aggregator.append(batch)
+
+    assert np.array_equal(expected, np.concatenate(aggregator))
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
 def test_dbnstore_to_ndarray_with_schema(
     schema: Schema,
     test_data: Callable[[Schema], bytes],
@@ -945,6 +990,30 @@ def test_dbnstore_to_ndarray_with_schema(
         assert row == expected[i]
 
 
+def test_dbnstore_to_ndarray_with_count_empty(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_ndarray on a DBNStore that contains no data with count
+    set returns an iterator for one empty ndarray.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    nd_iter = dbnstore.to_ndarray(
+        schema=Schema.MBO,
+        count=10,
+    )
+
+    # Assert
+    assert len(next(nd_iter)) == 0
+
+
 def test_dbnstore_to_ndarray_with_schema_empty(
     test_data: Callable[[Schema], bytes],
 ) -> None:
@@ -964,6 +1033,44 @@ def test_dbnstore_to_ndarray_with_schema_empty(
 
     # Assert
     assert len(array) == 0
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "count",
+    [
+        1,
+        2,
+        3,
+    ],
+)
+def test_dbnstore_to_df_with_count(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+    count: int,
+) -> None:
+    """
+    Test that calling to_df with count produces an identical result to without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    df_iter = dbnstore.to_df(count=count)
+    expected = dbnstore.to_df()
+
+    # Assert
+    aggregator: list[pd.DataFrame] = []
+    for batch in df_iter:
+        assert len(batch) <= count
+        aggregator.append(batch)
+
+    assert expected.equals(pd.concat(aggregator))
 
 
 @pytest.mark.parametrize(
@@ -1010,3 +1117,27 @@ def test_dbnstore_to_df_with_schema_empty(
 
     # Assert
     assert df.empty
+
+
+def test_dbnstore_to_df_with_count_empty(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_df on a DBNStore that contains no data with count set
+    returns an iterator for one empty DataFrame.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    df_iter = dbnstore.to_df(
+        schema=Schema.MBO,
+        count=10,
+    )
+
+    # Assert
+    assert next(df_iter).empty

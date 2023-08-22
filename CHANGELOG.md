@@ -3,6 +3,7 @@
 ## 0.19.0 - TBD
 
 #### Enhancements
+- Added `count` parameter to `DBNStore.to_df` and `DBNStore.to_ndarray` to help process large files incrementally
 - Added the `Publisher`, `Venue`, and `Dataset` enums
 - Replace null prices with `NaN` when `pretty_px=True` in `DBNStore.to_df()`
 - Upgraded `databento-dbn` to 0.8.3
@@ -10,6 +11,9 @@
 #### Bug fixes
 - Fixed issue where exception messages were displaying JSON encoded data
 - Reduced floating error when converting prices to floats with `pretty_px=True`
+
+#### Breaking changes
+- `DBNStore.to_df` now always utf-8 decodes string fields
 
 ## 0.18.1 - 2023-08-16
 

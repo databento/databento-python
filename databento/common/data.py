@@ -14,6 +14,12 @@ from databento_dbn import TradeMsg
 from databento.live import DBNRecord
 
 
+DEFINITION_TYPE_MAX_MAP = {
+    x[0]: np.iinfo(x[1]).max
+    for x in InstrumentDefMsg._dtypes
+    if not isinstance(x[1], str)
+}
+
 SCHEMA_STRUCT_MAP: dict[Schema, type[DBNRecord]] = {
     Schema.DEFINITION: InstrumentDefMsg,
     Schema.IMBALANCE: ImbalanceMsg,
@@ -49,12 +55,6 @@ SCHEMA_DTYPES_MAP: dict[Schema, list[tuple[str, str]]] = {
     Schema.DEFINITION: InstrumentDefMsg._dtypes,
     Schema.IMBALANCE: ImbalanceMsg._dtypes,
     Schema.STATISTICS: StatMsg._dtypes,
-}
-
-DEFINITION_TYPE_MAX_MAP = {
-    x[0]: np.iinfo(x[1]).max
-    for x in InstrumentDefMsg._dtypes
-    if not isinstance(x[1], str)
 }
 
 SCHEMA_COLUMNS = {

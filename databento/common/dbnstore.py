@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import abc
 import datetime as dt
+import itertools
 import logging
 from collections.abc import Generator
+from collections.abc import Iterator
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
@@ -12,6 +14,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    overload,
 )
 
 import databento_dbn
@@ -29,7 +32,6 @@ from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 
 from databento.common.data import DEFINITION_TYPE_MAX_MAP
-from databento.common.data import DERIV_SCHEMAS
 from databento.common.data import SCHEMA_COLUMNS
 from databento.common.data import SCHEMA_DTYPES_MAP
 from databento.common.data import SCHEMA_STRUCT_MAP
@@ -95,6 +97,45 @@ def is_dbn(reader: IO[bytes]) -> bool:
     """
     reader.seek(0)  # ensure we read from the beginning
     return reader.read(3) == b"DBN"
+
+
+def format_dataframe(
+    df: pd.DataFrame,
+    schema: Schema,
+    pretty_px: bool,
+    pretty_ts: bool,
+    instrument_id_index: dict[dt.date, dict[int, str]],
+) -> pd.DataFrame:
+    struct = SCHEMA_STRUCT_MAP[schema]
+
+    if schema == Schema.DEFINITION:
+        for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
+            if column in df.columns:
+                df[column] = df[column].where(df[column] != type_max, np.nan)
+
+    if pretty_ts:
+        for ts_field in struct._timestamp_fields:
+            df[ts_field] = pd.to_datetime(df[ts_field], errors="coerce", utc=True)
+
+    if pretty_px:
+        for px_field in struct._price_fields:
+            df[px_field] = df[px_field].replace(INT64_NULL, np.nan) / FIXED_PRICE_SCALE
+
+    for column, dtype in SCHEMA_DTYPES_MAP[schema]:
+        if dtype.startswith("S") and column not in struct._hidden_fields:
+            df[column] = df[column].str.decode("utf-8")
+
+    index_column = "ts_event" if schema.value.startswith("ohlcv") else "ts_recv"
+    df.set_index(index_column, inplace=True)
+
+    if instrument_id_index:
+        df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
+        dates = [ts.date() for ts in df_index]
+        df["symbol"] = [
+            instrument_id_index[dates[i]][p] for i, p in enumerate(df["instrument_id"])
+        ]
+
+    return df
 
 
 class DataSource(abc.ABC):
@@ -394,21 +435,6 @@ class DBNStore:
         name = self.__class__.__name__
         return f"<{name}(schema={self.schema})>"
 
-    def _apply_pretty_ts(self, df: pd.DataFrame) -> pd.DataFrame:
-        df.index = pd.to_datetime(df.index, utc=True)
-        for column in SCHEMA_STRUCT_MAP[self.schema]._timestamp_fields:
-            if df.index.name == column:
-                continue
-            df[column] = pd.to_datetime(df[column], errors="coerce", utc=True)
-
-        return df
-
-    def _apply_pretty_px(self, df: pd.DataFrame) -> pd.DataFrame:
-        for column in SCHEMA_STRUCT_MAP[self.schema]._price_fields:
-            df[column] = df[column].replace(INT64_NULL, np.nan) / FIXED_PRICE_SCALE
-
-        return df
-
     def _build_instrument_id_index(self) -> dict[dt.date, dict[int, str]]:
         intervals: list[InstrumentIdMappingInterval] = []
         for raw_symbol, i in self.mappings.items():
@@ -440,53 +466,6 @@ class DBNStore:
                 date_map[interval.instrument_id] = interval.raw_symbol
 
         return instrument_id_index
-
-    def _prepare_dataframe(
-        self,
-        df: pd.DataFrame,
-        schema: Schema,
-    ) -> pd.DataFrame:
-        # char array columns
-        hidden_fields = SCHEMA_STRUCT_MAP[self.schema]._hidden_fields
-        for column, dtype  in SCHEMA_DTYPES_MAP[self.schema]:
-            if dtype.startswith("S") and column not in hidden_fields:
-                df[column] = df[column].str.decode("utf-8")
-        if schema == Schema.MBO or schema in DERIV_SCHEMAS:
-            df["flags"] = df["flags"] & 0xFF  # Apply bitmask
-        elif schema == Schema.DEFINITION:
-            for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
-                if column in df.columns:
-                    df[column] = df[column].where(df[column] != type_max, np.nan)
-        return df
-
-    def _get_index_column(self, schema: Schema) -> str:
-        return (
-            "ts_event"
-            if schema
-            in (
-                Schema.OHLCV_1S,
-                Schema.OHLCV_1M,
-                Schema.OHLCV_1H,
-                Schema.OHLCV_1D,
-            )
-            else "ts_recv"
-        )
-
-    def _map_symbols(self, df: pd.DataFrame, pretty_ts: bool) -> pd.DataFrame:
-        # Build instrument ID index
-        if not self._instrument_id_index:
-            self._instrument_id_index = self._build_instrument_id_index()
-
-        # Map instrument IDs to raw symbols
-        if self._instrument_id_index:
-            df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
-            dates = [ts.date() for ts in df_index]
-            df["symbol"] = [
-                self._instrument_id_index[dates[i]][p]
-                for i, p in enumerate(df["instrument_id"])
-            ]
-
-        return df
 
     @property
     def compression(self) -> Compression:
@@ -891,13 +870,43 @@ class DBNStore:
             schema=schema,
         ).to_csv(path)
 
+    @overload
     def to_df(
         self,
         pretty_ts: bool = True,
         pretty_px: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
+        count: None = None,
     ) -> pd.DataFrame:
+        ...
+
+    @overload
+    def to_df(
+        self,
+        *,
+        schema: Schema | str | None,
+        count: int,
+    ) -> DataFrameIterator:
+        ...
+
+    # Required to handle default schema but set count.
+    @overload
+    def to_df(
+        self,
+        *,
+        count: int,
+    ) -> DataFrameIterator:
+        ...
+
+    def to_df(
+        self,
+        pretty_ts: bool = True,
+        pretty_px: bool = True,
+        map_symbols: bool = True,
+        schema: Schema | str | None = None,
+        count: int | None = None,
+    ) -> pd.DataFrame | DataFrameIterator:
         """
         Return the data as a `pd.DataFrame`.
 
@@ -917,10 +926,17 @@ class DBNStore:
         schema : Schema or str, optional
             The schema for the dataframe.
             This is only required when reading a DBN stream with mixed record types.
+        count : int, optional
+            If set, instead of returning a single `DataFrame` a `DataFrameIterator`
+            instance will be returned. When iterated, this object will yield
+            a `DataFrame` with at most `count` elements until the entire contents
+            of the `DBNStore` are exhausted. This can be used to process a large
+            `DBNStore` in pieces instead of all at once.
 
         Returns
         -------
         pd.DataFrame
+        DataFrameIterator
 
         Raises
         ------
@@ -934,24 +950,27 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        df = pd.DataFrame(
-            self.to_ndarray(schema),
-            columns=SCHEMA_COLUMNS[schema],
+        if not self._instrument_id_index:
+            self._instrument_id_index = self._build_instrument_id_index()
+
+        if count is None:
+            records = iter([self.to_ndarray(schema)])
+        else:
+            records = self.to_ndarray(schema, count)
+
+        df_iter = DataFrameIterator(
+            records=records,
+            schema=schema,
+            count=count,
+            pretty_px=pretty_px,
+            pretty_ts=pretty_ts,
+            instrument_id_index=self._instrument_id_index if map_symbols else {},
         )
-        df.set_index(self._get_index_column(schema), inplace=True)
 
-        df = self._prepare_dataframe(df, schema)
+        if count is None:
+            return next(df_iter)
 
-        if pretty_ts:
-            df = self._apply_pretty_ts(df)
-
-        if pretty_px:
-            df = self._apply_pretty_px(df)
-
-        if map_symbols and self.schema != Schema.DEFINITION:
-            df = self._map_symbols(df, pretty_ts)
-
-        return df
+        return df_iter
 
     def to_file(self, path: Path | str) -> None:
         """
@@ -1023,10 +1042,36 @@ class DBNStore:
             schema=schema,
         ).to_json(path, orient="records", lines=True)
 
+    @overload
     def to_ndarray(
         self,
         schema: Schema | str | None = None,
+        count: None = None,
     ) -> np.ndarray[Any, Any]:
+        ...
+
+    @overload
+    def to_ndarray(
+        self,
+        schema: Schema | str | None,
+        count: int,
+    ) -> NDArrayIterator:
+        ...
+
+    # Required to handle default schema but set count.
+    @overload
+    def to_ndarray(
+        self,
+        *,
+        count: int,
+    ) -> NDArrayIterator:
+        ...
+
+    def to_ndarray(
+        self,
+        schema: Schema | str | None = None,
+        count: int | None = None,
+    ) -> np.ndarray[Any, Any] | NDArrayIterator:
         """
         Return the data as a numpy `ndarray`.
 
@@ -1035,10 +1080,17 @@ class DBNStore:
         schema : Schema or str, optional
             The schema for the array.
             This is only required when reading a DBN stream with mixed record types.
+        count : int, optional
+            If set, instead of returning a single `np.ndarray` a `NDArrayIterator`
+            instance will be returned. When iterated, this object will yield
+            a `np.ndarray` with at most `count` elements until the entire contents
+            of the `DBNStore` are exhausted. This can be used to process a large
+            `DBNStore` in pieces instead of all at once.
 
         Returns
         -------
         np.ndarray
+        NDArrayIterator
 
         Raises
         ------
@@ -1052,16 +1104,84 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        record_buffer = BytesIO()
-        num_records = 0
-        for record in filter(lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]), self):  # type: ignore [arg-type]
-            num_records += 1
-            record_buffer.write(bytes(record))
+        dtype = SCHEMA_DTYPES_MAP[schema]
+        ndarray_iter = NDArrayIterator(
+            filter(lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]), self),  # type: ignore [arg-type]
+            dtype,
+            count,
+        )
 
-        result = np.frombuffer(
-            record_buffer.getvalue(),
-            dtype=SCHEMA_DTYPES_MAP[schema],
+        if count is None:
+            return next(ndarray_iter, np.empty([0, 1], dtype=dtype))
+
+        return ndarray_iter
+
+
+class NDArrayIterator:
+    def __init__(
+        self,
+        records: Iterator[DBNRecord],
+        dtype: list[tuple[str, str]],
+        count: int | None,
+    ):
+        self._records = records
+        self._dtype = dtype
+        self._count = count
+        self._first_next = True
+
+    def __iter__(self) -> NDArrayIterator:
+        return self
+
+    def __next__(self) -> np.ndarray[Any, Any]:
+        record_bytes = BytesIO()
+        num_records = 0
+        for record in itertools.islice(self._records, self._count):
+            num_records += 1
+            record_bytes.write(bytes(record))
+
+        if num_records == 0:
+            if self._first_next:
+                return np.empty([0, 1], dtype=self._dtype)
+            raise StopIteration
+
+        self._first_next = False
+        return np.frombuffer(
+            record_bytes.getvalue(),
+            dtype=self._dtype,
             count=num_records,
         )
 
-        return result
+
+class DataFrameIterator:
+    def __init__(
+        self,
+        records: Iterator[np.ndarray[Any, Any]],
+        count: int | None,
+        schema: Schema,
+        pretty_px: bool = True,
+        pretty_ts: bool = True,
+        instrument_id_index: dict[dt.date, dict[int, str]] | None = None,
+    ):
+        self._records = records
+        self._schema = schema
+        self._count = count
+        self._pretty_px = pretty_px
+        self._pretty_ts = pretty_ts
+        self._instrument_id_index = (
+            instrument_id_index if instrument_id_index is not None else {}
+        )
+
+    def __iter__(self) -> DataFrameIterator:
+        return self
+
+    def __next__(self) -> pd.DataFrame:
+        return format_dataframe(
+            pd.DataFrame(
+                next(self._records),
+                columns=SCHEMA_COLUMNS[self._schema],
+            ),
+            schema=self._schema,
+            pretty_px=self._pretty_px,
+            pretty_ts=self._pretty_ts,
+            instrument_id_index=self._instrument_id_index,
+        )
