@@ -4,6 +4,7 @@
 
 #### Enhancements
 - Added `count` parameter to `DBNStore.to_df` and `DBNStore.to_ndarray` to help process large files incrementally
+- Improved memory usage of `DBNStore.to_csv` and `DBNStore.to_json`
 - Added the `Publisher`, `Venue`, and `Dataset` enums
 - Replace null prices with `NaN` when `pretty_px=True` in `DBNStore.to_df()`
 - Upgraded `databento-dbn` to 0.8.3

@@ -863,39 +863,40 @@ class DBNStore:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        self.to_df(
+        df_iter = self.to_df(
             pretty_ts=pretty_ts,
             pretty_px=pretty_px,
             map_symbols=map_symbols,
             schema=schema,
-        ).to_csv(path)
+            count=2**16,
+        )
+
+        with open(path, "x") as csv_file:
+            for i, frame in enumerate(df_iter):
+                frame.to_csv(
+                    csv_file,
+                    header=(i == 0),
+                )
 
     @overload
     def to_df(
         self,
-        pretty_ts: bool = True,
-        pretty_px: bool = True,
-        map_symbols: bool = True,
-        schema: Schema | str | None = None,
-        count: None = None,
+        pretty_ts: bool = ...,
+        pretty_px: bool = ...,
+        map_symbols: bool = ...,
+        schema: Schema | str | None = ...,
+        count: None = ...,
     ) -> pd.DataFrame:
         ...
 
     @overload
     def to_df(
         self,
-        *,
-        schema: Schema | str | None,
-        count: int,
-    ) -> DataFrameIterator:
-        ...
-
-    # Required to handle default schema but set count.
-    @overload
-    def to_df(
-        self,
-        *,
-        count: int,
+        pretty_ts: bool = ...,
+        pretty_px: bool = ...,
+        map_symbols: bool = ...,
+        schema: Schema | str | None = ...,
+        count: int = ...,
     ) -> DataFrameIterator:
         ...
 
@@ -1035,35 +1036,35 @@ class DBNStore:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        self.to_df(
+        df_iter = self.to_df(
             pretty_ts=pretty_ts,
             pretty_px=pretty_px,
             map_symbols=map_symbols,
             schema=schema,
-        ).to_json(path, orient="records", lines=True)
+            count=2**16,
+        )
+
+        with open(path, "x") as json_path:
+            for frame in df_iter:
+                frame.to_json(
+                    json_path,
+                    orient="records",
+                    lines=True,
+                )
 
     @overload
-    def to_ndarray(
+    def to_ndarray(  # type: ignore [misc]
         self,
-        schema: Schema | str | None = None,
-        count: None = None,
+        schema: Schema | str | None = ...,
+        count: None = ...,
     ) -> np.ndarray[Any, Any]:
         ...
 
     @overload
     def to_ndarray(
         self,
-        schema: Schema | str | None,
-        count: int,
-    ) -> NDArrayIterator:
-        ...
-
-    # Required to handle default schema but set count.
-    @overload
-    def to_ndarray(
-        self,
-        *,
-        count: int,
+        schema: Schema | str | None = ...,
+        count: int = ...,
     ) -> NDArrayIterator:
         ...
 
