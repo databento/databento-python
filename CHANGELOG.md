@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.19.0 - TBD
+## 0.19.0 - 2023-08-24
+
+This release includes improvements to handling large DBN data and adds support for future datasets.
 
 #### Enhancements
 - Added `count` parameter to `DBNStore.to_df` and `DBNStore.to_ndarray` to help process large files incrementally
