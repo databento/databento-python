@@ -492,8 +492,7 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path).read()
-    assert path.exists()
+    written = path.read_text()
     expected = (
         "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,price,size,channel_id,"
         "order_id,flags,ts_in_delta,sequence\n1609160400000704060,1609160400000429831,160,"
@@ -525,8 +524,7 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path).read()
-    assert path.exists()
+    written = path.read_text()
     expected = (
         "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
         ",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_0"
@@ -560,8 +558,7 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path).read()
-    assert path.exists()
+    written = path.read_text()
     expected = (
         "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
         ",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00,sy"
@@ -597,8 +594,7 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path).read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
         '{"ts_event":1609160400000429831,"rtype":160,"publisher_id":1,"instrument_id":5482,"a'
         'ction":"C","side":"A","price":3722750000000,"size":1,"channel_id":0,"order_id":64778'
@@ -633,8 +629,7 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path).read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
         '{"ts_event":1609160400000,"rtype":160,"publisher_id":1,"instrument_id":5482,"action"'
         ':"C","side":"A","price":3722.75,"size":1,"channel_id":0,"order_id":647784973705,"fla'
@@ -669,24 +664,23 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
-        b'{"ts_event":1609160400006001487,"rtype":1,"publisher_id":1,"instrument_id":5482,"act'
-        b'ion":"A","side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delt'
-        b'a":17214,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid'
-        b'_sz_00":24,"ask_sz_00":11,"bid_ct_00":15,"ask_ct_00":9}\n{"ts_event":160916040000'
-        b'6146661,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","dep'
-        b'th":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170'
-        b'364,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":1'
-        b'2,"bid_ct_00":15,"ask_ct_00":10}\n{"ts_event":1609160400007044577,"rtype":1,"publ'
-        b'isher_id":1,"instrument_id":5482,"action":"A","side":"B","depth":0,"price":372025000'
-        b'0000,"size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"bid_px_00":3720250'
-        b'000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":12,"bid_ct_00":16,"ask_c'
-        b't_00":10}\n{"ts_event":1609160400007169135,"rtype":1,"publisher_id":1,"instrument'
-        b'_id":5482,"action":"C","side":"A","depth":0,"price":3720500000000,"size":1,"flags":1'
-        b'28,"ts_in_delta":17361,"sequence":1170366,"bid_px_00":3720250000000,"ask_px_00":3720'
-        b'500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,"ask_ct_00":9}'
+        '{"ts_event":1609160400006001487,"rtype":1,"publisher_id":1,"instrument_id":5482,"act'
+        'ion":"A","side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delt'
+        'a":17214,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid'
+        '_sz_00":24,"ask_sz_00":11,"bid_ct_00":15,"ask_ct_00":9}\n{"ts_event":160916040000'
+        '6146661,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","dep'
+        'th":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170'
+        '364,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":1'
+        '2,"bid_ct_00":15,"ask_ct_00":10}\n{"ts_event":1609160400007044577,"rtype":1,"publ'
+        'isher_id":1,"instrument_id":5482,"action":"A","side":"B","depth":0,"price":372025000'
+        '0000,"size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"bid_px_00":3720250'
+        '000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":12,"bid_ct_00":16,"ask_c'
+        't_00":10}\n{"ts_event":1609160400007169135,"rtype":1,"publisher_id":1,"instrument'
+        '_id":5482,"action":"C","side":"A","depth":0,"price":3720500000000,"size":1,"flags":1'
+        '28,"ts_in_delta":17361,"sequence":1170366,"bid_px_00":3720250000000,"ask_px_00":3720'
+        '500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,"ask_ct_00":9}'
     )
 
 
@@ -708,24 +702,23 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
-        b'{"ts_event":1609160400006,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"'
-        b'A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17214,"seq'
-        b'uence":1170362,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":11,'
-        b'"bid_ct_00":15,"ask_ct_00":9,"symbol":"ESH1"}\n{"ts_event":1609160400006,"rtype":'
-        b'1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","depth":0,"price":37'
-        b'20.5,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"bid_px_00":3720.25'
-        b',"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bid_ct_00":15,"ask_ct_00":10,"sym'
-        b'bol":"ESH1"}\n{"ts_event":1609160400007,"rtype":1,"publisher_id":1,"instrument_id'
-        b'":5482,"action":"A","side":"B","depth":0,"price":3720.25,"size":2,"flags":128,"ts_in'
-        b'_delta":18115,"sequence":1170365,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":'
-        b'26,"ask_sz_00":12,"bid_ct_00":16,"ask_ct_00":10,"symbol":"ESH1"}\n{"ts_event":160'
-        b'9160400007,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","'
-        b'depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,'
-        b'"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
-        b'"ask_ct_00":9,"symbol":"ESH1"}'
+        '{"ts_event":1609160400006,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"'
+        'A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17214,"seq'
+        'uence":1170362,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":11,'
+        '"bid_ct_00":15,"ask_ct_00":9,"symbol":"ESH1"}\n{"ts_event":1609160400006,"rtype":'
+        '1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","depth":0,"price":37'
+        '20.5,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"bid_px_00":3720.25'
+        ',"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bid_ct_00":15,"ask_ct_00":10,"sym'
+        'bol":"ESH1"}\n{"ts_event":1609160400007,"rtype":1,"publisher_id":1,"instrument_id'
+        '":5482,"action":"A","side":"B","depth":0,"price":3720.25,"size":2,"flags":128,"ts_in'
+        '_delta":18115,"sequence":1170365,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":'
+        '26,"ask_sz_00":12,"bid_ct_00":16,"ask_ct_00":10,"symbol":"ESH1"}\n{"ts_event":160'
+        '9160400007,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","'
+        'depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,'
+        '"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
+        '"ask_ct_00":9,"symbol":"ESH1"}'
     )
 
 
