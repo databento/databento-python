@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import collections
 import datetime as dt
-import sys
 from io import BytesIO
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable
 
 import databento
 import numpy as np
@@ -427,6 +426,22 @@ def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
     # TODO(cs): Check float values once display factor fixed
 
 
+def test_to_df_with_pretty_px_handles_null(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    # Arrange
+    stub_data = test_data(Schema.DEFINITION)
+    data = DBNStore.from_bytes(data=stub_data)
+
+    # Act
+    df_plain = data.to_df(pretty_px=False)
+    df_pretty = data.to_df(pretty_px=True)
+
+    # Assert
+    assert all(df_plain["strike_price"] == 9223372036854775807)
+    assert all(np.isnan(df_pretty["strike_price"]))
+
+
 @pytest.mark.parametrize(
     "expected_schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
@@ -477,20 +492,16 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     expected = (
-        b"ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,price,size,channel_id,"
-        b"order_id,flags,ts_in_delta,sequence\n1609160400000704060,1609160400000429831,160,"
-        b"1,5482,C,A,3722750000000,1,0,647784973705,128,22993,1170352\n1609160400000711344,"
-        b"1609160400000431665,160,1,5482,C,A,3723000000000,1,0,647784973631,128,19621,1170"
-        b"353\n1609160400000728600,1609160400000433051,160,1,5482,C,A,3723250000000,1,0,647"
-        b"784973427,128,16979,1170354\n1609160400000740248,1609160400000434353,160,1,5482,C"
-        b",A,3723500000000,1,0,647784973094,128,17883,1170355\n"
+        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,price,size,channel_id,"
+        "order_id,flags,ts_in_delta,sequence\n1609160400000704060,1609160400000429831,160,"
+        "1,5482,C,A,3722750000000,1,0,647784973705,128,22993,1170352\n1609160400000711344,"
+        "1609160400000431665,160,1,5482,C,A,3723000000000,1,0,647784973631,128,19621,1170"
+        "353\n1609160400000728600,1609160400000433051,160,1,5482,C,A,3723250000000,1,0,647"
+        "784973427,128,16979,1170354\n1609160400000740248,1609160400000434353,160,1,5482,C"
+        ",A,3723500000000,1,0,647784973094,128,17883,1170355\n"
     )
-
-    if sys.platform == "win32":
-        expected = expected.replace(b"\n", b"\r\n")
 
     assert written == expected
 
@@ -513,22 +524,18 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     expected = (
-        b"ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
-        b",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_0"
-        b"0\n1609160400006136329,1609160400006001487,1,1,5482,A,A,0,3720500000000,1,128,172"
-        b"14,1170362,3720250000000,3720500000000,24,11,15,9\n1609160400006246513,1609160400"
-        b"006146661,1,1,5482,A,A,0,3720500000000,1,128,18858,1170364,3720250000000,37205000000"
-        b"00,24,12,15,10\n1609160400007159323,1609160400007044577,1,1,5482,A,B,0,3720250000"
-        b"000,2,128,18115,1170365,3720250000000,3720500000000,26,12,16,10\n1609160400007260"
-        b"967,1609160400007169135,1,1,5482,C,A,0,3720500000000,1,128,17361,1170366,37202500000"
-        b"00,3720500000000,26,11,16,9\n"
+        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
+        ",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_0"
+        "0\n1609160400006136329,1609160400006001487,1,1,5482,A,A,0,3720500000000,1,128,172"
+        "14,1170362,3720250000000,3720500000000,24,11,15,9\n1609160400006246513,1609160400"
+        "006146661,1,1,5482,A,A,0,3720500000000,1,128,18858,1170364,3720250000000,37205000000"
+        "00,24,12,15,10\n1609160400007159323,1609160400007044577,1,1,5482,A,B,0,3720250000"
+        "000,2,128,18115,1170365,3720250000000,3720500000000,26,12,16,10\n1609160400007260"
+        "967,1609160400007169135,1,1,5482,C,A,0,3720500000000,1,128,17361,1170366,37202500000"
+        "00,3720500000000,26,11,16,9\n"
     )
-
-    if sys.platform == "win32":
-        expected = expected.replace(b"\n", b"\r\n")
 
     assert written == expected
 
@@ -551,26 +558,23 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     expected = (
-        b"ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
-        b",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00,sy"
-        b"mbol\n2020-12-28 13:00:00.006136329+00:00,2020-12-28 13:00:00.006001487+00:00,1,1"
-        b",5482,A,A,0,3720.5000000000005,1,128,17214,1170362,3720.2500000000005,3720.500000000"
-        b"0005,24,11,15,9,ESH1\n2020-12-28 13:00:00.006246513+00:00,2020-12-28 13:00:00.006"
-        b"146661+00:00,1,1,5482,A,A,0,3720.5000000000005,1,128,18858,1170364,3720.250000000000"
-        b"5,3720.5000000000005,24,12,15,10,ESH1\n2020-12-28 13:00:00.007159323+00:00,2020-1"
-        b"2-28 13:00:00.007044577+00:00,1,1,5482,A,B,0,3720.2500000000005,2,128,18115,1170365,"
-        b"3720.2500000000005,3720.5000000000005,26,12,16,10,ESH1\n2020-12-28 13:00:00.00726"
-        b"0967+00:00,2020-12-28 13:00:00.007169135+00:00,1,1,5482,C,A,0,3720.5000000000005,1,1"
-        b"28,17361,1170366,3720.2500000000005,3720.5000000000005,26,11,16,9,ESH1\n"
+        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
+        ",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00,sy"
+        "mbol\n2020-12-28 13:00:00.006136329+00:00,2020-12-28 13:00:00.006001487+00:00,1,1"
+        ",5482,A,A,0,3720.5,1,128,17214,1170362,3720.25,3720.5"
+        ",24,11,15,9,ESH1\n2020-12-28 13:00:00.006246513+00:00,2020-12-28 13:00:00.006"
+        "146661+00:00,1,1,5482,A,A,0,3720.5,1,128,18858,1170364,3720.25"
+        ",3720.5,24,12,15,10,ESH1\n2020-12-28 13:00:00.007159323+00:00,2020-1"
+        "2-28 13:00:00.007044577+00:00,1,1,5482,A,B,0,3720.25,2,128,18115,1170365,"
+        "3720.25,3720.5,26,12,16,10,ESH1\n2020-12-28 13:00:00.00726"
+        "0967+00:00,2020-12-28 13:00:00.007169135+00:00,1,1,5482,C,A,0,3720.5,1,1"
+        "28,17361,1170366,3720.25,3720.5,26,11,16,9,ESH1\n"
     )
 
-    if sys.platform == "win32":
-        expected = expected.replace(b"\n", b"\r\n")
-
     assert written == expected
+
 
 def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
@@ -590,22 +594,22 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
-        b'{"ts_event":1609160400000429831,"rtype":160,"publisher_id":1,"instrument_id":5482,"a'
-        b'ction":"C","side":"A","price":3722750000000,"size":1,"channel_id":0,"order_id":64778'
-        b'4973705,"flags":128,"ts_in_delta":22993,"sequence":1170352}\n{"ts_event":16091604'
-        b'00000431665,"rtype":160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A'
-        b'","price":3723000000000,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,'
-        b'"ts_in_delta":19621,"sequence":1170353}\n{"ts_event":1609160400000433051,"rtype":'
-        b'160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3723250000'
-        b'000,"size":1,"channel_id":0,"order_id":647784973427,"flags":128,"ts_in_delta":16979,'
-        b'"sequence":1170354}\n{"ts_event":1609160400000434353,"rtype":160,"publisher_id":1'
-        b',"instrument_id":5482,"action":"C","side":"A","price":3723500000000,"size":1,"channe'
-        b'l_id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":11703'
-        b'55}'
+        '{"ts_event":1609160400000429831,"rtype":160,"publisher_id":1,"instrument_id":5482,"a'
+        'ction":"C","side":"A","price":3722750000000,"size":1,"channel_id":0,"order_id":64778'
+        '4973705,"flags":128,"ts_in_delta":22993,"sequence":1170352}\n{"ts_event":16091604'
+        '00000431665,"rtype":160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A'
+        '","price":3723000000000,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,'
+        '"ts_in_delta":19621,"sequence":1170353}\n{"ts_event":1609160400000433051,"rtype":'
+        '160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3723250000'
+        '000,"size":1,"channel_id":0,"order_id":647784973427,"flags":128,"ts_in_delta":16979,'
+        '"sequence":1170354}\n{"ts_event":1609160400000434353,"rtype":160,"publisher_id":1'
+        ',"instrument_id":5482,"action":"C","side":"A","price":3723500000000,"size":1,"channe'
+        'l_id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":11703'
+        "55}"
     )
+
 
 def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
@@ -625,22 +629,22 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
-        b'{"ts_event":1609160400000,"rtype":160,"publisher_id":1,"instrument_id":5482,"action"'
-        b':"C","side":"A","price":3722.75,"size":1,"channel_id":0,"order_id":647784973705,"fla'
-        b'gs":128,"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}\n{"ts_event":1609'
-        b'160400000,"rtype":160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A",'
-        b'"price":3723.0,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,"ts_in_de'
-        b'lta":19621,"sequence":1170353,"symbol":"ESH1"}\n{"ts_event":1609160400000,"rtype"'
-        b':160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3723.25,"'
-        b'size":1,"channel_id":0,"order_id":647784973427,"flags":128,"ts_in_delta":16979,"sequ'
-        b'ence":1170354,"symbol":"ESH1"}\n{"ts_event":1609160400000,"rtype":160,"publisher_'
-        b'id":1,"instrument_id":5482,"action":"C","side":"A","price":3723.5,"size":1,"channel_'
-        b'id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":1170355,"sy'
-        b'mbol":"ESH1"}'
+        '{"ts_event":1609160400000,"rtype":160,"publisher_id":1,"instrument_id":5482,"action"'
+        ':"C","side":"A","price":3722.75,"size":1,"channel_id":0,"order_id":647784973705,"fla'
+        'gs":128,"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}\n{"ts_event":1609'
+        '160400000,"rtype":160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A",'
+        '"price":3723.0,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,"ts_in_de'
+        'lta":19621,"sequence":1170353,"symbol":"ESH1"}\n{"ts_event":1609160400000,"rtype"'
+        ':160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3723.25,"'
+        'size":1,"channel_id":0,"order_id":647784973427,"flags":128,"ts_in_delta":16979,"sequ'
+        'ence":1170354,"symbol":"ESH1"}\n{"ts_event":1609160400000,"rtype":160,"publisher_'
+        'id":1,"instrument_id":5482,"action":"C","side":"A","price":3723.5,"size":1,"channel_'
+        'id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":1170355,"sy'
+        'mbol":"ESH1"}'
     )
+
 
 def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
@@ -660,25 +664,25 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
-        b'{"ts_event":1609160400006001487,"rtype":1,"publisher_id":1,"instrument_id":5482,"act'
-        b'ion":"A","side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delt'
-        b'a":17214,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid'
-        b'_sz_00":24,"ask_sz_00":11,"bid_ct_00":15,"ask_ct_00":9}\n{"ts_event":160916040000'
-        b'6146661,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","dep'
-        b'th":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170'
-        b'364,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":1'
-        b'2,"bid_ct_00":15,"ask_ct_00":10}\n{"ts_event":1609160400007044577,"rtype":1,"publ'
-        b'isher_id":1,"instrument_id":5482,"action":"A","side":"B","depth":0,"price":372025000'
-        b'0000,"size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"bid_px_00":3720250'
-        b'000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":12,"bid_ct_00":16,"ask_c'
-        b't_00":10}\n{"ts_event":1609160400007169135,"rtype":1,"publisher_id":1,"instrument'
-        b'_id":5482,"action":"C","side":"A","depth":0,"price":3720500000000,"size":1,"flags":1'
-        b'28,"ts_in_delta":17361,"sequence":1170366,"bid_px_00":3720250000000,"ask_px_00":3720'
-        b'500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,"ask_ct_00":9}'
+        '{"ts_event":1609160400006001487,"rtype":1,"publisher_id":1,"instrument_id":5482,"act'
+        'ion":"A","side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delt'
+        'a":17214,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid'
+        '_sz_00":24,"ask_sz_00":11,"bid_ct_00":15,"ask_ct_00":9}\n{"ts_event":160916040000'
+        '6146661,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","dep'
+        'th":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170'
+        '364,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":1'
+        '2,"bid_ct_00":15,"ask_ct_00":10}\n{"ts_event":1609160400007044577,"rtype":1,"publ'
+        'isher_id":1,"instrument_id":5482,"action":"A","side":"B","depth":0,"price":372025000'
+        '0000,"size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"bid_px_00":3720250'
+        '000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":12,"bid_ct_00":16,"ask_c'
+        't_00":10}\n{"ts_event":1609160400007169135,"rtype":1,"publisher_id":1,"instrument'
+        '_id":5482,"action":"C","side":"A","depth":0,"price":3720500000000,"size":1,"flags":1'
+        '28,"ts_in_delta":17361,"sequence":1170366,"bid_px_00":3720250000000,"ask_px_00":3720'
+        '500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,"ask_ct_00":9}'
     )
+
 
 def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     test_data_path: Callable[[Schema], Path],
@@ -698,25 +702,25 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     )
 
     # Assert
-    written = open(path, mode="rb").read()
-    assert path.exists()
+    written = path.read_text()
     assert written.strip() == (
-        b'{"ts_event":1609160400006,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"'
-        b'A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17214,"seq'
-        b'uence":1170362,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":11,'
-        b'"bid_ct_00":15,"ask_ct_00":9,"symbol":"ESH1"}\n{"ts_event":1609160400006,"rtype":'
-        b'1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","depth":0,"price":37'
-        b'20.5,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"bid_px_00":3720.25'
-        b',"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bid_ct_00":15,"ask_ct_00":10,"sym'
-        b'bol":"ESH1"}\n{"ts_event":1609160400007,"rtype":1,"publisher_id":1,"instrument_id'
-        b'":5482,"action":"A","side":"B","depth":0,"price":3720.25,"size":2,"flags":128,"ts_in'
-        b'_delta":18115,"sequence":1170365,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":'
-        b'26,"ask_sz_00":12,"bid_ct_00":16,"ask_ct_00":10,"symbol":"ESH1"}\n{"ts_event":160'
-        b'9160400007,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","'
-        b'depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,'
-        b'"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
-        b'"ask_ct_00":9,"symbol":"ESH1"}'
+        '{"ts_event":1609160400006,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"'
+        'A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17214,"seq'
+        'uence":1170362,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":11,'
+        '"bid_ct_00":15,"ask_ct_00":9,"symbol":"ESH1"}\n{"ts_event":1609160400006,"rtype":'
+        '1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","depth":0,"price":37'
+        '20.5,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"bid_px_00":3720.25'
+        ',"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bid_ct_00":15,"ask_ct_00":10,"sym'
+        'bol":"ESH1"}\n{"ts_event":1609160400007,"rtype":1,"publisher_id":1,"instrument_id'
+        '":5482,"action":"A","side":"B","depth":0,"price":3720.25,"size":2,"flags":128,"ts_in'
+        '_delta":18115,"sequence":1170365,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":'
+        '26,"ask_sz_00":12,"bid_ct_00":16,"ask_ct_00":10,"symbol":"ESH1"}\n{"ts_event":160'
+        '9160400007,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","'
+        'depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,'
+        '"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
+        '"ask_ct_00":9,"symbol":"ESH1"}'
     )
+
 
 @pytest.mark.parametrize(
     "schema",
@@ -908,6 +912,45 @@ def test_dbnstore_buffer_long(
     "schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
+@pytest.mark.parametrize(
+    "count",
+    [
+        1,
+        2,
+        3,
+    ],
+)
+def test_dbnstore_to_ndarray_with_count(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+    count: int,
+) -> None:
+    """
+    Test that calling to_ndarray with count produces an identical result to
+    without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    nd_iter = dbnstore.to_ndarray(count=count)
+    expected = dbnstore.to_ndarray()
+
+    # Assert
+    aggregator: list[np.ndarray[Any, Any]] = []
+    for batch in nd_iter:
+        assert len(batch) <= count
+        aggregator.append(batch)
+
+    assert np.array_equal(expected, np.concatenate(aggregator))
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
 def test_dbnstore_to_ndarray_with_schema(
     schema: Schema,
     test_data: Callable[[Schema], bytes],
@@ -930,6 +973,30 @@ def test_dbnstore_to_ndarray_with_schema(
         assert row == expected[i]
 
 
+def test_dbnstore_to_ndarray_with_count_empty(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_ndarray on a DBNStore that contains no data with count
+    set returns an iterator for one empty ndarray.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    nd_iter = dbnstore.to_ndarray(
+        schema=Schema.MBO,
+        count=10,
+    )
+
+    # Assert
+    assert len(next(nd_iter)) == 0
+
+
 def test_dbnstore_to_ndarray_with_schema_empty(
     test_data: Callable[[Schema], bytes],
 ) -> None:
@@ -949,6 +1016,44 @@ def test_dbnstore_to_ndarray_with_schema_empty(
 
     # Assert
     assert len(array) == 0
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "count",
+    [
+        1,
+        2,
+        3,
+    ],
+)
+def test_dbnstore_to_df_with_count(
+    schema: Schema,
+    test_data: Callable[[Schema], bytes],
+    count: int,
+) -> None:
+    """
+    Test that calling to_df with count produces an identical result to without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    df_iter = dbnstore.to_df(count=count)
+    expected = dbnstore.to_df()
+
+    # Assert
+    aggregator: list[pd.DataFrame] = []
+    for batch in df_iter:
+        assert len(batch) <= count
+        aggregator.append(batch)
+
+    assert expected.equals(pd.concat(aggregator))
 
 
 @pytest.mark.parametrize(
@@ -995,3 +1100,27 @@ def test_dbnstore_to_df_with_schema_empty(
 
     # Assert
     assert df.empty
+
+
+def test_dbnstore_to_df_with_count_empty(
+    test_data: Callable[[Schema], bytes],
+) -> None:
+    """
+    Test that calling to_df on a DBNStore that contains no data with count set
+    returns an iterator for one empty DataFrame.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    df_iter = dbnstore.to_df(
+        schema=Schema.MBO,
+        count=10,
+    )
+
+    # Assert
+    assert next(df_iter).empty

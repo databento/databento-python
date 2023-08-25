@@ -62,7 +62,12 @@ def test_get_range_error_no_file_write(
 ) -> None:
     # Arrange
     mocked_response = MagicMock()
-    mocked_response.__enter__.return_value = MagicMock(status_code=500)
+    mocked_response.__enter__.return_value = MagicMock(
+        status_code=500,
+        json=MagicMock(
+            return_value={},
+        ),
+    )
     monkeypatch.setattr(requests, "post", MagicMock(return_value=mocked_response))
 
     output_file = tmp_path / "output.dbn"

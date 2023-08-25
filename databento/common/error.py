@@ -37,7 +37,23 @@ class BentoHttpError(BentoError):
         self.http_status = http_status
         self.http_body = http_body
         self.json_body = json_body
-        self.message = message
+
+        try:
+            json_message = self.json_body["detail"]["message"]
+            json_case = self.json_body["detail"]["case"]
+            json_docs = self.json_body["detail"]["docs"]
+        except (TypeError, KeyError):
+            self.message = message
+        else:
+            composed_message = [
+                json_case,
+                json_message,
+            ]
+            if json_docs:
+                composed_message.append(f"documentation: {json_docs}")
+
+            self.message = "\n".join(composed_message)
+
         self.headers = headers or {}
         self.request_id = self.headers.get("request-id", None)
 

@@ -8,7 +8,6 @@ from enum import Flag
 from itertools import combinations
 
 import pytest
-from databento.common.enums import Dataset
 from databento.common.enums import Delivery
 from databento.common.enums import FeedMode
 from databento.common.enums import HistoricalGateway
@@ -18,6 +17,7 @@ from databento.common.enums import RollRule
 from databento.common.enums import SplitDuration
 from databento.common.enums import StringyMixin
 from databento.common.enums import SymbologyResolution
+from databento.common.publishers import Dataset
 from databento_dbn import Compression
 from databento_dbn import Encoding
 from databento_dbn import Schema

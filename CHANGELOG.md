@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.19.0 - 2023-08-25
+
+This release includes improvements to handling large DBN data and adds support for future datasets.
+
+#### Enhancements
+- Added `count` parameter to `DBNStore.to_df` and `DBNStore.to_ndarray` to help process large files incrementally
+- Improved memory usage of `DBNStore.to_csv` and `DBNStore.to_json`
+- Added the `Publisher`, `Venue`, and `Dataset` enums
+- Replace null prices with `NaN` when `pretty_px=True` in `DBNStore.to_df()`
+- Upgraded `databento-dbn` to 0.8.3
+
+#### Bug fixes
+- Fixed issue where exception messages were displaying JSON encoded data
+- Fixed typo in `BATY.PITCH.BATY` publisher
+- Reduced floating error when converting prices to floats with `pretty_px=True`
+
+#### Breaking changes
+- `DBNStore.to_df` now always utf-8 decodes string fields
+
 ## 0.18.1 - 2023-08-16
 
 #### Bug fixes

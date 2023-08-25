@@ -15,9 +15,9 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from databento.common.cram import BUCKET_ID_LENGTH
-from databento.common.enums import Dataset
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
+from databento.common.publishers import Dataset
 from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string

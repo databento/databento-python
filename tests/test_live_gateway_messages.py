@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from databento.common.enums import Dataset
+from databento.common.publishers import Dataset
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import AuthenticationResponse
 from databento.live.gateway import ChallengeRequest

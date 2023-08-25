@@ -20,7 +20,6 @@ from databento_dbn import TradeMsg
 
 from databento.common import bentologging
 from databento.common.dbnstore import DBNStore
-from databento.common.enums import Dataset
 from databento.common.enums import Delivery
 from databento.common.enums import FeedMode
 from databento.common.enums import HistoricalGateway
@@ -33,6 +32,9 @@ from databento.common.error import BentoClientError
 from databento.common.error import BentoError
 from databento.common.error import BentoHttpError
 from databento.common.error import BentoServerError
+from databento.common.publishers import Dataset
+from databento.common.publishers import Publisher
+from databento.common.publishers import Venue
 from databento.historical.api import API_VERSION
 from databento.historical.client import Historical
 from databento.live import DBNRecord
@@ -49,7 +51,9 @@ __all__ = [
     "BentoHttpError",
     "BentoServerError",
     "Compression",
+    "Publisher",
     "Dataset",
+    "Venue",
     "Delivery",
     "Encoding",
     "FeedMode",

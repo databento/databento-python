@@ -124,17 +124,6 @@ class FeedMode(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class Dataset(StringyMixin, str, Enum):
-    """
-    Represents a dataset code (string identifier).
-    """
-
-    GLBX_MDP3 = "GLBX.MDP3"
-    XNAS_ITCH = "XNAS.ITCH"
-
-
-@unique
-@coercible
 class SplitDuration(StringyMixin, str, Enum):
     """
     Represents the duration before splitting for each batched data file.

@@ -106,8 +106,6 @@ def test_definition_struct() -> None:
     fields.remove("record_size")
     fields.remove("size_hint")
 
-    columns.remove("raw_instrument_id")  # TODO: Remove after databento_dbn 0.8.3
-
     difference = fields.symmetric_difference(set(columns))
     assert not difference
 
