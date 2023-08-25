@@ -871,7 +871,7 @@ class DBNStore:
             count=2**16,
         )
 
-        with open(path, "x") as csv_file:
+        with open(path, "x", newline="") as csv_file:
             for i, frame in enumerate(df_iter):
                 frame.to_csv(
                     csv_file,
