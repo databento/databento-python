@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.1 - 2023-08-25
+### Bug fixes
+- Fixed typo in `BATY.PITCH.BATY` publisher
+
 ## 0.19.0 - 2023-08-24
 
 This release includes improvements to handling large DBN data and adds support for future datasets.

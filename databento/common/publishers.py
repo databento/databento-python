@@ -618,7 +618,7 @@ class Publisher(StringyMixin, str, Enum):
         Nasdaq XPSX TotalView ITCH.
     BATS_PITCH_BATS
         CBOE BZX.
-    BATY_PITCH_BATS
+    BATY_PITCH_BATY
         CBOE BYX.
     EDGA_PITCH_EDGA
         CBOE EDGA.
@@ -700,7 +700,7 @@ class Publisher(StringyMixin, str, Enum):
     XBOS_ITCH_XBOS = "XBOS.ITCH.XBOS"
     XPSX_ITCH_XPSX = "XPSX.ITCH.XPSX"
     BATS_PITCH_BATS = "BATS.PITCH.BATS"
-    BATY_PITCH_BATS = "BATY.PITCH.BATS"
+    BATY_PITCH_BATY = "BATY.PITCH.BATY"
     EDGA_PITCH_EDGA = "EDGA.PITCH.EDGA"
     EDGX_PITCH_EDGX = "EDGX.PITCH.EDGX"
     XNYS_PILLAR_XNYS = "XNYS.PILLAR.XNYS"
@@ -754,7 +754,7 @@ class Publisher(StringyMixin, str, Enum):
         if value == 5:
             return Publisher.BATS_PITCH_BATS
         if value == 6:
-            return Publisher.BATY_PITCH_BATS
+            return Publisher.BATY_PITCH_BATY
         if value == 7:
             return Publisher.EDGA_PITCH_EDGA
         if value == 8:
@@ -843,7 +843,7 @@ class Publisher(StringyMixin, str, Enum):
             return 4
         if self == Publisher.BATS_PITCH_BATS:
             return 5
-        if self == Publisher.BATY_PITCH_BATS:
+        if self == Publisher.BATY_PITCH_BATY:
             return 6
         if self == Publisher.EDGA_PITCH_EDGA:
             return 7
@@ -933,8 +933,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XPSX
         if self == Publisher.BATS_PITCH_BATS:
             return Venue.BATS
-        if self == Publisher.BATY_PITCH_BATS:
-            return Venue.BATS
+        if self == Publisher.BATY_PITCH_BATY:
+            return Venue.BATY
         if self == Publisher.EDGA_PITCH_EDGA:
             return Venue.EDGA
         if self == Publisher.EDGX_PITCH_EDGX:
@@ -1023,7 +1023,7 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XPSX_ITCH
         if self == Publisher.BATS_PITCH_BATS:
             return Dataset.BATS_PITCH
-        if self == Publisher.BATY_PITCH_BATS:
+        if self == Publisher.BATY_PITCH_BATY:
             return Dataset.BATY_PITCH
         if self == Publisher.EDGA_PITCH_EDGA:
             return Dataset.EDGA_PITCH
@@ -1114,7 +1114,7 @@ class Publisher(StringyMixin, str, Enum):
             return "Nasdaq XPSX TotalView ITCH"
         if self == Publisher.BATS_PITCH_BATS:
             return "CBOE BZX"
-        if self == Publisher.BATY_PITCH_BATS:
+        if self == Publisher.BATY_PITCH_BATY:
             return "CBOE BYX"
         if self == Publisher.EDGA_PITCH_EDGA:
             return "CBOE EDGA"
