@@ -1,10 +1,6 @@
 # Changelog
 
-## 0.19.1 - 2023-08-25
-### Bug fixes
-- Fixed typo in `BATY.PITCH.BATY` publisher
-
-## 0.19.0 - 2023-08-24
+## 0.19.0 - 2023-08-25
 
 This release includes improvements to handling large DBN data and adds support for future datasets.
 
@@ -17,6 +13,7 @@ This release includes improvements to handling large DBN data and adds support f
 
 #### Bug fixes
 - Fixed issue where exception messages were displaying JSON encoded data
+- Fixed typo in `BATY.PITCH.BATY` publisher
 - Reduced floating error when converting prices to floats with `pretty_px=True`
 
 #### Breaking changes
