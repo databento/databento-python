@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.19.1 - TBD
+
+#### Bug fixes
+- Fixed an issue where the index column was not serialized with `DBNStore.to_json`
+
 ## 0.19.0 - 2023-08-25
 
 This release includes improvements to handling large DBN data and adds support for future datasets.

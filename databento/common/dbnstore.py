@@ -1046,6 +1046,7 @@ class DBNStore:
 
         with open(path, "x") as json_path:
             for frame in df_iter:
+                frame.reset_index(inplace=True)
                 frame.to_json(
                     json_path,
                     orient="records",
