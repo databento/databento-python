@@ -1050,6 +1050,7 @@ class DBNStore:
                 frame.to_json(
                     json_path,
                     orient="records",
+                    date_unit="ns",
                     lines=True,
                 )
 
