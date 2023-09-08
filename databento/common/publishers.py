@@ -18,79 +18,79 @@ class Venue(StringyMixin, str, Enum):
     A trading execution venue.
 
     GLBX
-        CME GLOBEX.
+        CME Globex.
     XNAS
-        NASDAQ.
+        Nasdaq - All Markets.
     XBOS
-        NASDAQ OMX BX.
+        Nasdaq OMX BX.
     XPSX
-        NASDAQ OMX PSX.
+        Nasdaq OMX PSX.
     BATS
-        CBOE BZX U.S. EQUITIES EXCHANGE.
+        Cboe BZX U.S. Equities Exchange.
     BATY
-        CBOE BYX U.S. EQUITIES EXCHANGE.
+        Cboe BYX U.S. Equities Exchange.
     EDGA
-        CBOE EDGA U.S. EQUITIES EXCHANGE.
+        Cboe EDGA U.S. Equities Exchange.
     EDGX
-        CBOE EDGX U.S. EQUITIES EXCHANGE.
+        Cboe EDGX U.S. Equities Exchange.
     XNYS
-        New York Stock Exchange.
+        New York Stock Exchange, Inc..
     XCIS
-        NYSE NATIONAL, INC..
+        NYSE National, Inc..
     XASE
-        NYSE AMERICAN.
+        NYSE MKT LLC.
     ARCX
-        NYSE ARCA.
+        NYSE Arca.
     XCHI
-        NYSE CHICAGO, INC..
+        NYSE Chicago, Inc..
     IEXG
-        INVESTORS EXCHANGE.
+        Investors Exchange.
     FINN
-        FINRA/NASDAQ TRF CARTERET.
+        FINRA/Nasdaq TRF Carteret.
     FINC
-        FINRA/NASDAQ TRF CHICAGO.
+        FINRA/Nasdaq TRF Chicago.
     FINY
         FINRA/NYSE TRF.
     MEMX
-        MEMX LLC EQUITIES.
+        MEMX LLC Equities.
     EPRL
-        MIAX PEARL EQUITIES.
+        MIAX Pearl Equities.
     AMXO
-        NYSE AMERICAN OPTIONS.
+        NYSE American Options.
     XBOX
-        BOX OPTIONS EXCHANGE.
+        BOX Options Exchange.
     XCBO
-        CBOE OPTIONS EXCHANGE.
+        Cboe Options Exchange.
     EMLD
-        MIAX EMERALD.
+        MIAX Emerald.
     EDGO
         Cboe EDGX Options Exchange.
     GMNI
-        NASDAQ GEMX.
+        ISE Gemini Exchange.
     XISX
-        NASDAQ ISE.
+        International Securities Exchange, LLC.
     MCRY
-        NASDAQ MRX.
+        ISE Mercury, LLC.
     XMIO
-        MIAX INTERNATIONAL SECURITIES.
+        Miami International Securities Exchange.
     ARCO
-        NYSE ARCA OPTIONS.
+        NYSE Arca Options.
     OPRA
-        OPRA.
+        Options Price Reporting Authority.
     MPRL
-        MIAX PEARL.
+        MIAX Pearl.
     XNDQ
-        NASDAQ OPTIONS MARKET.
+        Nasdaq Options Market.
     XBXO
-        NASDAQ BX OPTIONS.
+        Nasdaq OMX BX Options.
     C2OX
-        CBOE C2 OPTIONS EXCHANGE.
+        Cboe C2 Options Exchange.
     XPHL
-        NASDAQ PHLX.
+        Nasdaq OMX PHLX.
     BATO
-        CBOE BZX Options Exchange.
+        Cboe BZX Options Exchange.
     MXOP
-        MEMX Options Exchange.
+        MEMX LLC Options.
 
     """
 
@@ -299,79 +299,79 @@ class Venue(StringyMixin, str, Enum):
         Get a Venue's description.
         """
         if self == Venue.GLBX:
-            return "CME GLOBEX"
+            return "CME Globex"
         if self == Venue.XNAS:
-            return "NASDAQ"
+            return "Nasdaq - All Markets"
         if self == Venue.XBOS:
-            return "NASDAQ OMX BX"
+            return "Nasdaq OMX BX"
         if self == Venue.XPSX:
-            return "NASDAQ OMX PSX"
+            return "Nasdaq OMX PSX"
         if self == Venue.BATS:
-            return "CBOE BZX U.S. EQUITIES EXCHANGE"
+            return "Cboe BZX U.S. Equities Exchange"
         if self == Venue.BATY:
-            return "CBOE BYX U.S. EQUITIES EXCHANGE"
+            return "Cboe BYX U.S. Equities Exchange"
         if self == Venue.EDGA:
-            return "CBOE EDGA U.S. EQUITIES EXCHANGE"
+            return "Cboe EDGA U.S. Equities Exchange"
         if self == Venue.EDGX:
-            return "CBOE EDGX U.S. EQUITIES EXCHANGE"
+            return "Cboe EDGX U.S. Equities Exchange"
         if self == Venue.XNYS:
-            return "New York Stock Exchange"
+            return "New York Stock Exchange, Inc."
         if self == Venue.XCIS:
-            return "NYSE NATIONAL, INC."
+            return "NYSE National, Inc."
         if self == Venue.XASE:
-            return "NYSE AMERICAN"
+            return "NYSE MKT LLC"
         if self == Venue.ARCX:
-            return "NYSE ARCA"
+            return "NYSE Arca"
         if self == Venue.XCHI:
-            return "NYSE CHICAGO, INC."
+            return "NYSE Chicago, Inc."
         if self == Venue.IEXG:
-            return "INVESTORS EXCHANGE"
+            return "Investors Exchange"
         if self == Venue.FINN:
-            return "FINRA/NASDAQ TRF CARTERET"
+            return "FINRA/Nasdaq TRF Carteret"
         if self == Venue.FINC:
-            return "FINRA/NASDAQ TRF CHICAGO"
+            return "FINRA/Nasdaq TRF Chicago"
         if self == Venue.FINY:
             return "FINRA/NYSE TRF"
         if self == Venue.MEMX:
-            return "MEMX LLC EQUITIES"
+            return "MEMX LLC Equities"
         if self == Venue.EPRL:
-            return "MIAX PEARL EQUITIES"
+            return "MIAX Pearl Equities"
         if self == Venue.AMXO:
-            return "NYSE AMERICAN OPTIONS"
+            return "NYSE American Options"
         if self == Venue.XBOX:
-            return "BOX OPTIONS EXCHANGE"
+            return "BOX Options Exchange"
         if self == Venue.XCBO:
-            return "CBOE OPTIONS EXCHANGE"
+            return "Cboe Options Exchange"
         if self == Venue.EMLD:
-            return "MIAX EMERALD"
+            return "MIAX Emerald"
         if self == Venue.EDGO:
             return "Cboe EDGX Options Exchange"
         if self == Venue.GMNI:
-            return "NASDAQ GEMX"
+            return "ISE Gemini Exchange"
         if self == Venue.XISX:
-            return "NASDAQ ISE"
+            return "International Securities Exchange, LLC"
         if self == Venue.MCRY:
-            return "NASDAQ MRX"
+            return "ISE Mercury, LLC"
         if self == Venue.XMIO:
-            return "MIAX INTERNATIONAL SECURITIES"
+            return "Miami International Securities Exchange"
         if self == Venue.ARCO:
-            return "NYSE ARCA OPTIONS"
+            return "NYSE Arca Options"
         if self == Venue.OPRA:
-            return "OPRA"
+            return "Options Price Reporting Authority"
         if self == Venue.MPRL:
-            return "MIAX PEARL"
+            return "MIAX Pearl"
         if self == Venue.XNDQ:
-            return "NASDAQ OPTIONS MARKET"
+            return "Nasdaq Options Market"
         if self == Venue.XBXO:
-            return "NASDAQ BX OPTIONS"
+            return "Nasdaq OMX BX Options"
         if self == Venue.C2OX:
-            return "CBOE C2 OPTIONS EXCHANGE"
+            return "Cboe C2 Options Exchange"
         if self == Venue.XPHL:
-            return "NASDAQ PHLX"
+            return "Nasdaq OMX PHLX"
         if self == Venue.BATO:
-            return "CBOE BZX Options Exchange"
+            return "Cboe BZX Options Exchange"
         if self == Venue.MXOP:
-            return "MEMX Options Exchange"
+            return "MEMX LLC Options"
         raise ValueError("Unexpected Venue value")
 
 @unique
@@ -383,47 +383,47 @@ class Dataset(StringyMixin, str, Enum):
     GLBX_MDP3
         CME MDP 3.0 Market Data.
     XNAS_ITCH
-        Nasdaq XNAS TotalView-ITCH.
+        Nasdaq TotalView-ITCH.
     XBOS_ITCH
-        Nasdaq XBOS TotalView-ITCH.
+        Nasdaq BX TotalView-ITCH.
     XPSX_ITCH
-        Nasdaq XPSX TotalView-ITCH.
+        Nasdaq PSX TotalView-ITCH.
     BATS_PITCH
-        CBOE BZX.
+        Cboe BZX Depth Pitch.
     BATY_PITCH
-        CBOE BYX.
+        Cboe BYX Depth Pitch.
     EDGA_PITCH
-        CBOE EDGA.
+        Cboe EDGA Depth Pitch.
     EDGX_PITCH
-        CBOE EDGX.
+        Cboe EDGX Depth Pitch.
     XNYS_PILLAR
-        NYSE.
+        NYSE Integrated.
     XCIS_PILLAR
-        NYSE National.
+        NYSE National Integrated.
     XASE_PILLAR
-        NYSE American.
+        NYSE American Integrated.
     XCHI_PILLAR
-        NYSE Chicago.
+        NYSE Chicago Integrated.
     XCIS_BBO
         NYSE National BBO.
     XCIS_TRADES
-        NYSE National TRADES.
+        NYSE National Trades.
     MEMX_MEMOIR
         MEMX Memoir Depth.
     EPRL_DOM
         MIAX Pearl Depth.
     FINN_NLS
-        Finra/Nasdaq TRF.
+        FINRA/Nasdaq TRF.
     FINY_TRADES
-        Finra/NYSE TRF.
+        FINRA/NYSE TRF.
     OPRA_PILLAR
-        OPRA Binary Recipient.
+        OPRA Binary.
     DBEQ_BASIC
         Databento Equities Basic.
     ARCX_PILLAR
-        NYSE Arca.
+        NYSE Arca Integrated.
     IEXG_TOPS
-        Investors Exchange TOPS.
+        IEX TOPS.
 
     """
 
@@ -559,47 +559,47 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.GLBX_MDP3:
             return "CME MDP 3.0 Market Data"
         if self == Dataset.XNAS_ITCH:
-            return "Nasdaq XNAS TotalView-ITCH"
+            return "Nasdaq TotalView-ITCH"
         if self == Dataset.XBOS_ITCH:
-            return "Nasdaq XBOS TotalView-ITCH"
+            return "Nasdaq BX TotalView-ITCH"
         if self == Dataset.XPSX_ITCH:
-            return "Nasdaq XPSX TotalView-ITCH"
+            return "Nasdaq PSX TotalView-ITCH"
         if self == Dataset.BATS_PITCH:
-            return "CBOE BZX"
+            return "Cboe BZX Depth Pitch"
         if self == Dataset.BATY_PITCH:
-            return "CBOE BYX"
+            return "Cboe BYX Depth Pitch"
         if self == Dataset.EDGA_PITCH:
-            return "CBOE EDGA"
+            return "Cboe EDGA Depth Pitch"
         if self == Dataset.EDGX_PITCH:
-            return "CBOE EDGX"
+            return "Cboe EDGX Depth Pitch"
         if self == Dataset.XNYS_PILLAR:
-            return "NYSE"
+            return "NYSE Integrated"
         if self == Dataset.XCIS_PILLAR:
-            return "NYSE National"
+            return "NYSE National Integrated"
         if self == Dataset.XASE_PILLAR:
-            return "NYSE American"
+            return "NYSE American Integrated"
         if self == Dataset.XCHI_PILLAR:
-            return "NYSE Chicago"
+            return "NYSE Chicago Integrated"
         if self == Dataset.XCIS_BBO:
             return "NYSE National BBO"
         if self == Dataset.XCIS_TRADES:
-            return "NYSE National TRADES"
+            return "NYSE National Trades"
         if self == Dataset.MEMX_MEMOIR:
             return "MEMX Memoir Depth"
         if self == Dataset.EPRL_DOM:
             return "MIAX Pearl Depth"
         if self == Dataset.FINN_NLS:
-            return "Finra/Nasdaq TRF"
+            return "FINRA/Nasdaq TRF"
         if self == Dataset.FINY_TRADES:
-            return "Finra/NYSE TRF"
+            return "FINRA/NYSE TRF"
         if self == Dataset.OPRA_PILLAR:
-            return "OPRA Binary Recipient"
+            return "OPRA Binary"
         if self == Dataset.DBEQ_BASIC:
             return "Databento Equities Basic"
         if self == Dataset.ARCX_PILLAR:
-            return "NYSE Arca"
+            return "NYSE Arca Integrated"
         if self == Dataset.IEXG_TOPS:
-            return "Investors Exchange TOPS"
+            return "IEX TOPS"
         raise ValueError("Unexpected Dataset value")
 
 @unique
@@ -613,25 +613,25 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_ITCH_XNAS
         Nasdaq TotalView ITCH.
     XBOS_ITCH_XBOS
-        Nasdaq XBOS TotalView ITCH.
+        Nasdaq BX TotalView ITCH.
     XPSX_ITCH_XPSX
-        Nasdaq XPSX TotalView ITCH.
+        Nasdaq PSX TotalView ITCH.
     BATS_PITCH_BATS
-        CBOE BZX.
+        Cboe BZX Depth Pitch.
     BATY_PITCH_BATY
-        CBOE BYX.
+        Cboe BYX Depth Pitch.
     EDGA_PITCH_EDGA
-        CBOE EDGA.
+        Cboe EDGA Depth Pitch.
     EDGX_PITCH_EDGX
-        CBOE EDGX.
+        Cboe EDGX Depth Pitch.
     XNYS_PILLAR_XNYS
-        NYSE.
+        NYSE Integrated.
     XCIS_PILLAR_XCIS
-        NYSE National.
+        NYSE National Integrated.
     XASE_PILLAR_XASE
-        NYSE American.
+        NYSE American Integrated.
     XCHI_PILLAR_XCHI
-        NYSE Chicago.
+        NYSE Chicago Integrated.
     XCIS_BBO_XCIS
         NYSE National BBO.
     XCIS_TRADES_XCIS
@@ -641,55 +641,55 @@ class Publisher(StringyMixin, str, Enum):
     EPRL_DOM_EPRL
         MIAX Pearl Depth.
     FINN_NLS_FINN
-        FINRA/NASDAQ TRF CARTERET.
+        FINRA/Nasdaq TRF Carteret.
     FINN_NLS_FINC
-        FINRA/NASDAQ TRF CHICAGO.
+        FINRA/Nasdaq TRF Chicago.
     FINY_TRADES_FINY
         FINRA/NYSE TRF.
     OPRA_PILLAR_AMXO
-        OPRA - NYSE AMERICAN OPTIONS.
+        OPRA - NYSE American.
     OPRA_PILLAR_XBOX
-        OPRA - BOX OPTIONS EXCHANGE.
+        OPRA - Boston Options Exchange.
     OPRA_PILLAR_XCBO
-        OPRA - CBOE OPTIONS EXCHANGE.
+        OPRA - Cboe Options Exchange.
     OPRA_PILLAR_EMLD
-        OPRA - MIAX EMERALD.
+        OPRA - MIAX Emerald.
     OPRA_PILLAR_EDGO
         OPRA - Cboe EDGX Options Exchange.
     OPRA_PILLAR_GMNI
-        OPRA - NASDAQ GEMX.
+        OPRA - Nasdaq GEMX.
     OPRA_PILLAR_XISX
-        OPRA - NASDAQ ISE.
+        OPRA - Nasdaq ISE.
     OPRA_PILLAR_MCRY
-        OPRA - NASDAQ MRX.
+        OPRA - Nasdaq MRX.
     OPRA_PILLAR_XMIO
-        OPRA - MIAX INTERNATIONAL SECURITIES.
+        OPRA - Miami International Securities.
     OPRA_PILLAR_ARCO
-        OPRA - NYSE ARCA OPTIONS.
+        OPRA - NYSE Arca.
     OPRA_PILLAR_OPRA
-        OPRA - OPRA.
+        OPRA - Options Price Reporting Authority.
     OPRA_PILLAR_MPRL
-        OPRA - MIAX PEARL.
+        OPRA - MIAX Pearl.
     OPRA_PILLAR_XNDQ
-        OPRA - NASDAQ OPTIONS MARKET.
+        OPRA - Nasdaq Options Market.
     OPRA_PILLAR_XBXO
-        OPRA - NASDAQ BX OPTIONS.
+        OPRA - Nasdaq BX Options.
     OPRA_PILLAR_C2OX
-        OPRA - CBOE C2 OPTIONS EXCHANGE.
+        OPRA - Cboe C2 Options Exchange.
     OPRA_PILLAR_XPHL
-        OPRA - NASDAQ PHLX.
+        OPRA - Nasdaq PHLX.
     OPRA_PILLAR_BATO
-        OPRA - CBOE BZX Options Exchange.
+        OPRA - Cboe BZX Options.
     OPRA_PILLAR_MXOP
-        OPRA - MEMX OPTIONS EXCHANGE.
+        OPRA - MEMX Options Exchange.
     IEXG_TOPS_IEXG
-        Investors Exchange TOPS.
+        IEX TOPS.
     DBEQ_BASIC_XCHI
-        DBEQ Basic - Nyse Chicago.
+        DBEQ Basic - NYSE Chicago.
     DBEQ_BASIC_XCIS
-        DBEQ Basic - Nyse National.
+        DBEQ Basic - NYSE National.
     DBEQ_BASIC_IEXG
-        DBEQ Basic - Investors Exchange.
+        DBEQ Basic - IEX.
     DBEQ_BASIC_EPRL
         DBEQ Basic - MIAX Pearl.
 
@@ -1109,25 +1109,25 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNAS_ITCH_XNAS:
             return "Nasdaq TotalView ITCH"
         if self == Publisher.XBOS_ITCH_XBOS:
-            return "Nasdaq XBOS TotalView ITCH"
+            return "Nasdaq BX TotalView ITCH"
         if self == Publisher.XPSX_ITCH_XPSX:
-            return "Nasdaq XPSX TotalView ITCH"
+            return "Nasdaq PSX TotalView ITCH"
         if self == Publisher.BATS_PITCH_BATS:
-            return "CBOE BZX"
+            return "Cboe BZX Depth Pitch"
         if self == Publisher.BATY_PITCH_BATY:
-            return "CBOE BYX"
+            return "Cboe BYX Depth Pitch"
         if self == Publisher.EDGA_PITCH_EDGA:
-            return "CBOE EDGA"
+            return "Cboe EDGA Depth Pitch"
         if self == Publisher.EDGX_PITCH_EDGX:
-            return "CBOE EDGX"
+            return "Cboe EDGX Depth Pitch"
         if self == Publisher.XNYS_PILLAR_XNYS:
-            return "NYSE"
+            return "NYSE Integrated"
         if self == Publisher.XCIS_PILLAR_XCIS:
-            return "NYSE National"
+            return "NYSE National Integrated"
         if self == Publisher.XASE_PILLAR_XASE:
-            return "NYSE American"
+            return "NYSE American Integrated"
         if self == Publisher.XCHI_PILLAR_XCHI:
-            return "NYSE Chicago"
+            return "NYSE Chicago Integrated"
         if self == Publisher.XCIS_BBO_XCIS:
             return "NYSE National BBO"
         if self == Publisher.XCIS_TRADES_XCIS:
@@ -1137,55 +1137,55 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.EPRL_DOM_EPRL:
             return "MIAX Pearl Depth"
         if self == Publisher.FINN_NLS_FINN:
-            return "FINRA/NASDAQ TRF CARTERET"
+            return "FINRA/Nasdaq TRF Carteret"
         if self == Publisher.FINN_NLS_FINC:
-            return "FINRA/NASDAQ TRF CHICAGO"
+            return "FINRA/Nasdaq TRF Chicago"
         if self == Publisher.FINY_TRADES_FINY:
             return "FINRA/NYSE TRF"
         if self == Publisher.OPRA_PILLAR_AMXO:
-            return "OPRA - NYSE AMERICAN OPTIONS"
+            return "OPRA - NYSE American"
         if self == Publisher.OPRA_PILLAR_XBOX:
-            return "OPRA - BOX OPTIONS EXCHANGE"
+            return "OPRA - Boston Options Exchange"
         if self == Publisher.OPRA_PILLAR_XCBO:
-            return "OPRA - CBOE OPTIONS EXCHANGE"
+            return "OPRA - Cboe Options Exchange"
         if self == Publisher.OPRA_PILLAR_EMLD:
-            return "OPRA - MIAX EMERALD"
+            return "OPRA - MIAX Emerald"
         if self == Publisher.OPRA_PILLAR_EDGO:
             return "OPRA - Cboe EDGX Options Exchange"
         if self == Publisher.OPRA_PILLAR_GMNI:
-            return "OPRA - NASDAQ GEMX"
+            return "OPRA - Nasdaq GEMX"
         if self == Publisher.OPRA_PILLAR_XISX:
-            return "OPRA - NASDAQ ISE"
+            return "OPRA - Nasdaq ISE"
         if self == Publisher.OPRA_PILLAR_MCRY:
-            return "OPRA - NASDAQ MRX"
+            return "OPRA - Nasdaq MRX"
         if self == Publisher.OPRA_PILLAR_XMIO:
-            return "OPRA - MIAX INTERNATIONAL SECURITIES"
+            return "OPRA - Miami International Securities"
         if self == Publisher.OPRA_PILLAR_ARCO:
-            return "OPRA - NYSE ARCA OPTIONS"
+            return "OPRA - NYSE Arca"
         if self == Publisher.OPRA_PILLAR_OPRA:
-            return "OPRA - OPRA"
+            return "OPRA - Options Price Reporting Authority"
         if self == Publisher.OPRA_PILLAR_MPRL:
-            return "OPRA - MIAX PEARL"
+            return "OPRA - MIAX Pearl"
         if self == Publisher.OPRA_PILLAR_XNDQ:
-            return "OPRA - NASDAQ OPTIONS MARKET"
+            return "OPRA - Nasdaq Options Market"
         if self == Publisher.OPRA_PILLAR_XBXO:
-            return "OPRA - NASDAQ BX OPTIONS"
+            return "OPRA - Nasdaq BX Options"
         if self == Publisher.OPRA_PILLAR_C2OX:
-            return "OPRA - CBOE C2 OPTIONS EXCHANGE"
+            return "OPRA - Cboe C2 Options Exchange"
         if self == Publisher.OPRA_PILLAR_XPHL:
-            return "OPRA - NASDAQ PHLX"
+            return "OPRA - Nasdaq PHLX"
         if self == Publisher.OPRA_PILLAR_BATO:
-            return "OPRA - CBOE BZX Options Exchange"
+            return "OPRA - Cboe BZX Options"
         if self == Publisher.OPRA_PILLAR_MXOP:
-            return "OPRA - MEMX OPTIONS EXCHANGE"
+            return "OPRA - MEMX Options Exchange"
         if self == Publisher.IEXG_TOPS_IEXG:
-            return "Investors Exchange TOPS"
+            return "IEX TOPS"
         if self == Publisher.DBEQ_BASIC_XCHI:
-            return "DBEQ Basic - Nyse Chicago"
+            return "DBEQ Basic - NYSE Chicago"
         if self == Publisher.DBEQ_BASIC_XCIS:
-            return "DBEQ Basic - Nyse National"
+            return "DBEQ Basic - NYSE National"
         if self == Publisher.DBEQ_BASIC_IEXG:
-            return "DBEQ Basic - Investors Exchange"
+            return "DBEQ Basic - IEX"
         if self == Publisher.DBEQ_BASIC_EPRL:
             return "DBEQ Basic - MIAX Pearl"
         raise ValueError("Unexpected Publisher value")

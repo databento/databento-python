@@ -596,15 +596,20 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
     # Assert
     written = path.read_text()
     assert written.strip() == (
-        '{"ts_event":1609160400000429831,"rtype":160,"publisher_id":1,"instrument_id":5482,"a'
-        'ction":"C","side":"A","price":3722750000000,"size":1,"channel_id":0,"order_id":64778'
-        '4973705,"flags":128,"ts_in_delta":22993,"sequence":1170352}\n{"ts_event":16091604'
-        '00000431665,"rtype":160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A'
-        '","price":3723000000000,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,'
-        '"ts_in_delta":19621,"sequence":1170353}\n{"ts_event":1609160400000433051,"rtype":'
+        '{"ts_recv":1609160400000704060,"ts_event":1609160400000429831,"rtype":160,'
+        '"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3722750000000,'
+        '"size":1,"channel_id":0,"order_id":647784973705,"flags":128,"ts_in_delta":22993,"sequence":1170352}'
+        "\n"
+        '{"ts_recv":1609160400000711344,"ts_event":1609160400000431665,"rtype":160,"publisher_id":1,"instrument_id":5482,'
+        '"action":"C","side":"A","price":3723000000000,"size":1,"channel_id":0,"order_id":647784973631,'
+        '"flags":128,"ts_in_delta":19621,"sequence":1170353}'
+        "\n"
+        '{"ts_recv":1609160400000728600,"ts_event":1609160400000433051,"rtype":'
         '160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3723250000'
         '000,"size":1,"channel_id":0,"order_id":647784973427,"flags":128,"ts_in_delta":16979,'
-        '"sequence":1170354}\n{"ts_event":1609160400000434353,"rtype":160,"publisher_id":1'
+        '"sequence":1170354}'
+        "\n"
+        '{"ts_recv":1609160400000740248,"ts_event":1609160400000434353,"rtype":160,"publisher_id":1'
         ',"instrument_id":5482,"action":"C","side":"A","price":3723500000000,"size":1,"channe'
         'l_id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":11703'
         "55}"
@@ -631,18 +636,21 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
     # Assert
     written = path.read_text()
     assert written.strip() == (
-        '{"ts_event":1609160400000,"rtype":160,"publisher_id":1,"instrument_id":5482,"action"'
-        ':"C","side":"A","price":3722.75,"size":1,"channel_id":0,"order_id":647784973705,"fla'
-        'gs":128,"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}\n{"ts_event":1609'
-        '160400000,"rtype":160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A",'
-        '"price":3723.0,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,"ts_in_de'
-        'lta":19621,"sequence":1170353,"symbol":"ESH1"}\n{"ts_event":1609160400000,"rtype"'
-        ':160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3723.25,"'
-        'size":1,"channel_id":0,"order_id":647784973427,"flags":128,"ts_in_delta":16979,"sequ'
-        'ence":1170354,"symbol":"ESH1"}\n{"ts_event":1609160400000,"rtype":160,"publisher_'
-        'id":1,"instrument_id":5482,"action":"C","side":"A","price":3723.5,"size":1,"channel_'
-        'id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":1170355,"sy'
-        'mbol":"ESH1"}'
+        '{"ts_recv":1609160400000704000,"ts_event":1609160400000429000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
+        '"action":"C","side":"A","price":3722.75,"size":1,"channel_id":0,"order_id":647784973705,"flags":128,'
+        '"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}'
+        "\n"
+        '{"ts_recv":1609160400000711000,"ts_event":1609160400000431000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
+        '"action":"C","side":"A","price":3723.0,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,'
+        '"ts_in_delta":19621,"sequence":1170353,"symbol":"ESH1"}'
+        "\n"
+        '{"ts_recv":1609160400000728000,"ts_event":1609160400000433000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
+        '"action":"C","side":"A","price":3723.25,"size":1,"channel_id":0,"order_id":647784973427,"flags":128,'
+        '"ts_in_delta":16979,"sequence":1170354,"symbol":"ESH1"}'
+        "\n"
+        '{"ts_recv":1609160400000740000,"ts_event":1609160400000434000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
+        '"action":"C","side":"A","price":3723.5,"size":1,"channel_id":0,"order_id":647784973094,"flags":128,'
+        '"ts_in_delta":17883,"sequence":1170355,"symbol":"ESH1"}'
     )
 
 
@@ -666,21 +674,25 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
     # Assert
     written = path.read_text()
     assert written.strip() == (
-        '{"ts_event":1609160400006001487,"rtype":1,"publisher_id":1,"instrument_id":5482,"act'
-        'ion":"A","side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delt'
-        'a":17214,"sequence":1170362,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid'
-        '_sz_00":24,"ask_sz_00":11,"bid_ct_00":15,"ask_ct_00":9}\n{"ts_event":160916040000'
-        '6146661,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","dep'
-        'th":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170'
-        '364,"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":1'
-        '2,"bid_ct_00":15,"ask_ct_00":10}\n{"ts_event":1609160400007044577,"rtype":1,"publ'
-        'isher_id":1,"instrument_id":5482,"action":"A","side":"B","depth":0,"price":372025000'
-        '0000,"size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"bid_px_00":3720250'
-        '000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":12,"bid_ct_00":16,"ask_c'
-        't_00":10}\n{"ts_event":1609160400007169135,"rtype":1,"publisher_id":1,"instrument'
-        '_id":5482,"action":"C","side":"A","depth":0,"price":3720500000000,"size":1,"flags":1'
-        '28,"ts_in_delta":17361,"sequence":1170366,"bid_px_00":3720250000000,"ask_px_00":3720'
-        '500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,"ask_ct_00":9}'
+        '{"ts_recv":1609160400006136329,"ts_event":1609160400006001487,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A",'
+        '"side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":17214,"sequence":1170362,'
+        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":11,"bid_ct_00":15,'
+        '"ask_ct_00":9}'
+        "\n"
+        '{"ts_recv":1609160400006246513,"ts_event":1609160400006146661,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A",'
+        '"side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,'
+        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":12,"bid_ct_00":15,'
+        '"ask_ct_00":10}'
+        "\n"
+        '{"ts_recv":1609160400007159323,"ts_event":1609160400007044577,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A",'
+        '"side":"B","depth":0,"price":3720250000000,"size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,'
+        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":12,"bid_ct_00":16,'
+        '"ask_ct_00":10}'
+        "\n"
+        '{"ts_recv":1609160400007260967,"ts_event":1609160400007169135,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"C",'
+        '"side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,'
+        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
+        '"ask_ct_00":9}'
     )
 
 
@@ -704,21 +716,25 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     # Assert
     written = path.read_text()
     assert written.strip() == (
-        '{"ts_event":1609160400006,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"'
-        'A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17214,"seq'
-        'uence":1170362,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":11,'
-        '"bid_ct_00":15,"ask_ct_00":9,"symbol":"ESH1"}\n{"ts_event":1609160400006,"rtype":'
-        '1,"publisher_id":1,"instrument_id":5482,"action":"A","side":"A","depth":0,"price":37'
-        '20.5,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"bid_px_00":3720.25'
-        ',"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,"bid_ct_00":15,"ask_ct_00":10,"sym'
-        'bol":"ESH1"}\n{"ts_event":1609160400007,"rtype":1,"publisher_id":1,"instrument_id'
-        '":5482,"action":"A","side":"B","depth":0,"price":3720.25,"size":2,"flags":128,"ts_in'
-        '_delta":18115,"sequence":1170365,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":'
-        '26,"ask_sz_00":12,"bid_ct_00":16,"ask_ct_00":10,"symbol":"ESH1"}\n{"ts_event":160'
-        '9160400007,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","'
-        'depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,'
-        '"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
-        '"ask_ct_00":9,"symbol":"ESH1"}'
+        '{"ts_recv":1609160400006136000,"ts_event":1609160400006001000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
+        '"action":"A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17214,'
+        '"sequence":1170362,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":11,'
+        '"bid_ct_00":15,"ask_ct_00":9,"symbol":"ESH1"}'
+        "\n"
+        '{"ts_recv":1609160400006246000,"ts_event":1609160400006146000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
+        '"action":"A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":18858,'
+        '"sequence":1170364,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,'
+        '"bid_ct_00":15,"ask_ct_00":10,"symbol":"ESH1"}'
+        "\n"
+        '{"ts_recv":1609160400007159000,"ts_event":1609160400007044000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
+        '"action":"A","side":"B","depth":0,"price":3720.25,"size":2,"flags":128,"ts_in_delta":18115,'
+        '"sequence":1170365,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":12,'
+        '"bid_ct_00":16,"ask_ct_00":10,"symbol":"ESH1"}'
+        "\n"
+        '{"ts_recv":1609160400007260000,"ts_event":1609160400007169000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
+        '"action":"C","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17361,'
+        '"sequence":1170366,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,'
+        '"bid_ct_00":16,"ask_ct_00":9,"symbol":"ESH1"}'
     )
 
 
