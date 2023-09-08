@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.19.1 - TBD
+## 0.19.1 - 2023-09-08
 
 #### Bug fixes
 - Fixed an issue where the index column was not serialized with `DBNStore.to_json`
