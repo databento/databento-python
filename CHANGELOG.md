@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.19.2 - TBD
+
+### Enhancements
+- Added `ARCX.PILLAR.ARCX` publisher
+
 ## 0.19.1 - 2023-09-08
 
 #### Bug fixes

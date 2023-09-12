@@ -692,6 +692,8 @@ class Publisher(StringyMixin, str, Enum):
         DBEQ Basic - IEX.
     DBEQ_BASIC_EPRL
         DBEQ Basic - MIAX Pearl.
+    ARCX_PILLAR_ARCX
+        NYSE Arca Integrated.
 
     """
 
@@ -737,6 +739,7 @@ class Publisher(StringyMixin, str, Enum):
     DBEQ_BASIC_XCIS = "DBEQ.BASIC.XCIS"
     DBEQ_BASIC_IEXG = "DBEQ.BASIC.IEXG"
     DBEQ_BASIC_EPRL = "DBEQ.BASIC.EPRL"
+    ARCX_PILLAR_ARCX = "ARCX.PILLAR.ARCX"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -827,6 +830,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.DBEQ_BASIC_IEXG
         if value == 42:
             return Publisher.DBEQ_BASIC_EPRL
+        if value == 43:
+            return Publisher.ARCX_PILLAR_ARCX
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -917,6 +922,8 @@ class Publisher(StringyMixin, str, Enum):
             return 41
         if self == Publisher.DBEQ_BASIC_EPRL:
             return 42
+        if self == Publisher.ARCX_PILLAR_ARCX:
+            return 43
         raise ValueError("Invalid Publisher")
     @property
     def venue(self) -> Venue:
@@ -1007,6 +1014,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.IEXG
         if self == Publisher.DBEQ_BASIC_EPRL:
             return Venue.EPRL
+        if self == Publisher.ARCX_PILLAR_ARCX:
+            return Venue.ARCX
         raise ValueError("Unexpected Publisher value")
     @property
     def dataset(self) -> Dataset:
@@ -1097,6 +1106,8 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.DBEQ_BASIC
         if self == Publisher.DBEQ_BASIC_EPRL:
             return Dataset.DBEQ_BASIC
+        if self == Publisher.ARCX_PILLAR_ARCX:
+            return Dataset.ARCX_PILLAR
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1188,4 +1199,6 @@ class Publisher(StringyMixin, str, Enum):
             return "DBEQ Basic - IEX"
         if self == Publisher.DBEQ_BASIC_EPRL:
             return "DBEQ Basic - MIAX Pearl"
+        if self == Publisher.ARCX_PILLAR_ARCX:
+            return "NYSE Arca Integrated"
         raise ValueError("Unexpected Publisher value")
