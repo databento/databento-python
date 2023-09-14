@@ -54,6 +54,7 @@ class BatchHttpAPI(BentoHttpAPI):
         end: pd.Timestamp | date | str | int | None = None,
         encoding: Encoding | str = "dbn",
         compression: Compression | str = "zstd",
+        map_symbols: bool = False,
         split_duration: SplitDuration | str = "day",
         split_size: int | None = None,
         packaging: Packaging | str | None = None,
@@ -91,6 +92,9 @@ class BatchHttpAPI(BentoHttpAPI):
             The data encoding.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
             The data compression format (if any).
+        map_symbols : bool, default False
+            If the raw symbol should be appended to every text encoded record.
+            Must be requested with either 'csv' or 'json' encoding.
         split_duration : SplitDuration or str {'day', 'week', 'month', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
             A week starts on Sunday UTC.
@@ -131,7 +135,10 @@ class BatchHttpAPI(BentoHttpAPI):
             "compression": str(validate_enum(compression, Compression, "compression"))
             if compression
             else None,
-            "split_duration": str(validate_enum(split_duration, SplitDuration, "split_duration")),
+            "map_symbols": map_symbols,
+            "split_duration": str(
+                validate_enum(split_duration, SplitDuration, "split_duration"),
+            ),
             "packaging": str(validate_enum(packaging, Packaging, "packaging"))
             if packaging
             else None,

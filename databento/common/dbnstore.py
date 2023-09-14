@@ -847,7 +847,7 @@ class DBNStore:
             prices are replaced with an empty string.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the instrument ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
         schema : Schema or str, optional
             The schema for the csv.
@@ -922,7 +922,7 @@ class DBNStore:
             prices are replaced with NaN.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the instrument ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
         schema : Schema or str, optional
             The schema for the dataframe.
@@ -1020,7 +1020,7 @@ class DBNStore:
             the correct scale (using the fixed precision scalar 1e-9).
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
-            a 'symbol' column, mapping the instrument ID to its native symbol for
+            a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
         schema : Schema or str, optional
             The schema for the json.
