@@ -2,8 +2,12 @@
 
 ## 0.19.2 - TBD
 
-### Enhancements
+#### Enhancements
 - Added `ARCX.PILLAR.ARCX` publisher
+- Added `map_symbols` option for `batch.submit_job(...)`, default `False`. When `True` this appends a requested symbol field to each record (available for CSV and JSON text encodings)
+
+#### Bug fixes
+- Fixed an issue where no disconnection exception were raised when iterating the `Live` client.
 
 ## 0.19.1 - 2023-09-08
 

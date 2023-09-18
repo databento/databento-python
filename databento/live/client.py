@@ -156,6 +156,7 @@ class Live:
                     self._session.resume_reading()
 
         self._dbn_queue._enabled.clear()
+        self.block_for_close()
         raise StopIteration
 
     def __repr__(self) -> str:
@@ -528,8 +529,9 @@ class Live:
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
+        except BentoError:
+            raise
         except Exception:
-            logger.exception("exception encountered blocking for close")
             raise BentoError("connection lost") from None
 
     async def wait_for_close(

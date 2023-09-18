@@ -194,7 +194,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
     def connection_lost(self, exc: Exception | None) -> None:
         """
-        Override of `connection_list`.
+        Override of `connection_lost`.
 
         See Also
         --------
@@ -355,6 +355,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                     logger.error(
                         "gateway error: %s",
                         record.err,
+                    )
+                    self.disconnected.set_exception(
+                        BentoError(record.err),
                     )
                 if isinstance(record, databento_dbn.SystemMsg):
                     if record.is_heartbeat:

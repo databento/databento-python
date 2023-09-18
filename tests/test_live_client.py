@@ -730,7 +730,6 @@ def test_live_sync_iteration(
     assert isinstance(records[2], databento_dbn.MBOMsg)
     assert isinstance(records[3], databento_dbn.MBOMsg)
 
-
 async def test_live_callback(
     live_client: client.Live,
 ) -> None:
