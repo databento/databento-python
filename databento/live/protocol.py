@@ -31,7 +31,7 @@ from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 
 
-MIN_BUFFER_SIZE: int = 64 * 1024  # 64kb
+RECV_BUFFER_SIZE: int = 64 * 2**10  # 64kb
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     ) -> None:
         self.__api_key = api_key
         self.__transport: asyncio.Transport | None = None
-        self.__buffer: bytearray
+        self.__buffer: bytearray = bytearray(RECV_BUFFER_SIZE)
 
         self._dataset = validate_semantic_string(dataset, "dataset")
         self._ts_out = ts_out
@@ -231,7 +231,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         asycnio.BufferedProtocol.get_buffer
 
         """
-        self.__buffer = bytearray(max(sizehint, MIN_BUFFER_SIZE))
+        if len(self.__buffer) < sizehint:
+            self.__buffer = bytearray(sizehint)
         return self.__buffer
 
     def buffer_updated(self, nbytes: int) -> None:

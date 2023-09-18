@@ -822,9 +822,9 @@ async def test_live_stream_to_dbn_with_tiny_buffer(
 ) -> None:
     """
     Test that DBN data streamed by the MockLiveServer is properly re-
-    constructed client side when using the small values for MIN_BUFFER_SIZE.
+    constructed client side when using the small values for RECV_BUFFER_SIZE.
     """
-    monkeypatch.setattr(protocol, "MIN_BUFFER_SIZE", buffer_size)
+    monkeypatch.setattr(protocol, "RECV_BUFFER_SIZE", buffer_size)
     output = tmp_path / "output.dbn"
 
     live_client.subscribe(

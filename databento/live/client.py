@@ -145,7 +145,6 @@ class Live:
                     "yielding %s record from next",
                     type(record).__name__,
                 )
-                self._dbn_queue.task_done()
                 return record
             finally:
                 if not self._dbn_queue.half_full() and not self._session.is_reading():
