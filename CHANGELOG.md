@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.19.2 - TBD
+## 0.20.0 - 2023-09-21
 
 #### Enhancements
 - Added `ARCX.PILLAR.ARCX` publisher
 - Added `map_symbols` option for `batch.submit_job(...)`, default `False`. When `True` this appends a requested symbol field to each record (available for CSV and JSON text encodings)
+- Upgraded `databento-dbn` to 0.10.2
 
 #### Bug fixes
 - Fixed an issue where no disconnection exception were raised when iterating the `Live` client
