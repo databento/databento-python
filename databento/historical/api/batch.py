@@ -54,7 +54,10 @@ class BatchHttpAPI(BentoHttpAPI):
         end: pd.Timestamp | date | str | int | None = None,
         encoding: Encoding | str = "dbn",
         compression: Compression | str = "zstd",
+        pretty_px: bool = False,
+        pretty_ts: bool = False,
         map_symbols: bool = False,
+        split_symbols: bool = False,
         split_duration: SplitDuration | str = "day",
         split_size: int | None = None,
         packaging: Packaging | str | None = None,
@@ -92,9 +95,17 @@ class BatchHttpAPI(BentoHttpAPI):
             The data encoding.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
             The data compression format (if any).
+        pretty_px : bool, default False
+            If prices should be formatted to the correct scale (using the fixed-precision scalar 1e-9).
+            Only applicable for 'csv' or 'json' encodings.
+        pretty_ts : bool, default False
+            If timestamps should be formatted as ISO 8601 strings.
+            Only applicable for 'csv' or 'json' encodings.
         map_symbols : bool, default False
-            If the raw symbol should be appended to every text encoded record.
-            Must be requested with either 'csv' or 'json' encoding.
+            If the requested symbol should be appended to every text encoded record.
+            Only applicable for 'csv' or 'json' encodings.
+        split_symbols : bool, default False
+            If files should be split by raw symbol. Cannot be requested with `'ALL_SYMBOLS'`.
         split_duration : SplitDuration or str {'day', 'week', 'month', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
             A week starts on Sunday UTC.
@@ -135,7 +146,10 @@ class BatchHttpAPI(BentoHttpAPI):
             "compression": str(validate_enum(compression, Compression, "compression"))
             if compression
             else None,
+            "pretty_px": pretty_px,
+            "pretty_ts": pretty_ts,
             "map_symbols": map_symbols,
+            "split_symbols": split_symbols,
             "split_duration": str(
                 validate_enum(split_duration, SplitDuration, "split_duration"),
             ),

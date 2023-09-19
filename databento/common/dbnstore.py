@@ -113,13 +113,13 @@ def format_dataframe(
             if column in df.columns:
                 df[column] = df[column].where(df[column] != type_max, np.nan)
 
-    if pretty_ts:
-        for ts_field in struct._timestamp_fields:
-            df[ts_field] = pd.to_datetime(df[ts_field], errors="coerce", utc=True)
-
     if pretty_px:
         for px_field in struct._price_fields:
             df[px_field] = df[px_field].replace(INT64_NULL, np.nan) / FIXED_PRICE_SCALE
+
+    if pretty_ts:
+        for ts_field in struct._timestamp_fields:
+            df[ts_field] = pd.to_datetime(df[ts_field], errors="coerce", utc=True)
 
     for column, dtype in SCHEMA_DTYPES_MAP[schema]:
         if dtype.startswith("S") and column not in struct._hidden_fields:
@@ -826,8 +826,8 @@ class DBNStore:
     def to_csv(
         self,
         path: Path | str,
-        pretty_ts: bool = True,
         pretty_px: bool = True,
+        pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
     ) -> None:
@@ -838,13 +838,13 @@ class DBNStore:
         ----------
         path : Path or str
             The file path to write to.
-        pretty_ts : bool, default True
-            If all timestamp columns should be converted from UNIX nanosecond
-            `int` to `pd.Timestamp` tz-aware (UTC).
         pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at
-            the correct scale (using the fixed precision scalar 1e-9). Null
+            the correct scale (using the fixed-precision scalar 1e-9). Null
             prices are replaced with an empty string.
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to tz-aware UTC `pd.Timestamp`.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
@@ -864,8 +864,8 @@ class DBNStore:
 
         """
         df_iter = self.to_df(
-            pretty_ts=pretty_ts,
             pretty_px=pretty_px,
+            pretty_ts=pretty_ts,
             map_symbols=map_symbols,
             schema=schema,
             count=2**16,
@@ -881,8 +881,8 @@ class DBNStore:
     @overload
     def to_df(
         self,
-        pretty_ts: bool = ...,
         pretty_px: bool = ...,
+        pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
         count: None = ...,
@@ -892,8 +892,8 @@ class DBNStore:
     @overload
     def to_df(
         self,
-        pretty_ts: bool = ...,
         pretty_px: bool = ...,
+        pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
         count: int = ...,
@@ -902,8 +902,8 @@ class DBNStore:
 
     def to_df(
         self,
-        pretty_ts: bool = True,
         pretty_px: bool = True,
+        pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
         count: int | None = None,
@@ -913,13 +913,13 @@ class DBNStore:
 
         Parameters
         ----------
-        pretty_ts : bool, default True
-            If all timestamp columns should be converted from UNIX nanosecond
-            `int` to `pd.Timestamp` tz-aware (UTC).
         pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at
-            the correct scale (using the fixed precision scalar 1e-9). Null
+            the correct scale (using the fixed-precision scalar 1e-9). Null
             prices are replaced with NaN.
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to tz-aware UTC `pd.Timestamp`.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
@@ -1000,8 +1000,8 @@ class DBNStore:
     def to_json(
         self,
         path: Path | str,
-        pretty_ts: bool = True,
         pretty_px: bool = True,
+        pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
     ) -> None:
@@ -1012,12 +1012,12 @@ class DBNStore:
         ----------
         path : Path or str
             The file path to write to.
-        pretty_ts : bool, default True
-            If all timestamp columns should be converted from UNIX nanosecond
-            `int` to `pd.Timestamp` tz-aware (UTC).
         pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at
-            the correct scale (using the fixed precision scalar 1e-9).
+            the correct scale (using the fixed-precision scalar 1e-9).
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to tz-aware UTC `pd.Timestamp`.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
@@ -1037,8 +1037,8 @@ class DBNStore:
 
         """
         df_iter = self.to_df(
-            pretty_ts=pretty_ts,
             pretty_px=pretty_px,
+            pretty_ts=pretty_ts,
             map_symbols=map_symbols,
             schema=schema,
             count=2**16,
