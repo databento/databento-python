@@ -9,6 +9,9 @@
 #### Bug fixes
 - Fixed an issue where no disconnection exception were raised when iterating the `Live` client.
 
+#### Breaking changes
+- Removed `default_value` parameter from `Historical.symbology.resolve`
+
 ## 0.19.1 - 2023-09-08
 
 #### Bug fixes

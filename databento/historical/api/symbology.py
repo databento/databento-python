@@ -33,7 +33,6 @@ class SymbologyHttpAPI(BentoHttpAPI):
         stype_out: SType | str,
         start_date: date | str,
         end_date: date | str | None = None,
-        default_value: str = "",
     ) -> dict[str, Any]:
         """
         Request symbology mappings resolution from Databento.
@@ -54,8 +53,6 @@ class SymbologyHttpAPI(BentoHttpAPI):
             The start date (UTC) of the request time range (inclusive).
         end_date : date or str, optional
             The end date (UTC) of the request time range (exclusive).
-        default_value : str, default '' (empty string)
-            The default value to return if a symbol cannot be resolved.
 
         Returns
         -------
@@ -73,7 +70,6 @@ class SymbologyHttpAPI(BentoHttpAPI):
             "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
             "start_date": datetime_to_date_string(start_date),
             "end_date": optional_date_to_string(end_date),
-            "default_value": default_value,
         }
 
         response: Response = self._post(
