@@ -7,7 +7,8 @@
 - Added `map_symbols` option for `batch.submit_job(...)`, default `False`. When `True` this appends a requested symbol field to each record (available for CSV and JSON text encodings)
 
 #### Bug fixes
-- Fixed an issue where no disconnection exception were raised when iterating the `Live` client.
+- Fixed an issue where no disconnection exception were raised when iterating the `Live` client
+- Fixed an issue where calling `DBNStore.to_df`, `DBNStore.to_json`, or `DBNStore.to_csv` with `map_symbols=True` would cause a `TypeError`
 
 #### Breaking changes
 - Removed `default_value` parameter from `Historical.symbology.resolve`

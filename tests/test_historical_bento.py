@@ -5,6 +5,7 @@ import datetime as dt
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable
+from unittest.mock import MagicMock
 
 import databento
 import numpy as np
@@ -1140,3 +1141,50 @@ def test_dbnstore_to_df_with_count_empty(
 
     # Assert
     assert next(df_iter).empty
+
+
+def test_dbnstore_to_df_cannot_map_symbols(
+    test_data: Callable[[Schema], bytes],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Test that calling to_df with map_symbols=True on a DBNStore with a
+    stype_out other than 'instrument_id' raises a ValueError.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+    monkeypatch.setattr(DBNStore, "stype_out", MagicMock(return_type=SType.RAW_SYMBOL))
+
+    # Assert
+    with pytest.raises(ValueError):
+        dbnstore.to_df(
+            map_symbols=True,
+        )
+
+def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
+    test_data: Callable[[Schema], bytes],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Test that calling to_df with on a DBNStore with a stype_out other than
+    'instrument_id' won't raise a ValueError if `map_symbols` is not explicitly
+    set.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+    )
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+    monkeypatch.setattr(DBNStore, "stype_out", MagicMock(return_type=SType.RAW_SYMBOL))
+
+    df_iter = dbnstore.to_df()
+
+    # Assert
+    assert len(df_iter) == 4

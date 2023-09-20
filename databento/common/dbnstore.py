@@ -828,7 +828,7 @@ class DBNStore:
         path: Path | str,
         pretty_px: bool = True,
         pretty_ts: bool = True,
-        map_symbols: bool = True,
+        map_symbols: bool | None = None,
         schema: Schema | str | None = None,
     ) -> None:
         """
@@ -883,7 +883,7 @@ class DBNStore:
         self,
         pretty_px: bool = ...,
         pretty_ts: bool = ...,
-        map_symbols: bool = ...,
+        map_symbols: bool | None = ...,
         schema: Schema | str | None = ...,
         count: None = ...,
     ) -> pd.DataFrame:
@@ -894,7 +894,7 @@ class DBNStore:
         self,
         pretty_px: bool = ...,
         pretty_ts: bool = ...,
-        map_symbols: bool = ...,
+        map_symbols: bool | None = ...,
         schema: Schema | str | None = ...,
         count: int = ...,
     ) -> DataFrameIterator:
@@ -904,7 +904,7 @@ class DBNStore:
         self,
         pretty_px: bool = True,
         pretty_ts: bool = True,
-        map_symbols: bool = True,
+        map_symbols: bool | None = None,
         schema: Schema | str | None = None,
         count: int | None = None,
     ) -> pd.DataFrame | DataFrameIterator:
@@ -951,8 +951,16 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        if not self._instrument_id_index:
-            self._instrument_id_index = self._build_instrument_id_index()
+        if map_symbols is None:
+            map_symbols = self.stype_out == SType.INSTRUMENT_ID
+
+        if map_symbols:
+            if self.stype_out != SType.INSTRUMENT_ID:
+                raise ValueError(
+                    "`map_symbols` is not supported when `stype_out` is not 'instrument_id'",
+                )
+            if not self._instrument_id_index:
+                self._instrument_id_index = self._build_instrument_id_index()
 
         if count is None:
             records = iter([self.to_ndarray(schema)])
@@ -1002,7 +1010,7 @@ class DBNStore:
         path: Path | str,
         pretty_px: bool = True,
         pretty_ts: bool = True,
-        map_symbols: bool = True,
+        map_symbols: bool | None = None,
         schema: Schema | str | None = None,
     ) -> None:
         """
