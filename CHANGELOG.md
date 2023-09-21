@@ -4,7 +4,10 @@
 
 #### Enhancements
 - Added `ARCX.PILLAR.ARCX` publisher
-- Added `map_symbols` option for `batch.submit_job(...)`, default `False`. When `True` this appends a requested symbol field to each record (available for CSV and JSON text encodings)
+- Added `pretty_px` option for `batch.submit_job`, which formats prices to the correct scale using the fixed-precision scalar 1e-9 (available for CSV and JSON text encodings)
+- Added `pretty_ts` option for `batch.submit_job`, which formats timestamps as ISO 8601 strings (available for CSV and JSON text encodings)
+- Added `map_symbols` option for `batch.submit_job`, which appends a symbol field to each text-encoded record (available for CSV and JSON text encodings)
+- Added `split_symbols` option for `batch.submit_job`, which will split files by raw symbol
 - Upgraded `databento-dbn` to 0.10.2
 
 #### Bug fixes
