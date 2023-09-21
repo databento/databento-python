@@ -145,7 +145,6 @@ class Live:
                     "yielding %s record from next",
                     type(record).__name__,
                 )
-                self._dbn_queue.task_done()
                 return record
             finally:
                 if not self._dbn_queue.half_full() and not self._session.is_reading():
@@ -156,6 +155,7 @@ class Live:
                     self._session.resume_reading()
 
         self._dbn_queue._enabled.clear()
+        self.block_for_close()
         raise StopIteration
 
     def __repr__(self) -> str:
@@ -528,8 +528,9 @@ class Live:
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
+        except BentoError:
+            raise
         except Exception:
-            logger.exception("exception encountered blocking for close")
             raise BentoError("connection lost") from None
 
     async def wait_for_close(

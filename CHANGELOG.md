@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.20.0 - 2023-09-21
+
+#### Enhancements
+- Added `ARCX.PILLAR.ARCX` publisher
+- Added `pretty_px` option for `batch.submit_job`, which formats prices to the correct scale using the fixed-precision scalar 1e-9 (available for CSV and JSON text encodings)
+- Added `pretty_ts` option for `batch.submit_job`, which formats timestamps as ISO 8601 strings (available for CSV and JSON text encodings)
+- Added `map_symbols` option for `batch.submit_job`, which appends a symbol field to each text-encoded record (available for CSV and JSON text encodings)
+- Added `split_symbols` option for `batch.submit_job`, which will split files by raw symbol
+- Upgraded `databento-dbn` to 0.10.2
+
+#### Bug fixes
+- Fixed an issue where no disconnection exception were raised when iterating the `Live` client
+- Fixed an issue where calling `DBNStore.to_df`, `DBNStore.to_json`, or `DBNStore.to_csv` with `map_symbols=True` would cause a `TypeError`
+
+#### Breaking changes
+- Removed `default_value` parameter from `Historical.symbology.resolve`
+- Swapped the ordering for the `pretty_px` and `pretty_ts` boolean parameters
+
 ## 0.19.1 - 2023-09-08
 
 #### Bug fixes

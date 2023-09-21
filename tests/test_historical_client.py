@@ -126,7 +126,6 @@ def test_re_request_symbology_makes_expected_request(
         "stype_out": "instrument_id",
         "start_date": "2020-12-28",
         "end_date": "2020-12-29",
-        "default_value": "",
     }
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
