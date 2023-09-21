@@ -9,13 +9,7 @@ from collections.abc import Iterator
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import (
-    IO,
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    overload,
-)
+from typing import IO, TYPE_CHECKING, Any, Callable, overload
 
 import databento_dbn
 import numpy as np
