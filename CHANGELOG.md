@@ -16,6 +16,7 @@
 
 #### Breaking changes
 - Removed `default_value` parameter from `Historical.symbology.resolve`
+- Swapped the ordering for the `pretty_px` and `pretty_ts` boolean parameters
 
 ## 0.19.1 - 2023-09-08
 
