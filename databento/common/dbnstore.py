@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import abc
-import datetime as dt
 import itertools
 import logging
 from collections.abc import Generator
@@ -30,7 +29,7 @@ from databento.common.data import SCHEMA_COLUMNS
 from databento.common.data import SCHEMA_DTYPES_MAP
 from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.error import BentoError
-from databento.common.symbology import InstrumentIdMappingInterval
+from databento.common.symbology import InstrumentMap
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
 from databento.live import DBNRecord
@@ -98,7 +97,6 @@ def format_dataframe(
     schema: Schema,
     pretty_px: bool,
     pretty_ts: bool,
-    instrument_id_index: dict[dt.date, dict[int, str]],
 ) -> pd.DataFrame:
     struct = SCHEMA_STRUCT_MAP[schema]
 
@@ -121,13 +119,6 @@ def format_dataframe(
 
     index_column = "ts_event" if schema.value.startswith("ohlcv") else "ts_recv"
     df.set_index(index_column, inplace=True)
-
-    if instrument_id_index:
-        df_index = df.index if pretty_ts else pd.to_datetime(df.index, utc=True)
-        dates = [ts.date() for ts in df_index]
-        df["symbol"] = [
-            instrument_id_index[dates[i]][p] for i, p in enumerate(df["instrument_id"])
-        ]
 
     return df
 
@@ -402,11 +393,7 @@ class DBNStore:
             metadata_bytes.getvalue(),
         )
 
-        # This is populated when _map_symbols is called
-        self._instrument_id_index: dict[
-            dt.date,
-            dict[int, str],
-        ] = {}
+        self._instrument_map = InstrumentMap()
 
     def __iter__(self) -> Generator[DBNRecord, None, None]:
         reader = self.reader
@@ -422,6 +409,8 @@ class DBNStore:
                 for record in records:
                     if isinstance(record, databento_dbn.Metadata):
                         continue
+                    if isinstance(record, databento_dbn.SymbolMappingMsg):
+                        self._instrument_map.insert_symbol_mapping_msg(record)
                     yield record
             else:
                 if len(decoder.buffer()) > 0:
@@ -433,38 +422,6 @@ class DBNStore:
     def __repr__(self) -> str:
         name = self.__class__.__name__
         return f"<{name}(schema={self.schema})>"
-
-    def _build_instrument_id_index(self) -> dict[dt.date, dict[int, str]]:
-        intervals: list[InstrumentIdMappingInterval] = []
-        for raw_symbol, i in self.mappings.items():
-            for row in i:
-                symbol = row["symbol"]
-                if symbol == "":
-                    continue
-                intervals.append(
-                    InstrumentIdMappingInterval(
-                        start_date=row["start_date"],
-                        end_date=row["end_date"],
-                        raw_symbol=raw_symbol,
-                        instrument_id=int(row["symbol"]),
-                    ),
-                )
-
-        instrument_id_index: dict[dt.date, dict[int, str]] = {}
-        for interval in intervals:
-            for ts in pd.date_range(
-                start=interval.start_date,
-                end=interval.end_date,
-                # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
-                **{"inclusive" if pd.__version__ >= "1.4.0" else "closed": "left"},
-            ):
-                d: dt.date = ts.date()
-                date_map: dict[int, str] = instrument_id_index.get(d, {})
-                if not date_map:
-                    instrument_id_index[d] = date_map
-                date_map[interval.instrument_id] = interval.raw_symbol
-
-        return instrument_id_index
 
     @property
     def compression(self) -> Compression:
@@ -813,13 +770,20 @@ class DBNStore:
             date range.
 
         """
+        if self.end is None:
+            end_date = None
+        elif self.start.date() == self.end.date():
+            end_date = (self.start + pd.Timedelta(days=1)).date()
+        else:
+            end_date = self.end
+
         return client.symbology.resolve(
             dataset=self.dataset,
             symbols=self.symbols,
             stype_in=self.stype_in,
             stype_out=self.stype_out,
             start_date=self.start.date(),
-            end_date=self.end.date() if self.end else None,
+            end_date=end_date,
         )
 
     def to_csv(
@@ -882,7 +846,7 @@ class DBNStore:
         self,
         pretty_px: bool = ...,
         pretty_ts: bool = ...,
-        map_symbols: bool | None = ...,
+        map_symbols: bool = ...,
         schema: Schema | str | None = ...,
         count: None = ...,
     ) -> pd.DataFrame:
@@ -893,7 +857,7 @@ class DBNStore:
         self,
         pretty_px: bool = ...,
         pretty_ts: bool = ...,
-        map_symbols: bool | None = ...,
+        map_symbols: bool = ...,
         schema: Schema | str | None = ...,
         count: int = ...,
     ) -> DataFrameIterator:
@@ -903,7 +867,7 @@ class DBNStore:
         self,
         pretty_px: bool = True,
         pretty_ts: bool = True,
-        map_symbols: bool | None = None,
+        map_symbols: bool = True,
         schema: Schema | str | None = None,
         count: int | None = None,
     ) -> pd.DataFrame | DataFrameIterator:
@@ -950,29 +914,22 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        if map_symbols is None:
-            map_symbols = self.stype_out == SType.INSTRUMENT_ID
-
-        if map_symbols:
-            if self.stype_out != SType.INSTRUMENT_ID:
-                raise ValueError(
-                    "`map_symbols` is not supported when `stype_out` is not 'instrument_id'",
-                )
-            if not self._instrument_id_index:
-                self._instrument_id_index = self._build_instrument_id_index()
-
         if count is None:
             records = iter([self.to_ndarray(schema)])
         else:
             records = self.to_ndarray(schema, count)
 
+        if map_symbols:
+            self._instrument_map.insert_metadata(self.metadata)
+
         df_iter = DataFrameIterator(
             records=records,
             schema=schema,
             count=count,
+            instrument_map=self._instrument_map,
             pretty_px=pretty_px,
             pretty_ts=pretty_ts,
-            instrument_id_index=self._instrument_id_index if map_symbols else {},
+            map_symbols=map_symbols,
         )
 
         if count is None:
@@ -1168,24 +1125,24 @@ class DataFrameIterator:
         records: Iterator[np.ndarray[Any, Any]],
         count: int | None,
         schema: Schema,
+        instrument_map: InstrumentMap,
         pretty_px: bool = True,
         pretty_ts: bool = True,
-        instrument_id_index: dict[dt.date, dict[int, str]] | None = None,
+        map_symbols: bool = True,
     ):
         self._records = records
         self._schema = schema
         self._count = count
         self._pretty_px = pretty_px
         self._pretty_ts = pretty_ts
-        self._instrument_id_index = (
-            instrument_id_index if instrument_id_index is not None else {}
-        )
+        self._map_symbols = map_symbols
+        self._instrument_map = instrument_map
 
     def __iter__(self) -> DataFrameIterator:
         return self
 
     def __next__(self) -> pd.DataFrame:
-        return format_dataframe(
+        df = format_dataframe(
             pd.DataFrame(
                 next(self._records),
                 columns=SCHEMA_COLUMNS[self._schema],
@@ -1193,5 +1150,13 @@ class DataFrameIterator:
             schema=self._schema,
             pretty_px=self._pretty_px,
             pretty_ts=self._pretty_ts,
-            instrument_id_index=self._instrument_id_index,
         )
+
+        if self._map_symbols:
+            df_index = df.index if self._pretty_ts else pd.to_datetime(df.index, utc=True)
+            dates = [ts.date() for ts in df_index]
+            df["symbol"] = [
+               self._instrument_map.resolve(inst, dates[i]) for i, inst in enumerate(df["instrument_id"])
+            ]
+
+        return df
