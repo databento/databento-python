@@ -1111,7 +1111,7 @@ class DBNStore:
 
         dtype = SCHEMA_DTYPES_MAP[schema]
         ndarray_iter = NDArrayIterator(
-            filter(lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]), self),  # type: ignore [arg-type]
+            filter(lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]), self),
             dtype,
             count,
         )
