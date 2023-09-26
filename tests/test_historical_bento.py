@@ -924,6 +924,24 @@ def test_dbnstore_buffer_long(
     with pytest.raises(BentoError):
         dbnstore.to_json(tmp_path / "test.json")
 
+def test_dbnstore_buffer_rewind(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that creating a DBNStore from a seekable buffer will rewind.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+    )
+
+    # Act
+    dbn_bytes = BytesIO()
+    dbn_bytes.write(dbn_stub_data)
+    dbnstore = DBNStore.from_bytes(data=dbn_bytes)
+
+    assert len(dbnstore.to_df()) == 4
 
 @pytest.mark.parametrize(
     "schema",

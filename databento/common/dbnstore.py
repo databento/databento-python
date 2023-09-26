@@ -252,7 +252,12 @@ class MemoryDataSource(DataSource):
     """
 
     def __init__(self, source: BytesIO | bytes | IO[bytes]):
-        initial_data = source if isinstance(source, bytes) else source.read()
+        if isinstance(source, bytes):
+            initial_data = source
+        else:
+            source.seek(0)
+            initial_data = source.read()
+
         if len(initial_data) == 0:
             raise ValueError(
                 f"Cannot create data source from empty {type(source).__name__}",

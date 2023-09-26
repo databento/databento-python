@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.21.0 - TBD
+
+#### Bug fixes
+- Fixed an issue where `DBNStore.from_bytes` did not rewind seekable buffers
+
 ## 0.20.0 - 2023-09-21
 
 #### Enhancements
