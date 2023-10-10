@@ -309,6 +309,7 @@ def test_live_start_twice(
     with pytest.raises(ValueError):
         live_client.start()
 
+
 def test_live_start_before_subscribe(
     live_client: client.Live,
 ) -> None:
@@ -317,6 +318,7 @@ def test_live_start_before_subscribe(
     """
     with pytest.raises(ValueError):
         live_client.start()
+
 
 @pytest.mark.parametrize(
     "schema",
@@ -426,6 +428,34 @@ def test_live_stop(
 
     live_client.stop()
     live_client.block_for_close()
+
+
+@pytest.mark.usefixtures("mock_live_server")
+def test_live_shutdown_remove_closed_stream(
+    tmp_path: pathlib.Path,
+    live_client: client.Live,
+) -> None:
+    """
+    Test that closed streams are removed upon disconnection.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    output = tmp_path / "output.dbn"
+
+    with output.open("wb") as out:
+        live_client.add_stream(out)
+
+        assert live_client.is_connected() is True
+
+        live_client.start()
+
+    live_client.stop()
+    live_client.block_for_close()
+
+    assert live_client._user_streams == {}
 
 
 def test_live_stop_twice(
@@ -575,6 +605,15 @@ def test_live_add_stream_invalid(
     with pytest.raises(ValueError):
         live_client.add_stream(readable_file.open(mode="rb"))
 
+def test_live_add_stream_path_directory(
+    tmp_path: pathlib.Path,
+    live_client: client.Live,
+) -> None:
+    """
+    Test that passing a path to a directory raises an OSError.
+    """
+    with pytest.raises(OSError):
+        live_client.add_stream(tmp_path)
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration(
@@ -730,6 +769,7 @@ def test_live_sync_iteration(
     assert isinstance(records[2], databento_dbn.MBOMsg)
     assert isinstance(records[3], databento_dbn.MBOMsg)
 
+
 async def test_live_callback(
     live_client: client.Live,
 ) -> None:
@@ -785,6 +825,44 @@ async def test_live_stream_to_dbn(
         symbols="TEST",
     )
     live_client.add_stream(output.open("wb", buffering=0))
+
+    live_client.start()
+
+    await live_client.wait_for_close()
+
+    expected_data = BytesIO(
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data_path(schema).open("rb"))
+        .read(),
+    )
+    expected_data.seek(0)  # rewind
+
+    assert output.read_bytes() == expected_data.read()
+
+
+@pytest.mark.parametrize(
+    "schema",
+    (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
+)
+async def test_live_stream_to_dbn_from_path(
+    tmp_path: pathlib.Path,
+    test_data_path: Callable[[Schema], pathlib.Path],
+    live_client: client.Live,
+    schema: Schema,
+) -> None:
+    """
+    Test that DBN data streamed by the MockLiveServer is properly re-
+    constructed client side when specifying a file as a path.
+    """
+    output = tmp_path / "output.dbn"
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=schema,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+    live_client.add_stream(output)
 
     live_client.start()
 

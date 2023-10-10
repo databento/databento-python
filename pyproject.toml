@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "databento"
-version = "0.20.0"
+version = "0.21.0"
 description = "Official Python client library for Databento"
 authors = [
     "Databento <support@databento.com>",
@@ -26,18 +26,18 @@ repository = "https://github.com/databento/databento-python"
 [tool.poetry.dependencies]
 python = "^3.8"
 aiohttp = "^3.8.3"
-databento-dbn = "0.10.2"
-numpy= ">=1.23.5"
+databento-dbn = "0.11.1"
+numpy = ">=1.23.5"
 pandas = ">=1.5.3"
 requests = ">=2.24.0"
 zstandard = ">=0.21.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-mypy = "1.3.0"
-pytest = ">=7.3.1"
+black = "^23.9.1"
+mypy = "1.5.1"
+pytest = "^7.4.2"
 pytest-asyncio = ">=0.21.0"
-ruff = "^0.0.270"
+ruff = "^0.0.291"
 types-requests = "^2.30.0.0"
 tomli = "^2.0.1"
 teamcity-messages = "^1.32"

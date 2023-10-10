@@ -3,11 +3,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import pathlib
 import queue
 import threading
 from collections.abc import Iterable
 from concurrent import futures
 from numbers import Number
+from os import PathLike
 from typing import IO
 
 import databento_dbn
@@ -307,7 +309,7 @@ class Live:
 
     def add_stream(
         self,
-        stream: IO[bytes],
+        stream: IO[bytes] | PathLike[str] | str,
         exception_callback: ExceptionCallback | None = None,
     ) -> None:
         """
@@ -315,7 +317,7 @@ class Live:
 
         Parameters
         ----------
-        stream : IO[bytes]
+        stream : IO[bytes] or PathLike[str] or str
             The IO stream to write to when handling live records as they arrive.
         exception_callback : Callable[[Exception], None], optional
             An error handling callback to process exceptions that are raised
@@ -325,12 +327,17 @@ class Live:
         ------
         ValueError
             If `stream` is not a writable byte stream.
+        OSError
+            If `stream` is not a path to a writeable file.
 
         See Also
         --------
         Live.add_callback
 
         """
+        if isinstance(stream, (str, PathLike)):
+            stream = pathlib.Path(stream).open("wb")
+
         if not hasattr(stream, "write"):
             raise ValueError(f"{type(stream).__name__} does not support write()")
 
@@ -589,6 +596,19 @@ class Live:
         if self._session is None:
             return
         await self._session.wait_for_close()
+
+        to_remove = []
+        for stream in self._user_streams:
+            stream_name = getattr(stream, "name", str(stream))
+            if stream.closed:
+                logger.info("removing closed user stream %s", stream_name)
+                to_remove.append(stream)
+            else:
+                stream.flush()
+
+        for key in to_remove:
+            self._user_streams.pop(key)
+
         self._symbology_map.clear()
 
     def _map_symbol(self, record: DBNRecord) -> None:

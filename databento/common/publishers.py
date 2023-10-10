@@ -424,6 +424,16 @@ class Dataset(StringyMixin, str, Enum):
         NYSE Arca Integrated.
     IEXG_TOPS
         IEX TOPS.
+    DBEQ_PLUS
+        Databento Equities Plus.
+    XNYS_BBO
+        NYSE BBO.
+    XNYS_TRADES
+        NYSE Trades.
+    XNAS_QBBO
+        Nasdaq QBBO.
+    XNAS_NLS
+        Nasdaq NLS.
 
     """
 
@@ -449,6 +459,11 @@ class Dataset(StringyMixin, str, Enum):
     DBEQ_BASIC = "DBEQ.BASIC"
     ARCX_PILLAR = "ARCX.PILLAR"
     IEXG_TOPS = "IEXG.TOPS"
+    DBEQ_PLUS = "DBEQ.PLUS"
+    XNYS_BBO = "XNYS.BBO"
+    XNYS_TRADES = "XNYS.TRADES"
+    XNAS_QBBO = "XNAS.QBBO"
+    XNAS_NLS = "XNAS.NLS"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -499,6 +514,16 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.ARCX_PILLAR
         if value == 22:
             return Dataset.IEXG_TOPS
+        if value == 23:
+            return Dataset.DBEQ_PLUS
+        if value == 24:
+            return Dataset.XNYS_BBO
+        if value == 25:
+            return Dataset.XNYS_TRADES
+        if value == 26:
+            return Dataset.XNAS_QBBO
+        if value == 27:
+            return Dataset.XNAS_NLS
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -549,6 +574,16 @@ class Dataset(StringyMixin, str, Enum):
             return 21
         if self == Dataset.IEXG_TOPS:
             return 22
+        if self == Dataset.DBEQ_PLUS:
+            return 23
+        if self == Dataset.XNYS_BBO:
+            return 24
+        if self == Dataset.XNYS_TRADES:
+            return 25
+        if self == Dataset.XNAS_QBBO:
+            return 26
+        if self == Dataset.XNAS_NLS:
+            return 27
         raise ValueError("Invalid Dataset")
 
     @property
@@ -600,6 +635,16 @@ class Dataset(StringyMixin, str, Enum):
             return "NYSE Arca Integrated"
         if self == Dataset.IEXG_TOPS:
             return "IEX TOPS"
+        if self == Dataset.DBEQ_PLUS:
+            return "Databento Equities Plus"
+        if self == Dataset.XNYS_BBO:
+            return "NYSE BBO"
+        if self == Dataset.XNYS_TRADES:
+            return "NYSE Trades"
+        if self == Dataset.XNAS_QBBO:
+            return "Nasdaq QBBO"
+        if self == Dataset.XNAS_NLS:
+            return "Nasdaq NLS"
         raise ValueError("Unexpected Dataset value")
 
 @unique
@@ -694,6 +739,32 @@ class Publisher(StringyMixin, str, Enum):
         DBEQ Basic - MIAX Pearl.
     ARCX_PILLAR_ARCX
         NYSE Arca Integrated.
+    XNYS_BBO_XNYS
+        NYSE BBO.
+    XNYS_TRADES_XNYS
+        NYSE Trades.
+    XNAS_QBBO_XNAS
+        Nasdaq QBBO.
+    XNAS_NLS_XNAS
+        Nasdaq Trades.
+    DBEQ_PLUS_XCHI
+        DBEQ Plus - NYSE Chicago.
+    DBEQ_PLUS_XCIS
+        DBEQ Plus - NYSE National.
+    DBEQ_PLUS_IEXG
+        DBEQ Plus - IEX.
+    DBEQ_PLUS_EPRL
+        DBEQ Plus - MIAX Pearl.
+    DBEQ_PLUS_XNAS
+        DBEQ Plus - Nasdaq.
+    DBEQ_PLUS_XNYS
+        DBEQ Plus - NYSE.
+    DBEQ_PLUS_FINN
+        DBEQ Plus - FINRA/NYSE TRF.
+    DBEQ_PLUS_FINY
+        DBEQ Plus - FINRA/Nasdaq TRF Carteret.
+    DBEQ_PLUS_FINC
+        DBEQ Plus - FINRA/Nasdaq TRF Chicago.
 
     """
 
@@ -740,6 +811,19 @@ class Publisher(StringyMixin, str, Enum):
     DBEQ_BASIC_IEXG = "DBEQ.BASIC.IEXG"
     DBEQ_BASIC_EPRL = "DBEQ.BASIC.EPRL"
     ARCX_PILLAR_ARCX = "ARCX.PILLAR.ARCX"
+    XNYS_BBO_XNYS = "XNYS.BBO.XNYS"
+    XNYS_TRADES_XNYS = "XNYS.TRADES.XNYS"
+    XNAS_QBBO_XNAS = "XNAS.QBBO.XNAS"
+    XNAS_NLS_XNAS = "XNAS.NLS.XNAS"
+    DBEQ_PLUS_XCHI = "DBEQ.PLUS.XCHI"
+    DBEQ_PLUS_XCIS = "DBEQ.PLUS.XCIS"
+    DBEQ_PLUS_IEXG = "DBEQ.PLUS.IEXG"
+    DBEQ_PLUS_EPRL = "DBEQ.PLUS.EPRL"
+    DBEQ_PLUS_XNAS = "DBEQ.PLUS.XNAS"
+    DBEQ_PLUS_XNYS = "DBEQ.PLUS.XNYS"
+    DBEQ_PLUS_FINN = "DBEQ.PLUS.FINN"
+    DBEQ_PLUS_FINY = "DBEQ.PLUS.FINY"
+    DBEQ_PLUS_FINC = "DBEQ.PLUS.FINC"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -832,6 +916,32 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.DBEQ_BASIC_EPRL
         if value == 43:
             return Publisher.ARCX_PILLAR_ARCX
+        if value == 44:
+            return Publisher.XNYS_BBO_XNYS
+        if value == 45:
+            return Publisher.XNYS_TRADES_XNYS
+        if value == 46:
+            return Publisher.XNAS_QBBO_XNAS
+        if value == 47:
+            return Publisher.XNAS_NLS_XNAS
+        if value == 48:
+            return Publisher.DBEQ_PLUS_XCHI
+        if value == 49:
+            return Publisher.DBEQ_PLUS_XCIS
+        if value == 50:
+            return Publisher.DBEQ_PLUS_IEXG
+        if value == 51:
+            return Publisher.DBEQ_PLUS_EPRL
+        if value == 52:
+            return Publisher.DBEQ_PLUS_XNAS
+        if value == 53:
+            return Publisher.DBEQ_PLUS_XNYS
+        if value == 54:
+            return Publisher.DBEQ_PLUS_FINN
+        if value == 55:
+            return Publisher.DBEQ_PLUS_FINY
+        if value == 56:
+            return Publisher.DBEQ_PLUS_FINC
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -924,6 +1034,32 @@ class Publisher(StringyMixin, str, Enum):
             return 42
         if self == Publisher.ARCX_PILLAR_ARCX:
             return 43
+        if self == Publisher.XNYS_BBO_XNYS:
+            return 44
+        if self == Publisher.XNYS_TRADES_XNYS:
+            return 45
+        if self == Publisher.XNAS_QBBO_XNAS:
+            return 46
+        if self == Publisher.XNAS_NLS_XNAS:
+            return 47
+        if self == Publisher.DBEQ_PLUS_XCHI:
+            return 48
+        if self == Publisher.DBEQ_PLUS_XCIS:
+            return 49
+        if self == Publisher.DBEQ_PLUS_IEXG:
+            return 50
+        if self == Publisher.DBEQ_PLUS_EPRL:
+            return 51
+        if self == Publisher.DBEQ_PLUS_XNAS:
+            return 52
+        if self == Publisher.DBEQ_PLUS_XNYS:
+            return 53
+        if self == Publisher.DBEQ_PLUS_FINN:
+            return 54
+        if self == Publisher.DBEQ_PLUS_FINY:
+            return 55
+        if self == Publisher.DBEQ_PLUS_FINC:
+            return 56
         raise ValueError("Invalid Publisher")
     @property
     def venue(self) -> Venue:
@@ -1016,6 +1152,32 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.EPRL
         if self == Publisher.ARCX_PILLAR_ARCX:
             return Venue.ARCX
+        if self == Publisher.XNYS_BBO_XNYS:
+            return Venue.XNYS
+        if self == Publisher.XNYS_TRADES_XNYS:
+            return Venue.XNYS
+        if self == Publisher.XNAS_QBBO_XNAS:
+            return Venue.XNAS
+        if self == Publisher.XNAS_NLS_XNAS:
+            return Venue.XNAS
+        if self == Publisher.DBEQ_PLUS_XCHI:
+            return Venue.XCHI
+        if self == Publisher.DBEQ_PLUS_XCIS:
+            return Venue.XCIS
+        if self == Publisher.DBEQ_PLUS_IEXG:
+            return Venue.IEXG
+        if self == Publisher.DBEQ_PLUS_EPRL:
+            return Venue.EPRL
+        if self == Publisher.DBEQ_PLUS_XNAS:
+            return Venue.XNAS
+        if self == Publisher.DBEQ_PLUS_XNYS:
+            return Venue.XNYS
+        if self == Publisher.DBEQ_PLUS_FINN:
+            return Venue.FINN
+        if self == Publisher.DBEQ_PLUS_FINY:
+            return Venue.FINY
+        if self == Publisher.DBEQ_PLUS_FINC:
+            return Venue.FINC
         raise ValueError("Unexpected Publisher value")
     @property
     def dataset(self) -> Dataset:
@@ -1108,6 +1270,32 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.DBEQ_BASIC
         if self == Publisher.ARCX_PILLAR_ARCX:
             return Dataset.ARCX_PILLAR
+        if self == Publisher.XNYS_BBO_XNYS:
+            return Dataset.XNYS_BBO
+        if self == Publisher.XNYS_TRADES_XNYS:
+            return Dataset.XNYS_TRADES
+        if self == Publisher.XNAS_QBBO_XNAS:
+            return Dataset.XNAS_QBBO
+        if self == Publisher.XNAS_NLS_XNAS:
+            return Dataset.XNAS_NLS
+        if self == Publisher.DBEQ_PLUS_XCHI:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_XCIS:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_IEXG:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_EPRL:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_XNAS:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_XNYS:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_FINN:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_FINY:
+            return Dataset.DBEQ_PLUS
+        if self == Publisher.DBEQ_PLUS_FINC:
+            return Dataset.DBEQ_PLUS
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1201,4 +1389,30 @@ class Publisher(StringyMixin, str, Enum):
             return "DBEQ Basic - MIAX Pearl"
         if self == Publisher.ARCX_PILLAR_ARCX:
             return "NYSE Arca Integrated"
+        if self == Publisher.XNYS_BBO_XNYS:
+            return "NYSE BBO"
+        if self == Publisher.XNYS_TRADES_XNYS:
+            return "NYSE Trades"
+        if self == Publisher.XNAS_QBBO_XNAS:
+            return "Nasdaq QBBO"
+        if self == Publisher.XNAS_NLS_XNAS:
+            return "Nasdaq Trades"
+        if self == Publisher.DBEQ_PLUS_XCHI:
+            return "DBEQ Plus - NYSE Chicago"
+        if self == Publisher.DBEQ_PLUS_XCIS:
+            return "DBEQ Plus - NYSE National"
+        if self == Publisher.DBEQ_PLUS_IEXG:
+            return "DBEQ Plus - IEX"
+        if self == Publisher.DBEQ_PLUS_EPRL:
+            return "DBEQ Plus - MIAX Pearl"
+        if self == Publisher.DBEQ_PLUS_XNAS:
+            return "DBEQ Plus - Nasdaq"
+        if self == Publisher.DBEQ_PLUS_XNYS:
+            return "DBEQ Plus - NYSE"
+        if self == Publisher.DBEQ_PLUS_FINN:
+            return "DBEQ Plus - FINRA/NYSE TRF"
+        if self == Publisher.DBEQ_PLUS_FINY:
+            return "DBEQ Plus - FINRA/Nasdaq TRF Carteret"
+        if self == Publisher.DBEQ_PLUS_FINC:
+            return "DBEQ Plus - FINRA/Nasdaq TRF Chicago"
         raise ValueError("Unexpected Publisher value")

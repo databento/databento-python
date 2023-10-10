@@ -105,24 +105,6 @@ def test_sources_metadata_returns_expected_json_as_dict(
         ],
     }
 
-
-def test_build_instrument_id_index(
-    test_data: Callable[[Schema], bytes],
-) -> None:
-    # Arrange
-    stub_data = test_data(Schema.MBO)
-    dbnstore = DBNStore.from_bytes(data=stub_data)
-
-    # Act
-    instrument_id_index = dbnstore._build_instrument_id_index()
-
-    # Assert
-    assert instrument_id_index == {
-        dt.date(2020, 12, 28): {5482: "ESH1"},
-        dt.date(2020, 12, 29): {5482: "ESH1"},
-    }
-
-
 def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
     test_data: Callable[[Schema], bytes],
 ) -> None:
@@ -924,6 +906,24 @@ def test_dbnstore_buffer_long(
     with pytest.raises(BentoError):
         dbnstore.to_json(tmp_path / "test.json")
 
+def test_dbnstore_buffer_rewind(
+    test_data: Callable[[Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that creating a DBNStore from a seekable buffer will rewind.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+    )
+
+    # Act
+    dbn_bytes = BytesIO()
+    dbn_bytes.write(dbn_stub_data)
+    dbnstore = DBNStore.from_bytes(data=dbn_bytes)
+
+    assert len(dbnstore.to_df()) == 4
 
 @pytest.mark.parametrize(
     "schema",
@@ -1141,30 +1141,6 @@ def test_dbnstore_to_df_with_count_empty(
 
     # Assert
     assert next(df_iter).empty
-
-
-def test_dbnstore_to_df_cannot_map_symbols(
-    test_data: Callable[[Schema], bytes],
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """
-    Test that calling to_df with map_symbols=True on a DBNStore with a
-    stype_out other than 'instrument_id' raises a ValueError.
-    """
-    # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
-    )
-
-    # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-    monkeypatch.setattr(DBNStore, "stype_out", MagicMock(return_type=SType.RAW_SYMBOL))
-
-    # Assert
-    with pytest.raises(ValueError):
-        dbnstore.to_df(
-            map_symbols=True,
-        )
 
 def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
     test_data: Callable[[Schema], bytes],

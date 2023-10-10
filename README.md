@@ -5,7 +5,7 @@
 [![pypi-version](https://img.shields.io/pypi/v/databento)](https://pypi.org/project/databento)
 [![license](https://img.shields.io/github/license/databento/databento-python?color=blue)](./LICENSE)
 [![code-style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Slack](https://img.shields.io/badge/join_Slack-community-darkblue.svg?logo=slack)](https://join.slack.com/t/databento-hq/shared_invite/zt-1xk498wxs-9fUs_xhz5ypaGD~mhI_hVQ)
+[![Slack](https://img.shields.io/badge/join_Slack-community-darkblue.svg?logo=slack)](https://join.slack.com/t/databento-hq/shared_invite/zt-24oqyrub9-MellISM2cdpQ7s_7wcXosw)
 
 The official Python client library for [Databento](https://databento.com).
 
@@ -32,7 +32,7 @@ The library is fully compatible with the latest distribution of Anaconda 3.8 and
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
 - python = "^3.8"
 - aiohttp = "^3.8.3"
-- databento-dbn = "0.10.2"
+- databento-dbn = "0.11.1"
 - numpy= ">=1.23.5"
 - pandas = ">=1.5.3"
 - requests = ">=2.24.0"
