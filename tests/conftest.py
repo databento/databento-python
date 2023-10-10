@@ -3,9 +3,11 @@ Pytest fixtures.
 """
 from __future__ import annotations
 
+import asyncio
 import pathlib
 import random
 import string
+import threading
 from collections.abc import AsyncGenerator
 from collections.abc import Generator
 from collections.abc import Iterable
@@ -188,15 +190,37 @@ async def fixture_mock_live_server(
         1,
     )
 
+    loop = asyncio.new_event_loop()
+    thread = threading.Thread(
+        name="MockLiveServer",
+        target=loop.run_forever,
+        args=(),
+        daemon=True,
+    )
+    thread.start()
+
     with caplog.at_level("DEBUG"):
-        mock_live_server = await MockLiveServer.create(
-            host="127.0.0.1",
-            port=unused_tcp_port,
-            dbn_path=TESTS_ROOT / "data",
-        )
-        await mock_live_server.start()
+        mock_live_server = asyncio.run_coroutine_threadsafe(
+            coro=MockLiveServer.create(
+                host="127.0.0.1",
+                port=unused_tcp_port,
+                dbn_path=TESTS_ROOT / "data",
+            ),
+            loop=loop,
+        ).result()
+
         yield mock_live_server
-        await mock_live_server.stop()
+
+        asyncio.run_coroutine_threadsafe(
+            coro=mock_live_server.stop(),
+            loop=loop,
+        ).result()
+
+    loop.run_in_executor(
+        None,
+        loop.stop,
+    )
+    thread.join()
 
 
 @pytest.fixture(name="historical_client")
