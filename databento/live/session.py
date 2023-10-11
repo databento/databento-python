@@ -134,7 +134,6 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._dbn_queue = dbn_queue
         self._loop = loop
         self._metadata: SessionMetadata = metadata
-        self._tasks: set[asyncio.Task[None]] = set()
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
 
@@ -142,29 +141,52 @@ class _SessionProtocol(DatabentoLiveProtocol):
         if not self._metadata:
             self._metadata.data = metadata
             for stream, exc_callback in self._user_streams.items():
-                task = self._loop.create_task(
-                    self._stream_task(stream, metadata, exc_callback),
-                )
-                task.add_done_callback(self._tasks.remove)
-                self._tasks.add(task)
+                try:
+                    stream.write(bytes(metadata))
+                except Exception as exc:
+                    stream_name = getattr(stream, "name", str(stream))
+                    logger.error(
+                        "error writing %s to `%s` stream",
+                        type(metadata).__name__,
+                        stream_name,
+                        exc_info=exc,
+                    )
+                    if exc_callback is not None:
+                        exc_callback(exc)
         else:
             self._metadata.check(metadata)
         return super().received_metadata(metadata)
 
     def received_record(self, record: DBNRecord) -> None:
         for callback, exc_callback in self._user_callbacks.items():
-            task = self._loop.create_task(
-                self._callback_task(callback, record, exc_callback),
-            )
-            task.add_done_callback(self._tasks.remove)
-            self._tasks.add(task)
+            try:
+                callback(record)
+            except Exception as exc:
+                logger.error(
+                    "error dispatching %s to `%s` callback",
+                    type(record).__name__,
+                    getattr(callback, "__name__", str(callback)),
+                    exc_info=exc,
+                )
+                if exc_callback is not None:
+                    exc_callback(exc)
 
+        has_ts_out = self._metadata.data and self._metadata.data.ts_out
         for stream, exc_callback in self._user_streams.items():
-            task = self._loop.create_task(
-                self._stream_task(stream, record, exc_callback),
-            )
-            task.add_done_callback(self._tasks.remove)
-            self._tasks.add(task)
+            try:
+                stream.write(bytes(record))
+                if not isinstance(record, databento_dbn.Metadata) and has_ts_out:
+                    stream.write(struct.pack("Q", record.ts_out))
+            except Exception as exc:
+                stream_name = getattr(stream, "name", str(stream))
+                logger.error(
+                    "error writing %s to `%s` stream",
+                    type(record).__name__,
+                    stream_name,
+                    exc_info=exc,
+                )
+                if exc_callback is not None:
+                    exc_callback(exc)
 
         if self._dbn_queue.enabled:
             try:
@@ -184,55 +206,6 @@ class _SessionProtocol(DatabentoLiveProtocol):
                     self.transport.pause_reading()
 
         return super().received_record(record)
-
-    async def _callback_task(
-        self,
-        record_callback: RecordCallback,
-        record: DBNRecord,
-        exception_callback: ExceptionCallback | None,
-    ) -> None:
-        try:
-            record_callback(record)
-        except Exception as exc:
-            logger.error(
-                "error dispatching %s to `%s` callback",
-                type(record).__name__,
-                getattr(record_callback, "__name__", str(record_callback)),
-                exc_info=exc,
-            )
-            if exception_callback is not None:
-                self._loop.call_soon_threadsafe(exception_callback, exc)
-
-    async def _stream_task(
-        self,
-        stream: IO[bytes],
-        record: databento_dbn.Metadata | DBNRecord,
-        exc_callback: ExceptionCallback | None,
-    ) -> None:
-        has_ts_out = self._metadata.data and self._metadata.data.ts_out
-        try:
-            stream.write(bytes(record))
-            if not isinstance(record, databento_dbn.Metadata) and has_ts_out:
-                stream.write(struct.pack("Q", record.ts_out))
-        except Exception as exc:
-            stream_name = getattr(stream, "name", str(stream))
-            logger.error(
-                "error writing %s to `%s` stream",
-                type(record).__name__,
-                stream_name,
-                exc_info=exc,
-            )
-            if exc_callback is not None:
-                self._loop.call_soon_threadsafe(exc_callback, exc)
-
-    async def wait_for_processing(self) -> None:
-        while self._tasks:
-            logger.info(
-                "waiting for %d record(s) to process",
-                len(self._tasks),
-            )
-            await asyncio.gather(*self._tasks)
-
 
 class Session:
     """
@@ -446,7 +419,6 @@ class Session:
 
         await self._protocol.authenticated
         await self._protocol.disconnected
-        await self._protocol.wait_for_processing()
 
         try:
             self._protocol.authenticated.result()
