@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import dataclasses
 import logging
-from functools import partial
 from io import BytesIO
 from operator import attrgetter
 from typing import TypeVar
@@ -12,11 +11,13 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from databento.common.publishers import Dataset
+from databento.common.system import USER_AGENT
 
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="GatewayControl")
+
 
 @dataclasses.dataclass
 class GatewayControl:
@@ -42,9 +43,8 @@ class GatewayControl:
         if not line.endswith("\n"):
             raise ValueError(f"`{line.strip()}` does not end with a newline")
 
-        tokens = line[:-1].split("|")  # split excluding trailing new line
-        splitter = partial(str.split, sep="=", maxsplit=1)
-        data_dict = {k: v for k, v in map(splitter, tokens)}
+        split_tokens = [t.partition("=") for t in line[:-1].split("|")]
+        data_dict = {k: v for k, _, v in split_tokens}
 
         try:
             return cls(**data_dict)
@@ -108,6 +108,7 @@ class AuthenticationRequest(GatewayControl):
     encoding: Encoding = Encoding.DBN
     details: str | None = None
     ts_out: str = "0"
+    client: str = USER_AGENT
 
 
 @dataclasses.dataclass
