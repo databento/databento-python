@@ -11,7 +11,7 @@ from functools import partial
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, Any, Callable, Literal, overload
+from typing import IO, TYPE_CHECKING, Any, BinaryIO, Callable, Literal, overload
 
 import databento_dbn
 import numpy as np
@@ -20,19 +20,24 @@ import zstandard
 from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import Compression
 from databento_dbn import DBNDecoder
+from databento_dbn import Encoding
 from databento_dbn import ErrorMsg
 from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
+from databento_dbn import Transcoder
 
 from databento.common.data import DEFINITION_TYPE_MAX_MAP
 from databento.common.data import SCHEMA_COLUMNS
 from databento.common.data import SCHEMA_DTYPES_MAP
 from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.error import BentoError
+from databento.common.iterator import chunk
 from databento.common.symbology import InstrumentMap
+from databento.common.symbology import SymbolInterval
+from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
 from databento.live import DBNRecord
@@ -763,6 +768,7 @@ class DBNStore:
         pretty_px: bool = True,
         pretty_ts: bool = True,
         map_symbols: bool = True,
+        compression: Compression | str = Compression.NONE,
         schema: Schema | str | None = None,
     ) -> None:
         """
@@ -783,6 +789,8 @@ class DBNStore:
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
+        compression : Compression or str, default `Compression.NONE`
+            The output compression for writing.
         schema : Schema or str, optional
             The schema for the csv.
             This is only required when reading a DBN stream with mixed record types.
@@ -797,24 +805,33 @@ class DBNStore:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        price_type: Literal["fixed", "float"] = "fixed"
-        if pretty_px is True:
-            price_type = "float"
+        compression = validate_enum(compression, Compression, "compression")
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
 
-        df_iter = self.to_df(
-            price_type=price_type,
-            pretty_ts=pretty_ts,
-            map_symbols=map_symbols,
-            schema=schema,
-            count=2**16,
-        )
+        record_type = SCHEMA_STRUCT_MAP[schema]
+        record_iter = filter(lambda r: isinstance(r, record_type), self)
 
-        with open(path, "x", newline="") as csv_file:
-            for i, frame in enumerate(df_iter):
-                frame.to_csv(
-                    csv_file,
-                    header=(i == 0),
-                )
+        if map_symbols:
+            self._instrument_map.insert_metadata(self.metadata)
+            symbol_map = self._instrument_map._data
+        else:
+            symbol_map = None
+
+        with open(path, "xb") as output:
+            self._transcode(
+                output=output,
+                records_iter=record_iter,
+                encoding=Encoding.CSV,
+                pretty_px=pretty_px,
+                pretty_ts=pretty_ts,
+                symbol_map=symbol_map,
+                compression=compression,
+                schema=schema,
+            )
 
     @overload
     def to_df(
@@ -965,6 +982,7 @@ class DBNStore:
         pretty_px: bool = True,
         pretty_ts: bool = True,
         map_symbols: bool = True,
+        compression: Compression | str = Compression.NONE,
         schema: Schema | str | None = None,
     ) -> None:
         """
@@ -984,6 +1002,8 @@ class DBNStore:
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
+        compression : Compression or str, default `Compression.NONE`
+            The output compression for writing.
         schema : Schema or str, optional
             The schema for the json.
             This is only required when reading a DBN stream with mixed record types.
@@ -998,27 +1018,33 @@ class DBNStore:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        price_type: Literal["fixed", "float"] = "fixed"
-        if pretty_px is True:
-            price_type = "float"
+        compression = validate_enum(compression, Compression, "compression")
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
 
-        df_iter = self.to_df(
-            price_type=price_type,
-            pretty_ts=pretty_ts,
-            map_symbols=map_symbols,
-            schema=schema,
-            count=2**16,
-        )
+        record_type = SCHEMA_STRUCT_MAP[schema]
+        record_iter = filter(lambda r: isinstance(r, record_type), self)
 
-        with open(path, "x") as json_path:
-            for frame in df_iter:
-                frame.reset_index(inplace=True)
-                frame.to_json(
-                    json_path,
-                    orient="records",
-                    date_unit="ns",
-                    lines=True,
-                )
+        if map_symbols:
+            self._instrument_map.insert_metadata(self.metadata)
+            symbol_map = self._instrument_map._data
+        else:
+            symbol_map = None
+
+        with open(path, "xb") as output:
+            self._transcode(
+                output=output,
+                records_iter=record_iter,
+                encoding=Encoding.JSON,
+                pretty_px=pretty_px,
+                pretty_ts=pretty_ts,
+                symbol_map=symbol_map,
+                compression=compression,
+                schema=schema,
+            )
 
     @overload
     def to_ndarray(  # type: ignore [misc]
@@ -1084,6 +1110,35 @@ class DBNStore:
             return next(ndarray_iter, np.empty([0, 1], dtype=dtype))
 
         return ndarray_iter
+
+    def _transcode(
+        self,
+        output: BinaryIO,
+        records_iter: Iterator[DBNRecord],
+        encoding: Encoding,
+        pretty_px: bool,
+        pretty_ts: bool,
+        symbol_map: dict[int, list[SymbolInterval]] | None,
+        compression: Compression,
+        schema: Schema,
+    ) -> None:
+        transcoder = Transcoder(
+            file=output,
+            encoding=encoding,
+            compression=compression,
+            pretty_px=pretty_px,
+            pretty_ts=pretty_ts,
+            has_metadata=True,
+            input_compression=Compression.NONE,
+            symbol_map=symbol_map,  # type: ignore [arg-type]
+            schema=schema,
+        )
+
+        transcoder.write(bytes(self.metadata))
+        for records in chunk(records_iter, 2**16):
+            for record in records:
+                transcoder.write(bytes(record))
+            transcoder.flush()
 
 
 class NDArrayIterator:

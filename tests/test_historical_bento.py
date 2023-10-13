@@ -488,13 +488,11 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
     # Assert
     written = path.read_text()
     expected = (
-        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,price,size,channel_id,"
-        "order_id,flags,ts_in_delta,sequence\n1609160400000704060,1609160400000429831,160,"
-        "1,5482,C,A,3722750000000,1,0,647784973705,128,22993,1170352\n1609160400000711344,"
-        "1609160400000431665,160,1,5482,C,A,3723000000000,1,0,647784973631,128,19621,1170"
-        "353\n1609160400000728600,1609160400000433051,160,1,5482,C,A,3723250000000,1,0,647"
-        "784973427,128,16979,1170354\n1609160400000740248,1609160400000434353,160,1,5482,C"
-        ",A,3723500000000,1,0,647784973094,128,17883,1170355\n"
+        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,price,size,channel_id,order_id,flags,ts_in_delta,sequence,symbol\n"
+        "1609160400000704060,1609160400000429831,160,1,5482,C,A,3722750000000,1,0,647784973705,128,22993,1170352,ESH1\n"
+        "1609160400000711344,1609160400000431665,160,1,5482,C,A,3723000000000,1,0,647784973631,128,19621,1170353,ESH1\n"
+        "1609160400000728600,1609160400000433051,160,1,5482,C,A,3723250000000,1,0,647784973427,128,16979,1170354,ESH1\n"
+        "1609160400000740248,1609160400000434353,160,1,5482,C,A,3723500000000,1,0,647784973094,128,17883,1170355,ESH1\n"
     )
 
     assert written == expected
@@ -520,15 +518,11 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
     # Assert
     written = path.read_text()
     expected = (
-        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
-        ",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_0"
-        "0\n1609160400006136329,1609160400006001487,1,1,5482,A,A,0,3720500000000,1,128,172"
-        "14,1170362,3720250000000,3720500000000,24,11,15,9\n1609160400006246513,1609160400"
-        "006146661,1,1,5482,A,A,0,3720500000000,1,128,18858,1170364,3720250000000,37205000000"
-        "00,24,12,15,10\n1609160400007159323,1609160400007044577,1,1,5482,A,B,0,3720250000"
-        "000,2,128,18115,1170365,3720250000000,3720500000000,26,12,16,10\n1609160400007260"
-        "967,1609160400007169135,1,1,5482,C,A,0,3720500000000,1,128,17361,1170366,37202500000"
-        "00,3720500000000,26,11,16,9\n"
+        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags,ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00,symbol\n"
+        "1609160400006136329,1609160400006001487,1,1,5482,A,A,0,3720500000000,1,128,17214,1170362,3720250000000,3720500000000,24,11,15,9,ESH1\n"
+        "1609160400006246513,1609160400006146661,1,1,5482,A,A,0,3720500000000,1,128,18858,1170364,3720250000000,3720500000000,24,12,15,10,ESH1\n"
+        "1609160400007159323,1609160400007044577,1,1,5482,A,B,0,3720250000000,2,128,18115,1170365,3720250000000,3720500000000,26,12,16,10,ESH1\n"
+        "1609160400007260967,1609160400007169135,1,1,5482,C,A,0,3720500000000,1,128,17361,1170366,3720250000000,3720500000000,26,11,16,9,ESH1\n"
     )
 
     assert written == expected
@@ -554,17 +548,11 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
     # Assert
     written = path.read_text()
     expected = (
-        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags"
-        ",ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00,sy"
-        "mbol\n2020-12-28 13:00:00.006136329+00:00,2020-12-28 13:00:00.006001487+00:00,1,1"
-        ",5482,A,A,0,3720.5,1,128,17214,1170362,3720.25,3720.5"
-        ",24,11,15,9,ESH1\n2020-12-28 13:00:00.006246513+00:00,2020-12-28 13:00:00.006"
-        "146661+00:00,1,1,5482,A,A,0,3720.5,1,128,18858,1170364,3720.25"
-        ",3720.5,24,12,15,10,ESH1\n2020-12-28 13:00:00.007159323+00:00,2020-1"
-        "2-28 13:00:00.007044577+00:00,1,1,5482,A,B,0,3720.25,2,128,18115,1170365,"
-        "3720.25,3720.5,26,12,16,10,ESH1\n2020-12-28 13:00:00.00726"
-        "0967+00:00,2020-12-28 13:00:00.007169135+00:00,1,1,5482,C,A,0,3720.5,1,1"
-        "28,17361,1170366,3720.25,3720.5,26,11,16,9,ESH1\n"
+        "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags,ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00,symbol\n"
+        "2020-12-28T13:00:00.006136329Z,2020-12-28T13:00:00.006001487Z,1,1,5482,A,A,0,3720.500000000,1,128,17214,1170362,3720.250000000,3720.500000000,24,11,15,9,ESH1\n"
+        "2020-12-28T13:00:00.006246513Z,2020-12-28T13:00:00.006146661Z,1,1,5482,A,A,0,3720.500000000,1,128,18858,1170364,3720.250000000,3720.500000000,24,12,15,10,ESH1\n"
+        "2020-12-28T13:00:00.007159323Z,2020-12-28T13:00:00.007044577Z,1,1,5482,A,B,0,3720.250000000,2,128,18115,1170365,3720.250000000,3720.500000000,26,12,16,10,ESH1\n"
+        "2020-12-28T13:00:00.007260967Z,2020-12-28T13:00:00.007169135Z,1,1,5482,C,A,0,3720.500000000,1,128,17361,1170366,3720.250000000,3720.500000000,26,11,16,9,ESH1\n"
     )
 
     assert written == expected
@@ -589,24 +577,11 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written.strip() == (
-        '{"ts_recv":1609160400000704060,"ts_event":1609160400000429831,"rtype":160,'
-        '"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3722750000000,'
-        '"size":1,"channel_id":0,"order_id":647784973705,"flags":128,"ts_in_delta":22993,"sequence":1170352}'
-        "\n"
-        '{"ts_recv":1609160400000711344,"ts_event":1609160400000431665,"rtype":160,"publisher_id":1,"instrument_id":5482,'
-        '"action":"C","side":"A","price":3723000000000,"size":1,"channel_id":0,"order_id":647784973631,'
-        '"flags":128,"ts_in_delta":19621,"sequence":1170353}'
-        "\n"
-        '{"ts_recv":1609160400000728600,"ts_event":1609160400000433051,"rtype":'
-        '160,"publisher_id":1,"instrument_id":5482,"action":"C","side":"A","price":3723250000'
-        '000,"size":1,"channel_id":0,"order_id":647784973427,"flags":128,"ts_in_delta":16979,'
-        '"sequence":1170354}'
-        "\n"
-        '{"ts_recv":1609160400000740248,"ts_event":1609160400000434353,"rtype":160,"publisher_id":1'
-        ',"instrument_id":5482,"action":"C","side":"A","price":3723500000000,"size":1,"channe'
-        'l_id":0,"order_id":647784973094,"flags":128,"ts_in_delta":17883,"sequence":11703'
-        "55}"
+    assert written == (
+        '{"ts_recv":"1609160400000704060","hd":{"ts_event":"1609160400000429831","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3722750000000","size":1,"channel_id":0,"order_id":"647784973705","flags":128,"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}\n'
+        '{"ts_recv":"1609160400000711344","hd":{"ts_event":"1609160400000431665","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723000000000","size":1,"channel_id":0,"order_id":"647784973631","flags":128,"ts_in_delta":19621,"sequence":1170353,"symbol":"ESH1"}\n'
+        '{"ts_recv":"1609160400000728600","hd":{"ts_event":"1609160400000433051","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723250000000","size":1,"channel_id":0,"order_id":"647784973427","flags":128,"ts_in_delta":16979,"sequence":1170354,"symbol":"ESH1"}\n'
+        '{"ts_recv":"1609160400000740248","hd":{"ts_event":"1609160400000434353","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723500000000","size":1,"channel_id":0,"order_id":"647784973094","flags":128,"ts_in_delta":17883,"sequence":1170355,"symbol":"ESH1"}\n'
     )
 
 
@@ -629,22 +604,11 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written.strip() == (
-        '{"ts_recv":1609160400000704000,"ts_event":1609160400000429000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
-        '"action":"C","side":"A","price":3722.75,"size":1,"channel_id":0,"order_id":647784973705,"flags":128,'
-        '"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}'
-        "\n"
-        '{"ts_recv":1609160400000711000,"ts_event":1609160400000431000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
-        '"action":"C","side":"A","price":3723.0,"size":1,"channel_id":0,"order_id":647784973631,"flags":128,'
-        '"ts_in_delta":19621,"sequence":1170353,"symbol":"ESH1"}'
-        "\n"
-        '{"ts_recv":1609160400000728000,"ts_event":1609160400000433000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
-        '"action":"C","side":"A","price":3723.25,"size":1,"channel_id":0,"order_id":647784973427,"flags":128,'
-        '"ts_in_delta":16979,"sequence":1170354,"symbol":"ESH1"}'
-        "\n"
-        '{"ts_recv":1609160400000740000,"ts_event":1609160400000434000,"rtype":160,"publisher_id":1,"instrument_id":5482,'
-        '"action":"C","side":"A","price":3723.5,"size":1,"channel_id":0,"order_id":647784973094,"flags":128,'
-        '"ts_in_delta":17883,"sequence":1170355,"symbol":"ESH1"}'
+    assert written == (
+        '{"ts_recv":"2020-12-28T13:00:00.000704060Z","hd":{"ts_event":"2020-12-28T13:00:00.000429831Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3722.750000000","size":1,"channel_id":0,"order_id":"647784973705","flags":128,"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T13:00:00.000711344Z","hd":{"ts_event":"2020-12-28T13:00:00.000431665Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723.000000000","size":1,"channel_id":0,"order_id":"647784973631","flags":128,"ts_in_delta":19621,"sequence":1170353,"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T13:00:00.000728600Z","hd":{"ts_event":"2020-12-28T13:00:00.000433051Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723.250000000","size":1,"channel_id":0,"order_id":"647784973427","flags":128,"ts_in_delta":16979,"sequence":1170354,"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T13:00:00.000740248Z","hd":{"ts_event":"2020-12-28T13:00:00.000434353Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723.500000000","size":1,"channel_id":0,"order_id":"647784973094","flags":128,"ts_in_delta":17883,"sequence":1170355,"symbol":"ESH1"}\n'
     )
 
 
@@ -667,26 +631,11 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written.strip() == (
-        '{"ts_recv":1609160400006136329,"ts_event":1609160400006001487,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A",'
-        '"side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":17214,"sequence":1170362,'
-        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":11,"bid_ct_00":15,'
-        '"ask_ct_00":9}'
-        "\n"
-        '{"ts_recv":1609160400006246513,"ts_event":1609160400006146661,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A",'
-        '"side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,'
-        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":24,"ask_sz_00":12,"bid_ct_00":15,'
-        '"ask_ct_00":10}'
-        "\n"
-        '{"ts_recv":1609160400007159323,"ts_event":1609160400007044577,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"A",'
-        '"side":"B","depth":0,"price":3720250000000,"size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,'
-        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":12,"bid_ct_00":16,'
-        '"ask_ct_00":10}'
-        "\n"
-        '{"ts_recv":1609160400007260967,"ts_event":1609160400007169135,"rtype":1,"publisher_id":1,"instrument_id":5482,"action":"C",'
-        '"side":"A","depth":0,"price":3720500000000,"size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,'
-        '"bid_px_00":3720250000000,"ask_px_00":3720500000000,"bid_sz_00":26,"ask_sz_00":11,"bid_ct_00":16,'
-        '"ask_ct_00":9}'
+    assert written == (
+        '{"ts_recv":"1609160400006136329","hd":{"ts_event":"1609160400006001487","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720500000000","size":1,"flags":128,"ts_in_delta":17214,"sequence":1170362,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":24,"ask_sz":11,"bid_ct":15,"ask_ct":9}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"1609160400006246513","hd":{"ts_event":"1609160400006146661","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720500000000","size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":24,"ask_sz":12,"bid_ct":15,"ask_ct":10}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"1609160400007159323","hd":{"ts_event":"1609160400007044577","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3720250000000","size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":26,"ask_sz":12,"bid_ct":16,"ask_ct":10}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"1609160400007260967","hd":{"ts_event":"1609160400007169135","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","depth":0,"price":"3720500000000","size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":26,"ask_sz":11,"bid_ct":16,"ask_ct":9}],"symbol":"ESH1"}\n'
     )
 
 
@@ -709,26 +658,11 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written.strip() == (
-        '{"ts_recv":1609160400006136000,"ts_event":1609160400006001000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
-        '"action":"A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17214,'
-        '"sequence":1170362,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":11,'
-        '"bid_ct_00":15,"ask_ct_00":9,"symbol":"ESH1"}'
-        "\n"
-        '{"ts_recv":1609160400006246000,"ts_event":1609160400006146000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
-        '"action":"A","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":18858,'
-        '"sequence":1170364,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":24,"ask_sz_00":12,'
-        '"bid_ct_00":15,"ask_ct_00":10,"symbol":"ESH1"}'
-        "\n"
-        '{"ts_recv":1609160400007159000,"ts_event":1609160400007044000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
-        '"action":"A","side":"B","depth":0,"price":3720.25,"size":2,"flags":128,"ts_in_delta":18115,'
-        '"sequence":1170365,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":12,'
-        '"bid_ct_00":16,"ask_ct_00":10,"symbol":"ESH1"}'
-        "\n"
-        '{"ts_recv":1609160400007260000,"ts_event":1609160400007169000,"rtype":1,"publisher_id":1,"instrument_id":5482,'
-        '"action":"C","side":"A","depth":0,"price":3720.5,"size":1,"flags":128,"ts_in_delta":17361,'
-        '"sequence":1170366,"bid_px_00":3720.25,"ask_px_00":3720.5,"bid_sz_00":26,"ask_sz_00":11,'
-        '"bid_ct_00":16,"ask_ct_00":9,"symbol":"ESH1"}'
+    assert written == (
+        '{"ts_recv":"2020-12-28T13:00:00.006136329Z","hd":{"ts_event":"2020-12-28T13:00:00.006001487Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720.500000000","size":1,"flags":128,"ts_in_delta":17214,"sequence":1170362,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":24,"ask_sz":11,"bid_ct":15,"ask_ct":9}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T13:00:00.006246513Z","hd":{"ts_event":"2020-12-28T13:00:00.006146661Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720.500000000","size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":24,"ask_sz":12,"bid_ct":15,"ask_ct":10}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T13:00:00.007159323Z","hd":{"ts_event":"2020-12-28T13:00:00.007044577Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3720.250000000","size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":26,"ask_sz":12,"bid_ct":16,"ask_ct":10}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T13:00:00.007260967Z","hd":{"ts_event":"2020-12-28T13:00:00.007169135Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","depth":0,"price":"3720.500000000","size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":26,"ask_sz":11,"bid_ct":16,"ask_ct":9}],"symbol":"ESH1"}\n'
     )
 
 

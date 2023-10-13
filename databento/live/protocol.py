@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import itertools
 import logging
 from collections.abc import Iterable
 from functools import singledispatchmethod
 from numbers import Number
-from typing import TypeVar
 
 import databento_dbn
 from databento_dbn import Schema
@@ -14,6 +12,7 @@ from databento_dbn import SType
 
 from databento.common import cram
 from databento.common.error import BentoError
+from databento.common.iterator import chunk
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.publishers import Dataset
@@ -34,37 +33,6 @@ from databento.live.gateway import SubscriptionRequest
 RECV_BUFFER_SIZE: int = 64 * 2**10  # 64kb
 
 logger = logging.getLogger(__name__)
-
-
-_C = TypeVar("_C")
-
-
-def chunk(iterable: Iterable[_C], size: int) -> Iterable[tuple[_C, ...]]:
-    """
-    Break an iterable into chunks with a length of at most `size`.
-
-    Parameters
-    ----------
-    iterable: Iterable[_C]
-        The iterable to break up.
-    size : int
-        The maximum size of each chunk.
-
-    Returns
-    -------
-    Iterable[_C]
-
-    Raises
-    ------
-    ValueError
-        If `size` is less than 1.
-
-    """
-    if size < 1:
-        raise ValueError("size must be at least 1")
-
-    it = iter(iterable)
-    return iter(lambda: tuple(itertools.islice(it, size)), ())
 
 
 class DatabentoLiveProtocol(asyncio.BufferedProtocol):
