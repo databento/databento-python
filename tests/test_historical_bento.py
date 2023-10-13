@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import collections
 import datetime as dt
+import decimal
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 from unittest.mock import MagicMock
 
 import databento
@@ -104,6 +105,7 @@ def test_sources_metadata_returns_expected_json_as_dict(
             },
         ],
     }
+
 
 def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
     test_data: Callable[[Schema], bytes],
@@ -390,26 +392,35 @@ def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
         ],
     ],
 )
-def test_to_df_with_pretty_px_with_various_schemas_converts_prices_as_expected(
+@pytest.mark.parametrize(
+    "price_type, expected_type",
+    [
+        ("fixed", np.integer),
+        ("decimal", decimal.Decimal),
+        ("float", np.floating),
+    ],
+)
+def test_to_df_with_price_type_with_various_schemas_converts_prices_as_expected(
     test_data: Callable[[Schema], bytes],
     schema: Schema,
     columns: list[str],
+    price_type: Literal["float", "decimal"],
+    expected_type: type,
 ) -> None:
     # Arrange
     stub_data = test_data(schema)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
-    df = data.to_df(pretty_px=True)
+    df = data.to_df(price_type=price_type)
 
     # Assert
     assert len(df) == 4
     for column in columns:
-        assert isinstance(df[column].iloc(0)[1], float)
-    # TODO(cs): Check float values once display factor fixed
+        assert isinstance(df[column].iloc(0)[1], expected_type)
 
 
-def test_to_df_with_pretty_px_handles_null(
+def test_to_df_with_price_type_handles_null(
     test_data: Callable[[Schema], bytes],
 ) -> None:
     # Arrange
@@ -417,8 +428,8 @@ def test_to_df_with_pretty_px_handles_null(
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
-    df_plain = data.to_df(pretty_px=False)
-    df_pretty = data.to_df(pretty_px=True)
+    df_plain = data.to_df(price_type="fixed")
+    df_pretty = data.to_df(price_type="float")
 
     # Assert
     assert all(df_plain["strike_price"] == 9223372036854775807)
@@ -906,6 +917,7 @@ def test_dbnstore_buffer_long(
     with pytest.raises(BentoError):
         dbnstore.to_json(tmp_path / "test.json")
 
+
 def test_dbnstore_buffer_rewind(
     test_data: Callable[[Schema], bytes],
     tmp_path: Path,
@@ -924,6 +936,7 @@ def test_dbnstore_buffer_rewind(
     dbnstore = DBNStore.from_bytes(data=dbn_bytes)
 
     assert len(dbnstore.to_df()) == 4
+
 
 @pytest.mark.parametrize(
     "schema",
@@ -1141,6 +1154,7 @@ def test_dbnstore_to_df_with_count_empty(
 
     # Assert
     assert next(df_iter).empty
+
 
 def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
     test_data: Callable[[Schema], bytes],

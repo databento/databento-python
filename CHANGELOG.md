@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 - TBD
+
+#### Enhancements
+- Added `price_type` argument for `DBNStore.to_df` to specify if price fields should be `fixed`, `float` or `decimal.Decimal`
+
+#### Deprecations
+- Deprecated `pretty_px` argument for `DBNStore.to_df` to be removed in a future release; the default `pretty_px=True` is now equivalent to `price_type="float"` and `pretty_px=False` is now equivalent to `price_type="fixed"`
+
 ## 0.21.0 - 2023-10-11
 
 #### Enhancements
