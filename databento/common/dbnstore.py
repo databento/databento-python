@@ -1129,7 +1129,6 @@ class DBNStore:
             pretty_px=pretty_px,
             pretty_ts=pretty_ts,
             has_metadata=True,
-            input_compression=Compression.NONE,
             symbol_map=symbol_map,  # type: ignore [arg-type]
             schema=schema,
         )

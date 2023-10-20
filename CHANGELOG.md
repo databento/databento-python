@@ -4,7 +4,7 @@
 
 #### Enhancements
 - Added `price_type` argument for `DBNStore.to_df` to specify if price fields should be `fixed`, `float` or `decimal.Decimal`
-- Upgraded `databento-dbn` to 0.12.0
+- Upgraded `databento-dbn` to 0.13.0
 
 #### Breaking Changes
 - Changed outputs of `DBNStore.to_csv` and `DBNStore.to_json` to match the encoding formats from the Databento API
