@@ -4,6 +4,7 @@
 
 #### Enhancements
 - Added `price_type` argument for `DBNStore.to_df` to specify if price fields should be `fixed`, `float` or `decimal.Decimal`
+- Added `py.typed` marker file
 - Upgraded `databento-dbn` to 0.13.0
 
 #### Breaking Changes

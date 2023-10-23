@@ -6,7 +6,10 @@ authors = [
     "Databento <support@databento.com>",
 ]
 license = "Apache License 2.0"
-packages = [{include = "databento"}]
+packages = [
+    {include = "databento"},
+    {include = "databento/py.typed"},
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
