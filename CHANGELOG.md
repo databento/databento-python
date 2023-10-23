@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.22.0 - TBD
+## 0.22.0 - 2023-10-23
 
 #### Enhancements
 - Added `price_type` argument for `DBNStore.to_df` to specify if price fields should be `fixed`, `float` or `decimal.Decimal`
