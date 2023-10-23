@@ -18,4 +18,4 @@ if __name__ == "__main__":
     )
 
     # Convert to pandas dataframe
-    pprint(data.to_df(map_symbols=True))
+    pprint(data.to_df())

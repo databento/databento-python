@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import abc
+import decimal
 import itertools
 import logging
+import warnings
 from collections.abc import Generator
 from collections.abc import Iterator
+from functools import partial
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, Any, Callable, overload
+from typing import IO, TYPE_CHECKING, Any, BinaryIO, Callable, Literal, overload
 
 import databento_dbn
 import numpy as np
@@ -17,19 +20,24 @@ import zstandard
 from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import Compression
 from databento_dbn import DBNDecoder
+from databento_dbn import Encoding
 from databento_dbn import ErrorMsg
 from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
+from databento_dbn import Transcoder
 
 from databento.common.data import DEFINITION_TYPE_MAX_MAP
 from databento.common.data import SCHEMA_COLUMNS
 from databento.common.data import SCHEMA_DTYPES_MAP
 from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.error import BentoError
+from databento.common.iterator import chunk
 from databento.common.symbology import InstrumentMap
+from databento.common.symbology import SymbolInterval
+from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
 from databento.live import DBNRecord
@@ -43,7 +51,6 @@ NON_SCHEMA_RECORD_TYPES = [
 ]
 
 INT64_NULL = 9223372036854775807
-
 
 logger = logging.getLogger(__name__)
 
@@ -90,37 +97,6 @@ def is_dbn(reader: IO[bytes]) -> bool:
     """
     reader.seek(0)  # ensure we read from the beginning
     return reader.read(3) == b"DBN"
-
-
-def format_dataframe(
-    df: pd.DataFrame,
-    schema: Schema,
-    pretty_px: bool,
-    pretty_ts: bool,
-) -> pd.DataFrame:
-    struct = SCHEMA_STRUCT_MAP[schema]
-
-    if schema == Schema.DEFINITION:
-        for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
-            if column in df.columns:
-                df[column] = df[column].where(df[column] != type_max, np.nan)
-
-    if pretty_px:
-        for px_field in struct._price_fields:
-            df[px_field] = df[px_field].replace(INT64_NULL, np.nan) / FIXED_PRICE_SCALE
-
-    if pretty_ts:
-        for ts_field in struct._timestamp_fields:
-            df[ts_field] = pd.to_datetime(df[ts_field], errors="coerce", utc=True)
-
-    for column, dtype in SCHEMA_DTYPES_MAP[schema]:
-        if dtype.startswith("S") and column not in struct._hidden_fields:
-            df[column] = df[column].str.decode("utf-8")
-
-    index_column = "ts_event" if schema.value.startswith("ohlcv") else "ts_recv"
-    df.set_index(index_column, inplace=True)
-
-    return df
 
 
 class DataSource(abc.ABC):
@@ -791,7 +767,8 @@ class DBNStore:
         path: Path | str,
         pretty_px: bool = True,
         pretty_ts: bool = True,
-        map_symbols: bool | None = None,
+        map_symbols: bool = True,
+        compression: Compression | str = Compression.NONE,
         schema: Schema | str | None = None,
     ) -> None:
         """
@@ -812,6 +789,8 @@ class DBNStore:
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
+        compression : Compression or str, default `Compression.NONE`
+            The output compression for writing.
         schema : Schema or str, optional
             The schema for the csv.
             This is only required when reading a DBN stream with mixed record types.
@@ -826,25 +805,39 @@ class DBNStore:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        df_iter = self.to_df(
-            pretty_px=pretty_px,
-            pretty_ts=pretty_ts,
-            map_symbols=map_symbols,
-            schema=schema,
-            count=2**16,
-        )
+        compression = validate_enum(compression, Compression, "compression")
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
 
-        with open(path, "x", newline="") as csv_file:
-            for i, frame in enumerate(df_iter):
-                frame.to_csv(
-                    csv_file,
-                    header=(i == 0),
-                )
+        record_type = SCHEMA_STRUCT_MAP[schema]
+        record_iter = filter(lambda r: isinstance(r, record_type), self)
+
+        if map_symbols:
+            self._instrument_map.insert_metadata(self.metadata)
+            symbol_map = self._instrument_map._data
+        else:
+            symbol_map = None
+
+        with open(path, "xb") as output:
+            self._transcode(
+                output=output,
+                records_iter=record_iter,
+                encoding=Encoding.CSV,
+                pretty_px=pretty_px,
+                pretty_ts=pretty_ts,
+                symbol_map=symbol_map,
+                compression=compression,
+                schema=schema,
+            )
 
     @overload
     def to_df(
         self,
-        pretty_px: bool = ...,
+        pretty_px: bool | None = ...,
+        price_type: Literal["fixed", "float", "decimal"] = ...,
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
@@ -855,7 +848,8 @@ class DBNStore:
     @overload
     def to_df(
         self,
-        pretty_px: bool = ...,
+        pretty_px: bool | None = ...,
+        price_type: Literal["fixed", "float", "decimal"] = ...,
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
@@ -865,7 +859,8 @@ class DBNStore:
 
     def to_df(
         self,
-        pretty_px: bool = True,
+        pretty_px: bool | None = None,
+        price_type: Literal["fixed", "float", "decimal"] = "float",
         pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
@@ -877,9 +872,15 @@ class DBNStore:
         Parameters
         ----------
         pretty_px : bool, default True
+            This parameter is deprecated and will be removed in a future release.
             If all price columns should be converted from `int` to `float` at
             the correct scale (using the fixed-precision scalar 1e-9). Null
             prices are replaced with NaN.
+        price_type : str, default "float"
+            The price type to use for price fields.
+            If "fixed", prices will have a type of `int` in fixed decimal format; each unit representing 1e-9 or 0.000000001.
+            If "float", prices will have a type of `float`.
+            If "decimal", prices will be instances of `decimal.Decimal`.
         pretty_ts : bool, default True
             If all timestamp columns should be converted from UNIX nanosecond
             `int` to tz-aware UTC `pd.Timestamp`.
@@ -908,6 +909,20 @@ class DBNStore:
             If the schema for the array cannot be determined.
 
         """
+        if pretty_px is True:
+            warnings.warn(
+                'The argument `pretty_px` is deprecated and will be removed in a future release; `price_type="float"` can be used instead.',
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        elif pretty_px is False:
+            price_type = "fixed"
+            warnings.warn(
+                'The argument `pretty_px` is deprecated and will be removed in a future release; `price_type="fixed"` can be used instead.',
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         schema = validate_maybe_enum(schema, Schema, "schema")
         if schema is None:
             if self.schema is None:
@@ -927,7 +942,7 @@ class DBNStore:
             schema=schema,
             count=count,
             instrument_map=self._instrument_map,
-            pretty_px=pretty_px,
+            price_type=price_type,
             pretty_ts=pretty_ts,
             map_symbols=map_symbols,
         )
@@ -966,7 +981,8 @@ class DBNStore:
         path: Path | str,
         pretty_px: bool = True,
         pretty_ts: bool = True,
-        map_symbols: bool | None = None,
+        map_symbols: bool = True,
+        compression: Compression | str = Compression.NONE,
         schema: Schema | str | None = None,
     ) -> None:
         """
@@ -986,6 +1002,8 @@ class DBNStore:
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
+        compression : Compression or str, default `Compression.NONE`
+            The output compression for writing.
         schema : Schema or str, optional
             The schema for the json.
             This is only required when reading a DBN stream with mixed record types.
@@ -1000,23 +1018,33 @@ class DBNStore:
         Requires all the data to be brought up into memory to then be written.
 
         """
-        df_iter = self.to_df(
-            pretty_px=pretty_px,
-            pretty_ts=pretty_ts,
-            map_symbols=map_symbols,
-            schema=schema,
-            count=2**16,
-        )
+        compression = validate_enum(compression, Compression, "compression")
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
 
-        with open(path, "x") as json_path:
-            for frame in df_iter:
-                frame.reset_index(inplace=True)
-                frame.to_json(
-                    json_path,
-                    orient="records",
-                    date_unit="ns",
-                    lines=True,
-                )
+        record_type = SCHEMA_STRUCT_MAP[schema]
+        record_iter = filter(lambda r: isinstance(r, record_type), self)
+
+        if map_symbols:
+            self._instrument_map.insert_metadata(self.metadata)
+            symbol_map = self._instrument_map._data
+        else:
+            symbol_map = None
+
+        with open(path, "xb") as output:
+            self._transcode(
+                output=output,
+                records_iter=record_iter,
+                encoding=Encoding.JSON,
+                pretty_px=pretty_px,
+                pretty_ts=pretty_ts,
+                symbol_map=symbol_map,
+                compression=compression,
+                schema=schema,
+            )
 
     @overload
     def to_ndarray(  # type: ignore [misc]
@@ -1083,6 +1111,34 @@ class DBNStore:
 
         return ndarray_iter
 
+    def _transcode(
+        self,
+        output: BinaryIO,
+        records_iter: Iterator[DBNRecord],
+        encoding: Encoding,
+        pretty_px: bool,
+        pretty_ts: bool,
+        symbol_map: dict[int, list[SymbolInterval]] | None,
+        compression: Compression,
+        schema: Schema,
+    ) -> None:
+        transcoder = Transcoder(
+            file=output,
+            encoding=encoding,
+            compression=compression,
+            pretty_px=pretty_px,
+            pretty_ts=pretty_ts,
+            has_metadata=True,
+            symbol_map=symbol_map,  # type: ignore [arg-type]
+            schema=schema,
+        )
+
+        transcoder.write(bytes(self.metadata))
+        for records in chunk(records_iter, 2**16):
+            for record in records:
+                transcoder.write(bytes(record))
+            transcoder.flush()
+
 
 class NDArrayIterator:
     def __init__(
@@ -1126,37 +1182,91 @@ class DataFrameIterator:
         count: int | None,
         schema: Schema,
         instrument_map: InstrumentMap,
-        pretty_px: bool = True,
+        price_type: Literal["fixed", "float", "decimal"] = "float",
         pretty_ts: bool = True,
         map_symbols: bool = True,
     ):
         self._records = records
         self._schema = schema
         self._count = count
-        self._pretty_px = pretty_px
+        self._price_type = price_type
         self._pretty_ts = pretty_ts
         self._map_symbols = map_symbols
         self._instrument_map = instrument_map
+        self._struct = SCHEMA_STRUCT_MAP[schema]
 
     def __iter__(self) -> DataFrameIterator:
         return self
 
     def __next__(self) -> pd.DataFrame:
-        df = format_dataframe(
-            pd.DataFrame(
-                next(self._records),
-                columns=SCHEMA_COLUMNS[self._schema],
-            ),
-            schema=self._schema,
-            pretty_px=self._pretty_px,
-            pretty_ts=self._pretty_ts,
+        df = pd.DataFrame(
+            next(self._records),
+            columns=SCHEMA_COLUMNS[self._schema],
         )
 
+        if self._schema == Schema.DEFINITION:
+            self._format_definition_fields(df)
+
+        self._format_hidden_fields(df)
+
+        self._format_px(df, self._price_type)
+
+        if self._pretty_ts:
+            self._format_pretty_ts(df)
+
+        self._format_set_index(df)
+
         if self._map_symbols:
-            df_index = df.index if self._pretty_ts else pd.to_datetime(df.index, utc=True)
-            dates = [ts.date() for ts in df_index]
-            df["symbol"] = [
-               self._instrument_map.resolve(inst, dates[i]) for i, inst in enumerate(df["instrument_id"])
-            ]
+            self._format_map_symbols(df)
 
         return df
+
+    def _format_definition_fields(self, df: pd.DataFrame) -> None:
+        for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
+            if column in df.columns:
+                df[column] = df[column].where(df[column] != type_max, np.nan)
+
+    def _format_hidden_fields(self, df: pd.DataFrame) -> None:
+        for column, dtype in SCHEMA_DTYPES_MAP[self._schema]:
+            hidden_fields = self._struct._hidden_fields
+            if dtype.startswith("S") and column not in hidden_fields:
+                df[column] = df[column].str.decode("utf-8")
+
+    def _format_map_symbols(self, df: pd.DataFrame) -> None:
+        df_index = df.index if self._pretty_ts else pd.to_datetime(df.index, utc=True)
+        dates = [ts.date() for ts in df_index]
+        df["symbol"] = [
+            self._instrument_map.resolve(inst, dates[i])
+            for i, inst in enumerate(df["instrument_id"])
+        ]
+
+    def _format_px(
+        self,
+        df: pd.DataFrame,
+        price_type: Literal["fixed", "float", "decimal"],
+    ) -> None:
+        px_fields = self._struct._price_fields
+
+        if price_type == "decimal":
+            for field in px_fields:
+                df[field] = (
+                    df[field].replace(INT64_NULL, np.nan).apply(decimal.Decimal)
+                    / FIXED_PRICE_SCALE
+                )
+        elif price_type == "float":
+            for field in px_fields:
+                df[field] = df[field].replace(INT64_NULL, np.nan) / FIXED_PRICE_SCALE
+        else:
+            return  # do nothing
+
+    def _format_pretty_ts(self, df: pd.DataFrame) -> None:
+        for field in self._struct._timestamp_fields:
+            df[field] = df[field].apply(
+                partial(pd.to_datetime, utc=True, errors="coerce"),
+            )
+
+    def _format_set_index(self, df: pd.DataFrame) -> None:
+        index_column = (
+            "ts_event" if self._schema.value.startswith("ohlcv") else "ts_recv"
+        )
+        df.set_index(index_column, inplace=True)

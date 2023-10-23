@@ -86,16 +86,18 @@ def test_parse_authentication_request(
             AuthenticationRequest(
                 auth="abcd1234",
                 dataset=Dataset.GLBX_MDP3,
+                client="unittest",
             ),
-            b"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=0\n",
+            b"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=0|client=unittest\n",
         ),
         pytest.param(
             AuthenticationRequest(
                 auth="abcd1234",
                 dataset=Dataset.XNAS_ITCH,
                 ts_out="1",
+                client="unittest",
             ),
-            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1\n",
+            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1|client=unittest\n",
         ),
     ],
 )
@@ -243,6 +245,7 @@ def test_serialize_greeting(
     "line, expected",
     [
         pytest.param("start_session=0\n", "0"),
+        pytest.param("start_session\n", "", id="no_value"),
         pytest.param("start_session=0", ValueError, id="no_newline"),
         pytest.param("start_session=0|extra=key\n", ValueError, id="extra_key"),
     ],

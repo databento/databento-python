@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.22.0 - 2023-10-23
+
+#### Enhancements
+- Added `price_type` argument for `DBNStore.to_df` to specify if price fields should be `fixed`, `float` or `decimal.Decimal`
+- Added `py.typed` marker file
+- Upgraded `databento-dbn` to 0.13.0
+
+#### Breaking Changes
+- Changed outputs of `DBNStore.to_csv` and `DBNStore.to_json` to match the encoding formats from the Databento API
+
+#### Deprecations
+- Deprecated `pretty_px` argument for `DBNStore.to_df` to be removed in a future release; the default `pretty_px=True` is now equivalent to `price_type="float"` and `pretty_px=False` is now equivalent to `price_type="fixed"`
+
 ## 0.21.0 - 2023-10-11
 
 #### Enhancements

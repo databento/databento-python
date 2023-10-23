@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import sys
 import warnings
 from collections.abc import Iterable
 from io import BytesIO
@@ -21,7 +20,7 @@ from databento.common.error import BentoClientError
 from databento.common.error import BentoDeprecationWarning
 from databento.common.error import BentoServerError
 from databento.common.error import BentoWarning
-from databento.version import __version__
+from databento.common.system import USER_AGENT
 
 
 _32KIB = 1024 * 32  # 32_768
@@ -36,12 +35,9 @@ class BentoHttpAPI:
     TIMEOUT = 100
 
     def __init__(self, key: str, gateway: str):
-        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-        user_agent = f"Databento/{__version__} Python/{python_version}"
-
         self._key = key
         self._gateway = gateway
-        self._headers = {"accept": "application/json", "user-agent": user_agent}
+        self._headers = {"accept": "application/json", "user-agent": USER_AGENT}
 
     def _check_api_key(self) -> None:
         if self._key == "YOUR_API_KEY":
