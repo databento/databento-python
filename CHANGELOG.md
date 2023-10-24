@@ -4,6 +4,7 @@
 
 #### Bug fixes
 - Fixed an issue where `DBNStore.to_csv` and `DBNStore.to_json` were mapping symbols even when `map_symbols` was set to `False`
+- Fixed an issue where empty symbology mappings caused a `ValueError` when loading symbols into the `DBNStore` instrument map
 
 ## 0.22.0 - 2023-10-23
 

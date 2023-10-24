@@ -3,13 +3,34 @@ from __future__ import annotations
 import json
 import pathlib
 from collections.abc import Iterable
+from typing import NamedTuple
 
 import pandas as pd
 import pytest
 from databento.common.symbology import InstrumentMap
-from databento.common.symbology import SymbolInterval
+from databento.common.symbology import MappingInterval
+from databento_dbn import UNDEF_TIMESTAMP
+from databento_dbn import Metadata
+from databento_dbn import Schema
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
+
+
+class SymbolMapping(NamedTuple):
+    """
+    A mapping from raw symbol to a collection of MappingIntervals.
+
+    Attributes
+    ----------
+    raw_symbol: str
+        The raw symbol.
+    intervals: list[MappingInterval]
+        The MappingIntervals for the `raw_symbol`.
+
+    """
+
+    raw_symbol: str
+    intervals: list[MappingInterval]
 
 
 @pytest.fixture(name="instrument_map")
@@ -133,12 +154,143 @@ def create_symbol_mapping_message(
     )
 
 
+def create_metadata(
+    mappings: Iterable[SymbolMapping],
+    dataset: str = "UNIT.TEST",
+    start: int = UNDEF_TIMESTAMP,
+    end: int = UNDEF_TIMESTAMP,
+    stype_in: SType = SType.RAW_SYMBOL,
+    stype_out: SType = SType.INSTRUMENT_ID,
+    schema: Schema = Schema.TRADES,
+    limit: int | None = None,
+    ts_out: bool = False,
+) -> Metadata:
+    return Metadata(  # type: ignore [call-arg]
+        dataset=dataset,
+        start=start,
+        stype_out=stype_out,
+        symbols=[m.raw_symbol for m in mappings],
+        partial=[],
+        not_found=[],
+        mappings=mappings,
+        schema=schema,
+        stype_in=stype_in,
+        end=end,
+        limit=limit,
+        ts_out=ts_out,
+    )
+
+
 def test_instrument_map(
     instrument_map: InstrumentMap,
 ) -> None:
     """
     Test the creation of an InstrumentMap.
     """
+    assert instrument_map._data == {}
+
+
+def test_instrument_map_insert_metadata(
+    instrument_map: InstrumentMap,
+    start_date: pd.Timestamp,
+    end_date: pd.Timestamp,
+) -> None:
+    """
+    Test the insertion of DBN Metadata.
+    """
+    symbol = "test"
+    instrument_id = 1234
+
+    mappings = [
+        SymbolMapping(
+            raw_symbol=symbol,
+            intervals=[
+                MappingInterval(
+                    start_date=start_date,
+                    end_date=end_date,
+                    symbol=str(instrument_id),
+                ),
+            ],
+        ),
+    ]
+
+    metadata = create_metadata(
+        mappings=mappings,
+    )
+
+    instrument_map.insert_metadata(metadata)
+    assert instrument_map.resolve(instrument_id, start_date.date()) == symbol
+
+
+def test_instrument_map_insert_metadata_multiple_mappings(
+    instrument_map: InstrumentMap,
+    start_date: pd.Timestamp,
+    end_date: pd.Timestamp,
+) -> None:
+    """
+    Test the insertion of a DBN Metadata with multiple mapping for the same
+    instrument_id.
+    """
+    symbols = ["test_1", "test_2", "test_3"]
+    instrument_id = 1234
+
+    mappings = []
+    for offset, symbol in enumerate(symbols):
+        mappings.append(
+            SymbolMapping(
+                raw_symbol=symbol,
+                intervals=[
+                    MappingInterval(
+                        start_date=start_date + pd.Timedelta(days=offset),
+                        end_date=end_date + pd.Timedelta(days=offset),
+                        symbol=str(instrument_id),
+                    ),
+                ],
+            ),
+        )
+
+    metadata = create_metadata(
+        mappings=mappings,
+    )
+
+    instrument_map.insert_metadata(metadata)
+
+    for offset, symbol in enumerate(symbols):
+        assert (
+            instrument_map.resolve(
+                instrument_id,
+                (start_date + pd.Timedelta(days=offset)).date(),
+            )
+            == symbol
+        )
+
+
+def test_instrument_map_insert_metadata_empty_mappings(
+    instrument_map: InstrumentMap,
+    start_date: pd.Timestamp,
+    end_date: pd.Timestamp,
+) -> None:
+    """
+    Test the insertion of DBN Metadata that contains an empty mapping.
+    """
+    mappings = [
+        SymbolMapping(
+            raw_symbol="empty",
+            intervals=[
+                MappingInterval(
+                    start_date=start_date,
+                    end_date=end_date,
+                    symbol="",
+                ),
+            ],
+        ),
+    ]
+
+    metadata = create_metadata(
+        mappings=mappings,
+    )
+
+    instrument_map.insert_metadata(metadata)
     assert instrument_map._data == {}
 
 
@@ -283,6 +435,29 @@ def test_instrument_map_insert_symbology_response_multiple_mappings(
         )
 
 
+def test_instrument_map_insert_symbology_response_empty_mapping(
+    instrument_map: InstrumentMap,
+    start_date: pd.Timestamp,
+    end_date: pd.Timestamp,
+) -> None:
+    """
+    Test the insertion of an empty symbology mapping.
+    """
+    result = {
+        "test": [
+            {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": ""},
+        ],
+    }
+    sym_resp = create_symbology_response(
+        result=result,
+        stype_in=SType.RAW_SYMBOL,
+        stype_out=SType.INSTRUMENT_ID,
+    )
+
+    instrument_map.insert_json(sym_resp)
+    assert instrument_map._data == {}
+
+
 @pytest.mark.parametrize(
     "symbol_in,stype_in,symbol_out,stype_out,expected_symbol",
     [
@@ -389,6 +564,29 @@ def test_instrument_map_insert_json_file(
     assert instrument_map.resolve(1234, start_date.date()) == expected_symbol
 
 
+def test_instrument_map_insert_json_str_empty_mapping(
+    instrument_map: InstrumentMap,
+    start_date: pd.Timestamp,
+    end_date: pd.Timestamp,
+) -> None:
+    """
+    Test the insertion of an JSON symbology mapping.
+    """
+    result = {
+        "test": [
+            {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": ""},
+        ],
+    }
+    sym_resp = create_symbology_response(
+        result=result,
+        stype_in=SType.RAW_SYMBOL,
+        stype_out=SType.INSTRUMENT_ID,
+    )
+
+    instrument_map.insert_json(json.dumps(sym_resp))
+    assert instrument_map._data == {}
+
+
 @pytest.mark.parametrize(
     "symbol_in,stype_in,symbol_out,stype_out",
     [
@@ -465,9 +663,9 @@ def test_instrument_map_resolve_with_date(
     instrument_id = 1234
 
     instrument_map._data[instrument_id] = [
-        SymbolInterval(
-            start=start_date.date(),
-            end=end_date.date(),
+        MappingInterval(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
             symbol=symbol,
         ),
     ]
@@ -482,6 +680,7 @@ def test_instrument_map_resolve_with_date(
     assert instrument_map.resolve(instrument_id, start_date.date()) == symbol
     assert instrument_map.resolve(instrument_id, end_date.date()) is None
 
+
 def test_instrument_map_ignore_duplicate(
     instrument_map: InstrumentMap,
     start_date: pd.Timestamp,
@@ -494,9 +693,9 @@ def test_instrument_map_ignore_duplicate(
     instrument_id = 1234
 
     instrument_map._data[instrument_id] = [
-        SymbolInterval(
-            start=start_date.date(),
-            end=end_date.date(),
+        MappingInterval(
+            start_date=start_date.date(),
+            end_date=end_date.date(),
             symbol=symbol,
         ),
     ]
