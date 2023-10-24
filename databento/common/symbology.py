@@ -19,23 +19,23 @@ from databento_dbn import SymbolMappingMsg
 ALL_SYMBOLS = "ALL_SYMBOLS"
 
 
-class SymbolInterval(NamedTuple):
+class MappingInterval(NamedTuple):
     """
     Interval inside which a symbol is defined.
 
     Attributes
     ----------
-    start: dt.date
+    start_date: dt.date
         The start time of the interval.
-    end: dt.date
+    end_date: dt.date
         The end time of the interval (exclusive).
     symbol: str
         The string symbol.
 
     """
 
-    start: dt.date
-    end: dt.date
+    start_date: dt.date
+    end_date: dt.date
     symbol: str
 
 
@@ -60,7 +60,7 @@ class InstrumentMap:
     )
 
     def __init__(self) -> None:
-        self._data: dict[int, list[SymbolInterval]] = defaultdict(list)
+        self._data: dict[int, list[MappingInterval]] = defaultdict(list)
 
     def clear(self) -> None:
         """
@@ -96,7 +96,7 @@ class InstrumentMap:
         """
         mappings = self._data[instrument_id]
         for entry in mappings:
-            if entry.start <= date < entry.end:
+            if entry.start_date <= date < entry.end_date:
                 return entry.symbol
         return None
 
@@ -119,17 +119,14 @@ class InstrumentMap:
             # Nothing to do
             return
 
-        if SType(metadata.stype_in) == SType.INSTRUMENT_ID:
-            inverse = True
-        elif SType(metadata.stype_out) == SType.INSTRUMENT_ID:
-            inverse = False
-        else:
-            raise ValueError(
-                "either `stype_out` or `stype_in` must be `instrument_id` to insert",
-            )
+        stype_in = SType(metadata.stype_in)
+        stype_out = SType(metadata.stype_out)
 
-        for in_symbol, entries in metadata.mappings.items():
+        for symbol_in, entries in metadata.mappings.items():
             for entry in entries:
+                if not entry["symbol"]:
+                    continue  # skip empty symbol mapping
+
                 try:
                     start_date = pd.Timestamp(entry["start_date"], tz="utc").date()
                     end_date = pd.Timestamp(entry["end_date"], tz="utc").date()
@@ -138,28 +135,18 @@ class InstrumentMap:
                         f"failed to parse date range from start_date={entry['start_date']} end_date={entry['end_date']}",
                     )
 
-                if inverse:
-                    try:
-                        instrument_id = int(in_symbol)
-                    except TypeError:
-                        raise ValueError(
-                            f"failed to parse `{in_symbol}` as an instrument_id",
-                        )
-                    symbol = entry["symbol"]
-                else:
-                    try:
-                        instrument_id = int(entry["symbol"])
-                    except TypeError:
-                        raise ValueError(
-                            f"failed to parse `{entry['symbol']}` as an instrument_id",
-                        )
-                    symbol = in_symbol
+                symbol, instrument_id = _resolve_mapping_tuple(
+                    symbol_in=symbol_in,
+                    stype_in=stype_in,
+                    symbol_out=entry["symbol"],
+                    stype_out=stype_out,
+                )
 
                 self._insert_inverval(
                     instrument_id,
-                    SymbolInterval(
-                        start=start_date,
-                        end=end_date,
+                    MappingInterval(
+                        start_date=start_date,
+                        end_date=end_date,
                         symbol=symbol,
                     ),
                 )
@@ -201,9 +188,9 @@ class InstrumentMap:
 
         self._insert_inverval(
             msg.hd.instrument_id,
-            SymbolInterval(
-                start=pd.Timestamp(start_ts, unit="ns", tz="utc").date(),
-                end=pd.Timestamp(end_ts, unit="ns", tz="utc").date(),
+            MappingInterval(
+                start_date=pd.Timestamp(start_ts, unit="ns", tz="utc").date(),
+                end_date=pd.Timestamp(end_ts, unit="ns", tz="utc").date(),
                 symbol=symbol,
             ),
         )
@@ -243,24 +230,21 @@ class InstrumentMap:
         if not all(k in mapping for k in self.SYMBOLOGY_RESOLVE_KEYS):
             raise ValueError("mapping must contain a complete symbology.resolve result")
 
-        if SType(mapping["stype_in"]) == SType.INSTRUMENT_ID:
-            inverse = True
-        elif SType(mapping["stype_out"]) == SType.INSTRUMENT_ID:
-            inverse = False
-        else:
-            raise ValueError(
-                "either `stype_out` or `stype_in` must be `instrument_id` to insert",
-            )
-
         if not isinstance(mapping["result"], dict):
             raise ValueError("`result` is not a valid symbology mapping")
 
-        for in_symbol, entries in mapping["result"].items():
+        stype_in = SType(mapping["stype_in"])
+        stype_out = SType(mapping["stype_out"])
+
+        for symbol_in, entries in mapping["result"].items():
             for entry in entries:
                 if not all(k in entry for k in self.SYMBOLOGY_RESULT_KEYS):
                     raise ValueError(
                         "`result` contents must contain `d0`, `d1`, and `s` keys",
                     )
+
+                if not entry["s"]:
+                    continue  # skip empty symbol mapping
 
                 try:
                     start_date = pd.Timestamp(entry["d0"], tz="utc").date()
@@ -270,33 +254,23 @@ class InstrumentMap:
                         f"failed to parse date range from d0={entry['d0']} d1={entry['d1']}",
                     )
 
-                if inverse:
-                    try:
-                        instrument_id = int(in_symbol)
-                    except TypeError:
-                        raise ValueError(
-                            f"failed to parse `{in_symbol}` as an instrument_id",
-                        )
-                    symbol = entry["s"]
-                else:
-                    try:
-                        instrument_id = int(entry["s"])
-                    except TypeError:
-                        raise ValueError(
-                            f"failed to parse `{entry['s']}` as an instrument_id",
-                        )
-                    symbol = in_symbol
+                symbol, instrument_id = _resolve_mapping_tuple(
+                    symbol_in=symbol_in,
+                    stype_in=stype_in,
+                    symbol_out=entry["s"],
+                    stype_out=stype_out,
+                )
 
                 self._insert_inverval(
                     instrument_id,
-                    SymbolInterval(
-                        start=start_date,
-                        end=end_date,
+                    MappingInterval(
+                        start_date=start_date,
+                        end_date=end_date,
                         symbol=symbol,
                     ),
                 )
 
-    def _insert_inverval(self, instrument_id: int, interval: SymbolInterval) -> None:
+    def _insert_inverval(self, instrument_id: int, interval: MappingInterval) -> None:
         """
         Insert a SymbolInterval into the map.
 
@@ -314,3 +288,31 @@ class InstrumentMap:
             return  # this mapping is already present
 
         mappings.insert(insert_position, interval)
+
+
+def _resolve_mapping_tuple(
+    symbol_in: str | int,
+    stype_in: SType,
+    symbol_out: str | int,
+    stype_out: SType,
+) -> tuple[str, int]:
+    if stype_in == SType.INSTRUMENT_ID:
+        try:
+            instrument_id = int(symbol_in)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"failed to parse `{symbol_in}` as an instrument_id",
+            )
+        return str(symbol_out), instrument_id
+    elif stype_out == SType.INSTRUMENT_ID:
+        try:
+            instrument_id = int(symbol_out)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"failed to parse `{symbol_out}` as an instrument_id",
+            )
+        return str(symbol_in), instrument_id
+
+    raise ValueError(
+        "either `stype_out` or `stype_in` must be `instrument_id` to insert",
+    )
