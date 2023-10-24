@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.22.1 - TBD
+
+#### Bug fixes
+- Fixed an issue where `DBNStore.to_csv` and `DBNStore.to_json` were mapping symbols even when `map_symbols` was set to `False`
+
 ## 0.22.0 - 2023-10-23
 
 #### Enhancements
