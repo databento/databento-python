@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.22.2 - TBD
+
+#### Bug fixes
+- Fixed issue where a large unreadable symbol subscription message could be sent
+
 ## 0.22.1 - 2023-10-24
 
 #### Bug fixes

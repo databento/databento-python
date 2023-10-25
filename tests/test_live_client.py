@@ -399,14 +399,24 @@ async def test_live_subscribe_large_symbol_list(
     first_message = mock_live_server.get_message_of_type(
         gateway.SubscriptionRequest,
         timeout=1,
-    )
+    ).symbols.split(",")
 
     second_message = mock_live_server.get_message_of_type(
         gateway.SubscriptionRequest,
         timeout=1,
-    )
+    ).symbols.split(",")
 
-    reconstructed = first_message.symbols.split(",") + second_message.symbols.split(",")
+    third_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    ).symbols.split(",")
+
+    fourth_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    ).symbols.split(",")
+
+    reconstructed = first_message + second_message + third_message + fourth_message
     assert reconstructed == large_symbol_list
 
 

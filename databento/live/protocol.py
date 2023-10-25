@@ -5,6 +5,7 @@ import logging
 from collections.abc import Iterable
 from functools import singledispatchmethod
 from numbers import Number
+from typing import Final
 
 import databento_dbn
 from databento_dbn import Schema
@@ -30,7 +31,8 @@ from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 
 
-RECV_BUFFER_SIZE: int = 64 * 2**10  # 64kb
+RECV_BUFFER_SIZE: Final = 64 * 2**10  # 64kb
+SYMBOL_LIST_BATCH_SIZE: Final = 64
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +280,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
 
-        for batch in chunk(symbols_list, 128):
+        for batch in chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE):
             batch_str = ",".join(batch)
             message = SubscriptionRequest(
                 schema=validate_enum(schema, Schema, "schema"),
