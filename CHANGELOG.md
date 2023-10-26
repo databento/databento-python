@@ -4,6 +4,7 @@
 
 #### Bug fixes
 - Fixed issue where a large unreadable symbol subscription message could be sent
+- Fixed an issue where `DBNStore.to_df` with `pretty_ts=True` was very slow
 
 ## 0.22.1 - 2023-10-24
 
