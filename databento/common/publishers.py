@@ -91,6 +91,10 @@ class Venue(StringyMixin, str, Enum):
         Cboe BZX Options Exchange.
     MXOP
         MEMX LLC Options.
+    IFEU
+        ICE Futures Europe (Commodities).
+    NDEX
+        ICE Endex.
 
     """
 
@@ -131,6 +135,8 @@ class Venue(StringyMixin, str, Enum):
     XPHL = "XPHL"
     BATO = "BATO"
     MXOP = "MXOP"
+    IFEU = "IFEU"
+    NDEX = "NDEX"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -211,6 +217,10 @@ class Venue(StringyMixin, str, Enum):
             return Venue.BATO
         if value == 37:
             return Venue.MXOP
+        if value == 38:
+            return Venue.IFEU
+        if value == 39:
+            return Venue.NDEX
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -291,6 +301,10 @@ class Venue(StringyMixin, str, Enum):
             return 36
         if self == Venue.MXOP:
             return 37
+        if self == Venue.IFEU:
+            return 38
+        if self == Venue.NDEX:
+            return 39
         raise ValueError("Invalid Venue")
 
     @property
@@ -372,6 +386,10 @@ class Venue(StringyMixin, str, Enum):
             return "Cboe BZX Options Exchange"
         if self == Venue.MXOP:
             return "MEMX LLC Options"
+        if self == Venue.IFEU:
+            return "ICE Futures Europe (Commodities)"
+        if self == Venue.NDEX:
+            return "ICE Endex"
         raise ValueError("Unexpected Venue value")
 
 @unique
@@ -434,6 +452,10 @@ class Dataset(StringyMixin, str, Enum):
         Nasdaq QBBO.
     XNAS_NLS
         Nasdaq NLS.
+    IFEU_IMPACT
+        ICE Futures Europe (Commodities) iMpact.
+    NDEX_IMPACT
+        ICE Endex iMpact.
 
     """
 
@@ -464,6 +486,8 @@ class Dataset(StringyMixin, str, Enum):
     XNYS_TRADES = "XNYS.TRADES"
     XNAS_QBBO = "XNAS.QBBO"
     XNAS_NLS = "XNAS.NLS"
+    IFEU_IMPACT = "IFEU.IMPACT"
+    NDEX_IMPACT = "NDEX.IMPACT"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -524,6 +548,10 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.XNAS_QBBO
         if value == 27:
             return Dataset.XNAS_NLS
+        if value == 28:
+            return Dataset.IFEU_IMPACT
+        if value == 29:
+            return Dataset.NDEX_IMPACT
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -584,6 +612,10 @@ class Dataset(StringyMixin, str, Enum):
             return 26
         if self == Dataset.XNAS_NLS:
             return 27
+        if self == Dataset.IFEU_IMPACT:
+            return 28
+        if self == Dataset.NDEX_IMPACT:
+            return 29
         raise ValueError("Invalid Dataset")
 
     @property
@@ -645,6 +677,10 @@ class Dataset(StringyMixin, str, Enum):
             return "Nasdaq QBBO"
         if self == Dataset.XNAS_NLS:
             return "Nasdaq NLS"
+        if self == Dataset.IFEU_IMPACT:
+            return "ICE Futures Europe (Commodities) iMpact"
+        if self == Dataset.NDEX_IMPACT:
+            return "ICE Endex iMpact"
         raise ValueError("Unexpected Dataset value")
 
 @unique
@@ -765,6 +801,10 @@ class Publisher(StringyMixin, str, Enum):
         DBEQ Plus - FINRA/Nasdaq TRF Carteret.
     DBEQ_PLUS_FINC
         DBEQ Plus - FINRA/Nasdaq TRF Chicago.
+    IFEU_IMPACT_IFEU
+        ICE Futures Europe (Commodities).
+    NDEX_IMPACT_NDEX
+        ICE Endex.
 
     """
 
@@ -824,6 +864,8 @@ class Publisher(StringyMixin, str, Enum):
     DBEQ_PLUS_FINN = "DBEQ.PLUS.FINN"
     DBEQ_PLUS_FINY = "DBEQ.PLUS.FINY"
     DBEQ_PLUS_FINC = "DBEQ.PLUS.FINC"
+    IFEU_IMPACT_IFEU = "IFEU.IMPACT.IFEU"
+    NDEX_IMPACT_NDEX = "NDEX.IMPACT.NDEX"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -942,6 +984,10 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.DBEQ_PLUS_FINY
         if value == 56:
             return Publisher.DBEQ_PLUS_FINC
+        if value == 57:
+            return Publisher.IFEU_IMPACT_IFEU
+        if value == 58:
+            return Publisher.NDEX_IMPACT_NDEX
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1060,6 +1106,10 @@ class Publisher(StringyMixin, str, Enum):
             return 55
         if self == Publisher.DBEQ_PLUS_FINC:
             return 56
+        if self == Publisher.IFEU_IMPACT_IFEU:
+            return 57
+        if self == Publisher.NDEX_IMPACT_NDEX:
+            return 58
         raise ValueError("Invalid Publisher")
     @property
     def venue(self) -> Venue:
@@ -1178,6 +1228,10 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.FINY
         if self == Publisher.DBEQ_PLUS_FINC:
             return Venue.FINC
+        if self == Publisher.IFEU_IMPACT_IFEU:
+            return Venue.IFEU
+        if self == Publisher.NDEX_IMPACT_NDEX:
+            return Venue.NDEX
         raise ValueError("Unexpected Publisher value")
     @property
     def dataset(self) -> Dataset:
@@ -1296,6 +1350,10 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.DBEQ_PLUS
         if self == Publisher.DBEQ_PLUS_FINC:
             return Dataset.DBEQ_PLUS
+        if self == Publisher.IFEU_IMPACT_IFEU:
+            return Dataset.IFEU_IMPACT
+        if self == Publisher.NDEX_IMPACT_NDEX:
+            return Dataset.NDEX_IMPACT
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1415,4 +1473,8 @@ class Publisher(StringyMixin, str, Enum):
             return "DBEQ Plus - FINRA/Nasdaq TRF Carteret"
         if self == Publisher.DBEQ_PLUS_FINC:
             return "DBEQ Plus - FINRA/Nasdaq TRF Chicago"
+        if self == Publisher.IFEU_IMPACT_IFEU:
+            return "ICE Futures Europe (Commodities)"
+        if self == Publisher.NDEX_IMPACT_NDEX:
+            return "ICE Endex"
         raise ValueError("Unexpected Publisher value")

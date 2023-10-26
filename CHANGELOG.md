@@ -5,6 +5,7 @@
 #### Enhancements
 - Added `map_symbols_csv` function to the `databento` module for using `symbology.json` files to map a symbol column onto a CSV file
 - Added `map_symbols_json` function to the `databento` module for using `symbology.json` files to add a symbol key to a file of JSON records
+- Added new publisher values in preparation for IFEU.IMPACT and NDEX.IMPACT datasets
 
 #### Bug fixes
 - Fixed issue where a large unreadable symbol subscription message could be sent
