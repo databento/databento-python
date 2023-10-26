@@ -7,7 +7,6 @@ import logging
 import warnings
 from collections.abc import Generator
 from collections.abc import Iterator
-from functools import partial
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
@@ -1112,8 +1111,8 @@ class DBNStore:
             compression=compression,
             pretty_px=pretty_px,
             pretty_ts=pretty_ts,
-            map_symbols=map_symbols,
             has_metadata=True,
+            map_symbols=map_symbols,
             symbol_map=symbol_map,  # type: ignore [arg-type]
             schema=schema,
         )
@@ -1246,9 +1245,7 @@ class DataFrameIterator:
 
     def _format_pretty_ts(self, df: pd.DataFrame) -> None:
         for field in self._struct._timestamp_fields:
-            df[field] = df[field].apply(
-                partial(pd.to_datetime, utc=True, errors="coerce"),
-            )
+            df[field] = pd.to_datetime(df[field], utc=True, errors="coerce")
 
     def _format_set_index(self, df: pd.DataFrame) -> None:
         index_column = (

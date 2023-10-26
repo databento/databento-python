@@ -14,12 +14,12 @@ from unittest.mock import MagicMock
 import databento_dbn
 import pytest
 import zstandard
+from databento.common.constants import ALL_SYMBOLS
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
-from databento.common.symbology import ALL_SYMBOLS
 from databento.live import DBNRecord
 from databento.live import client
 from databento.live import gateway
@@ -399,14 +399,24 @@ async def test_live_subscribe_large_symbol_list(
     first_message = mock_live_server.get_message_of_type(
         gateway.SubscriptionRequest,
         timeout=1,
-    )
+    ).symbols.split(",")
 
     second_message = mock_live_server.get_message_of_type(
         gateway.SubscriptionRequest,
         timeout=1,
-    )
+    ).symbols.split(",")
 
-    reconstructed = first_message.symbols.split(",") + second_message.symbols.split(",")
+    third_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    ).symbols.split(",")
+
+    fourth_message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    ).symbols.split(",")
+
+    reconstructed = first_message + second_message + third_message + fourth_message
     assert reconstructed == large_symbol_list
 
 

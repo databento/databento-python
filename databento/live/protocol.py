@@ -5,18 +5,19 @@ import logging
 from collections.abc import Iterable
 from functools import singledispatchmethod
 from numbers import Number
+from typing import Final
 
 import databento_dbn
 from databento_dbn import Schema
 from databento_dbn import SType
 
 from databento.common import cram
+from databento.common.constants import ALL_SYMBOLS
 from databento.common.error import BentoError
 from databento.common.iterator import chunk
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.publishers import Dataset
-from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.live import DBNRecord
@@ -30,7 +31,8 @@ from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 
 
-RECV_BUFFER_SIZE: int = 64 * 2**10  # 64kb
+RECV_BUFFER_SIZE: Final = 64 * 2**10  # 64kb
+SYMBOL_LIST_BATCH_SIZE: Final = 64
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +280,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
 
-        for batch in chunk(symbols_list, 128):
+        for batch in chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE):
             batch_str = ",".join(batch)
             message = SubscriptionRequest(
                 schema=validate_enum(schema, Schema, "schema"),

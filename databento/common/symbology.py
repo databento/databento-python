@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import bisect
+import csv
 import datetime as dt
 import functools
 import json
 from collections import defaultdict
 from collections.abc import Mapping
 from io import TextIOWrapper
+from os import PathLike
+from pathlib import Path
 from typing import Any, ClassVar, NamedTuple, TextIO
 
 import pandas as pd
@@ -15,8 +18,7 @@ from databento_dbn import Metadata
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 
-
-ALL_SYMBOLS = "ALL_SYMBOLS"
+from databento.common.parsing import datetime_to_unix_nanoseconds
 
 
 class MappingInterval(NamedTuple):
@@ -37,6 +39,126 @@ class MappingInterval(NamedTuple):
     start_date: dt.date
     end_date: dt.date
     symbol: str
+
+
+def _validate_path_pair(
+    in_file: Path | PathLike[str] | str,
+    out_file: Path | PathLike[str] | str | None,
+) -> tuple[Path, Path]:
+    in_file_valid = Path(in_file)
+
+    if not in_file_valid.exists():
+        raise ValueError(f"{in_file_valid} does not exist")
+    if not in_file_valid.is_file():
+        raise ValueError(f"{in_file_valid} is not a file")
+
+    if out_file is not None:
+        out_file_valid = Path(out_file)
+    else:
+        out_file_valid = in_file_valid.with_name(
+            f"{in_file_valid.stem}_mapped{in_file_valid.suffix}",
+        )
+
+        i = 0
+        while out_file_valid.exists():
+            out_file_valid = in_file_valid.with_name(
+                f"{in_file_valid.stem}_mapped_{i}{in_file_valid.suffix}",
+            )
+            i += 1
+
+    if in_file_valid == out_file_valid:
+        raise ValueError("The input file cannot be the same path as the output file.")
+
+    return in_file_valid, out_file_valid
+
+
+def map_symbols_csv(
+    symbology_file: Path | PathLike[str] | str,
+    csv_file: Path | PathLike[str] | str,
+    out_file: Path | PathLike[str] | str | None = None,
+) -> Path:
+    """
+    Use a `symbology.json` file to map a symbols column onto an existing CSV
+    file. The result is written to `out_file`.
+
+    Parameters
+    ----------
+    symbology_file: Path | PathLike[str] | str
+        Path to a `symbology.json` file to use as a symbology source.
+    csv_file: Path | PathLike[str] | str
+        Path to a CSV file that contains encoded DBN data; must contain
+        a `ts_recv` or `ts_event` and `instrument_id` column.
+    out_file: Path | PathLike[str] | str (optional)
+        Path to a file to write results to. If unspecified, `_mapped` will be
+        appended to the `csv_file` name.
+
+    Returns
+    -------
+    Path
+        The path to the written file.
+
+    Raises
+    ------
+    ValueError
+        When the input or output paths are invalid.
+        When the input CSV file does not contain a valid timestamp or instrument_id column.
+
+    See Also
+    --------
+    map_symbols_json
+
+    """
+    instrument_map = InstrumentMap()
+    with open(symbology_file) as input_symbology:
+        instrument_map.insert_json(json.load(input_symbology))
+    return instrument_map.map_symbols_csv(
+        csv_file=csv_file,
+        out_file=out_file,
+    )
+
+
+def map_symbols_json(
+    symbology_file: Path | PathLike[str] | str,
+    json_file: Path | PathLike[str] | str,
+    out_file: Path | PathLike[str] | str | None = None,
+) -> Path:
+    """
+    Use a `symbology.json` file to insert a symbols key into records of an
+    existing JSON file. The result is written to `out_file`.
+
+    Parameters
+    ----------
+    symbology_file: Path | PathLike[str] | str
+        Path to a `symbology.json` file to use as a symbology source.
+    json_file: Path | PathLike[str] | str
+        Path to a JSON file that contains encoded DBN data.
+    out_file: Path | PathLike[str] | str (optional)
+        Path to a file to write results to. If unspecified, `_mapped` will be
+        appended to the `json_file` name.
+
+    Returns
+    -------
+    Path
+        The path to the written file.
+
+    Raises
+    ------
+    ValueError
+        When the input or output paths are invalid.
+        When the input JSON file does not contain a valid record.
+
+    See Also
+    --------
+    map_symbols_csv
+
+    """
+    instrument_map = InstrumentMap()
+    with open(symbology_file) as input_symbology:
+        instrument_map.insert_json(json.load(input_symbology))
+    return instrument_map.map_symbols_json(
+        json_file=json_file,
+        out_file=out_file,
+    )
 
 
 class InstrumentMap:
@@ -94,7 +216,7 @@ class InstrumentMap:
             If the InstrumentMap does not contain a mapping for the `instrument_id`.
 
         """
-        mappings = self._data[instrument_id]
+        mappings = self._data[int(instrument_id)]
         for entry in mappings:
             if entry.start_date <= date < entry.end_date:
                 return entry.symbol
@@ -269,6 +391,154 @@ class InstrumentMap:
                         symbol=symbol,
                     ),
                 )
+
+    def map_symbols_csv(
+        self,
+        csv_file: Path | PathLike[str] | str,
+        out_file: Path | PathLike[str] | str | None = None,
+    ) -> Path:
+        """
+        Use the loaded symbology data to map a symbols column onto an existing
+        CSV file. The result is written to `out_file`.
+
+        Parameters
+        ----------
+        csv_file: Path | PathLike[str] | str
+            Path to a CSV file that contains encoded DBN data; must contain
+            a `ts_recv` or `ts_event` and `instrument_id` column.
+        out_file: Path | PathLike[str] | str (optional)
+            Path to a file to write results to. If unspecified, `_mapped` will be
+            appended to the `csv_file` name.
+
+        Returns
+        -------
+        Path
+            The path to the written file.
+
+        Raises
+        ------
+        ValueError
+            When the input or output paths are invalid.
+            When the input CSV file does not contain a valid timestamp or instrument_id column.
+
+        See Also
+        --------
+        InstrumentMap.map_symbols_json
+
+        """
+        csv_file_valid, out_file_valid = _validate_path_pair(csv_file, out_file)
+
+        with csv_file_valid.open() as input_:
+            reader = csv.DictReader(input_)
+
+            in_fields = reader.fieldnames
+
+            if in_fields is None:
+                raise ValueError(f"no CSV header in {csv_file}")
+
+            if "ts_recv" in in_fields:
+                ts_field = "ts_recv"
+            elif "ts_event" in in_fields:
+                ts_field = "ts_event"
+            else:
+                raise ValueError(
+                    f"{csv_file} does not have a 'ts_recv' or 'ts_event' column",
+                )
+
+            if "instrument_id" not in in_fields:
+                raise ValueError(f"{csv_file} does not have an 'instrument_id' column")
+
+            out_fields = (*in_fields, "symbol")
+
+            with out_file_valid.open("w") as output:
+                writer = csv.DictWriter(
+                    output,
+                    fieldnames=out_fields,
+                    lineterminator="\n",
+                )
+                writer.writeheader()
+
+                for row in reader:
+                    ts = datetime_to_unix_nanoseconds(row[ts_field])
+                    date = pd.Timestamp(ts, unit="ns").date()
+                    instrument_id = row["instrument_id"]
+                    if instrument_id is None:
+                        row["symbol"] = ""
+                    else:
+                        row["symbol"] = self.resolve(instrument_id, date)
+
+                    writer.writerow(row)
+
+        return out_file_valid
+
+    def map_symbols_json(
+        self,
+        json_file: Path | PathLike[str] | str,
+        out_file: Path | PathLike[str] | str | None = None,
+    ) -> Path:
+        """
+        Use the loaded symbology data to insert a symbols key into records of
+        an existing JSON file. The result is written to `out_file`.
+
+        Parameters
+        ----------
+        json_file: Path | PathLike[str] | str
+            Path to a JSON file that contains encoded DBN data.
+        out_file: Path | PathLike[str] | str (optional)
+            Path to a file to write results to. If unspecified, `_mapped` will be
+            appended to the `json_file` name.
+
+        Returns
+        -------
+        Path
+            The path to the written file.
+
+        Raises
+        ------
+        ValueError
+            When the input or output paths are invalid.
+            When the input JSON file does not contain a valid record.
+
+        See Also
+        --------
+        InstrumentMap.map_symbols_csv
+
+        """
+        json_file_valid, out_file_valid = _validate_path_pair(json_file, out_file)
+
+        with json_file_valid.open() as input_:
+            with out_file_valid.open("w") as output:
+                for i, record in enumerate(map(json.loads, input_)):
+                    try:
+                        header = record["hd"]
+                        instrument_id = header["instrument_id"]
+                    except KeyError:
+                        raise ValueError(
+                            f"{json_file}:{i} does not contain a valid JSON encoded record",
+                        )
+
+                    if "ts_recv" in record:
+                        ts_field = record["ts_recv"]
+                    elif "ts_event" in header:
+                        ts_field = header["ts_event"]
+                    else:
+                        raise ValueError(
+                            f"{json_file}:{i} does not have a 'ts_recv' or 'ts_event' key",
+                        )
+
+                    ts = datetime_to_unix_nanoseconds(ts_field)
+
+                    date = pd.Timestamp(ts, unit="ns").date()
+                    record["symbol"] = self.resolve(instrument_id, date)
+
+                    json.dump(
+                        record,
+                        output,
+                        separators=(",", ":"),
+                    )
+                    output.write("\n")
+
+        return out_file_valid
 
     def _insert_inverval(self, instrument_id: int, interval: MappingInterval) -> None:
         """

@@ -9,7 +9,7 @@ from numbers import Number
 import pandas as pd
 from databento_dbn import SType
 
-from databento.common.symbology import ALL_SYMBOLS
+from databento.common.constants import ALL_SYMBOLS
 from databento.common.validation import validate_smart_symbol
 
 

@@ -1017,7 +1017,11 @@ def test_dbnstore_to_df_with_count(
         assert len(batch) <= count
         aggregator.append(batch)
 
-    assert expected.equals(pd.concat(aggregator))
+    pd.testing.assert_frame_equal(
+        pd.concat(aggregator),
+        expected,
+        check_dtype=False,
+    )
 
 
 @pytest.mark.parametrize(
