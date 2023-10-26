@@ -5,7 +5,6 @@ import csv
 import datetime as dt
 import functools
 import json
-import os
 from collections import defaultdict
 from collections.abc import Mapping
 from io import TextIOWrapper
@@ -452,7 +451,11 @@ class InstrumentMap:
             out_fields = (*in_fields, "symbol")
 
             with out_file_valid.open("w") as output:
-                writer = csv.DictWriter(output, fieldnames=out_fields)
+                writer = csv.DictWriter(
+                    output,
+                    fieldnames=out_fields,
+                    lineterminator="\n",
+                )
                 writer.writeheader()
 
                 for row in reader:
@@ -533,7 +536,7 @@ class InstrumentMap:
                         output,
                         separators=(",", ":"),
                     )
-                    output.write(os.linesep)
+                    output.write("\n")
 
         return out_file_valid
 
