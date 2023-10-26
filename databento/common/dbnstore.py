@@ -1111,8 +1111,8 @@ class DBNStore:
             compression=compression,
             pretty_px=pretty_px,
             pretty_ts=pretty_ts,
-            map_symbols=map_symbols,
             has_metadata=True,
+            map_symbols=map_symbols,
             symbol_map=symbol_map,  # type: ignore [arg-type]
             schema=schema,
         )

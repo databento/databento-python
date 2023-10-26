@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import pathlib
 from collections.abc import Iterable
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 
 import pandas as pd
 import pytest
+from databento.common.dbnstore import DBNStore
 from databento.common.symbology import InstrumentMap
 from databento.common.symbology import MappingInterval
 from databento_dbn import UNDEF_TIMESTAMP
@@ -713,3 +714,95 @@ def test_instrument_map_ignore_duplicate(
     instrument_map.insert_symbol_mapping_msg(msg)
 
     assert len(instrument_map._data[instrument_id]) == 1
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(s, id=str(s)) for s in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "pretty_ts",
+    [
+        True,
+        False,
+    ],
+)
+def test_instrument_map_symbols_csv(
+    tmp_path: pathlib.Path,
+    test_data_path: Callable[[Schema], pathlib.Path],
+    pretty_ts: bool,
+    schema: Schema,
+) -> None:
+    """
+    Test that a CSV file without mapped symbols is equivelant to a CSV file
+    with mapped symbols after processing with map_symbols_csv.
+    """
+    store = DBNStore.from_file(test_data_path(schema))
+    csv_path = tmp_path / f"test_{schema}.csv"
+    store.to_csv(
+        csv_path,
+        pretty_ts=pretty_ts,
+        map_symbols=False,
+    )
+
+    expected_path = tmp_path / "expected.csv"
+    store.to_csv(
+        expected_path,
+        pretty_ts=pretty_ts,
+        map_symbols=True,
+    )
+
+    outfile = tmp_path / f"test_{schema}_mapped.csv"
+    written_path = store._instrument_map.map_symbols_csv(
+        csv_file=csv_path,
+        out_file=outfile,
+    )
+
+    assert outfile == written_path
+    assert outfile.read_text() == expected_path.read_text()
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(s, id=str(s)) for s in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "pretty_ts",
+    [
+        True,
+        False,
+    ],
+)
+def test_instrument_map_symbols_json(
+    tmp_path: pathlib.Path,
+    test_data_path: Callable[[Schema], pathlib.Path],
+    pretty_ts: bool,
+    schema: Schema,
+) -> None:
+    """
+    Test that a JSON file without mapped symbols is equivelant to a JSON file
+    with mapped symbols after processing with map_symbols_json.
+    """
+    store = DBNStore.from_file(test_data_path(schema))
+    json_path = tmp_path / f"test_{schema}.json"
+    store.to_json(
+        json_path,
+        pretty_ts=pretty_ts,
+        map_symbols=False,
+    )
+
+    expected_path = tmp_path / "expected.json"
+    store.to_json(
+        expected_path,
+        pretty_ts=pretty_ts,
+        map_symbols=True,
+    )
+
+    outfile = tmp_path / f"test_{schema}_mapped.json"
+    written_path = store._instrument_map.map_symbols_json(
+        json_file=json_path,
+        out_file=outfile,
+    )
+
+    assert outfile == written_path
+    assert outfile.read_text() == expected_path.read_text()

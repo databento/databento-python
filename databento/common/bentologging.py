@@ -6,7 +6,7 @@ import logging
 def enable_logging(level: int | str = logging.INFO) -> None:
     """
     Enable logging for the Databento module. This function should be used for
-    simple applications and examples. It is advisible to configure your own
+    simple applications and examples. It is advisable to configure your own
     logging for serious applications.
 
     Parameters

@@ -12,12 +12,12 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from databento.common import cram
+from databento.common.constants import ALL_SYMBOLS
 from databento.common.error import BentoError
 from databento.common.iterator import chunk
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.publishers import Dataset
-from databento.common.symbology import ALL_SYMBOLS
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.live import DBNRecord

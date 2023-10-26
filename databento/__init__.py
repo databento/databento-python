@@ -19,6 +19,7 @@ from databento_dbn import SystemMsg
 from databento_dbn import TradeMsg
 
 from databento.common import bentologging
+from databento.common import symbology
 from databento.common.dbnstore import DBNStore
 from databento.common.enums import Delivery
 from databento.common.enums import FeedMode
@@ -35,6 +36,7 @@ from databento.common.error import BentoServerError
 from databento.common.publishers import Dataset
 from databento.common.publishers import Publisher
 from databento.common.publishers import Venue
+from databento.common.symbology import InstrumentMap
 from databento.historical.api import API_VERSION
 from databento.historical.client import Historical
 from databento.live import DBNRecord
@@ -60,6 +62,7 @@ __all__ = [
     "RecordFlags",
     "Historical",
     "HistoricalGateway",
+    "InstrumentMap",
     "Live",
     "Packaging",
     "RollRule",
@@ -91,3 +94,5 @@ warnings.simplefilter("always", DeprecationWarning)
 # Convenience imports
 enable_logging = bentologging.enable_logging
 from_dbn = DBNStore.from_file
+map_symbols_csv = symbology.map_symbols_csv
+map_symbols_json = symbology.map_symbols_json
