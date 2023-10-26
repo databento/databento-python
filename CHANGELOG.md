@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.23.0 - TBD
+## 0.23.0 - 2023-10-26
 
 #### Enhancements
 - Added `map_symbols_csv` function to the `databento` module for using `symbology.json` files to map a symbol column onto a CSV file
