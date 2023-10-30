@@ -638,7 +638,7 @@ class DBNStore:
         Raises
         ------
         FileNotFoundError
-            If a non-existant file is specified.
+            If a non-existent file is specified.
         ValueError
             If an empty file is specified.
 
