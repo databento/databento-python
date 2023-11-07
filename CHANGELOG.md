@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.24.0 - TBD
+
+##### Enhancements
+- Added new publishers for consolidated DBEQ.BASIC and DBEQ.PLUS
+
 ## 0.23.0 - 2023-10-26
 
 #### Enhancements
