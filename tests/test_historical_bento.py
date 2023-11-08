@@ -905,8 +905,8 @@ def test_dbnstore_to_ndarray_with_count(
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
-    nd_iter = dbnstore.to_ndarray(count=count)
     expected = dbnstore.to_ndarray()
+    nd_iter = dbnstore.to_ndarray(count=count)
 
     # Assert
     aggregator: list[np.ndarray[Any, Any]] = []
@@ -935,8 +935,8 @@ def test_dbnstore_to_ndarray_with_schema(
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
-    actual = dbnstore.to_ndarray(schema=schema)
     expected = dbnstore.to_ndarray()
+    actual = dbnstore.to_ndarray(schema=schema)
 
     # Assert
     for i, row in enumerate(actual):
@@ -1014,8 +1014,8 @@ def test_dbnstore_to_df_with_count(
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
-    df_iter = dbnstore.to_df(count=count)
     expected = dbnstore.to_df()
+    df_iter = dbnstore.to_df(count=count)
 
     # Assert
     aggregator: list[pd.DataFrame] = []
@@ -1048,8 +1048,8 @@ def test_dbnstore_to_df_with_schema(
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
-    actual = dbnstore.to_df(schema=schema)
     expected = dbnstore.to_df()
+    actual = dbnstore.to_df(schema=schema)
 
     # Assert
     assert actual.equals(expected)
