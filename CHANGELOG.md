@@ -1,9 +1,12 @@
 # Changelog
 
-### 0.24.0 - TBD
+## 0.24.0 - TBD
 
-##### Enhancements
+#### Enhancements
 - Added new publishers for consolidated DBEQ.BASIC and DBEQ.PLUS
+
+#### Bug fixes
+- Fixed an issue where `Live.block_for_close` and `Live.wait_for_close` would not flush streams if the timeout was reached.
 
 ## 0.23.0 - 2023-10-26
 

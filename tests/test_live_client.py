@@ -526,6 +526,31 @@ def test_live_block_for_close_timeout(
 
 
 @pytest.mark.usefixtures("mock_live_server")
+def test_live_block_for_close_timeout_stream(
+    live_client: client.Live,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pathlib.Path,
+) -> None:
+    """
+    Test that block_for_close flushes user streams on timeout.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.INSTRUMENT_ID,
+        symbols="ALL_SYMBOLS",
+        start=None,
+    )
+    path = tmp_path / "test.dbn"
+    stream = path.open("wb")
+    monkeypatch.setattr(stream, "flush", MagicMock())
+    live_client.add_stream(stream)
+
+    live_client.block_for_close(timeout=0)
+    stream.flush.assert_called()  # type: ignore [attr-defined]
+
+
+@pytest.mark.usefixtures("mock_live_server")
 async def test_live_wait_for_close(
     live_client: client.Live,
 ) -> None:
@@ -569,6 +594,32 @@ async def test_live_wait_for_close_timeout(
     await live_client.wait_for_close(timeout=0)
 
     live_client.terminate.assert_called_once()  # type: ignore
+
+
+@pytest.mark.usefixtures("mock_live_server")
+async def test_live_wait_for_close_timeout_stream(
+    live_client: client.Live,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pathlib.Path,
+) -> None:
+    """
+    Test that wait_for_close flushes user streams on timeout.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.INSTRUMENT_ID,
+        symbols="ALL_SYMBOLS",
+        start=None,
+    )
+
+    path = tmp_path / "test.dbn"
+    stream = path.open("wb")
+    monkeypatch.setattr(stream, "flush", MagicMock())
+    live_client.add_stream(stream)
+
+    await live_client.wait_for_close(timeout=0)
+    stream.flush.assert_called()  # type: ignore [attr-defined]
 
 
 def test_live_add_callback(
@@ -615,6 +666,7 @@ def test_live_add_stream_invalid(
     with pytest.raises(ValueError):
         live_client.add_stream(readable_file.open(mode="rb"))
 
+
 def test_live_add_stream_path_directory(
     tmp_path: pathlib.Path,
     live_client: client.Live,
@@ -624,6 +676,7 @@ def test_live_add_stream_path_directory(
     """
     with pytest.raises(OSError):
         live_client.add_stream(tmp_path)
+
 
 @pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration(

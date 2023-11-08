@@ -498,6 +498,7 @@ class Live:
         if self._session is None:
             raise ValueError("cannot terminate a live client before it is connected")
         self._session.abort()
+        self._cleanup_client()
 
     def block_for_close(
         self,
@@ -539,6 +540,8 @@ class Live:
             raise
         except Exception:
             raise BentoError("connection lost") from None
+        finally:
+            self._cleanup_client()
 
     async def wait_for_close(
         self,
@@ -581,9 +584,13 @@ class Live:
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
+        except BentoError:
+            raise
         except Exception:
             logger.exception("exception encountered waiting for close")
             raise BentoError("connection lost") from None
+        finally:
+            self._cleanup_client()
 
     async def _shutdown(self) -> None:
         """
@@ -597,6 +604,12 @@ class Live:
             return
         await self._session.wait_for_close()
 
+    def _cleanup_client(self) -> None:
+        """
+        Cleanup any stateful client data.
+        """
+        self._symbology_map.clear()
+
         to_remove = []
         for stream in self._user_streams:
             stream_name = getattr(stream, "name", str(stream))
@@ -608,8 +621,6 @@ class Live:
 
         for key in to_remove:
             self._user_streams.pop(key)
-
-        self._symbology_map.clear()
 
     def _map_symbol(self, record: DBNRecord) -> None:
         if isinstance(record, databento_dbn.SymbolMappingMsg):
