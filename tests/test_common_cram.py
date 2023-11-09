@@ -31,8 +31,11 @@ def test_get_challenge_response(
         - challenge is the CRAM challenge, this is salt for the hash.
 
     """
+    # Arrange, Act
     response = cram.get_challenge_response(
         challenge=challenge,
         key=key,
     )
+
+    # Assert
     assert response == expected

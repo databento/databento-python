@@ -15,9 +15,11 @@ def test_memory_data_source(
     """
     Test create of MemoryDataSource.
     """
+    # Arrange, Act
     data = test_data(schema)
     data_source = MemoryDataSource(data)
 
+    # Assert
     assert len(data) == data_source.nbytes
     assert repr(data) == data_source.name
 
@@ -30,8 +32,10 @@ def test_file_data_source(
     """
     Test create of FileDataSource.
     """
+    # Arrange, Act
     path = test_data_path(schema)
     data_source = FileDataSource(path)
 
+    # Assert
     assert path.stat().st_size == data_source.nbytes
     assert path.name == data_source.name

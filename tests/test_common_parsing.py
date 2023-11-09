@@ -115,6 +115,7 @@ def test_optional_symbols_list_to_list_int(
     If integers are given for a different SType we expect a ValueError.
 
     """
+    # Arrange, Act, Assert
     if isinstance(expected, list):
         assert optional_symbols_list_to_list(symbols, stype) == expected
     else:
@@ -160,6 +161,7 @@ def test_optional_symbols_list_to_list_numpy(
     If integers are given for a different SType we expect a ValueError.
 
     """
+    # Arrange, Act, Assert
     if isinstance(expected, list):
         assert optional_symbols_list_to_list(symbols, stype) == expected
     else:
@@ -195,6 +197,7 @@ def test_optional_symbols_list_to_list_raw_symbol(
     """
     Test that str are allowed for SType.RAW_SYMBOL.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, list):
         assert optional_symbols_list_to_list(symbols, stype) == expected
     else:
@@ -267,4 +270,5 @@ def test_datetime_to_unix_nanoseconds(
     """
     Test that various inputs for times convert to unix nanoseconds.
     """
+    # Arrange, Act, Assert
     assert optional_datetime_to_unix_nanoseconds(value) == expected

@@ -8,6 +8,7 @@ def test_mbo_fields() -> None:
     """
     Test that columns match the MBO struct.
     """
+    # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.MBO]
     columns = SCHEMA_COLUMNS[databento.Schema.MBO]
 
@@ -16,7 +17,10 @@ def test_mbo_fields() -> None:
     fields.remove("record_size")
     fields.remove("size_hint")
 
+    # Act
     difference = fields.symmetric_difference(set(columns))
+
+    # Assert
     assert not difference
 
 
@@ -35,6 +39,7 @@ def test_mbp_fields(
     """
     Test that columns match the MBP structs.
     """
+    # Arrange
     struct = SCHEMA_STRUCT_MAP[schema]
     columns = SCHEMA_COLUMNS[schema]
 
@@ -43,8 +48,10 @@ def test_mbp_fields(
     fields.remove("record_size")
     fields.remove("size_hint")
 
+    # Act
     difference = fields.symmetric_difference(set(columns))
 
+    # Assert
     assert "levels" in difference
 
     # bid/ask size, price, ct for each level, plus the levels field
@@ -66,6 +73,7 @@ def test_ohlcv_fields(
     """
     Test that columns match the OHLCV structs.
     """
+    # Arrange
     struct = SCHEMA_STRUCT_MAP[schema]
     columns = SCHEMA_COLUMNS[schema]
 
@@ -74,7 +82,10 @@ def test_ohlcv_fields(
     fields.remove("record_size")
     fields.remove("size_hint")
 
+    # Act
     difference = fields.symmetric_difference(set(columns))
+
+    # Assert
     assert not difference
 
 
@@ -82,6 +93,7 @@ def test_trades_struct() -> None:
     """
     Test that columns match the Trades struct.
     """
+    # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.TRADES]
     columns = SCHEMA_COLUMNS[databento.Schema.TRADES]
 
@@ -90,7 +102,10 @@ def test_trades_struct() -> None:
     fields.remove("record_size")
     fields.remove("size_hint")
 
+    # Act
     difference = fields.symmetric_difference(set(columns))
+
+    # Assert
     assert not difference
 
 
@@ -98,6 +113,7 @@ def test_definition_struct() -> None:
     """
     Test that columns match the Definition struct.
     """
+    # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.DEFINITION]
     columns = SCHEMA_COLUMNS[databento.Schema.DEFINITION]
 
@@ -106,7 +122,10 @@ def test_definition_struct() -> None:
     fields.remove("record_size")
     fields.remove("size_hint")
 
+    # Act
     difference = fields.symmetric_difference(set(columns))
+
+    # Assert
     assert not difference
 
 
@@ -114,6 +133,7 @@ def test_imbalance_struct() -> None:
     """
     Test that columns match the Imbalance struct.
     """
+    # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.IMBALANCE]
     columns = SCHEMA_COLUMNS[databento.Schema.IMBALANCE]
 
@@ -122,7 +142,10 @@ def test_imbalance_struct() -> None:
     fields.remove("record_size")
     fields.remove("size_hint")
 
+    # Act
     difference = fields.symmetric_difference(set(columns))
+
+    # Assert
     assert not difference
 
 
@@ -130,6 +153,7 @@ def test_statistics_struct() -> None:
     """
     Test that columns match the Statistics struct.
     """
+    # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.STATISTICS]
     columns = SCHEMA_COLUMNS[databento.Schema.STATISTICS]
 
@@ -138,5 +162,8 @@ def test_statistics_struct() -> None:
     fields.remove("record_size")
     fields.remove("size_hint")
 
+    # Act
     difference = fields.symmetric_difference(set(columns))
+
+    # Assert
     assert not difference

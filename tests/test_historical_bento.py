@@ -695,7 +695,7 @@ def test_dbnstore_iterable(
     Tests the DBNStore iterable implementation to ensure records can be
     accessed by iteration.
     """
-    # Arrange
+    # Arrange, Act
     stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
@@ -703,6 +703,7 @@ def test_dbnstore_iterable(
     first: MBOMsg = record_list[0]  # type: ignore
     second: MBOMsg = record_list[1]  # type: ignore
 
+    # Assert
     assert first.hd.length == 14
     assert first.hd.rtype == 160
     assert first.hd.rtype == 160
@@ -748,13 +749,14 @@ def test_dbnstore_iterable_parallel(
     For example, calling next() on one iterator does not affect another.
 
     """
-    # Arrange
+    # Arrange, Act
     stub_data = test_data(Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     first = iter(dbnstore)
     second = iter(dbnstore)
 
+    # Assert
     assert next(first) == next(second)
     assert next(first) == next(second)
 
@@ -774,12 +776,15 @@ def test_dbnstore_compression_equality(
     Note that stub data is compressed with zstandard by default.
 
     """
+    # Arrange
     zstd_stub_data = test_data(schema)
     dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(zstd_stub_data).read()
 
+    # Act
     zstd_dbnstore = DBNStore.from_bytes(zstd_stub_data)
     dbn_dbnstore = DBNStore.from_bytes(dbn_stub_data)
 
+    # Assert
     assert len(zstd_dbnstore.to_ndarray()) == len(dbn_dbnstore.to_ndarray())
     assert zstd_dbnstore.metadata == dbn_dbnstore.metadata
     assert zstd_dbnstore.reader.read() == dbn_dbnstore.reader.read()
@@ -869,6 +874,7 @@ def test_dbnstore_buffer_rewind(
     dbn_bytes.write(dbn_stub_data)
     dbnstore = DBNStore.from_bytes(data=dbn_bytes)
 
+    # Assert
     assert len(dbnstore.to_df()) == 4
 
 

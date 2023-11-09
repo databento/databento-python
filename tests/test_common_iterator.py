@@ -29,5 +29,6 @@ def test_chunk(
     """
     Test that an iterable is chunked property.
     """
+    # Arrange, Act, Assert
     chunks = [chunk for chunk in iterator.chunk(things, size)]
     assert chunks == expected

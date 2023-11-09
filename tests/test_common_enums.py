@@ -52,8 +52,9 @@ def test_int_enum_string_coercion(enum_type: type[Enum]) -> None:
     See: databento.common.enums.coercible
 
     """
-    for enum in enum_type:
-        assert enum == enum_type(str(enum.value))
+    # Arrange, Act, Assert
+    for variant in enum_type:
+        assert variant == enum_type(str(variant.value))
         with pytest.raises(ValueError):
             enum_type("NaN")  # sanity
 
@@ -69,6 +70,7 @@ def test_str_enum_case_coercion(enum_type: type[Enum]) -> None:
     See: databento.common.enums.coercible
 
     """
+    # Arrange, Act, Assert
     for enum in enum_type:
         assert enum == enum_type(enum.value.lower())
         assert enum == enum_type(enum.value.upper())
@@ -88,11 +90,13 @@ def test_enum_name_coercion(enum_type: type[Enum]) -> None:
     See: databento.common.enums.coercible
 
     """
+    # Arrange, Act
     if enum_type in (Compression, Encoding, Schema, SType):
         enum_it = iter(enum_type.variants())  # type: ignore [attr-defined]
     else:
         enum_it = iter(enum_type)
 
+    # Assert
     for enum in enum_it:
         assert enum == enum_type(enum.name)
         assert enum == enum_type(enum.name.replace("_", "-"))
@@ -113,9 +117,11 @@ def test_enum_none_not_coercible(enum_type: type[Enum]) -> None:
     See: databento.common.enum.coercible
 
     """
+    # Arrange, Act
     if enum_type == Compression:
         enum_type(None)
     else:
+        # Assert
         with pytest.raises(ValueError):
             enum_type(None)
 
@@ -131,8 +137,11 @@ def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     See: databento.common.enum.StringyMixin
 
     """
+    # Arrange, Act
     if not issubclass(enum_type, StringyMixin):
         pytest.skip(f"{type(enum_type)} is not a subclass of StringyMixin")
+
+    # Assert
     for enum in enum_type:
         assert str(enum) == enum.name.lower()
 
@@ -148,8 +157,11 @@ def test_str_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     See: databento.common.enum.StringyMixin
 
     """
+    # Arrange, Act
     if not issubclass(enum_type, StringyMixin):
         pytest.skip(f"{type(enum_type)} is not a subclass of StringyMixin")
+
+    # Assert
     for enum in enum_type:
         assert str(enum) == enum.value
 
@@ -162,8 +174,11 @@ def test_int_flags_stringy_mixin(enum_type: type[Flag]) -> None:
     """
     Test that combinations of int flags are displayed properly.
     """
+    # Arrange, Act
     for value in map(sum, combinations(enum_type, 2)):  # type: ignore [arg-type]
         record_flags = enum_type(value)
+
+        # Assert
         assert str(record_flags) == ", ".join(
             f.name.lower() for f in enum_type if f in record_flags
         )
