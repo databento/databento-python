@@ -20,7 +20,10 @@ def test_is_dbn(data: bytes, expected: bool) -> None:
     """
     Test that buffers that start with DBN are identified as DBN files.
     """
+    # Arrange, Act
     reader = BytesIO(data)
+
+    # Assert
     assert is_dbn(reader) == expected
 
 
@@ -52,5 +55,8 @@ def test_is_zstandard(data: bytes, expected: bool) -> None:
     """
     Test that buffers that contain ZSTD data are correctly identified.
     """
+    # Arrange, Act
     reader = BytesIO(data)
+
+    # Assert
     assert is_zstandard(reader) == expected

@@ -27,6 +27,7 @@ def fixture_changelog() -> str:
     str
 
     """
+    # Arrange, Act, Assert
     with open(PROJECT_ROOT / "CHANGELOG.md") as changelog:
         return changelog.read()
 
@@ -41,6 +42,7 @@ def fixture_pyproject_version() -> str:
     str
 
     """
+    # Arrange, Act, Assert
     with open(PROJECT_ROOT / "pyproject.toml", "rb") as pyproject:
         data = tomli.load(pyproject)
     return data["tool"]["poetry"]["version"]
@@ -59,6 +61,7 @@ def test_release_changelog(changelog: str, pyproject_version: str) -> None:
         - The release dates are chronological.
 
     """
+    # Arrange, Act
     releases = CHANGELOG_RELEASE_TITLE.findall(changelog)
 
     try:
@@ -75,6 +78,7 @@ def test_release_changelog(changelog: str, pyproject_version: str) -> None:
         # This could happen if we have TBD as the release date.
         raise AssertionError("Failed to parse release date from CHANGELOG.md")
 
+    # Assert
     # Ensure latest version matches `__version__`
     assert databento.__version__ == versions[0]
 

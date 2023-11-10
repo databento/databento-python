@@ -30,8 +30,11 @@ def test_check_http_status(
     Test that responses with the given status code raise the expected
     exception.
     """
+    # Arrange
     response = requests.Response()
     response.status_code = status_code
+
+    # Act, Assert
     with pytest.raises(expected_exception) as exc:
         check_http_error(response)
 
@@ -57,11 +60,14 @@ async def test_check_http_status_async(
     Test that responses with the given status code raise the expected
     exception.
     """
+    # Arrange
     response = MagicMock(
         spec=aiohttp.ClientResponse,
         status=status_code,
         json=AsyncMock(return_value={}),
     )
+
+    # Act, Assert
     with pytest.raises(expected_exception) as exc:
         await check_http_error_async(response)
 

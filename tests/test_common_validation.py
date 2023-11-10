@@ -108,6 +108,7 @@ def test_validate_gateway(
     """
     Tests several correct and malformed URLs.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, str):
         assert validate_gateway(url) == expected
     else:
@@ -137,6 +138,7 @@ def test_validate_smart_symbol(
     """
     Test several correct smart symbols and invalid syntax.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, str):
         assert validate_smart_symbol(symbol) == expected
     else:
@@ -163,6 +165,7 @@ def test_validate_semantic_string(
         - whitespace
         - contain unprintable characters
     """
+    # Arrange, Act, Assert
     if isinstance(expected, str):
         assert validate_semantic_string(value, "unittest") == expected
     else:

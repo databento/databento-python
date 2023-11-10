@@ -10,7 +10,16 @@ from collections.abc import Iterator
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, Any, BinaryIO, Callable, Literal, overload
+from typing import (
+    IO,
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    Callable,
+    Literal,
+    Protocol,
+    overload,
+)
 
 import databento_dbn
 import numpy as np
@@ -638,7 +647,7 @@ class DBNStore:
         Raises
         ------
         FileNotFoundError
-            If a non-existant file is specified.
+            If a non-existent file is specified.
         ValueError
             If an empty file is specified.
 
@@ -1072,20 +1081,43 @@ class DBNStore:
 
         """
         schema = validate_maybe_enum(schema, Schema, "schema")
-        if schema is None:
-            if self.schema is None:
-                raise ValueError("a schema must be specified for mixed DBN data")
-            schema = self.schema
+        ndarray_iter: NDArrayIterator
 
-        dtype = SCHEMA_DTYPES_MAP[schema]
-        ndarray_iter = NDArrayIterator(
-            filter(lambda r: isinstance(r, SCHEMA_STRUCT_MAP[schema]), self),
-            dtype,
-            count,
-        )
+        if self.schema is None:
+            # If schema is None, we're handling heterogeneous data from the live client.
+            # This is less performant because the records of a given schema are not contiguous in memory.
+            if schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+
+            schema_struct = SCHEMA_STRUCT_MAP[schema]
+            schema_dtype = SCHEMA_DTYPES_MAP[schema]
+            schema_filter = filter(lambda r: isinstance(r, schema_struct), self)
+
+            ndarray_iter = NDArrayBytesIterator(
+                records=map(bytes, schema_filter),
+                dtype=schema_dtype,
+                count=count,
+            )
+        else:
+            # If schema is set, we're handling homogeneous historical data.
+            schema_dtype = SCHEMA_DTYPES_MAP[self.schema]
+
+            if self._metadata.ts_out:
+                schema_dtype.append(("ts_out", "u8"))
+
+            if schema is not None and schema != self.schema:
+                # This is to maintain identical behavior with NDArrayBytesIterator
+                ndarray_iter = iter([np.empty([0, 1], dtype=schema_dtype)])
+            else:
+                ndarray_iter = NDArrayStreamIterator(
+                    reader=self.reader,
+                    dtype=schema_dtype,
+                    offset=self._metadata_length,
+                    count=count,
+                )
 
         if count is None:
-            return next(ndarray_iter, np.empty([0, 1], dtype=dtype))
+            return next(ndarray_iter, np.empty([0, 1], dtype=schema_dtype))
 
         return ndarray_iter
 
@@ -1124,10 +1156,66 @@ class DBNStore:
             transcoder.flush()
 
 
-class NDArrayIterator:
+class NDArrayIterator(Protocol):
+    @abc.abstractmethod
+    def __iter__(self) -> NDArrayIterator:
+        ...
+
+    @abc.abstractmethod
+    def __next__(self) -> np.ndarray[Any, Any]:
+        ...
+
+
+class NDArrayStreamIterator(NDArrayIterator):
+    """
+    Iterator for homogeneous byte streams of DBN records.
+    """
+
     def __init__(
         self,
-        records: Iterator[DBNRecord],
+        reader: IO[bytes],
+        dtype: list[tuple[str, str]],
+        offset: int = 0,
+        count: int | None = None,
+    ) -> None:
+        self._reader = reader
+        self._dtype = np.dtype(dtype)
+        self._offset = offset
+        self._count = count
+
+        self._reader.seek(offset)
+
+    def __iter__(self) -> NDArrayStreamIterator:
+        return self
+
+    def __next__(self) -> np.ndarray[Any, Any]:
+        if self._count is None:
+            read_size = -1
+        else:
+            read_size = self._dtype.itemsize * max(self._count, 1)
+
+        if buffer := self._reader.read(read_size):
+            try:
+                return np.frombuffer(
+                    buffer=buffer,
+                    dtype=self._dtype,
+                )
+            except ValueError:
+                raise BentoError(
+                    "DBN file is truncated or contains an incomplete record",
+                )
+
+        raise StopIteration
+
+
+class NDArrayBytesIterator(NDArrayIterator):
+    """
+    Iterator for heterogeneous streams of DBN records.
+    """
+
+    def __init__(
+        self,
+        records: Iterator[bytes],
         dtype: list[tuple[str, str]],
         count: int | None,
     ):
@@ -1144,7 +1232,7 @@ class NDArrayIterator:
         num_records = 0
         for record in itertools.islice(self._records, self._count):
             num_records += 1
-            record_bytes.write(bytes(record))
+            record_bytes.write(record)
 
         if num_records == 0:
             if self._first_next:
@@ -1152,14 +1240,25 @@ class NDArrayIterator:
             raise StopIteration
 
         self._first_next = False
-        return np.frombuffer(
-            record_bytes.getvalue(),
-            dtype=self._dtype,
-            count=num_records,
-        )
+
+        try:
+            return np.frombuffer(
+                record_bytes.getbuffer(),
+                dtype=self._dtype,
+                count=num_records,
+            )
+        except ValueError:
+            raise BentoError(
+                "DBN file is truncated or contains an incomplete record",
+            )
 
 
 class DataFrameIterator:
+    """
+    Iterator for DataFrames that supports batching and column formatting for
+    DBN records.
+    """
+
     def __init__(
         self,
         records: Iterator[np.ndarray[Any, Any]],

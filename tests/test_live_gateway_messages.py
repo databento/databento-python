@@ -65,6 +65,7 @@ def test_parse_authentication_request(
     """
     Test that a AuthenticationRequest is parsed from a string as expected.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, tuple):
         msg = AuthenticationRequest.parse(line)
         assert (
@@ -108,6 +109,7 @@ def test_serialize_authentication_request(
     """
     Test that a AuthenticationRequest is serialized as expected.
     """
+    # Arrange, Act, Assert
     assert bytes(message) == expected
 
 
@@ -126,6 +128,7 @@ def test_parse_authentication_response(
     """
     Test that a AuthenticationResponse is parsed from a string as expected.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, tuple):
         msg = AuthenticationResponse.parse(line)
         assert (msg.success, msg.session_id) == expected
@@ -160,6 +163,7 @@ def test_serialize_authentication_response(
     """
     Test that a AuthenticationResponse is serialized as expected.
     """
+    # Arrange, Act, Assert
     assert bytes(message) == expected
 
 
@@ -178,6 +182,7 @@ def test_parse_challenge_request(
     """
     Test that a ChallengeRequest is parsed from a string as expected.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, str):
         msg = ChallengeRequest.parse(line)
         assert msg.cram == expected
@@ -199,6 +204,7 @@ def test_serialize_challenge_request(
     """
     Test that a ChallengeRequest is serialized as expected.
     """
+    # Arrange, Act, Assert
     assert bytes(message) == expected
 
 
@@ -217,6 +223,7 @@ def test_parse_greeting(
     """
     Test that a Greeting is parsed from a string as expected.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, str):
         msg = Greeting.parse(line)
         assert msg.lsg_version == expected
@@ -238,6 +245,7 @@ def test_serialize_greeting(
     """
     Test that a Greeting is serialized as expected.
     """
+    # Arrange, Act, Assert
     assert bytes(message) == expected
 
 
@@ -257,6 +265,7 @@ def test_parse_session_start(
     """
     Test that a SessionStart is parsed from a string as expected.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, str):
         msg = SessionStart.parse(line)
         assert msg.start_session == expected
@@ -278,6 +287,7 @@ def test_serialize_session_start(
     """
     Test that a SessionStart is serialized as expected.
     """
+    # Arrange, Act, Assert
     assert bytes(message) == expected
 
 
@@ -314,6 +324,7 @@ def test_parse_subscription_request(
     """
     Test that a SubscriptionRequest is parsed from a string as expected.
     """
+    # Arrange, Act, Assert
     if isinstance(expected, tuple):
         msg = SubscriptionRequest.parse(line)
         assert (
@@ -359,6 +370,7 @@ def test_serialize_subscription_request(
     """
     Test that a SubscriptionRequest is serialized as expected.
     """
+    # Arrange, Act, Assert
     assert bytes(message) == expected
 
 
@@ -378,5 +390,6 @@ def test_parse_bad_key(message_type: GatewayControl, line: str) -> None:
     """
     Test that a ValueError is raised when parsing fails for general cases.
     """
+    # Arrange, Act, Assert
     with pytest.raises(ValueError):
         message_type.parse(line)

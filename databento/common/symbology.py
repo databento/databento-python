@@ -264,7 +264,7 @@ class InstrumentMap:
                     stype_out=stype_out,
                 )
 
-                self._insert_inverval(
+                self._insert_interval(
                     instrument_id,
                     MappingInterval(
                         start_date=start_date,
@@ -308,7 +308,7 @@ class InstrumentMap:
         else:
             symbol = msg.stype_out_symbol
 
-        self._insert_inverval(
+        self._insert_interval(
             msg.hd.instrument_id,
             MappingInterval(
                 start_date=pd.Timestamp(start_ts, unit="ns", tz="utc").date(),
@@ -383,7 +383,7 @@ class InstrumentMap:
                     stype_out=stype_out,
                 )
 
-                self._insert_inverval(
+                self._insert_interval(
                     instrument_id,
                     MappingInterval(
                         start_date=start_date,
@@ -540,7 +540,7 @@ class InstrumentMap:
 
         return out_file_valid
 
-    def _insert_inverval(self, instrument_id: int, interval: MappingInterval) -> None:
+    def _insert_interval(self, instrument_id: int, interval: MappingInterval) -> None:
         """
         Insert a SymbolInterval into the map.
 

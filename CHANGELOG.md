@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.23.1 - 2023-11-10
+
+#### Enhancements
+- Added new publishers for consolidated DBEQ.BASIC and DBEQ.PLUS
+
+#### Bug fixes
+- Fixed an issue where `Live.block_for_close` and `Live.wait_for_close` would not flush streams if the timeout was reached
+- Fixed a performance regression when reading a historical DBN file into a numpy array
+
 ## 0.23.0 - 2023-10-26
 
 #### Enhancements

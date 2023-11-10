@@ -93,7 +93,7 @@ def test_custom_gateway_force_https(
     """
     Test that custom gateways are forced to the https scheme.
     """
-    # Arrange Act
+    # Arrange, Act
     client = db.Historical(key="DUMMY_API_KEY", gateway=gateway)
 
     # Assert

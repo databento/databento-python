@@ -188,6 +188,7 @@ def test_instrument_map(
     """
     Test the creation of an InstrumentMap.
     """
+    # Arrange, Act, Assert
     assert instrument_map._data == {}
 
 
@@ -199,6 +200,7 @@ def test_instrument_map_insert_metadata(
     """
     Test the insertion of DBN Metadata.
     """
+    # Arrange
     symbol = "test"
     instrument_id = 1234
 
@@ -219,7 +221,10 @@ def test_instrument_map_insert_metadata(
         mappings=mappings,
     )
 
+    # Act
     instrument_map.insert_metadata(metadata)
+
+    # Assert
     assert instrument_map.resolve(instrument_id, start_date.date()) == symbol
 
 
@@ -232,6 +237,7 @@ def test_instrument_map_insert_metadata_multiple_mappings(
     Test the insertion of a DBN Metadata with multiple mapping for the same
     instrument_id.
     """
+    # Arrange
     symbols = ["test_1", "test_2", "test_3"]
     instrument_id = 1234
 
@@ -254,8 +260,10 @@ def test_instrument_map_insert_metadata_multiple_mappings(
         mappings=mappings,
     )
 
+    # Act
     instrument_map.insert_metadata(metadata)
 
+    # Assert
     for offset, symbol in enumerate(symbols):
         assert (
             instrument_map.resolve(
@@ -274,6 +282,7 @@ def test_instrument_map_insert_metadata_empty_mappings(
     """
     Test the insertion of DBN Metadata that contains an empty mapping.
     """
+    # Arrange
     mappings = [
         SymbolMapping(
             raw_symbol="empty",
@@ -291,7 +300,10 @@ def test_instrument_map_insert_metadata_empty_mappings(
         mappings=mappings,
     )
 
+    # Act
     instrument_map.insert_metadata(metadata)
+
+    # Assert
     assert instrument_map._data == {}
 
 
@@ -303,6 +315,7 @@ def test_instrument_map_insert_symbol_mapping_message(
     """
     Test the insertion of a SymbolMappingMessage.
     """
+    # Arrange
     symbol = "test"
     instrument_id = 1234
 
@@ -314,8 +327,10 @@ def test_instrument_map_insert_symbol_mapping_message(
         end_ts=end_date,
     )
 
+    # Act
     instrument_map.insert_symbol_mapping_msg(sym_msg)
 
+    # Assert
     assert instrument_map.resolve(instrument_id, start_date.date()) == symbol
 
 
@@ -328,9 +343,11 @@ def test_instrument_map_insert_symbol_mapping_message_multiple_mappings(
     Test the insertion of multiple SymbolMappingMsg object for the same
     instrument_id.
     """
+    # Arrange
     symbols = ["test_1", "test_2", "test_3"]
     instrument_id = 1234
 
+    # Act
     for offset, symbol in enumerate(symbols):
         sym_mapping_msg = create_symbol_mapping_message(
             instrument_id=instrument_id,
@@ -341,6 +358,7 @@ def test_instrument_map_insert_symbol_mapping_message_multiple_mappings(
         )
         instrument_map.insert_symbol_mapping_msg(sym_mapping_msg)
 
+    # Assert
     for offset, symbol in enumerate(symbols):
         assert (
             instrument_map.resolve(
@@ -382,6 +400,7 @@ def test_instrument_map_insert_symbology_response(
     """
     Test the insertion of a symbology responses.
     """
+    # Arrange
     result = {
         symbol_in: [
             {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": symbol_out},
@@ -392,8 +411,11 @@ def test_instrument_map_insert_symbology_response(
         stype_in=stype_in,
         stype_out=stype_out,
     )
+
+    # Act
     instrument_map.insert_json(sym_resp)
 
+    # Assert
     # This is hard coded because it should be invariant under parameterization
     assert instrument_map.resolve(1234, start_date.date()) == "test_1"
 
@@ -407,6 +429,7 @@ def test_instrument_map_insert_symbology_response_multiple_mappings(
     Test the insertion of multiple symbology responses for the same
     instrument_id.
     """
+    # Arrange, Act
     symbols = ["test_1", "test_2", "test_3"]
     instrument_id = 1234
 
@@ -426,6 +449,7 @@ def test_instrument_map_insert_symbology_response_multiple_mappings(
 
         instrument_map.insert_json(sym_resp)
 
+    # Assert
     for offset, symbol in enumerate(symbols):
         assert (
             instrument_map.resolve(
@@ -444,6 +468,7 @@ def test_instrument_map_insert_symbology_response_empty_mapping(
     """
     Test the insertion of an empty symbology mapping.
     """
+    # Arrange
     result = {
         "test": [
             {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": ""},
@@ -455,7 +480,10 @@ def test_instrument_map_insert_symbology_response_empty_mapping(
         stype_out=SType.INSTRUMENT_ID,
     )
 
+    # Act
     instrument_map.insert_json(sym_resp)
+
+    # Assert
     assert instrument_map._data == {}
 
 
@@ -493,6 +521,7 @@ def test_instrument_map_insert_json_str(
     """
     Test the insertion of a JSON symbology response.
     """
+    # Arrange
     result = {
         symbol_in: [
             {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": symbol_out},
@@ -504,8 +533,10 @@ def test_instrument_map_insert_json_str(
         stype_out=stype_out,
     )
 
+    # Act
     instrument_map.insert_json(json.dumps(sym_resp))
 
+    # Assert
     assert instrument_map.resolve(1234, start_date.date()) == expected_symbol
 
 
@@ -544,6 +575,7 @@ def test_instrument_map_insert_json_file(
     """
     Test the insertion of a JSON file.
     """
+    # Arrange
     result = {
         symbol_in: [
             {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": symbol_out},
@@ -559,9 +591,11 @@ def test_instrument_map_insert_json_file(
     with open(symboloy_json, mode="w") as resp_file:
         json.dump(sym_resp, resp_file)
 
+    # Act
     with open(symboloy_json) as resp_file:
         instrument_map.insert_json(resp_file)
 
+    # Assert
     assert instrument_map.resolve(1234, start_date.date()) == expected_symbol
 
 
@@ -573,6 +607,7 @@ def test_instrument_map_insert_json_str_empty_mapping(
     """
     Test the insertion of an JSON symbology mapping.
     """
+    # Arrange
     result = {
         "test": [
             {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": ""},
@@ -584,7 +619,10 @@ def test_instrument_map_insert_json_str_empty_mapping(
         stype_out=SType.INSTRUMENT_ID,
     )
 
+    # Act
     instrument_map.insert_json(json.dumps(sym_resp))
+
+    # Assert
     assert instrument_map._data == {}
 
 
@@ -609,6 +647,7 @@ def test_instrument_map_insert_symbology_response_invalid_stype(
     Test that a symbology response with no instrument_id mapping raises a
     ValueError.
     """
+    # Arrange
     result = {
         symbol_in: [
             {"d0": start_date.isoformat(), "d1": end_date.isoformat(), "s": symbol_out},
@@ -620,6 +659,7 @@ def test_instrument_map_insert_symbology_response_invalid_stype(
         stype_out=stype_out,
     )
 
+    # Act, Assert
     with pytest.raises(ValueError):
         instrument_map.insert_json(sym_resp)
 
@@ -630,6 +670,7 @@ def test_instrument_map_insert_symbology_response_invalid_response(
     """
     Test that an invalid symbology response raises a ValueError.
     """
+    # Arrange, Act, Assert
     with pytest.raises(ValueError):
         instrument_map.insert_json({"foo": "bar"})
 
@@ -641,6 +682,7 @@ def test_instrument_map_insert_symbology_response_invalid_result_entry(
     """
     Test that an invalid symbology response entry raises a ValueError.
     """
+    # Arrange
     result = {
         "test_1": [{"d0": start_date.isoformat(), "s": 1234}],
     }
@@ -648,6 +690,7 @@ def test_instrument_map_insert_symbology_response_invalid_result_entry(
         result=result,
     )
 
+    # Act, Assert
     with pytest.raises(ValueError):
         instrument_map.insert_json(sym_resp)
 
@@ -660,6 +703,7 @@ def test_instrument_map_resolve_with_date(
     """
     Test that resolve accepts `datetime.date` objects.
     """
+    # Arrange, Act
     symbol = "test_1"
     instrument_id = 1234
 
@@ -671,6 +715,7 @@ def test_instrument_map_resolve_with_date(
         ),
     ]
 
+    # Assert
     assert (
         instrument_map.resolve(
             instrument_id,
@@ -690,6 +735,7 @@ def test_instrument_map_ignore_duplicate(
     """
     Test that a duplicate entry is not inserted into an InstrumentMap.
     """
+    # Arrange, Act
     symbol = "test_1"
     instrument_id = 1234
 
@@ -701,6 +747,7 @@ def test_instrument_map_ignore_duplicate(
         ),
     ]
 
+    # Act, Assert
     assert len(instrument_map._data[instrument_id]) == 1
 
     msg = create_symbol_mapping_message(
@@ -737,6 +784,7 @@ def test_instrument_map_symbols_csv(
     Test that a CSV file without mapped symbols is equivelant to a CSV file
     with mapped symbols after processing with map_symbols_csv.
     """
+    # Arrange, Act
     store = DBNStore.from_file(test_data_path(schema))
     csv_path = tmp_path / f"test_{schema}.csv"
     store.to_csv(
@@ -758,6 +806,7 @@ def test_instrument_map_symbols_csv(
         out_file=outfile,
     )
 
+    # Assert
     assert outfile == written_path
     assert outfile.read_text() == expected_path.read_text()
 
@@ -783,6 +832,7 @@ def test_instrument_map_symbols_json(
     Test that a JSON file without mapped symbols is equivelant to a JSON file
     with mapped symbols after processing with map_symbols_json.
     """
+    # Arrange, Act
     store = DBNStore.from_file(test_data_path(schema))
     json_path = tmp_path / f"test_{schema}.json"
     store.to_json(
@@ -804,5 +854,6 @@ def test_instrument_map_symbols_json(
         out_file=outfile,
     )
 
+    # Assert
     assert outfile == written_path
     assert outfile.read_text() == expected_path.read_text()

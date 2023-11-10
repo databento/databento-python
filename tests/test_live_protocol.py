@@ -17,6 +17,7 @@ async def test_protocol_connection(
     Test the low-level DatabentoLiveProtocol can be used to establish a
     connection to the live subscription gateway.
     """
+    # Arrange
     transport, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
             api_key=test_api_key,
@@ -26,10 +27,9 @@ async def test_protocol_connection(
         port=mock_live_server.port,
     )
 
+    # Act, Assert
     await asyncio.wait_for(protocol.authenticated, timeout=1)
-
     transport.close()
-
     await asyncio.wait_for(protocol.disconnected, timeout=1)
 
 
@@ -42,6 +42,7 @@ async def test_protocol_connection_streaming(
     Test the low-level DatabentoLiveProtocol can be used to stream DBN records
     from the live subscription gateway.
     """
+    # Arrange
     monkeypatch.setattr(
         DatabentoLiveProtocol, "received_metadata", metadata_mock := MagicMock(),
     )
@@ -49,7 +50,7 @@ async def test_protocol_connection_streaming(
         DatabentoLiveProtocol, "received_record", record_mock := MagicMock(),
     )
 
-    transport, protocol = await asyncio.get_event_loop().create_connection(
+    _, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
             api_key=test_api_key,
             dataset="TEST",
@@ -60,6 +61,7 @@ async def test_protocol_connection_streaming(
 
     await asyncio.wait_for(protocol.authenticated, timeout=1)
 
+    # Act
     protocol.subscribe(
         schema=Schema.MBO,
         symbols="TEST",
@@ -68,8 +70,8 @@ async def test_protocol_connection_streaming(
 
     protocol.start()
     await asyncio.wait_for(protocol.started.wait(), timeout=1)
-
     await asyncio.wait_for(protocol.disconnected, timeout=1)
 
+    # Assert
     assert metadata_mock.call_count == 1
     assert record_mock.call_count == 4
