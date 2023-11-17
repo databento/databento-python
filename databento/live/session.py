@@ -4,11 +4,10 @@ import asyncio
 import dataclasses
 import logging
 import queue
-import struct
 import threading
 from collections.abc import Iterable
 from numbers import Number
-from typing import IO, Callable
+from typing import IO, Callable, Final
 
 import databento_dbn
 from databento_dbn import Schema
@@ -17,18 +16,17 @@ from databento_dbn import SType
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
-from databento.live import AUTH_TIMEOUT_SECONDS
-from databento.live import CONNECT_TIMEOUT_SECONDS
-from databento.live import DBNRecord
-from databento.live import ExceptionCallback
-from databento.live import RecordCallback
+from databento.common.types import DBNRecord
+from databento.common.types import ExceptionCallback
+from databento.common.types import RecordCallback
 from databento.live.protocol import DatabentoLiveProtocol
 
 
 logger = logging.getLogger(__name__)
 
-
-DEFAULT_REMOTE_PORT = 13000
+AUTH_TIMEOUT_SECONDS: Final = 2.0
+CONNECT_TIMEOUT_SECONDS: Final = 5.0
+DEFAULT_REMOTE_PORT: Final = 13000
 
 
 class DBNQueue(queue.Queue):  # type: ignore [type-arg]
@@ -137,22 +135,27 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
 
-    def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
-        if not self._metadata:
-            self._metadata.data = metadata
+    def _process_dbn(self, data: bytes) -> None:
+        # Do no re-write the metadata to the stream to avoid corruption
+        if not self._metadata or not data.startswith(b"DBN"):
             for stream, exc_callback in self._user_streams.items():
                 try:
-                    stream.write(bytes(metadata))
+                    stream.write(data)
                 except Exception as exc:
                     stream_name = getattr(stream, "name", str(stream))
                     logger.error(
-                        "error writing %s to `%s` stream",
-                        type(metadata).__name__,
+                        "error writing %d bytes to `%s` stream",
+                        len(data),
                         stream_name,
                         exc_info=exc,
                     )
                     if exc_callback is not None:
                         exc_callback(exc)
+        return super()._process_dbn(data)
+
+    def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
+        if not self._metadata:
+            self._metadata.data = metadata
         else:
             self._metadata.check(metadata)
         return super().received_metadata(metadata)
@@ -166,23 +169,6 @@ class _SessionProtocol(DatabentoLiveProtocol):
                     "error dispatching %s to `%s` callback",
                     type(record).__name__,
                     getattr(callback, "__name__", str(callback)),
-                    exc_info=exc,
-                )
-                if exc_callback is not None:
-                    exc_callback(exc)
-
-        has_ts_out = self._metadata.data and self._metadata.data.ts_out
-        for stream, exc_callback in self._user_streams.items():
-            try:
-                stream.write(bytes(record))
-                if not isinstance(record, databento_dbn.Metadata) and has_ts_out:
-                    stream.write(struct.pack("Q", record.ts_out))
-            except Exception as exc:
-                stream_name = getattr(stream, "name", str(stream))
-                logger.error(
-                    "error writing %s to `%s` stream",
-                    type(record).__name__,
-                    stream_name,
                     exc_info=exc,
                 )
                 if exc_callback is not None:
@@ -206,6 +192,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
                     self.transport.pause_reading()
 
         return super().received_record(record)
+
 
 class Session:
     """

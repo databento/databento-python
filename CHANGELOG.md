@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.24.0 - TBD
+
+This release adds support for DBN v2.
+
+#### Enhancements
+- Improved the performance for stream writes in the `Live` client
+- Upgraded `databento-dbn` to 0.14.2
+- Added `databento.common.types` module to hold common type annotations
+
+#### Breaking Changes
+- `DBNStore` iteration and `DBNStore.replay` will upgrade DBN version 1 messages to version 2
+- `Live` client iteration and callbacks upgrade DBN version 1 messages to version 2
+- Moved `DBNRecord`, `RecordCallback`, and `ExceptionCallback` types to them `databento.common.types` module
+- Moved `AUTH_TIMEOUT_SECONDS` and `CONNECT_TIMEOUT_SECONDS` constants from the `databento.live` module to `databento.live.session`
+- Moved `INT64_NULL` from the `databento.common.dbnstore` module to `databento.common.constants`
+- Moved `SCHEMA_STRUCT_MAP` from the `databento.common.data` module to `databento.common.constants`
+- Removed `schema` parameter from `DataFrameIterator` constructor, `struct_type` is to be used instead
+- Removed `NON_SCHEMA_RECORD_TYPES` constant as it is no longer used
+- Removed `DERIV_SCHEMAS` constant as it is no longer used
+- Removed `SCHEMA_COLUMNS` constant as it is no longer used
+- Removed `SCHEMA_DTYPES_MAP` constant as it is no longer used
+- Removed empty `databento.common.data` module
+
 ## 0.23.1 - 2023-11-10
 
 #### Enhancements

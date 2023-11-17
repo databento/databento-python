@@ -1,7 +1,6 @@
 import databento
 import pytest
-from databento.common.data import SCHEMA_COLUMNS
-from databento.common.data import SCHEMA_STRUCT_MAP
+from databento.common.constants import SCHEMA_STRUCT_MAP
 
 
 def test_mbo_fields() -> None:
@@ -10,7 +9,6 @@ def test_mbo_fields() -> None:
     """
     # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.MBO]
-    columns = SCHEMA_COLUMNS[databento.Schema.MBO]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
@@ -18,7 +16,7 @@ def test_mbo_fields() -> None:
     fields.remove("size_hint")
 
     # Act
-    difference = fields.symmetric_difference(set(columns))
+    difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
     assert not difference
@@ -41,7 +39,6 @@ def test_mbp_fields(
     """
     # Arrange
     struct = SCHEMA_STRUCT_MAP[schema]
-    columns = SCHEMA_COLUMNS[schema]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
@@ -49,7 +46,7 @@ def test_mbp_fields(
     fields.remove("size_hint")
 
     # Act
-    difference = fields.symmetric_difference(set(columns))
+    difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
     assert "levels" in difference
@@ -75,7 +72,6 @@ def test_ohlcv_fields(
     """
     # Arrange
     struct = SCHEMA_STRUCT_MAP[schema]
-    columns = SCHEMA_COLUMNS[schema]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
@@ -83,7 +79,7 @@ def test_ohlcv_fields(
     fields.remove("size_hint")
 
     # Act
-    difference = fields.symmetric_difference(set(columns))
+    difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
     assert not difference
@@ -95,7 +91,6 @@ def test_trades_struct() -> None:
     """
     # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.TRADES]
-    columns = SCHEMA_COLUMNS[databento.Schema.TRADES]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
@@ -103,7 +98,7 @@ def test_trades_struct() -> None:
     fields.remove("size_hint")
 
     # Act
-    difference = fields.symmetric_difference(set(columns))
+    difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
     assert not difference
@@ -115,7 +110,6 @@ def test_definition_struct() -> None:
     """
     # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.DEFINITION]
-    columns = SCHEMA_COLUMNS[databento.Schema.DEFINITION]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
@@ -123,7 +117,7 @@ def test_definition_struct() -> None:
     fields.remove("size_hint")
 
     # Act
-    difference = fields.symmetric_difference(set(columns))
+    difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
     assert not difference
@@ -135,7 +129,6 @@ def test_imbalance_struct() -> None:
     """
     # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.IMBALANCE]
-    columns = SCHEMA_COLUMNS[databento.Schema.IMBALANCE]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
@@ -143,7 +136,7 @@ def test_imbalance_struct() -> None:
     fields.remove("size_hint")
 
     # Act
-    difference = fields.symmetric_difference(set(columns))
+    difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
     assert not difference
@@ -155,7 +148,6 @@ def test_statistics_struct() -> None:
     """
     # Arrange
     struct = SCHEMA_STRUCT_MAP[databento.Schema.STATISTICS]
-    columns = SCHEMA_COLUMNS[databento.Schema.STATISTICS]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("hd")
@@ -163,7 +155,7 @@ def test_statistics_struct() -> None:
     fields.remove("size_hint")
 
     # Act
-    difference = fields.symmetric_difference(set(columns))
+    difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
     assert not difference

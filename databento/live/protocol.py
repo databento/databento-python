@@ -10,6 +10,7 @@ from typing import Final
 import databento_dbn
 from databento_dbn import Schema
 from databento_dbn import SType
+from databento_dbn import VersionUpgradePolicy
 
 from databento.common import cram
 from databento.common.constants import ALL_SYMBOLS
@@ -18,9 +19,9 @@ from databento.common.iterator import chunk
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.publishers import Dataset
+from databento.common.types import DBNRecord
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
-from databento.live import DBNRecord
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import AuthenticationResponse
 from databento.live.gateway import ChallengeRequest
@@ -75,7 +76,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         self._dataset = validate_semantic_string(dataset, "dataset")
         self._ts_out = ts_out
 
-        self._dbn_decoder = databento_dbn.DBNDecoder()
+        self._dbn_decoder = databento_dbn.DBNDecoder(
+            upgrade_policy=VersionUpgradePolicy.UPGRADE,
+        )
         self._gateway_decoder = GatewayDecoder()
 
         self._authenticated: asyncio.Future[int] = asyncio.Future()

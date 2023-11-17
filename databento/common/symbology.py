@@ -17,6 +17,7 @@ from databento_dbn import UNDEF_TIMESTAMP
 from databento_dbn import Metadata
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
+from databento_dbn import SymbolMappingMsgV1
 
 from databento.common.parsing import datetime_to_unix_nanoseconds
 
@@ -275,7 +276,7 @@ class InstrumentMap:
 
     def insert_symbol_mapping_msg(
         self,
-        msg: SymbolMappingMsg,
+        msg: SymbolMappingMsg | SymbolMappingMsgV1,
     ) -> None:
         """
         Insert mappings from a SymbolMappingMsg.

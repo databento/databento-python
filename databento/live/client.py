@@ -10,7 +10,7 @@ from collections.abc import Iterable
 from concurrent import futures
 from numbers import Number
 from os import PathLike
-from typing import IO
+from typing import IO, Final
 
 import databento_dbn
 from databento_dbn import Schema
@@ -21,11 +21,11 @@ from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
+from databento.common.types import DBNRecord
+from databento.common.types import ExceptionCallback
+from databento.common.types import RecordCallback
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
-from databento.live import DBNRecord
-from databento.live import ExceptionCallback
-from databento.live import RecordCallback
 from databento.live.session import DEFAULT_REMOTE_PORT
 from databento.live.session import DBNQueue
 from databento.live.session import Session
@@ -34,7 +34,7 @@ from databento.live.session import _SessionProtocol
 
 
 logger = logging.getLogger(__name__)
-DEFAULT_QUEUE_SIZE = 2048
+DEFAULT_QUEUE_SIZE: Final = 2048
 
 
 class Live:

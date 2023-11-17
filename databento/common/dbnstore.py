@@ -29,35 +29,25 @@ from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import Compression
 from databento_dbn import DBNDecoder
 from databento_dbn import Encoding
-from databento_dbn import ErrorMsg
+from databento_dbn import InstrumentDefMsg
+from databento_dbn import InstrumentDefMsgV1
 from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
-from databento_dbn import SymbolMappingMsg
-from databento_dbn import SystemMsg
 from databento_dbn import Transcoder
+from databento_dbn import VersionUpgradePolicy
 
-from databento.common.data import DEFINITION_TYPE_MAX_MAP
-from databento.common.data import SCHEMA_COLUMNS
-from databento.common.data import SCHEMA_DTYPES_MAP
-from databento.common.data import SCHEMA_STRUCT_MAP
+from databento.common.constants import DEFINITION_TYPE_MAX_MAP
+from databento.common.constants import INT64_NULL
+from databento.common.constants import SCHEMA_STRUCT_MAP
+from databento.common.constants import SCHEMA_STRUCT_MAP_V1
 from databento.common.error import BentoError
-from databento.common.iterator import chunk
 from databento.common.symbology import InstrumentMap
+from databento.common.types import DBNRecord
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
-from databento.live import DBNRecord
 
-
-NON_SCHEMA_RECORD_TYPES = [
-    ErrorMsg,
-    SymbolMappingMsg,
-    SystemMsg,
-    Metadata,
-]
-
-INT64_NULL = 9223372036854775807
 
 logger = logging.getLogger(__name__)
 
@@ -380,7 +370,9 @@ class DBNStore:
 
     def __iter__(self) -> Generator[DBNRecord, None, None]:
         reader = self.reader
-        decoder = DBNDecoder()
+        decoder = DBNDecoder(
+            upgrade_policy=VersionUpgradePolicy.UPGRADE,
+        )
         while True:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
             if raw:
@@ -936,8 +928,8 @@ class DBNStore:
 
         df_iter = DataFrameIterator(
             records=records,
-            schema=schema,
             count=count,
+            struct_type=self._schema_struct_map[schema],
             instrument_map=self._instrument_map,
             price_type=price_type,
             pretty_ts=pretty_ts,
@@ -1084,13 +1076,13 @@ class DBNStore:
         ndarray_iter: NDArrayIterator
 
         if self.schema is None:
-            # If schema is None, we're handling heterogeneous data from the live client.
-            # This is less performant because the records of a given schema are not contiguous in memory.
+            # If schema is None, we're handling heterogeneous data from the live client
+            # This is less performant because the records of a given schema are not contiguous in memory
             if schema is None:
                 raise ValueError("a schema must be specified for mixed DBN data")
 
-            schema_struct = SCHEMA_STRUCT_MAP[schema]
-            schema_dtype = SCHEMA_DTYPES_MAP[schema]
+            schema_struct = self._schema_struct_map[schema]
+            schema_dtype = schema_struct._dtypes
             schema_filter = filter(lambda r: isinstance(r, schema_struct), self)
 
             ndarray_iter = NDArrayBytesIterator(
@@ -1099,8 +1091,9 @@ class DBNStore:
                 count=count,
             )
         else:
-            # If schema is set, we're handling homogeneous historical data.
-            schema_dtype = SCHEMA_DTYPES_MAP[self.schema]
+            # If schema is set, we're handling homogeneous historical data
+            schema_struct = self._schema_struct_map[self.schema]
+            schema_dtype = schema_struct._dtypes
 
             if self._metadata.ts_out:
                 schema_dtype.append(("ts_out", "u8"))
@@ -1145,15 +1138,36 @@ class DBNStore:
             pretty_ts=pretty_ts,
             has_metadata=True,
             map_symbols=map_symbols,
-            symbol_map=symbol_map,  # type: ignore [arg-type]
+            symbol_interval_map=symbol_map,  # type: ignore [arg-type]
             schema=schema,
         )
 
-        transcoder.write(bytes(self.metadata))
-        for records in chunk(self, 2**16):
-            for record in records:
-                transcoder.write(bytes(record))
-            transcoder.flush()
+        reader = self.reader
+        transcoder.write(reader.read(self._metadata_length))
+        while byte_chunk := reader.read(2**16):
+            transcoder.write(byte_chunk)
+
+        if transcoder.buffer():
+            raise BentoError(
+                "DBN file is truncated or contains an incomplete record",
+            )
+
+        transcoder.flush()
+
+    @property
+    def _schema_struct_map(self) -> dict[Schema, type[DBNRecord]]:
+        """
+        Return a mapping of Schema variants to DBNRecord types based on the DBN
+        metadata version.
+
+        Returns
+        -------
+        dict[Schema, type[DBNRecord]]
+
+        """
+        if self.metadata.version == 1:
+            return SCHEMA_STRUCT_MAP_V1
+        return SCHEMA_STRUCT_MAP
 
 
 class NDArrayIterator(Protocol):
@@ -1263,20 +1277,19 @@ class DataFrameIterator:
         self,
         records: Iterator[np.ndarray[Any, Any]],
         count: int | None,
-        schema: Schema,
+        struct_type: type[DBNRecord],
         instrument_map: InstrumentMap,
         price_type: Literal["fixed", "float", "decimal"] = "float",
         pretty_ts: bool = True,
         map_symbols: bool = True,
     ):
         self._records = records
-        self._schema = schema
         self._count = count
+        self._struct_type = struct_type
         self._price_type = price_type
         self._pretty_ts = pretty_ts
         self._map_symbols = map_symbols
         self._instrument_map = instrument_map
-        self._struct = SCHEMA_STRUCT_MAP[schema]
 
     def __iter__(self) -> DataFrameIterator:
         return self
@@ -1284,10 +1297,10 @@ class DataFrameIterator:
     def __next__(self) -> pd.DataFrame:
         df = pd.DataFrame(
             next(self._records),
-            columns=SCHEMA_COLUMNS[self._schema],
+            columns=self._struct_type._ordered_fields,
         )
 
-        if self._schema == Schema.DEFINITION:
+        if self._struct_type in (InstrumentDefMsg, InstrumentDefMsgV1):
             self._format_definition_fields(df)
 
         self._format_hidden_fields(df)
@@ -1310,8 +1323,8 @@ class DataFrameIterator:
                 df[column] = df[column].where(df[column] != type_max, np.nan)
 
     def _format_hidden_fields(self, df: pd.DataFrame) -> None:
-        for column, dtype in SCHEMA_DTYPES_MAP[self._schema]:
-            hidden_fields = self._struct._hidden_fields
+        for column, dtype in self._struct_type._dtypes:
+            hidden_fields = self._struct_type._hidden_fields
             if dtype.startswith("S") and column not in hidden_fields:
                 df[column] = df[column].str.decode("utf-8")
 
@@ -1328,7 +1341,7 @@ class DataFrameIterator:
         df: pd.DataFrame,
         price_type: Literal["fixed", "float", "decimal"],
     ) -> None:
-        px_fields = self._struct._price_fields
+        px_fields = self._struct_type._price_fields
 
         if price_type == "decimal":
             for field in px_fields:
@@ -1343,11 +1356,9 @@ class DataFrameIterator:
             return  # do nothing
 
     def _format_pretty_ts(self, df: pd.DataFrame) -> None:
-        for field in self._struct._timestamp_fields:
+        for field in self._struct_type._timestamp_fields:
             df[field] = pd.to_datetime(df[field], utc=True, errors="coerce")
 
     def _format_set_index(self, df: pd.DataFrame) -> None:
-        index_column = (
-            "ts_event" if self._schema.value.startswith("ohlcv") else "ts_recv"
-        )
+        index_column = self._struct_type._ordered_fields[0]
         df.set_index(index_column, inplace=True)

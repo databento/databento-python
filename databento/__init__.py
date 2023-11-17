@@ -37,9 +37,9 @@ from databento.common.publishers import Dataset
 from databento.common.publishers import Publisher
 from databento.common.publishers import Venue
 from databento.common.symbology import InstrumentMap
+from databento.common.types import DBNRecord
 from databento.historical.api import API_VERSION
 from databento.historical.client import Historical
-from databento.live import DBNRecord
 from databento.live.client import Live
 from databento.version import __version__  # noqa
 

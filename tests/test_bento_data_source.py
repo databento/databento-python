@@ -4,19 +4,30 @@ from typing import Callable
 import pytest
 from databento.common.dbnstore import FileDataSource
 from databento.common.dbnstore import MemoryDataSource
+from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
 
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
 @pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema.variants()])
 def test_memory_data_source(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
+    dataset: Dataset,
     schema: Schema,
 ) -> None:
     """
     Test create of MemoryDataSource.
     """
     # Arrange, Act
-    data = test_data(schema)
+    data = test_data(dataset, schema)
     data_source = MemoryDataSource(data)
 
     # Assert
@@ -24,16 +35,26 @@ def test_memory_data_source(
     assert repr(data) == data_source.name
 
 
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
 @pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema.variants()])
 def test_file_data_source(
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
+    dataset: Dataset,
     schema: Schema,
 ) -> None:
     """
     Test create of FileDataSource.
     """
     # Arrange, Act
-    path = test_data_path(schema)
+    path = test_data_path(dataset, schema)
     data_source = FileDataSource(path)
 
     # Assert
