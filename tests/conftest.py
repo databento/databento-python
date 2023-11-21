@@ -215,11 +215,6 @@ async def fixture_mock_live_server(
 
         yield mock_live_server
 
-        asyncio.run_coroutine_threadsafe(
-            coro=mock_live_server.stop(),
-            loop=loop,
-        ).result()
-
     loop.run_in_executor(
         None,
         loop.stop,

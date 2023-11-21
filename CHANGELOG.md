@@ -2,9 +2,10 @@
 
 ## 0.24.0 - TBD
 
-This release adds support for DBN v2.
+This release adds support for DBN v2 as well as Python v3.12.
 
 #### Enhancements
+- Added support for Python 3.12
 - Improved the performance for stream writes in the `Live` client
 - Upgraded `databento-dbn` to 0.14.2
 - Added `databento.common.types` module to hold common type annotations

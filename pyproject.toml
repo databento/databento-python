@@ -28,9 +28,15 @@ repository = "https://github.com/databento/databento-python"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-aiohttp = "^3.8.3"
+aiohttp = [
+    {version = "^3.8.3", python = "<3.12"},
+    {version = "^3.9.0", python = "^3.12"}
+]
 databento-dbn = "0.14.2"
-numpy = ">=1.23.5"
+numpy = [
+    {version = ">=1.23.5", python = "<3.12"},
+    {version = "^1.26.0", python = "^3.12"}
+]
 pandas = ">=1.5.3"
 requests = ">=2.24.0"
 zstandard = ">=0.21.0"
