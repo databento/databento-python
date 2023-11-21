@@ -1,8 +1,16 @@
 # Changelog
 
-## 0.24.0 - TBD
+## 0.24.0 - 2023-11-23
 
 This release adds support for DBN v2 as well as Python v3.12.
+
+DBN v2 delivers improvements to the `Metadata` header symbology, new `stype_in` and `stype_out` fields for `SymbolMappingMsg`, and extends the symbol field length for `SymbolMappingMsg` and `InstrumentDefMsg`. The entire change notes are available [here](https://github.com/databento/dbn/releases/tag/v0.14.0). Users who wish to convert DBN v1 files to v2 can use the `dbn-cli` tool available in the [databento-dbn](https://github.com/databento/dbn/) crate. On a future date, the Databento live and historical APIs will stop serving DBN v1.
+
+This release of `databento-python` is fully compatible with both DBN v1 and v2, so this upgrade should be seamless for most users.
+
+In some cases, DBN v1 records will be converted to their v2 counterparts:
+- When iterating a `DBNStore` and with `DBNStore.replay`
+- When iterating a `Live` client and records dispatched to callbacks
 
 #### Enhancements
 - Added support for Python 3.12
