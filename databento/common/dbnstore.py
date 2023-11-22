@@ -32,10 +32,12 @@ from databento_dbn import Encoding
 from databento_dbn import InstrumentDefMsg
 from databento_dbn import InstrumentDefMsgV1
 from databento_dbn import Metadata
+from databento_dbn import RType
 from databento_dbn import Schema
 from databento_dbn import SType
 from databento_dbn import Transcoder
 from databento_dbn import VersionUpgradePolicy
+from pandas.io.common import os
 
 from databento.common.constants import DEFINITION_TYPE_MAX_MAP
 from databento.common.constants import INT64_NULL
@@ -1082,11 +1084,14 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
 
             schema_struct = self._schema_struct_map[schema]
+            schema_rtype = RType.from_schema(schema)
             schema_dtype = schema_struct._dtypes
-            schema_filter = filter(lambda r: isinstance(r, schema_struct), self)
 
+            reader = self.reader
+            reader.seek(self._metadata_length)
             ndarray_iter = NDArrayBytesIterator(
-                records=map(bytes, schema_filter),
+                stream=reader,
+                rtype=schema_rtype,
                 dtype=schema_dtype,
                 count=count,
             )
@@ -1229,11 +1234,13 @@ class NDArrayBytesIterator(NDArrayIterator):
 
     def __init__(
         self,
-        records: Iterator[bytes],
+        stream: IO[bytes],
+        rtype: RType,
         dtype: list[tuple[str, str]],
         count: int | None,
     ):
-        self._records = records
+        self._stream = stream
+        self._rtype = rtype
         self._dtype = dtype
         self._count = count
         self._first_next = True
@@ -1241,19 +1248,31 @@ class NDArrayBytesIterator(NDArrayIterator):
     def __iter__(self) -> NDArrayIterator:
         return self
 
+    def __iter_rtype__(self) -> Generator[bytes, None, None]:
+        while header := self._stream.read(2):
+            length, rtype = header[:2]
+            read_size = length * 4 - 2
+            if rtype == self._rtype:
+                yield header + self._stream.read(read_size)
+            else:
+                self._stream.seek(read_size, os.SEEK_CUR)
+        return
+
     def __next__(self) -> np.ndarray[Any, Any]:
         record_bytes = BytesIO()
         num_records = 0
-        for record in itertools.islice(self._records, self._count):
+
+        for record in itertools.islice(self.__iter_rtype__(), self._count):
             num_records += 1
             record_bytes.write(record)
 
-        if num_records == 0:
-            if self._first_next:
+        if self._first_next:
+            self._first_next = False
+            if num_records == 0:
                 return np.empty([0, 1], dtype=self._dtype)
-            raise StopIteration
 
-        self._first_next = False
+        if num_records == 0:
+            raise StopIteration
 
         try:
             return np.frombuffer(

@@ -89,6 +89,23 @@ def pytest_collection_modifyitems(
             item.add_marker(skip_release)
 
 
+@pytest.fixture(name="live_test_data_path")
+def fixture_live_test_data_path() -> pathlib.Path:
+    """
+    Fixture to retrieve the live stub data path.
+
+    Returns
+    -------
+    pathlib.Path
+
+    See Also
+    --------
+    live_test_data
+
+    """
+    return TESTS_ROOT / "data" / "LIVE" / "test_data.live.dbn.zst"
+
+
 @pytest.fixture(name="test_data_path")
 def fixture_test_data_path() -> Callable[[Dataset, Schema], pathlib.Path]:
     """
@@ -118,6 +135,25 @@ def fixture_test_data_path() -> Callable[[Dataset, Schema], pathlib.Path]:
         return path
 
     return func
+
+
+@pytest.fixture(name="live_test_data")
+def fixture_live_test_data(
+    live_test_data_path: pathlib.Path,
+) -> bytes:
+    """
+    Fixture to retrieve stub test data.
+
+    Returns
+    -------
+    bytes
+
+    See Also
+    --------
+    live_test_data_path
+
+    """
+    return live_test_data_path.read_bytes()
 
 
 @pytest.fixture(name="test_data")

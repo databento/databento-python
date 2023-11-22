@@ -939,6 +939,57 @@ def test_dbnstore_to_ndarray_with_count(
 
 @pytest.mark.parametrize(
     "schema",
+    [
+        Schema.MBO,
+        Schema.MBP_1,
+        Schema.MBP_10,
+        Schema.TRADES,
+        Schema.OHLCV_1S,
+        Schema.OHLCV_1M,
+        Schema.OHLCV_1H,
+        Schema.OHLCV_1D,
+        Schema.DEFINITION,
+        Schema.STATISTICS,
+    ],
+)
+@pytest.mark.parametrize(
+    "count",
+    [
+        1,
+        2,
+        3,
+    ],
+)
+def test_dbnstore_to_ndarray_with_count_live(
+    schema: Schema,
+    live_test_data: bytes,
+    count: int,
+) -> None:
+    """
+    Test that calling to_ndarray with count produces an identical result to
+    without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    expected = dbnstore.to_ndarray(schema=schema)
+    nd_iter = dbnstore.to_ndarray(schema=schema, count=count)
+
+    # Assert
+    aggregator: list[np.ndarray[Any, Any]] = []
+
+    for batch in nd_iter:
+        assert len(batch) <= count
+        aggregator.append(batch)
+
+    assert np.array_equal(expected, np.concatenate(aggregator))
+
+
+@pytest.mark.parametrize(
+    "schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_to_ndarray_with_schema(
@@ -993,6 +1044,38 @@ def test_dbnstore_to_ndarray_with_count_empty(
     assert len(next(nd_iter)) == 0
 
 
+@pytest.mark.parametrize(
+    "schema, expected_count",
+    [
+        (Schema.MBO, 5),
+        (Schema.MBP_1, 2),
+        (Schema.MBP_10, 2),
+        (Schema.TRADES, 2),
+        (Schema.OHLCV_1S, 2),
+        (Schema.OHLCV_1M, 2),
+        (Schema.OHLCV_1H, 0),
+        (Schema.OHLCV_1D, 0),
+        (Schema.DEFINITION, 2),
+        (Schema.STATISTICS, 9),
+    ],
+)
+def test_dbnstore_to_ndarray_with_schema_live(
+    live_test_data: bytes,
+    schema: Schema,
+    expected_count: int,
+) -> None:
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    array = dbnstore.to_ndarray(schema=schema)
+
+    # Assert
+    assert len(array) == expected_count
+
+
 def test_dbnstore_to_ndarray_with_schema_empty(
     test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
@@ -1014,6 +1097,23 @@ def test_dbnstore_to_ndarray_with_schema_empty(
 
     # Assert
     assert len(array) == 0
+
+
+def test_dbnstore_to_ndarray_with_schema_empty_live(
+    live_test_data: bytes,
+) -> None:
+    """
+    Test that a schema must be specified for live data.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    # Assert
+    with pytest.raises(ValueError):
+        dbnstore.to_ndarray()
 
 
 @pytest.mark.parametrize(
@@ -1063,32 +1163,38 @@ def test_dbnstore_to_df_with_count(
 
 
 @pytest.mark.parametrize(
-    "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+    "schema, expected_count",
+    [
+        (Schema.MBO, 5),
+        (Schema.MBP_1, 2),
+        (Schema.MBP_10, 2),
+        (Schema.TRADES, 2),
+        (Schema.OHLCV_1S, 2),
+        (Schema.OHLCV_1M, 2),
+        (Schema.OHLCV_1H, 0),
+        (Schema.OHLCV_1D, 0),
+        (Schema.DEFINITION, 2),
+        (Schema.STATISTICS, 9),
+    ],
 )
-def test_dbnstore_to_df_with_schema(
+def test_dbnstore_to_df_with_schema_live(
     schema: Schema,
-    test_data: Callable[[Dataset, Schema], bytes],
+    live_test_data: bytes,
+    expected_count: int,
 ) -> None:
     """
-    Test that calling to_df with schema produces an identical result to
-    without.
+    Test that calling to_df with schema produces a DataFrame for live data.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, schema))
-        .read()
-    )
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
 
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
-    expected = dbnstore.to_df()
-    actual = dbnstore.to_df(schema=schema)
+    df = dbnstore.to_df(schema=schema)
 
     # Assert
-    assert actual.equals(expected)
+    assert len(df) == expected_count
 
 
 def test_dbnstore_to_df_with_schema_empty(
