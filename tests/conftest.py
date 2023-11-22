@@ -142,7 +142,7 @@ def fixture_live_test_data(
     live_test_data_path: pathlib.Path,
 ) -> bytes:
     """
-    Fixture to retrieve stub test data.
+    Fixture to retrieve live stub test data.
 
     Returns
     -------

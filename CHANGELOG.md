@@ -7,9 +7,12 @@ This release adds support for DBN v2 as well as Python v3.12.
 #### Enhancements
 - Added support for Python 3.12
 - Improved the performance for stream writes in the `Live` client
-- Improved the performance of `DBNStore.to_ndarray` and `DBNStore.to_df` for heterogeneous DBN data
 - Upgraded `databento-dbn` to 0.14.2
 - Added `databento.common.types` module to hold common type annotations
+
+#### Bug fixes
+- Fixed an issue where specifying an OHLCV schema in `DBNStore.to_ndarray` or `DBNStore.to_df` would not properly filter records by their interval
+- Fixed an issue where `DBNStore.to_ndarray` and `DBNStore.to_df` with a non-zero count could get stuck in a loop if the DBN data did not contain any records
 
 #### Breaking Changes
 - `DBNStore` iteration and `DBNStore.replay` will upgrade DBN version 1 messages to version 2
