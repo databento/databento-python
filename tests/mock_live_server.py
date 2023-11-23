@@ -19,7 +19,8 @@ from typing import Callable, NewType, TypeVar
 
 import zstandard
 from databento.common import cram
-from databento.common.data import SCHEMA_STRUCT_MAP
+from databento.common.constants import SCHEMA_STRUCT_MAP
+from databento.common.publishers import Dataset
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import AuthenticationResponse
 from databento.live.gateway import ChallengeRequest
@@ -85,6 +86,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self.__transport: asyncio.Transport
         self._buffer: bytearray
         self._data: BytesIO
+        self._dataset: Dataset | None = None
         self._message_queue: MessageQueue = message_queue
         self._cram_challenge: str = "".join(
             random.choice(string.ascii_letters) for _ in range(32)  # noqa: S311
@@ -112,6 +114,19 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
 
         """
         return self._cram_challenge
+
+    @property
+    def dataset(self) -> Dataset | None:
+        """
+        Return the session Dataset. If `None`, a dataset has not yet been
+        specified. This is done on authentication.
+
+        Returns
+        -------
+        Dataset | None
+
+        """
+        return self._dataset
 
     @property
     def is_authenticated(self) -> bool:
@@ -359,6 +374,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
                 raise ValueError(
                     f"Expected `{expected_response}` but was `{message.auth}`",
                 )
+            self._dataset = Dataset(message.dataset)
         except (KeyError, ValueError) as exc:
             logger.error(
                 "could not authenticate user",
@@ -375,6 +391,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
                 session_id=self.session_id,
             )
             self.__transport.write(bytes(auth_success))
+
 
     @handle_client_message.register(SubscriptionRequest)
     def _(self, message: SubscriptionRequest) -> None:
@@ -394,9 +411,10 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         logger.info("received session start request: %s", str(message).strip())
         self._is_streaming = True
 
+        dataset_path = self._dbn_path / (self._dataset or "")
         if self.mode is MockLiveMode.REPLAY:
             for schema in self._schemas:
-                for test_data_path in self._dbn_path.glob(f"*{schema}.dbn.zst"):
+                for test_data_path in dataset_path.glob(f"*{schema}.dbn.zst"):
                     decompressor = zstandard.ZstdDecompressor().stream_reader(
                         test_data_path.read_bytes(),
                     )

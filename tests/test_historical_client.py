@@ -10,6 +10,7 @@ import requests
 from databento import DBNStore
 from databento import Historical
 from databento.common.enums import HistoricalGateway
+from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
 
@@ -101,14 +102,14 @@ def test_custom_gateway_force_https(
 
 
 def test_re_request_symbology_makes_expected_request(
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,
 ) -> None:
     # Arrange
     monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
-    bento = DBNStore.from_file(path=test_data_path(Schema.MBO))
+    bento = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
 
     # Act
     bento.request_symbology(historical_client)
@@ -135,8 +136,8 @@ def test_re_request_symbology_makes_expected_request(
 
 
 def test_request_full_definitions_expected_request(
-    test_data: Callable[[Schema], bytes],
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,
 ) -> None:
@@ -144,10 +145,10 @@ def test_request_full_definitions_expected_request(
     monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Create an MBO bento
-    bento = DBNStore.from_file(path=test_data_path(Schema.MBO))
+    bento = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
 
     # Mock from_bytes with the definition stub
-    stream_bytes = test_data(Schema.DEFINITION)
+    stream_bytes = test_data(Dataset.GLBX_MDP3, Schema.DEFINITION)
     monkeypatch.setattr(
         DBNStore,
         "from_bytes",
@@ -165,8 +166,8 @@ def test_request_full_definitions_expected_request(
     )
     assert call["data"] == {
         "dataset": "GLBX.MDP3",
-        "start": "2020-12-28T13:00:00+00:00",
-        "end": "2020-12-29T13:01:00+00:00",
+        "start": "2020-12-28T00:00:00+00:00",
+        "end": "2020-12-29T00:00:00+00:00",
         "symbols": "ESH1",
         "schema": "definition",
         "stype_in": "raw_symbol",

@@ -17,6 +17,8 @@ import pytest
 import pytest_asyncio
 from databento import historical
 from databento import live
+from databento.common.publishers import Dataset
+from databento.live import session
 from databento_dbn import Schema
 
 from tests import TESTS_ROOT
@@ -87,19 +89,38 @@ def pytest_collection_modifyitems(
             item.add_marker(skip_release)
 
 
+@pytest.fixture(name="live_test_data_path")
+def fixture_live_test_data_path() -> pathlib.Path:
+    """
+    Fixture to retrieve the live stub data path.
+
+    Returns
+    -------
+    pathlib.Path
+
+    See Also
+    --------
+    live_test_data
+
+    """
+    return TESTS_ROOT / "data" / "LIVE" / "test_data.live.dbn.zst"
+
+
 @pytest.fixture(name="test_data_path")
-def fixture_test_data_path() -> Callable[[Schema], pathlib.Path]:
+def fixture_test_data_path() -> Callable[[Dataset, Schema], pathlib.Path]:
     """
     Fixture to retrieve stub data paths.
 
     Parameters
     ----------
+    dataset: Dataset,
+        The dataset of the stub data to request.
     schema : Schema
         The schema of the stub data path to request.
 
     Returns
     -------
-    Callable
+    Callable[[Dataset, Schema], pathlib.Path]
 
     See Also
     --------
@@ -107,19 +128,38 @@ def fixture_test_data_path() -> Callable[[Schema], pathlib.Path]:
 
     """
 
-    def func(schema: Schema) -> pathlib.Path:
-        path = pathlib.Path(TESTS_ROOT) / "data" / f"test_data.{schema}.dbn.zst"
+    def func(dataset: Dataset, schema: Schema) -> pathlib.Path:
+        path = TESTS_ROOT / "data" / dataset / f"test_data.{schema}.dbn.zst"
         if not path.exists():
-            pytest.skip(f"no test data for schema: {schema}")
+            pytest.skip(f"no test data for {dataset} {schema}")
         return path
 
     return func
 
 
+@pytest.fixture(name="live_test_data")
+def fixture_live_test_data(
+    live_test_data_path: pathlib.Path,
+) -> bytes:
+    """
+    Fixture to retrieve live stub test data.
+
+    Returns
+    -------
+    bytes
+
+    See Also
+    --------
+    live_test_data_path
+
+    """
+    return live_test_data_path.read_bytes()
+
+
 @pytest.fixture(name="test_data")
 def fixture_test_data(
-    test_data_path: Callable[[Schema], pathlib.Path],
-) -> Callable[[Schema], bytes]:
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
+) -> Callable[[Dataset, Schema], bytes]:
     """
     Fixture to retrieve stub test data.
 
@@ -130,7 +170,7 @@ def fixture_test_data(
 
     Returns
     -------
-    Callable
+    Callable[[Dataset, Schema], bytes]
 
     See Also
     --------
@@ -138,8 +178,8 @@ def fixture_test_data(
 
     """
 
-    def func(schema: Schema) -> bytes:
-        return test_data_path(schema).read_bytes()
+    def func(dataset: Dataset, schema: Schema) -> bytes:
+        return test_data_path(dataset, schema).read_bytes()
 
     return func
 
@@ -180,12 +220,12 @@ async def fixture_mock_live_server(
         value=test_api_key,
     )
     monkeypatch.setattr(
-        live,
+        session,
         "AUTH_TIMEOUT_SECONDS",
         1,
     )
     monkeypatch.setattr(
-        live,
+        session,
         "CONNECT_TIMEOUT_SECONDS",
         1,
     )
@@ -210,11 +250,6 @@ async def fixture_mock_live_server(
         ).result()
 
         yield mock_live_server
-
-        asyncio.run_coroutine_threadsafe(
-            coro=mock_live_server.stop(),
-            loop=loop,
-        ).result()
 
     loop.run_in_executor(
         None,

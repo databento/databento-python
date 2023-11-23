@@ -8,6 +8,7 @@ from typing import Callable, NamedTuple
 import pandas as pd
 import pytest
 from databento.common.dbnstore import DBNStore
+from databento.common.publishers import Dataset
 from databento.common.symbology import InstrumentMap
 from databento.common.symbology import MappingInterval
 from databento_dbn import UNDEF_TIMESTAMP
@@ -15,6 +16,7 @@ from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
+from databento_dbn import SymbolMappingMsgV1
 
 
 class SymbolMapping(NamedTuple):
@@ -131,7 +133,9 @@ def create_symbol_mapping_message(
     publisher_id: int = 0,
     instrument_id: int = 0,
     ts_event: int = pd.Timestamp.utcnow().value,
+    stype_in: SType = SType.RAW_SYMBOL,
     stype_in_symbol: str | int = "",
+    stype_out: SType = SType.INSTRUMENT_ID,
     stype_out_symbol: str | int = "",
     start_ts: pd.Timestamp = pd.Timestamp.utcnow(),
     end_ts: pd.Timestamp = pd.Timestamp.utcnow(),
@@ -145,13 +149,15 @@ def create_symbol_mapping_message(
 
     """
     return SymbolMappingMsg(  # type: ignore [call-arg]
-        publisher_id,
-        instrument_id,
-        ts_event,
-        str(stype_in_symbol),
-        str(stype_out_symbol),
-        start_ts.value,
-        end_ts.value,
+        publisher_id=publisher_id,
+        instrument_id=instrument_id,
+        ts_event=ts_event,
+        stype_in=stype_in,
+        stype_in_symbol=str(stype_in_symbol),
+        stype_out=stype_out,
+        stype_out_symbol=str(stype_out_symbol),
+        start_ts=start_ts.value,
+        end_ts=end_ts.value,
     )
 
 
@@ -306,23 +312,90 @@ def test_instrument_map_insert_metadata_empty_mappings(
     # Assert
     assert instrument_map._data == {}
 
+@pytest.mark.parametrize(
+    "stype_in,symbol_in,stype_out,symbol_out,instrument_id,expected_symbol",
+    [
+        (SType.RAW_SYMBOL, "test", SType.INSTRUMENT_ID, 1234, 1234, "test"),
+        (SType.INSTRUMENT_ID, 1234, SType.RAW_SYMBOL, "test", 1234, "test"),
+        (SType.CONTINUOUS, "FOO.c.0", SType.RAW_SYMBOL, "test", 1234, "test"),
+        (SType.PARENT, "FOO.OUT", SType.RAW_SYMBOL, "test", 1234, "test"),
+    ],
+)
+def test_instrument_map_insert_symbol_mapping_message_v1(
+    instrument_map: InstrumentMap,
+    start_date: pd.Timestamp,
+    end_date: pd.Timestamp,
+    stype_in: SType,
+    symbol_in: str | int,
+    stype_out: SType,
+    symbol_out: str | int,
+    instrument_id: int,
+    expected_symbol: str,
+) -> None:
+    """
+    Test the insertion of a SymbolMappingMessageV1.
 
+    This is a legacy message.
+
+    """
+    # Arrange
+    sym_msg = create_symbol_mapping_message(
+        instrument_id=instrument_id,
+        stype_in=stype_in,
+        stype_in_symbol=symbol_in,
+        stype_out=stype_out,
+        stype_out_symbol=symbol_out,
+        start_ts=start_date,
+        end_ts=end_date,
+    )
+    sym_msg_v1 = SymbolMappingMsgV1(  # type: ignore [call-arg]
+        publisher_id=sym_msg.publisher_id,
+        instrument_id=sym_msg.instrument_id,
+        ts_event=sym_msg.ts_event,
+        stype_in_symbol=sym_msg.stype_in_symbol,
+        stype_out_symbol=sym_msg.stype_out_symbol,
+        start_ts=sym_msg.start_ts,
+        end_ts=sym_msg.end_ts,
+    )
+
+    # Act
+    instrument_map.insert_symbol_mapping_msg(sym_msg_v1)
+
+    # Assert
+    assert instrument_map.resolve(instrument_id, start_date.date()) == expected_symbol
+
+
+
+@pytest.mark.parametrize(
+    "stype_in,symbol_in,stype_out,symbol_out,instrument_id,expected_symbol",
+    [
+        (SType.RAW_SYMBOL, "test", SType.INSTRUMENT_ID, 1234, 1234, "test"),
+        (SType.INSTRUMENT_ID, 1234, SType.RAW_SYMBOL, "test", 1234, "test"),
+        (SType.CONTINUOUS, "FOO.c.0", SType.RAW_SYMBOL, "test", 1234, "test"),
+        (SType.PARENT, "FOO.OUT", SType.RAW_SYMBOL, "test", 1234, "test"),
+    ],
+)
 def test_instrument_map_insert_symbol_mapping_message(
     instrument_map: InstrumentMap,
     start_date: pd.Timestamp,
     end_date: pd.Timestamp,
+    stype_in: SType,
+    symbol_in: str | int,
+    stype_out: SType,
+    symbol_out: str | int,
+    instrument_id: int,
+    expected_symbol: str,
 ) -> None:
     """
     Test the insertion of a SymbolMappingMessage.
     """
     # Arrange
-    symbol = "test"
-    instrument_id = 1234
-
     sym_msg = create_symbol_mapping_message(
         instrument_id=instrument_id,
-        stype_in_symbol=symbol,
-        stype_out_symbol=instrument_id,
+        stype_in=stype_in,
+        stype_in_symbol=symbol_in,
+        stype_out=stype_out,
+        stype_out_symbol=symbol_out,
         start_ts=start_date,
         end_ts=end_date,
     )
@@ -331,7 +404,7 @@ def test_instrument_map_insert_symbol_mapping_message(
     instrument_map.insert_symbol_mapping_msg(sym_msg)
 
     # Assert
-    assert instrument_map.resolve(instrument_id, start_date.date()) == symbol
+    assert instrument_map.resolve(instrument_id, start_date.date()) == expected_symbol
 
 
 def test_instrument_map_insert_symbol_mapping_message_multiple_mappings(
@@ -764,6 +837,15 @@ def test_instrument_map_ignore_duplicate(
 
 
 @pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
+@pytest.mark.parametrize(
     "schema",
     [pytest.param(s, id=str(s)) for s in Schema.variants()],
 )
@@ -776,16 +858,17 @@ def test_instrument_map_ignore_duplicate(
 )
 def test_instrument_map_symbols_csv(
     tmp_path: pathlib.Path,
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     pretty_ts: bool,
+    dataset: Dataset,
     schema: Schema,
 ) -> None:
     """
-    Test that a CSV file without mapped symbols is equivelant to a CSV file
+    Test that a CSV file without mapped symbols is equivalent to a CSV file
     with mapped symbols after processing with map_symbols_csv.
     """
     # Arrange, Act
-    store = DBNStore.from_file(test_data_path(schema))
+    store = DBNStore.from_file(test_data_path(dataset, schema))
     csv_path = tmp_path / f"test_{schema}.csv"
     store.to_csv(
         csv_path,
@@ -812,6 +895,15 @@ def test_instrument_map_symbols_csv(
 
 
 @pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
+@pytest.mark.parametrize(
     "schema",
     [pytest.param(s, id=str(s)) for s in Schema.variants()],
 )
@@ -824,8 +916,9 @@ def test_instrument_map_symbols_csv(
 )
 def test_instrument_map_symbols_json(
     tmp_path: pathlib.Path,
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     pretty_ts: bool,
+    dataset: Dataset,
     schema: Schema,
 ) -> None:
     """
@@ -833,7 +926,7 @@ def test_instrument_map_symbols_json(
     with mapped symbols after processing with map_symbols_json.
     """
     # Arrange, Act
-    store = DBNStore.from_file(test_data_path(schema))
+    store = DBNStore.from_file(test_data_path(dataset, schema))
     json_path = tmp_path / f"test_{schema}.json"
     store.to_json(
         json_path,

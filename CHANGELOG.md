@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.24.0 - 2023-11-23
+
+This release adds support for DBN v2 as well as Python v3.12.
+
+DBN v2 delivers improvements to the `Metadata` header symbology, new `stype_in` and `stype_out` fields for `SymbolMappingMsg`, and extends the symbol field length for `SymbolMappingMsg` and `InstrumentDefMsg`. The entire change notes are available [here](https://github.com/databento/dbn/releases/tag/v0.14.0). Users who wish to convert DBN v1 files to v2 can use the `dbn-cli` tool available in the [databento-dbn](https://github.com/databento/dbn/) crate. On a future date, the Databento live and historical APIs will stop serving DBN v1.
+
+This release of `databento-python` is fully compatible with both DBN v1 and v2, so this upgrade should be seamless for most users.
+
+In some cases, DBN v1 records will be converted to their v2 counterparts:
+- When iterating a `DBNStore` and with `DBNStore.replay`
+- When iterating a `Live` client and records dispatched to callbacks
+
+#### Enhancements
+- Added support for Python 3.12
+- Improved the performance for stream writes in the `Live` client
+- Upgraded `databento-dbn` to 0.14.2
+- Added `databento.common.types` module to hold common type annotations
+
+#### Bug fixes
+- Fixed an issue where specifying an OHLCV schema in `DBNStore.to_ndarray` or `DBNStore.to_df` would not properly filter records by their interval
+- Fixed an issue where `DBNStore.to_ndarray` and `DBNStore.to_df` with a non-zero count could get stuck in a loop if the DBN data did not contain any records
+
+#### Breaking Changes
+- `DBNStore` iteration and `DBNStore.replay` will upgrade DBN version 1 messages to version 2
+- `Live` client iteration and callbacks upgrade DBN version 1 messages to version 2
+- Moved `DBNRecord`, `RecordCallback`, and `ExceptionCallback` types to them `databento.common.types` module
+- Moved `AUTH_TIMEOUT_SECONDS` and `CONNECT_TIMEOUT_SECONDS` constants from the `databento.live` module to `databento.live.session`
+- Moved `INT64_NULL` from the `databento.common.dbnstore` module to `databento.common.constants`
+- Moved `SCHEMA_STRUCT_MAP` from the `databento.common.data` module to `databento.common.constants`
+- Removed `schema` parameter from `DataFrameIterator` constructor, `struct_type` is to be used instead
+- Removed `NON_SCHEMA_RECORD_TYPES` constant as it is no longer used
+- Removed `DERIV_SCHEMAS` constant as it is no longer used
+- Removed `SCHEMA_COLUMNS` constant as it is no longer used
+- Removed `SCHEMA_DTYPES_MAP` constant as it is no longer used
+- Removed empty `databento.common.data` module
+
 ## 0.23.1 - 2023-11-10
 
 #### Enhancements

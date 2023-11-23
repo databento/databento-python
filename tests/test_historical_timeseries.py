@@ -7,6 +7,7 @@ import pytest
 import requests
 from databento import DBNStore
 from databento.common.error import BentoServerError
+from databento.common.publishers import Dataset
 from databento.historical.client import Historical
 from databento_dbn import Schema
 
@@ -89,13 +90,13 @@ def test_get_range_error_no_file_write(
 
 
 def test_get_range_sends_expected_request(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,
 ) -> None:
     # Arrange
     monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
-    stream_bytes = test_data(Schema.TRADES)
+    stream_bytes = test_data(Dataset.GLBX_MDP3, Schema.TRADES)
 
     monkeypatch.setattr(
         DBNStore,
@@ -138,7 +139,7 @@ def test_get_range_sends_expected_request(
 
 
 def test_get_range_with_limit_sends_expected_request(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,
 ) -> None:
@@ -146,7 +147,7 @@ def test_get_range_with_limit_sends_expected_request(
     monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Mock from_bytes with the definition stub
-    stream_bytes = test_data(Schema.TRADES)
+    stream_bytes = test_data(Dataset.GLBX_MDP3, Schema.TRADES)
     monkeypatch.setattr(
         DBNStore,
         "from_bytes",

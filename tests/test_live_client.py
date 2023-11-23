@@ -15,12 +15,12 @@ import databento_dbn
 import pytest
 import zstandard
 from databento.common.constants import ALL_SYMBOLS
+from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.cram import BUCKET_ID_LENGTH
-from databento.common.data import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
-from databento.live import DBNRecord
+from databento.common.types import DBNRecord
 from databento.live import client
 from databento.live import gateway
 from databento.live import protocol
@@ -618,7 +618,7 @@ async def test_live_wait_for_close(
     live_client.start()
     await live_client.wait_for_close()
 
-    #Assert
+    # Assert
     assert not live_client.is_connected()
 
 
@@ -684,6 +684,7 @@ def test_live_add_callback(
     """
     Test that calling add_callback adds that callback to the client.
     """
+
     # Arrange
     def callback(_: object) -> None:
         pass
@@ -953,13 +954,23 @@ async def test_live_callback(
 
 
 @pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
+@pytest.mark.parametrize(
     "schema",
     (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_stream_to_dbn(
     tmp_path: pathlib.Path,
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     live_client: client.Live,
+    dataset: Dataset,
     schema: Schema,
 ) -> None:
     """
@@ -970,7 +981,7 @@ async def test_live_stream_to_dbn(
     output = tmp_path / "output.dbn"
 
     live_client.subscribe(
-        dataset=Dataset.GLBX_MDP3,
+        dataset=dataset,
         schema=schema,
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
@@ -984,7 +995,7 @@ async def test_live_stream_to_dbn(
 
     expected_data = BytesIO(
         zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(schema).open("rb"))
+        .stream_reader(test_data_path(dataset, schema).open("rb"))
         .read(),
     )
     expected_data.seek(0)  # rewind
@@ -994,13 +1005,23 @@ async def test_live_stream_to_dbn(
 
 
 @pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
+@pytest.mark.parametrize(
     "schema",
     (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
 async def test_live_stream_to_dbn_from_path(
     tmp_path: pathlib.Path,
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     live_client: client.Live,
+    dataset: Dataset,
     schema: Schema,
 ) -> None:
     """
@@ -1011,7 +1032,7 @@ async def test_live_stream_to_dbn_from_path(
     output = tmp_path / "output.dbn"
 
     live_client.subscribe(
-        dataset=Dataset.GLBX_MDP3,
+        dataset=dataset,
         schema=schema,
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
@@ -1025,7 +1046,7 @@ async def test_live_stream_to_dbn_from_path(
 
     expected_data = BytesIO(
         zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(schema).open("rb"))
+        .stream_reader(test_data_path(dataset, schema).open("rb"))
         .read(),
     )
     expected_data.seek(0)  # rewind
@@ -1048,7 +1069,7 @@ async def test_live_stream_to_dbn_from_path(
 )
 async def test_live_stream_to_dbn_with_tiny_buffer(
     tmp_path: pathlib.Path,
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     live_client: client.Live,
     schema: Schema,
     monkeypatch: pytest.MonkeyPatch,
@@ -1077,7 +1098,7 @@ async def test_live_stream_to_dbn_with_tiny_buffer(
 
     expected_data = BytesIO(
         zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(schema).open("rb"))
+        .stream_reader(test_data_path(Dataset.GLBX_MDP3, schema).open("rb"))
         .read(),
     )
     expected_data.seek(0)  # rewind
@@ -1178,7 +1199,7 @@ async def test_live_terminate(
 )
 async def test_live_iteration_with_reconnect(
     live_client: client.Live,
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     schema: Schema,
 ) -> None:
     """
@@ -1221,7 +1242,7 @@ async def test_live_iteration_with_reconnect(
 
     expected_data = BytesIO(
         zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(schema).open("rb"))
+        .stream_reader(test_data_path(Dataset.GLBX_MDP3, schema).open("rb"))
         .read(),
     )
     dbn = DBNStore.from_bytes(expected_data)
@@ -1239,7 +1260,7 @@ async def test_live_iteration_with_reconnect(
 )
 async def test_live_callback_with_reconnect(
     live_client: client.Live,
-    test_data_path: Callable[[Schema], pathlib.Path],
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     schema: Schema,
 ) -> None:
     """
@@ -1272,7 +1293,7 @@ async def test_live_callback_with_reconnect(
 
     expected_data = BytesIO(
         zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(schema).open("rb"))
+        .stream_reader(test_data_path(Dataset.GLBX_MDP3, schema).open("rb"))
         .read(),
     )
     dbn = DBNStore.from_bytes(expected_data)
@@ -1304,6 +1325,8 @@ async def test_live_stream_with_reconnect(
         pytest.skip("no stub data for status schema")
     if schema == "ohlcv-eod":
         pytest.skip("no stub data for ohlcv-eod schema")
+    if schema == "imbalance":
+        pytest.skip("imbalance is not supported for GLBX.MDP3")
 
     output = tmp_path / "output.dbn"
     live_client.add_stream(output.open("wb", buffering=0))
@@ -1427,4 +1450,4 @@ async def test_live_stream_exception_handler(
 
     # Assert
     await live_client.wait_for_close()
-    assert len(exceptions) == 5  # extra write from metadata
+    assert len(exceptions) == 1

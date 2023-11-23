@@ -701,11 +701,11 @@ class Publisher(StringyMixin, str, Enum):
     GLBX_MDP3_GLBX
         CME Globex MDP 3.0.
     XNAS_ITCH_XNAS
-        Nasdaq TotalView ITCH.
+        Nasdaq TotalView-ITCH.
     XBOS_ITCH_XBOS
-        Nasdaq BX TotalView ITCH.
+        Nasdaq BX TotalView-ITCH.
     XPSX_ITCH_XPSX
-        Nasdaq PSX TotalView ITCH.
+        Nasdaq PSX TotalView-ITCH.
     BATS_PITCH_BATS
         Cboe BZX Depth Pitch.
     BATY_PITCH_BATY
@@ -1395,11 +1395,11 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.GLBX_MDP3_GLBX:
             return "CME Globex MDP 3.0"
         if self == Publisher.XNAS_ITCH_XNAS:
-            return "Nasdaq TotalView ITCH"
+            return "Nasdaq TotalView-ITCH"
         if self == Publisher.XBOS_ITCH_XBOS:
-            return "Nasdaq BX TotalView ITCH"
+            return "Nasdaq BX TotalView-ITCH"
         if self == Publisher.XPSX_ITCH_XPSX:
-            return "Nasdaq PSX TotalView ITCH"
+            return "Nasdaq PSX TotalView-ITCH"
         if self == Publisher.BATS_PITCH_BATS:
             return "Cboe BZX Depth Pitch"
         if self == Publisher.BATY_PITCH_BATY:

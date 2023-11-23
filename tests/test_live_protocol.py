@@ -2,6 +2,7 @@ import asyncio
 from unittest.mock import MagicMock
 
 import pytest
+from databento.common.publishers import Dataset
 from databento.live.protocol import DatabentoLiveProtocol
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -9,9 +10,19 @@ from databento_dbn import SType
 from tests.mock_live_server import MockLiveServer
 
 
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
 async def test_protocol_connection(
     mock_live_server: MockLiveServer,
     test_api_key: str,
+    dataset: Dataset,
 ) -> None:
     """
     Test the low-level DatabentoLiveProtocol can be used to establish a
@@ -21,7 +32,7 @@ async def test_protocol_connection(
     transport, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
             api_key=test_api_key,
-            dataset="TEST",
+            dataset=dataset,
         ),
         host=mock_live_server.host,
         port=mock_live_server.port,
@@ -33,10 +44,20 @@ async def test_protocol_connection(
     await asyncio.wait_for(protocol.disconnected, timeout=1)
 
 
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
 async def test_protocol_connection_streaming(
     monkeypatch: pytest.MonkeyPatch,
     mock_live_server: MockLiveServer,
     test_api_key: str,
+    dataset: Dataset,
 ) -> None:
     """
     Test the low-level DatabentoLiveProtocol can be used to stream DBN records
@@ -53,7 +74,7 @@ async def test_protocol_connection_streaming(
     _, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
             api_key=test_api_key,
-            dataset="TEST",
+            dataset=dataset,
         ),
         host=mock_live_server.host,
         port=mock_live_server.port,
@@ -63,7 +84,7 @@ async def test_protocol_connection_streaming(
 
     # Act
     protocol.subscribe(
-        schema=Schema.MBO,
+        schema=Schema.TRADES,
         symbols="TEST",
         stype_in=SType.RAW_SYMBOL,
     )

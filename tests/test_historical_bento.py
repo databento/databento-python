@@ -15,7 +15,8 @@ import pytest
 import zstandard
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
-from databento.live import DBNRecord
+from databento.common.publishers import Dataset
+from databento.common.types import DBNRecord
 from databento_dbn import MBOMsg
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -77,10 +78,10 @@ def test_from_bytes_when_buffer_corrupted_raises_expected_exception() -> None:
 
 
 def test_sources_metadata_returns_expected_json_as_dict(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange, Act
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
@@ -89,8 +90,8 @@ def test_sources_metadata_returns_expected_json_as_dict(
     assert dbnstore.metadata.schema == Schema.MBO
     assert dbnstore.metadata.stype_in == SType.RAW_SYMBOL
     assert dbnstore.metadata.stype_out == SType.INSTRUMENT_ID
-    assert dbnstore.metadata.start == 1609160400000000000
-    assert dbnstore.metadata.end == 1609246860000000000
+    assert dbnstore.metadata.start == 1609113600000000000
+    assert dbnstore.metadata.end == 1609200000000000000
     assert dbnstore.metadata.limit == 4
     assert dbnstore.metadata.symbols == ["ESH1"]
     assert dbnstore.metadata.ts_out is False
@@ -100,7 +101,7 @@ def test_sources_metadata_returns_expected_json_as_dict(
         "ESH1": [
             {
                 "start_date": dt.date(2020, 12, 28),
-                "end_date": dt.date(2020, 12, 30),
+                "end_date": dt.date(2020, 12, 29),
                 "symbol": "5482",
             },
         ],
@@ -108,23 +109,23 @@ def test_sources_metadata_returns_expected_json_as_dict(
 
 
 def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
 
     # Act
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.nbytes == 232
+    assert dbnstore.nbytes == 209
     assert dbnstore.dataset == "GLBX.MDP3"
     assert dbnstore.schema == Schema.MBO
     assert dbnstore.symbols == ["ESH1"]
     assert dbnstore.stype_in == SType.RAW_SYMBOL
     assert dbnstore.stype_out == SType.INSTRUMENT_ID
-    assert dbnstore.start == pd.Timestamp("2020-12-28 13:00:00+0000", tz="UTC")
-    assert dbnstore.end == pd.Timestamp("2020-12-29 13:01:00+0000", tz="UTC")
+    assert dbnstore.start == pd.Timestamp("2020-12-28 00:00:00+0000", tz="UTC")
+    assert dbnstore.end == pd.Timestamp("2020-12-29 00:00:00+0000", tz="UTC")
     assert dbnstore.limit == 4
     assert len(dbnstore.to_ndarray()) == 4
     assert dbnstore.mappings == {
@@ -132,7 +133,7 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
             {
                 "symbol": "5482",
                 "start_date": dt.date(2020, 12, 28),
-                "end_date": dt.date(2020, 12, 30),
+                "end_date": dt.date(2020, 12, 29),
             },
         ],
     }
@@ -149,7 +150,7 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
                 {
                     "symbol": "5482",
                     "start_date": dt.date(2020, 12, 28),
-                    "end_date": dt.date(2020, 12, 30),
+                    "end_date": dt.date(2020, 12, 29),
                 },
             ],
         },
@@ -157,23 +158,23 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
 
 
 def test_file_dbnstore_given_valid_path_initialized_expected_data(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     # Arrange, Act
-    path = test_data_path(Schema.MBO)
+    path = test_data_path(Dataset.GLBX_MDP3, Schema.MBO)
     dbnstore = DBNStore.from_file(path=path)
 
     # Assert
     assert dbnstore.dataset == "GLBX.MDP3"
-    assert dbnstore.nbytes == 232
+    assert dbnstore.nbytes == 209
 
 
 def test_to_file_persists_to_disk(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -182,14 +183,14 @@ def test_to_file_persists_to_disk(
 
     # Assert
     assert dbn_path.exists()
-    assert dbn_path.stat().st_size == 232
+    assert dbn_path.stat().st_size == 209
 
 
 def test_to_ndarray_with_stub_data_returns_expected_array(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -197,17 +198,19 @@ def test_to_ndarray_with_stub_data_returns_expected_array(
 
     # Assert
     assert isinstance(array, np.ndarray)
-    assert (
-        str(array)
-        == "[(14, 160, 1, 5482, 1609160400000429831, 647784973705, 3722750000000, 1, 128, 0, b'C', b'A', 1609160400000704060, 22993, 1170352)\n (14, 160, 1, 5482, 1609160400000431665, 647784973631, 3723000000000, 1, 128, 0, b'C', b'A', 1609160400000711344, 19621, 1170353)\n (14, 160, 1, 5482, 1609160400000433051, 647784973427, 3723250000000, 1, 128, 0, b'C', b'A', 1609160400000728600, 16979, 1170354)\n (14, 160, 1, 5482, 1609160400000434353, 647784973094, 3723500000000, 1, 128, 0, b'C', b'A', 1609160400000740248, 17883, 1170355)]"
+    assert str(array) == (
+        "[(14, 160, 1, 5482, 1609099225061045683, 647784248135, 3675750000000, 2, 40, 0, b'A', b'B', 1609113600000000000, 0, 1180)\n"
+        " (14, 160, 1, 5482, 1609099225061045683, 647782686353, 3675500000000, 1, 40, 0, b'A', b'B', 1609113600000000000, 0, 1160)\n"
+        " (14, 160, 1, 5482, 1609099225061045683, 647782884482, 3675250000000, 1, 40, 0, b'A', b'B', 1609113600000000000, 0, 1166)\n"
+        " (14, 160, 1, 5482, 1609099225061045683, 647782912367, 3675000000000, 1, 40, 0, b'A', b'B', 1609113600000000000, 0, 1166)]"
     )
 
 
 def test_iterator_produces_expected_data(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act (consume iterator)
@@ -218,10 +221,10 @@ def test_iterator_produces_expected_data(
 
 
 def test_replay_with_stub_data_record_passes_to_callback(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     handler: list[MBOMsg] = []
@@ -236,17 +239,17 @@ def test_replay_with_stub_data_record_passes_to_callback(
     assert record.hd.rtype == 160
     assert record.hd.publisher_id == 1
     assert record.hd.instrument_id == 5482
-    assert record.hd.ts_event == 1609160400000429831
-    assert record.order_id == 647784973705
-    assert record.price == 3722750000000
-    assert record.size == 1
-    assert record.flags == 128
+    assert record.hd.ts_event == 1609099225061045683
+    assert record.order_id == 647784248135
+    assert record.price == 3675750000000
+    assert record.size == 2
+    assert record.flags == 40
     assert record.channel_id == 0
-    assert record.action == "C"
-    assert record.side == "A"
-    assert record.ts_recv == 1609160400000704060
-    assert record.ts_in_delta == 22993
-    assert record.sequence == 1170352
+    assert record.action == "A"
+    assert record.side == "B"
+    assert record.ts_recv == 1609113600000000000
+    assert record.ts_in_delta == 0
+    assert record.sequence == 1180
 
 
 @pytest.mark.parametrize(
@@ -264,11 +267,11 @@ def test_replay_with_stub_data_record_passes_to_callback(
     ],
 )
 def test_to_df_across_schemas_returns_identical_dimension_dfs(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     schema: Schema,
 ) -> None:
     # Arrange
-    stub_data = test_data(schema)
+    stub_data = test_data(Dataset.GLBX_MDP3, schema)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -280,10 +283,10 @@ def test_to_df_across_schemas_returns_identical_dimension_dfs(
 
 
 def test_to_df_with_mbo_data_returns_expected_record(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -296,26 +299,26 @@ def test_to_df_with_mbo_data_returns_expected_record(
     # Assert
     assert len(df) == 4
     assert df.index.name == "ts_recv"
-    assert df.index.values[0] == 1609160400000704060
-    assert df.iloc[0]["ts_event"] == 1609160400000429831
+    assert df.index.values[0] == 1609113600000000000
+    assert df.iloc[0]["ts_event"] == 1609099225061045683
     assert df.iloc[0]["rtype"] == 160
     assert df.iloc[0]["publisher_id"] == 1
     assert df.iloc[0]["instrument_id"] == 5482
-    assert df.iloc[0]["action"] == "C"
-    assert df.iloc[0]["side"] == "A"
-    assert df.iloc[0]["price"] == 3722750000000
-    assert df.iloc[0]["size"] == 1
-    assert df.iloc[0]["order_id"] == 647784973705
-    assert df.iloc[0]["flags"] == 128
-    assert df.iloc[0]["ts_in_delta"] == 22993
-    assert df.iloc[0]["sequence"] == 1170352
+    assert df.iloc[0]["action"] == "A"
+    assert df.iloc[0]["side"] == "B"
+    assert df.iloc[0]["price"] == 3675750000000
+    assert df.iloc[0]["size"] == 2
+    assert df.iloc[0]["order_id"] == 647784248135
+    assert df.iloc[0]["flags"] == 40
+    assert df.iloc[0]["ts_in_delta"] == 0
+    assert df.iloc[0]["sequence"] == 1180
 
 
 def test_to_df_with_stub_ohlcv_data_returns_expected_record(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.OHLCV_1M)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.OHLCV_1M)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -328,20 +331,20 @@ def test_to_df_with_stub_ohlcv_data_returns_expected_record(
     # Assert
     assert len(df) == 4
     assert df.index.name == "ts_event"
-    assert df.index.values[0] == 1609160400000000000
+    assert df.index.values[0] == 1609113600000000000
     assert df.iloc[0]["instrument_id"] == 5482
-    assert df.iloc[0]["open"] == 3_720_250_000_000
-    assert df.iloc[0]["high"] == 3_721_500_000_000
-    assert df.iloc[0]["low"] == 3_720_250_000_000
-    assert df.iloc[0]["close"] == 3_721_000_000_000
-    assert df.iloc[0]["volume"] == 353
+    assert df.iloc[0]["open"] == 3_702_750_000_000
+    assert df.iloc[0]["high"] == 3_704_750_000_000
+    assert df.iloc[0]["low"] == 3_702_500_000_000
+    assert df.iloc[0]["close"] == 3_704_750_000_000
+    assert df.iloc[0]["volume"] == 306
 
 
 def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -352,8 +355,8 @@ def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
     event0 = df["ts_event"][0]
     assert isinstance(index0, pd.Timestamp)
     assert isinstance(event0, pd.Timestamp)
-    assert index0 == pd.Timestamp("2020-12-28 13:00:00.000704060+0000", tz="UTC")
-    assert event0 == pd.Timestamp("2020-12-28 13:00:00.000429831+0000", tz="UTC")
+    assert index0 == pd.Timestamp("2020-12-28 00:00:00.000000000+0000", tz="UTC")
+    assert event0 == pd.Timestamp("2020-12-27 20:00:25.061045683+0000", tz="UTC")
     assert len(df) == 4
 
 
@@ -401,14 +404,14 @@ def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
     ],
 )
 def test_to_df_with_price_type_with_various_schemas_converts_prices_as_expected(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     schema: Schema,
     columns: list[str],
     price_type: Literal["float", "decimal"],
     expected_type: type,
 ) -> None:
     # Arrange
-    stub_data = test_data(schema)
+    stub_data = test_data(Dataset.GLBX_MDP3, schema)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -421,10 +424,10 @@ def test_to_df_with_price_type_with_various_schemas_converts_prices_as_expected(
 
 
 def test_to_df_with_price_type_handles_null(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     # Arrange
-    stub_data = test_data(Schema.DEFINITION)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.DEFINITION)
     data = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -441,11 +444,11 @@ def test_to_df_with_price_type_handles_null(
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_from_file_given_various_paths_returns_expected_metadata(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     expected_schema: Schema,
 ) -> None:
     # Arrange
-    path = test_data_path(expected_schema)
+    path = test_data_path(Dataset.GLBX_MDP3, expected_schema)
 
     # Act
     data = DBNStore.from_file(path=path)
@@ -455,10 +458,10 @@ def test_from_file_given_various_paths_returns_expected_metadata(
 
 
 def test_from_dbn_alias(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     # Arrange
-    path = test_data_path(Schema.MBO)
+    path = test_data_path(Dataset.GLBX_MDP3, Schema.MBO)
 
     # Act
     data = databento.from_dbn(path=path)
@@ -469,11 +472,11 @@ def test_from_dbn_alias(
 
 
 def test_mbo_to_csv_writes_expected_file_to_disk(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
+    data = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -489,21 +492,21 @@ def test_mbo_to_csv_writes_expected_file_to_disk(
     written = path.read_text()
     expected = (
         "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,price,size,channel_id,order_id,flags,ts_in_delta,sequence\n"
-        "1609160400000704060,1609160400000429831,160,1,5482,C,A,3722750000000,1,0,647784973705,128,22993,1170352\n"
-        "1609160400000711344,1609160400000431665,160,1,5482,C,A,3723000000000,1,0,647784973631,128,19621,1170353\n"
-        "1609160400000728600,1609160400000433051,160,1,5482,C,A,3723250000000,1,0,647784973427,128,16979,1170354\n"
-        "1609160400000740248,1609160400000434353,160,1,5482,C,A,3723500000000,1,0,647784973094,128,17883,1170355\n"
+        "1609113600000000000,1609099225061045683,160,1,5482,A,B,3675750000000,2,0,647784248135,40,0,1180\n"
+        "1609113600000000000,1609099225061045683,160,1,5482,A,B,3675500000000,1,0,647782686353,40,0,1160\n"
+        "1609113600000000000,1609099225061045683,160,1,5482,A,B,3675250000000,1,0,647782884482,40,0,1166\n"
+        "1609113600000000000,1609099225061045683,160,1,5482,A,B,3675000000000,1,0,647782912367,40,0,1166\n"
     )
 
     assert written == expected
 
 
 def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
+    data = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -519,21 +522,21 @@ def test_mbp_1_to_csv_with_no_options_writes_expected_file_to_disk(
     written = path.read_text()
     expected = (
         "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags,ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00\n"
-        "1609160400006136329,1609160400006001487,1,1,5482,A,A,0,3720500000000,1,128,17214,1170362,3720250000000,3720500000000,24,11,15,9\n"
-        "1609160400006246513,1609160400006146661,1,1,5482,A,A,0,3720500000000,1,128,18858,1170364,3720250000000,3720500000000,24,12,15,10\n"
-        "1609160400007159323,1609160400007044577,1,1,5482,A,B,0,3720250000000,2,128,18115,1170365,3720250000000,3720500000000,26,12,16,10\n"
-        "1609160400007260967,1609160400007169135,1,1,5482,C,A,0,3720500000000,1,128,17361,1170366,3720250000000,3720500000000,26,11,16,9\n"
+        "1609113600006150193,1609113600005871213,1,1,5482,A,B,0,3702250000000,1,130,26128,145805,3702250000000,3702750000000,19,13,11,13\n"
+        "1609113600062687776,1609113600062570311,1,1,5482,A,B,0,3702250000000,1,130,17256,145827,3702250000000,3702750000000,20,13,12,13\n"
+        "1609113600076130343,1609113600076022275,1,1,5482,A,A,0,3702750000000,1,130,17470,145852,3702250000000,3702750000000,20,14,12,14\n"
+        "1609113600076436915,1609113600076339855,1,1,5482,A,B,0,3702250000000,1,130,17409,145853,3702250000000,3702750000000,21,14,13,14\n"
     )
 
     assert written == expected
 
 
 def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
+    data = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.csv"
 
@@ -549,21 +552,21 @@ def test_mbp_1_to_csv_with_all_options_writes_expected_file_to_disk(
     written = path.read_text()
     expected = (
         "ts_recv,ts_event,rtype,publisher_id,instrument_id,action,side,depth,price,size,flags,ts_in_delta,sequence,bid_px_00,ask_px_00,bid_sz_00,ask_sz_00,bid_ct_00,ask_ct_00,symbol\n"
-        "2020-12-28T13:00:00.006136329Z,2020-12-28T13:00:00.006001487Z,1,1,5482,A,A,0,3720.500000000,1,128,17214,1170362,3720.250000000,3720.500000000,24,11,15,9,ESH1\n"
-        "2020-12-28T13:00:00.006246513Z,2020-12-28T13:00:00.006146661Z,1,1,5482,A,A,0,3720.500000000,1,128,18858,1170364,3720.250000000,3720.500000000,24,12,15,10,ESH1\n"
-        "2020-12-28T13:00:00.007159323Z,2020-12-28T13:00:00.007044577Z,1,1,5482,A,B,0,3720.250000000,2,128,18115,1170365,3720.250000000,3720.500000000,26,12,16,10,ESH1\n"
-        "2020-12-28T13:00:00.007260967Z,2020-12-28T13:00:00.007169135Z,1,1,5482,C,A,0,3720.500000000,1,128,17361,1170366,3720.250000000,3720.500000000,26,11,16,9,ESH1\n"
+        "2020-12-28T00:00:00.006150193Z,2020-12-28T00:00:00.005871213Z,1,1,5482,A,B,0,3702.250000000,1,130,26128,145805,3702.250000000,3702.750000000,19,13,11,13,ESH1\n"
+        "2020-12-28T00:00:00.062687776Z,2020-12-28T00:00:00.062570311Z,1,1,5482,A,B,0,3702.250000000,1,130,17256,145827,3702.250000000,3702.750000000,20,13,12,13,ESH1\n"
+        "2020-12-28T00:00:00.076130343Z,2020-12-28T00:00:00.076022275Z,1,1,5482,A,A,0,3702.750000000,1,130,17470,145852,3702.250000000,3702.750000000,20,14,12,14,ESH1\n"
+        "2020-12-28T00:00:00.076436915Z,2020-12-28T00:00:00.076339855Z,1,1,5482,A,B,0,3702.250000000,1,130,17409,145853,3702.250000000,3702.750000000,21,14,13,14,ESH1\n"
     )
 
     assert written == expected
 
 
 def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
+    data = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -577,20 +580,22 @@ def test_mbo_to_json_with_no_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written == (
-        '{"ts_recv":"1609160400000704060","hd":{"ts_event":"1609160400000429831","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3722750000000","size":1,"channel_id":0,"order_id":"647784973705","flags":128,"ts_in_delta":22993,"sequence":1170352}\n'
-        '{"ts_recv":"1609160400000711344","hd":{"ts_event":"1609160400000431665","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723000000000","size":1,"channel_id":0,"order_id":"647784973631","flags":128,"ts_in_delta":19621,"sequence":1170353}\n'
-        '{"ts_recv":"1609160400000728600","hd":{"ts_event":"1609160400000433051","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723250000000","size":1,"channel_id":0,"order_id":"647784973427","flags":128,"ts_in_delta":16979,"sequence":1170354}\n'
-        '{"ts_recv":"1609160400000740248","hd":{"ts_event":"1609160400000434353","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723500000000","size":1,"channel_id":0,"order_id":"647784973094","flags":128,"ts_in_delta":17883,"sequence":1170355}\n'
+    expected = (
+        '{"ts_recv":"1609113600000000000","hd":{"ts_event":"1609099225061045683","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675750000000","size":2,"channel_id":0,"order_id":"647784248135","flags":40,"ts_in_delta":0,"sequence":1180}\n'
+        '{"ts_recv":"1609113600000000000","hd":{"ts_event":"1609099225061045683","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675500000000","size":1,"channel_id":0,"order_id":"647782686353","flags":40,"ts_in_delta":0,"sequence":1160}\n'
+        '{"ts_recv":"1609113600000000000","hd":{"ts_event":"1609099225061045683","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675250000000","size":1,"channel_id":0,"order_id":"647782884482","flags":40,"ts_in_delta":0,"sequence":1166}\n'
+        '{"ts_recv":"1609113600000000000","hd":{"ts_event":"1609099225061045683","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675000000000","size":1,"channel_id":0,"order_id":"647782912367","flags":40,"ts_in_delta":0,"sequence":1166}\n'
     )
+
+    assert written == expected
 
 
 def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    data = DBNStore.from_file(path=test_data_path(Schema.MBO))
+    data = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -604,20 +609,21 @@ def test_mbo_to_json_with_all_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written == (
-        '{"ts_recv":"2020-12-28T13:00:00.000704060Z","hd":{"ts_event":"2020-12-28T13:00:00.000429831Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3722.750000000","size":1,"channel_id":0,"order_id":"647784973705","flags":128,"ts_in_delta":22993,"sequence":1170352,"symbol":"ESH1"}\n'
-        '{"ts_recv":"2020-12-28T13:00:00.000711344Z","hd":{"ts_event":"2020-12-28T13:00:00.000431665Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723.000000000","size":1,"channel_id":0,"order_id":"647784973631","flags":128,"ts_in_delta":19621,"sequence":1170353,"symbol":"ESH1"}\n'
-        '{"ts_recv":"2020-12-28T13:00:00.000728600Z","hd":{"ts_event":"2020-12-28T13:00:00.000433051Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723.250000000","size":1,"channel_id":0,"order_id":"647784973427","flags":128,"ts_in_delta":16979,"sequence":1170354,"symbol":"ESH1"}\n'
-        '{"ts_recv":"2020-12-28T13:00:00.000740248Z","hd":{"ts_event":"2020-12-28T13:00:00.000434353Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","price":"3723.500000000","size":1,"channel_id":0,"order_id":"647784973094","flags":128,"ts_in_delta":17883,"sequence":1170355,"symbol":"ESH1"}\n'
+    expected = (
+        '{"ts_recv":"2020-12-28T00:00:00.000000000Z","hd":{"ts_event":"2020-12-27T20:00:25.061045683Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675.750000000","size":2,"channel_id":0,"order_id":"647784248135","flags":40,"ts_in_delta":0,"sequence":1180,"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T00:00:00.000000000Z","hd":{"ts_event":"2020-12-27T20:00:25.061045683Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675.500000000","size":1,"channel_id":0,"order_id":"647782686353","flags":40,"ts_in_delta":0,"sequence":1160,"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T00:00:00.000000000Z","hd":{"ts_event":"2020-12-27T20:00:25.061045683Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675.250000000","size":1,"channel_id":0,"order_id":"647782884482","flags":40,"ts_in_delta":0,"sequence":1166,"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T00:00:00.000000000Z","hd":{"ts_event":"2020-12-27T20:00:25.061045683Z","rtype":160,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","price":"3675.000000000","size":1,"channel_id":0,"order_id":"647782912367","flags":40,"ts_in_delta":0,"sequence":1166,"symbol":"ESH1"}\n'
     )
+    assert written == expected
 
 
 def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
+    data = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -631,20 +637,22 @@ def test_mbp_1_to_json_with_no_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written == (
-        '{"ts_recv":"1609160400006136329","hd":{"ts_event":"1609160400006001487","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720500000000","size":1,"flags":128,"ts_in_delta":17214,"sequence":1170362,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":24,"ask_sz":11,"bid_ct":15,"ask_ct":9}]}\n'
-        '{"ts_recv":"1609160400006246513","hd":{"ts_event":"1609160400006146661","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720500000000","size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":24,"ask_sz":12,"bid_ct":15,"ask_ct":10}]}\n'
-        '{"ts_recv":"1609160400007159323","hd":{"ts_event":"1609160400007044577","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3720250000000","size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":26,"ask_sz":12,"bid_ct":16,"ask_ct":10}]}\n'
-        '{"ts_recv":"1609160400007260967","hd":{"ts_event":"1609160400007169135","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","depth":0,"price":"3720500000000","size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,"levels":[{"bid_px":"3720250000000","ask_px":"3720500000000","bid_sz":26,"ask_sz":11,"bid_ct":16,"ask_ct":9}]}\n'
+    expected = (
+        '{"ts_recv":"1609113600006150193","hd":{"ts_event":"1609113600005871213","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3702250000000","size":1,"flags":130,"ts_in_delta":26128,"sequence":145805,"levels":[{"bid_px":"3702250000000","ask_px":"3702750000000","bid_sz":19,"ask_sz":13,"bid_ct":11,"ask_ct":13}]}\n'
+        '{"ts_recv":"1609113600062687776","hd":{"ts_event":"1609113600062570311","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3702250000000","size":1,"flags":130,"ts_in_delta":17256,"sequence":145827,"levels":[{"bid_px":"3702250000000","ask_px":"3702750000000","bid_sz":20,"ask_sz":13,"bid_ct":12,"ask_ct":13}]}\n'
+        '{"ts_recv":"1609113600076130343","hd":{"ts_event":"1609113600076022275","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3702750000000","size":1,"flags":130,"ts_in_delta":17470,"sequence":145852,"levels":[{"bid_px":"3702250000000","ask_px":"3702750000000","bid_sz":20,"ask_sz":14,"bid_ct":12,"ask_ct":14}]}\n'
+        '{"ts_recv":"1609113600076436915","hd":{"ts_event":"1609113600076339855","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3702250000000","size":1,"flags":130,"ts_in_delta":17409,"sequence":145853,"levels":[{"bid_px":"3702250000000","ask_px":"3702750000000","bid_sz":21,"ask_sz":14,"bid_ct":13,"ask_ct":14}]}\n'
     )
+
+    assert written == expected
 
 
 def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
-    test_data_path: Callable[[Schema], Path],
+    test_data_path: Callable[[Dataset, Schema], Path],
     tmp_path: Path,
 ) -> None:
     # Arrange
-    data = DBNStore.from_file(path=test_data_path(Schema.MBP_1))
+    data = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBP_1))
 
     path = tmp_path / "test.my_mbo.json"
 
@@ -658,12 +666,14 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
 
     # Assert
     written = path.read_text()
-    assert written == (
-        '{"ts_recv":"2020-12-28T13:00:00.006136329Z","hd":{"ts_event":"2020-12-28T13:00:00.006001487Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720.500000000","size":1,"flags":128,"ts_in_delta":17214,"sequence":1170362,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":24,"ask_sz":11,"bid_ct":15,"ask_ct":9}],"symbol":"ESH1"}\n'
-        '{"ts_recv":"2020-12-28T13:00:00.006246513Z","hd":{"ts_event":"2020-12-28T13:00:00.006146661Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3720.500000000","size":1,"flags":128,"ts_in_delta":18858,"sequence":1170364,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":24,"ask_sz":12,"bid_ct":15,"ask_ct":10}],"symbol":"ESH1"}\n'
-        '{"ts_recv":"2020-12-28T13:00:00.007159323Z","hd":{"ts_event":"2020-12-28T13:00:00.007044577Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3720.250000000","size":2,"flags":128,"ts_in_delta":18115,"sequence":1170365,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":26,"ask_sz":12,"bid_ct":16,"ask_ct":10}],"symbol":"ESH1"}\n'
-        '{"ts_recv":"2020-12-28T13:00:00.007260967Z","hd":{"ts_event":"2020-12-28T13:00:00.007169135Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"C","side":"A","depth":0,"price":"3720.500000000","size":1,"flags":128,"ts_in_delta":17361,"sequence":1170366,"levels":[{"bid_px":"3720.250000000","ask_px":"3720.500000000","bid_sz":26,"ask_sz":11,"bid_ct":16,"ask_ct":9}],"symbol":"ESH1"}\n'
+    expected = (
+        '{"ts_recv":"2020-12-28T00:00:00.006150193Z","hd":{"ts_event":"2020-12-28T00:00:00.005871213Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3702.250000000","size":1,"flags":130,"ts_in_delta":26128,"sequence":145805,"levels":[{"bid_px":"3702.250000000","ask_px":"3702.750000000","bid_sz":19,"ask_sz":13,"bid_ct":11,"ask_ct":13}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T00:00:00.062687776Z","hd":{"ts_event":"2020-12-28T00:00:00.062570311Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3702.250000000","size":1,"flags":130,"ts_in_delta":17256,"sequence":145827,"levels":[{"bid_px":"3702.250000000","ask_px":"3702.750000000","bid_sz":20,"ask_sz":13,"bid_ct":12,"ask_ct":13}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T00:00:00.076130343Z","hd":{"ts_event":"2020-12-28T00:00:00.076022275Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"A","depth":0,"price":"3702.750000000","size":1,"flags":130,"ts_in_delta":17470,"sequence":145852,"levels":[{"bid_px":"3702.250000000","ask_px":"3702.750000000","bid_sz":20,"ask_sz":14,"bid_ct":12,"ask_ct":14}],"symbol":"ESH1"}\n'
+        '{"ts_recv":"2020-12-28T00:00:00.076436915Z","hd":{"ts_event":"2020-12-28T00:00:00.076339855Z","rtype":1,"publisher_id":1,"instrument_id":5482},"action":"A","side":"B","depth":0,"price":"3702.250000000","size":1,"flags":130,"ts_in_delta":17409,"sequence":145853,"levels":[{"bid_px":"3702.250000000","ask_px":"3702.750000000","bid_sz":21,"ask_sz":14,"bid_ct":13,"ask_ct":14}],"symbol":"ESH1"}\n'
     )
+
+    assert written == expected
 
 
 @pytest.mark.parametrize(
@@ -671,7 +681,7 @@ def test_mbp_1_to_json_with_all_options_writes_expected_file_to_disk(
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_repr(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     schema: Schema,
 ) -> None:
     """
@@ -679,7 +689,7 @@ def test_dbnstore_repr(
     DBNStore.
     """
     # Arrange
-    stub_data = test_data(schema)
+    stub_data = test_data(Dataset.GLBX_MDP3, schema)
 
     # Act
     dbnstore = DBNStore.from_bytes(data=stub_data)
@@ -689,14 +699,14 @@ def test_dbnstore_repr(
 
 
 def test_dbnstore_iterable(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     """
     Tests the DBNStore iterable implementation to ensure records can be
     accessed by iteration.
     """
     # Arrange, Act
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     record_list: list[DBNRecord] = list(dbnstore)
@@ -709,38 +719,38 @@ def test_dbnstore_iterable(
     assert first.hd.rtype == 160
     assert first.hd.publisher_id == 1
     assert first.hd.instrument_id == 5482
-    assert first.hd.ts_event == 1609160400000429831
-    assert first.order_id == 647784973705
-    assert first.price == 3722750000000
-    assert first.size == 1
-    assert first.flags == 128
+    assert first.hd.ts_event == 1609099225061045683
+    assert first.order_id == 647784248135
+    assert first.price == 3675750000000
+    assert first.size == 2
+    assert first.flags == 40
     assert first.channel_id == 0
-    assert first.action == "C"
-    assert first.side == "A"
-    assert first.ts_recv == 1609160400000704060
-    assert first.ts_in_delta == 22993
-    assert first.sequence == 1170352
+    assert first.action == "A"
+    assert first.side == "B"
+    assert first.ts_recv == 1609113600000000000
+    assert first.ts_in_delta == 0
+    assert first.sequence == 1180
 
     assert second.hd.length == 14
     assert second.hd.rtype == 160
     assert second.hd.rtype == 160
     assert second.hd.publisher_id == 1
     assert second.hd.instrument_id == 5482
-    assert second.hd.ts_event == 1609160400000431665
-    assert second.order_id == 647784973631
-    assert second.price == 3723000000000
+    assert second.hd.ts_event == 1609099225061045683
+    assert second.order_id == 647782686353
+    assert second.price == 3675500000000
     assert second.size == 1
-    assert second.flags == 128
+    assert second.flags == 40
     assert second.channel_id == 0
-    assert second.action == "C"
-    assert second.side == "A"
-    assert second.ts_recv == 1609160400000711344
-    assert second.ts_in_delta == 19621
-    assert second.sequence == 1170353
+    assert second.action == "A"
+    assert second.side == "B"
+    assert second.ts_recv == 1609113600000000000
+    assert second.ts_in_delta == 0
+    assert second.sequence == 1160
 
 
 def test_dbnstore_iterable_parallel(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     """
     Tests the DBNStore iterable implementation to ensure iterators are not
@@ -750,7 +760,7 @@ def test_dbnstore_iterable_parallel(
 
     """
     # Arrange, Act
-    stub_data = test_data(Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     first = iter(dbnstore)
@@ -766,7 +776,7 @@ def test_dbnstore_iterable_parallel(
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_compression_equality(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     schema: Schema,
 ) -> None:
     """
@@ -777,7 +787,7 @@ def test_dbnstore_compression_equality(
 
     """
     # Arrange
-    zstd_stub_data = test_data(schema)
+    zstd_stub_data = test_data(Dataset.GLBX_MDP3, schema)
     dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(zstd_stub_data).read()
 
     # Act
@@ -791,7 +801,7 @@ def test_dbnstore_compression_equality(
 
 
 def test_dbnstore_buffer_short(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     tmp_path: Path,
 ) -> None:
     """
@@ -800,7 +810,9 @@ def test_dbnstore_buffer_short(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO))
+        .read()
     )
 
     # Act
@@ -824,7 +836,7 @@ def test_dbnstore_buffer_short(
 
 
 def test_dbnstore_buffer_long(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     tmp_path: Path,
 ) -> None:
     """
@@ -833,7 +845,9 @@ def test_dbnstore_buffer_long(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO))
+        .read()
     )
 
     # Act
@@ -858,7 +872,7 @@ def test_dbnstore_buffer_long(
 
 
 def test_dbnstore_buffer_rewind(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     tmp_path: Path,
 ) -> None:
     """
@@ -866,7 +880,9 @@ def test_dbnstore_buffer_rewind(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.MBO)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO))
+        .read()
     )
 
     # Act
@@ -892,7 +908,7 @@ def test_dbnstore_buffer_rewind(
 )
 def test_dbnstore_to_ndarray_with_count(
     schema: Schema,
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     count: int,
 ) -> None:
     """
@@ -900,7 +916,11 @@ def test_dbnstore_to_ndarray_with_count(
     without.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, schema))
+        .read()
+    )
 
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
@@ -919,18 +939,73 @@ def test_dbnstore_to_ndarray_with_count(
 
 @pytest.mark.parametrize(
     "schema",
+    [
+        Schema.MBO,
+        Schema.MBP_1,
+        Schema.MBP_10,
+        Schema.TRADES,
+        Schema.OHLCV_1S,
+        Schema.OHLCV_1M,
+        Schema.OHLCV_1H,
+        Schema.OHLCV_1D,
+        Schema.DEFINITION,
+        Schema.STATISTICS,
+    ],
+)
+@pytest.mark.parametrize(
+    "count",
+    [
+        1,
+        2,
+        3,
+    ],
+)
+def test_dbnstore_to_ndarray_with_count_live(
+    schema: Schema,
+    live_test_data: bytes,
+    count: int,
+) -> None:
+    """
+    Test that calling to_ndarray with count produces an identical result to
+    without.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    expected = dbnstore.to_ndarray(schema=schema)
+    nd_iter = dbnstore.to_ndarray(schema=schema, count=count)
+
+    # Assert
+    aggregator: list[np.ndarray[Any, Any]] = []
+
+    for batch in nd_iter:
+        assert len(batch) <= count
+        aggregator.append(batch)
+
+    assert np.array_equal(expected, np.concatenate(aggregator))
+
+
+@pytest.mark.parametrize(
+    "schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_to_ndarray_with_schema(
     schema: Schema,
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     """
     Test that calling to_ndarray with schema produces an identical result to
     without.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, schema))
+        .read()
+    )
 
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
@@ -944,7 +1019,7 @@ def test_dbnstore_to_ndarray_with_schema(
 
 
 def test_dbnstore_to_ndarray_with_count_empty(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     """
     Test that calling to_ndarray on a DBNStore that contains no data with count
@@ -952,7 +1027,9 @@ def test_dbnstore_to_ndarray_with_count_empty(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
+        .read()
     )
 
     # Act
@@ -967,8 +1044,40 @@ def test_dbnstore_to_ndarray_with_count_empty(
     assert len(next(nd_iter)) == 0
 
 
+@pytest.mark.parametrize(
+    "schema, expected_count",
+    [
+        (Schema.MBO, 5),
+        (Schema.MBP_1, 2),
+        (Schema.MBP_10, 2),
+        (Schema.TRADES, 2),
+        (Schema.OHLCV_1S, 2),
+        (Schema.OHLCV_1M, 2),
+        (Schema.OHLCV_1H, 0),
+        (Schema.OHLCV_1D, 0),
+        (Schema.DEFINITION, 2),
+        (Schema.STATISTICS, 9),
+    ],
+)
+def test_dbnstore_to_ndarray_with_schema_live(
+    live_test_data: bytes,
+    schema: Schema,
+    expected_count: int,
+) -> None:
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    array = dbnstore.to_ndarray(schema=schema)
+
+    # Assert
+    assert len(array) == expected_count
+
+
 def test_dbnstore_to_ndarray_with_schema_empty(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     """
     Test that calling to_ndarray on a DBNStore that contains no data of the
@@ -976,7 +1085,9 @@ def test_dbnstore_to_ndarray_with_schema_empty(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
+        .read()
     )
 
     # Act
@@ -986,6 +1097,23 @@ def test_dbnstore_to_ndarray_with_schema_empty(
 
     # Assert
     assert len(array) == 0
+
+
+def test_dbnstore_to_ndarray_with_schema_empty_live(
+    live_test_data: bytes,
+) -> None:
+    """
+    Test that a schema must be specified for live data.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+
+    # Act
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    # Assert
+    with pytest.raises(ValueError):
+        dbnstore.to_ndarray()
 
 
 @pytest.mark.parametrize(
@@ -1002,14 +1130,18 @@ def test_dbnstore_to_ndarray_with_schema_empty(
 )
 def test_dbnstore_to_df_with_count(
     schema: Schema,
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     count: int,
 ) -> None:
     """
     Test that calling to_df with count produces an identical result to without.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, schema))
+        .read()
+    )
 
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
@@ -1031,32 +1163,42 @@ def test_dbnstore_to_df_with_count(
 
 
 @pytest.mark.parametrize(
-    "schema",
-    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+    "schema, expected_count",
+    [
+        (Schema.MBO, 5),
+        (Schema.MBP_1, 2),
+        (Schema.MBP_10, 2),
+        (Schema.TRADES, 2),
+        (Schema.OHLCV_1S, 2),
+        (Schema.OHLCV_1M, 2),
+        (Schema.OHLCV_1H, 0),
+        (Schema.OHLCV_1D, 0),
+        (Schema.DEFINITION, 2),
+        (Schema.STATISTICS, 9),
+    ],
 )
-def test_dbnstore_to_df_with_schema(
+def test_dbnstore_to_df_with_schema_live(
     schema: Schema,
-    test_data: Callable[[Schema], bytes],
+    live_test_data: bytes,
+    expected_count: int,
 ) -> None:
     """
-    Test that calling to_df with schema produces an identical result to
-    without.
+    Test that calling to_df with schema produces a DataFrame for live data.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(test_data(schema)).read()
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
 
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
-    expected = dbnstore.to_df()
-    actual = dbnstore.to_df(schema=schema)
+    df = dbnstore.to_df(schema=schema)
 
     # Assert
-    assert actual.equals(expected)
+    assert len(df) == expected_count
 
 
 def test_dbnstore_to_df_with_schema_empty(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     """
     Test that calling to_df on a DBNStore that contains no data of the
@@ -1064,7 +1206,9 @@ def test_dbnstore_to_df_with_schema_empty(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
+        .read()
     )
 
     # Act
@@ -1077,7 +1221,7 @@ def test_dbnstore_to_df_with_schema_empty(
 
 
 def test_dbnstore_to_df_with_count_empty(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
     """
     Test that calling to_df on a DBNStore that contains no data with count set
@@ -1085,7 +1229,9 @@ def test_dbnstore_to_df_with_count_empty(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
+        .read()
     )
 
     # Act
@@ -1101,7 +1247,7 @@ def test_dbnstore_to_df_with_count_empty(
 
 
 def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
-    test_data: Callable[[Schema], bytes],
+    test_data: Callable[[Dataset, Schema], bytes],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
@@ -1111,7 +1257,9 @@ def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Schema.TRADES)).read()
+        zstandard.ZstdDecompressor()
+        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
+        .read()
     )
 
     # Act
