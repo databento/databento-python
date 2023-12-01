@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.24.1 - TBD
+
+#### Bug fixes
+- Fixed issue where a large unreadable symbol subscription message could be sent
+
 ## 0.24.0 - 2023-11-23
 
 This release adds support for DBN v2 as well as Python v3.12.
