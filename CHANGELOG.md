@@ -2,6 +2,9 @@
 
 ## 0.24.1 - TBD
 
+##### Enhancements
+- Added new publisher value for OPRA MIAX Sapphire
+
 #### Bug fixes
 - Fixed issue where a large unreadable symbol subscription message could be sent
 
