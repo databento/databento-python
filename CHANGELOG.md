@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.24.1 - TBD
+## 0.24.1 - 2023-12-15
 
 ##### Enhancements
 - Added new publisher value for OPRA MIAX Sapphire
