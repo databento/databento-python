@@ -7,6 +7,7 @@
 
 #### Bug fixes
 - Fixed issue where a large unreadable symbol subscription message could be sent
+- Fixed issue where calling `Live.stop` could cause a truncated DBN record to be written to a stream
 
 ## 0.24.0 - 2023-11-23
 
