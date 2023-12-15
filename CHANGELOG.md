@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.24.1 - 2023-12-15
+
+##### Enhancements
+- Added new publisher value for OPRA MIAX Sapphire
+
+#### Bug fixes
+- Fixed issue where a large unreadable symbol subscription message could be sent
+- Fixed issue where calling `Live.stop` could cause a truncated DBN record to be written to a stream
+
 ## 0.24.0 - 2023-11-23
 
 This release adds support for DBN v2 as well as Python v3.12.

@@ -33,7 +33,7 @@ from databento.live.gateway import SubscriptionRequest
 
 
 RECV_BUFFER_SIZE: Final = 64 * 2**10  # 64kb
-SYMBOL_LIST_BATCH_SIZE: Final = 64
+SYMBOL_LIST_BATCH_SIZE: Final = 32
 
 logger = logging.getLogger(__name__)
 

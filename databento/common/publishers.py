@@ -97,6 +97,8 @@ class Venue(StringyMixin, str, Enum):
         ICE Endex.
     DBEQ
         Databento Equities - Consolidated.
+    SPHR
+        MIAX Sapphire.
 
     """
 
@@ -140,6 +142,7 @@ class Venue(StringyMixin, str, Enum):
     IFEU = "IFEU"
     NDEX = "NDEX"
     DBEQ = "DBEQ"
+    SPHR = "SPHR"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -226,6 +229,8 @@ class Venue(StringyMixin, str, Enum):
             return Venue.NDEX
         if value == 40:
             return Venue.DBEQ
+        if value == 41:
+            return Venue.SPHR
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -312,6 +317,8 @@ class Venue(StringyMixin, str, Enum):
             return 39
         if self == Venue.DBEQ:
             return 40
+        if self == Venue.SPHR:
+            return 41
         raise ValueError("Invalid Venue")
 
     @property
@@ -399,6 +406,8 @@ class Venue(StringyMixin, str, Enum):
             return "ICE Endex"
         if self == Venue.DBEQ:
             return "Databento Equities - Consolidated"
+        if self == Venue.SPHR:
+            return "MIAX Sapphire"
         raise ValueError("Unexpected Venue value")
 
 @unique
@@ -818,6 +827,8 @@ class Publisher(StringyMixin, str, Enum):
         DBEQ Basic - Consolidated.
     DBEQ_PLUS_DBEQ
         DBEQ Plus - Consolidated.
+    OPRA_PILLAR_SPHR
+        OPRA - MIAX Sapphire.
 
     """
 
@@ -881,6 +892,7 @@ class Publisher(StringyMixin, str, Enum):
     NDEX_IMPACT_NDEX = "NDEX.IMPACT.NDEX"
     DBEQ_BASIC_DBEQ = "DBEQ.BASIC.DBEQ"
     DBEQ_PLUS_DBEQ = "DBEQ.PLUS.DBEQ"
+    OPRA_PILLAR_SPHR = "OPRA.PILLAR.SPHR"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1007,6 +1019,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.DBEQ_BASIC_DBEQ
         if value == 60:
             return Publisher.DBEQ_PLUS_DBEQ
+        if value == 61:
+            return Publisher.OPRA_PILLAR_SPHR
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1133,6 +1147,8 @@ class Publisher(StringyMixin, str, Enum):
             return 59
         if self == Publisher.DBEQ_PLUS_DBEQ:
             return 60
+        if self == Publisher.OPRA_PILLAR_SPHR:
+            return 61
         raise ValueError("Invalid Publisher")
     @property
     def venue(self) -> Venue:
@@ -1259,6 +1275,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.DBEQ
         if self == Publisher.DBEQ_PLUS_DBEQ:
             return Venue.DBEQ
+        if self == Publisher.OPRA_PILLAR_SPHR:
+            return Venue.SPHR
         raise ValueError("Unexpected Publisher value")
     @property
     def dataset(self) -> Dataset:
@@ -1385,6 +1403,8 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.DBEQ_BASIC
         if self == Publisher.DBEQ_PLUS_DBEQ:
             return Dataset.DBEQ_PLUS
+        if self == Publisher.OPRA_PILLAR_SPHR:
+            return Dataset.OPRA_PILLAR
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1512,4 +1532,6 @@ class Publisher(StringyMixin, str, Enum):
             return "DBEQ Basic - Consolidated"
         if self == Publisher.DBEQ_PLUS_DBEQ:
             return "DBEQ Plus - Consolidated"
+        if self == Publisher.OPRA_PILLAR_SPHR:
+            return "OPRA - MIAX Sapphire"
         raise ValueError("Unexpected Publisher value")
