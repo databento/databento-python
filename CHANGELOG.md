@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.24.2 - TBD
+
+#### Bug fixes
+- Fixed an issue where the `Live` client would not raise an exception when reading an incompatible DBN version
+
 ## 0.24.1 - 2023-12-15
 
-##### Enhancements
+#### Enhancements
 - Added new publisher value for OPRA MIAX Sapphire
 
 #### Bug fixes

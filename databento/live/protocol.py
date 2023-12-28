@@ -312,8 +312,6 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         try:
             self._dbn_decoder.write(bytes(data))
             records = self._dbn_decoder.decode()
-        except ValueError:
-            pass  # expected for partial records
         except Exception:
             logger.exception("error decoding DBN record")
             self.__transport.close()
