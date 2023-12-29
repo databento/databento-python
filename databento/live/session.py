@@ -477,7 +477,7 @@ class Session:
         )
 
         try:
-            await asyncio.wait_for(
+            session_id = await asyncio.wait_for(
                 protocol.authenticated,
                 timeout=AUTH_TIMEOUT_SECONDS,
             )
@@ -488,6 +488,8 @@ class Session:
             ) from None
         except ValueError as exc:
             raise BentoError(f"User authentication failed: {exc!s}") from None
+        else:
+            logger.info("assigned session id %s", session_id)
 
         logger.info(
             "authentication with remote gateway completed",

@@ -4,6 +4,7 @@
 
 #### Bug fixes
 - Fixed an issue where the `Live` client would not raise an exception when reading an incompatible DBN version
+- Fixed an issue where sending lots of subscriptions could cause a `BufferError`
 
 ## 0.24.1 - 2023-12-15
 
