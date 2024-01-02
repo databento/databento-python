@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.24.2 - TBD
+## 0.25.0 - TBD
+
+#### Breaking changes
+- Removed deprecated `pretty_px` parameter for `DBNStore.to_df`; `price_type` can be used instead
 
 #### Bug fixes
 - Fixed an issue where the `Live` client would not raise an exception when reading an incompatible DBN version
