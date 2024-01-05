@@ -15,6 +15,7 @@ from typing import (
     Any,
     BinaryIO,
     Callable,
+    Final,
     Literal,
     Protocol,
     overload,
@@ -23,6 +24,8 @@ from typing import (
 import databento_dbn
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 import zstandard
 from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import Compression
@@ -50,6 +53,8 @@ from databento.common.validation import validate_maybe_enum
 
 
 logger = logging.getLogger(__name__)
+
+PARQUET_CHUNK_SIZE: Final = 2**16
 
 if TYPE_CHECKING:
     from databento.historical.client import Historical
@@ -791,17 +796,13 @@ class DBNStore:
         compression : Compression or str, default `Compression.NONE`
             The output compression for writing.
         schema : Schema or str, optional
-            The schema for the csv.
+            The DBN schema for the csv.
             This is only required when reading a DBN stream with mixed record types.
 
         Raises
         ------
         ValueError
             If the schema for the array cannot be determined.
-
-        Notes
-        -----
-        Requires all the data to be brought up into memory to then be written.
 
         """
         compression = validate_enum(compression, Compression, "compression")
@@ -870,7 +871,7 @@ class DBNStore:
             a 'symbol' column, mapping the instrument ID to its requested symbol for
             every record.
         schema : Schema or str, optional
-            The schema for the dataframe.
+            The DBN schema for the dataframe.
             This is only required when reading a DBN stream with mixed record types.
         count : int, optional
             If set, instead of returning a single `DataFrame` a `DataFrameIterator`
@@ -887,7 +888,7 @@ class DBNStore:
         Raises
         ------
         ValueError
-            If the schema for the array cannot be determined.
+            If the DBN schema is unspecified and cannot be determined.
 
         """
         schema = validate_maybe_enum(schema, Schema, "schema")
@@ -918,6 +919,81 @@ class DBNStore:
             return next(df_iter)
 
         return df_iter
+
+    def to_parquet(
+        self,
+        path: Path | str,
+        price_type: Literal["fixed", "float"] = "float",
+        pretty_ts: bool = True,
+        map_symbols: bool = True,
+        schema: Schema | str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Write the data to a parquet file at the given path.
+
+        Parameters
+        ----------
+        price_type : str, default "float"
+            The price type to use for price fields.
+            If "fixed", prices will have a type of `int` in fixed decimal format; each unit representing 1e-9 or 0.000000001.
+            If "float", prices will have a type of `float`.
+            The "decimal" price type is not supported at this time.
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `int` to tz-aware UTC `pyarrow.TimestampType`.
+        map_symbols : bool, default True
+            If symbology mappings from the metadata should be used to create
+            a 'symbol' column, mapping the instrument ID to its requested symbol for
+            every record.
+        schema : Schema or str, optional
+            The DBN schema for the parquet file.
+            This is only required when reading a DBN stream with mixed record types.
+
+        Raises
+        ------
+        ValueError
+            If an incorrect price type is specified.
+            If the DBN schema is unspecified and cannot be determined.
+
+        """
+        if price_type == "decimal":
+            raise ValueError("the 'decimal' price type is not currently supported")
+
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
+
+        dataframe_iter = self.to_df(
+            price_type=price_type,
+            pretty_ts=pretty_ts,
+            map_symbols=map_symbols,
+            schema=schema,
+            count=PARQUET_CHUNK_SIZE,
+        )
+
+        writer = None
+        try:
+            for frame in dataframe_iter:
+                if writer is None:
+                    # Initialize the writer using the first DataFrame
+                    parquet_schema = pa.Schema.from_pandas(frame)
+                    writer = pq.ParquetWriter(
+                        where=path,
+                        schema=parquet_schema,
+                        **kwargs,
+                    )
+                writer.write_table(
+                    pa.Table.from_pandas(
+                        frame,
+                        schema=parquet_schema,
+                    ),
+                )
+        finally:
+            if writer is not None:
+                writer.close()
 
     def to_file(self, path: Path | str) -> None:
         """
@@ -972,17 +1048,13 @@ class DBNStore:
         compression : Compression or str, default `Compression.NONE`
             The output compression for writing.
         schema : Schema or str, optional
-            The schema for the json.
+            The DBN schema for the json.
             This is only required when reading a DBN stream with mixed record types.
 
         Raises
         ------
         ValueError
             If the schema for the array cannot be determined.
-
-        Notes
-        -----
-        Requires all the data to be brought up into memory to then be written.
 
         """
         compression = validate_enum(compression, Compression, "compression")
@@ -1030,7 +1102,7 @@ class DBNStore:
         Parameters
         ----------
         schema : Schema or str, optional
-            The schema for the array.
+            The DBN schema for the array.
             This is only required when reading a DBN stream with mixed record types.
         count : int, optional
             If set, instead of returning a single `np.ndarray` a `NDArrayIterator`
@@ -1047,7 +1119,7 @@ class DBNStore:
         Raises
         ------
         ValueError
-            If the schema for the array cannot be determined.
+            If the DBN schema is unspecified and cannot be determined.
 
         """
         schema = validate_maybe_enum(schema, Schema, "schema")
@@ -1329,8 +1401,7 @@ class DataFrameIterator:
         if price_type == "decimal":
             for field in px_fields:
                 df[field] = (
-                    df[field].replace(INT64_NULL, np.nan).apply(decimal.Decimal)
-                    / FIXED_PRICE_SCALE
+                    df[field].replace(INT64_NULL, np.nan).apply(decimal.Decimal) / FIXED_PRICE_SCALE
                 )
         elif price_type == "float":
             for field in px_fields:

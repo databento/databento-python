@@ -9,6 +9,7 @@ from typing import Any, Callable, Literal
 from unittest.mock import MagicMock
 
 import databento
+import databento.common.dbnstore
 import numpy as np
 import pandas as pd
 import pytest
@@ -437,6 +438,77 @@ def test_to_df_with_price_type_handles_null(
     # Assert
     assert all(df_plain["strike_price"] == 9223372036854775807)
     assert all(np.isnan(df_pretty["strike_price"]))
+
+
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.DBEQ_BASIC,
+    ],
+)
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "price_type",
+    [
+        "fixed",
+        "float",
+    ],
+)
+@pytest.mark.parametrize(
+    "pretty_ts",
+    [
+        True,
+        False,
+    ],
+)
+@pytest.mark.parametrize(
+    "map_symbols",
+    [
+        True,
+        False,
+    ],
+)
+def test_to_parquet(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    test_data: Callable[[Dataset, Schema], bytes],
+    dataset: Dataset,
+    schema: Schema,
+    price_type: Literal["fixed", "float"],
+    pretty_ts: bool,
+    map_symbols: bool,
+) -> None:
+    # Arrange
+    monkeypatch.setattr(databento.common.dbnstore, "PARQUET_CHUNK_SIZE", 1)
+    stub_data = test_data(dataset, schema)
+    data = DBNStore.from_bytes(data=stub_data)
+    parquet_file = tmp_path / "test.parquet"
+
+    # Act
+    expected = data.to_df(
+        price_type=price_type,
+        pretty_ts=pretty_ts,
+        map_symbols=map_symbols,
+    )
+    data.to_parquet(
+        parquet_file,
+        price_type=price_type,
+        pretty_ts=pretty_ts,
+        map_symbols=map_symbols,
+    )
+    actual = pd.read_parquet(parquet_file)
+
+    # Replace None values with np.nan
+    actual.fillna(value=np.nan)
+
+    # Assert
+    pd.testing.assert_frame_equal(actual, expected)
 
 
 @pytest.mark.parametrize(

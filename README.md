@@ -35,6 +35,7 @@ The minimum dependencies as found in the `pyproject.toml` are also listed below:
 - databento-dbn = "0.14.2"
 - numpy= ">=1.23.5"
 - pandas = ">=1.5.3"
+- pyarrow = ">=13.0.0"
 - requests = ">=2.24.0"
 - zstandard = ">=0.21.0"
 
