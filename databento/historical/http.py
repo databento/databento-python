@@ -23,7 +23,6 @@ from databento.common.error import BentoWarning
 from databento.common.system import USER_AGENT
 
 
-_32KIB = 1024 * 32  # 32_768
 WARNING_HEADER_FIELD: str = "X-Warning"
 
 
@@ -133,7 +132,7 @@ class BentoHttpAPI:
             else:
                 writer = open(path, "x+b")
 
-            for chunk in response.iter_content(chunk_size=_32KIB):
+            for chunk in response.iter_content(chunk_size=None):
                 writer.write(chunk)
 
             if path is None:
