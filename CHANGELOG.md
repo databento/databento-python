@@ -10,6 +10,7 @@
 - Fixed an issue where sending lots of subscriptions could cause a `BufferError`
 - Fixed an issue where `Historical.batch.download` was slow
 - Fixed an issue where `Historical.timeseries.get_range` was slow
+- Fixed an issue where reading a DBN file with non-empty metadata symbol mappings and mixed `SType` would cause an error when mapping symbols (credit: Jakob Lövhall)
 
 ## 0.24.1 - 2023-12-15
 

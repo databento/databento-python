@@ -242,8 +242,8 @@ class InstrumentMap:
             # Nothing to do
             return
 
-        stype_in = SType(metadata.stype_in)
-        stype_out = SType(metadata.stype_out)
+        stype_in = SType(metadata.stype_in) if metadata.stype_in is not None else None
+        stype_out = SType(metadata.stype_out) if metadata.stype_out is not None else None
 
         for symbol_in, entries in metadata.mappings.items():
             for entry in entries:

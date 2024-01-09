@@ -166,7 +166,7 @@ def create_metadata(
     dataset: str = "UNIT.TEST",
     start: int = UNDEF_TIMESTAMP,
     end: int = UNDEF_TIMESTAMP,
-    stype_in: SType = SType.RAW_SYMBOL,
+    stype_in: SType | None = SType.RAW_SYMBOL,
     stype_out: SType = SType.INSTRUMENT_ID,
     schema: Schema = Schema.TRADES,
     limit: int | None = None,
@@ -198,10 +198,18 @@ def test_instrument_map(
     assert instrument_map._data == {}
 
 
+@pytest.mark.parametrize(
+    "stype_in",
+    [
+        SType.RAW_SYMBOL,
+        None,
+    ],
+)
 def test_instrument_map_insert_metadata(
     instrument_map: InstrumentMap,
     start_date: pd.Timestamp,
     end_date: pd.Timestamp,
+    stype_in: SType | None,
 ) -> None:
     """
     Test the insertion of DBN Metadata.
@@ -224,6 +232,7 @@ def test_instrument_map_insert_metadata(
     ]
 
     metadata = create_metadata(
+        stype_in=stype_in,
         mappings=mappings,
     )
 
