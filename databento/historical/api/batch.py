@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Iterable
 from datetime import date
 from os import PathLike
 from pathlib import Path
@@ -48,7 +49,7 @@ class BatchHttpAPI(BentoHttpAPI):
     def submit_job(
         self,
         dataset: Dataset | str,
-        symbols: list[str] | str,
+        symbols: Iterable[str | int] | str | int,
         schema: Schema | str,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
@@ -75,7 +76,7 @@ class BatchHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        symbols : list[str | int] or str
+        symbols : Iterable[str | int] or str or int
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.

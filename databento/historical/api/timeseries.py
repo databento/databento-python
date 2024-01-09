@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date
 from os import PathLike
 
@@ -35,7 +36,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
-        symbols: list[str] | str | None = None,
+        symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
         stype_out: SType | str = "instrument_id",
@@ -67,7 +68,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : list[str | instr | intt] or str, optional
+        symbols : Iterable[str | int], or str, or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
@@ -131,7 +132,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
-        symbols: list[str] | str | None = None,
+        symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
         stype_out: SType | str = "instrument_id",
@@ -164,7 +165,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : list[str | int] or str, optional
+        symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.

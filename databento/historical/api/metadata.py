@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date
 from typing import Any
 
@@ -261,7 +262,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
-        symbols: list[str] | str | None = None,
+        symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
         limit: int | None = None,
@@ -285,7 +286,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : list[str | int] or str, optional
+        symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -329,7 +330,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
-        symbols: list[str] | str | None = None,
+        symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
         limit: int | None = None,
@@ -354,7 +355,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : list[str | int] or str, optional
+        symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -399,7 +400,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
         mode: FeedMode | str = "historical-streaming",
-        symbols: list[str] | str | None = None,
+        symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
         limit: int | None = None,
@@ -426,7 +427,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             Defaults to the same value as `start`.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
-        symbols : list[str | int] or str, optional
+        symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa

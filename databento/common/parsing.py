@@ -4,7 +4,8 @@ from collections.abc import Iterable
 from datetime import date
 from functools import partial
 from functools import singledispatch
-from numbers import Number
+from numbers import Integral
+from typing import Any
 
 import pandas as pd
 from databento_dbn import SType
@@ -59,7 +60,7 @@ def optional_values_list_to_string(
 
 @singledispatch
 def optional_symbols_list_to_list(
-    symbols: Iterable[str] | Iterable[Number] | str | Number | None,
+    symbols: Iterable[str | int | Integral] | str | int | Integral | None,
     stype_in: SType,
 ) -> list[str]:
     """
@@ -68,7 +69,7 @@ def optional_symbols_list_to_list(
 
     Parameters
     ----------
-    symbols : iterable of str, iterable of Number, str, or Number optional
+    symbols : Iterable of str or int or Number, or str or int or Number, optional
         The symbols to concatenate.
     stype_in : SType
         The input symbology type for the request.
@@ -84,7 +85,7 @@ def optional_symbols_list_to_list(
     """
     raise TypeError(
         f"`{symbols}` is not a valid type for symbol input; "
-        "allowed types are Iterable[str], Iterable[int], str, int, and None.",
+        "allowed types are Iterable[str | int], str, int, and None.",
     )
 
 
@@ -102,10 +103,10 @@ def _(_: None, __: SType) -> list[str]:
     return [ALL_SYMBOLS]
 
 
-@optional_symbols_list_to_list.register(cls=Number)
-def _(symbols: Number, stype_in: SType) -> list[str]:
+@optional_symbols_list_to_list.register(cls=Integral)
+def _(symbols: Integral, stype_in: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_list. Handles numerical types,
+    Dispatch method for optional_symbols_list_to_list. Handles integral types,
     alerting when an integer is given for STypes that expect strings.
 
     See Also
@@ -147,7 +148,7 @@ def _(symbols: str, stype_in: SType) -> list[str]:
 
 
 @optional_symbols_list_to_list.register(cls=Iterable)
-def _(symbols: Iterable[str] | Iterable[int], stype_in: SType) -> list[str]:
+def _(symbols: Iterable[Any], stype_in: SType) -> list[str]:
     """
     Dispatch method for optional_symbols_list_to_list. Handles Iterables by
     dispatching the individual members.

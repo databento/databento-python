@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date
 from typing import Any
 
@@ -28,7 +29,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
     def resolve(
         self,
         dataset: Dataset | str,
-        symbols: list[str] | str,
+        symbols: Iterable[str | int] | str | int,
         stype_in: SType | str,
         stype_out: SType | str,
         start_date: date | str,
@@ -43,7 +44,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        symbols : list[str | int] or str, optional
+        symbols : Iterable[str | int] or str or int, optional
             The symbols to resolve. Takes up to 2,000 symbols per request.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
