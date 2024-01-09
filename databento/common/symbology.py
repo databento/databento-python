@@ -242,7 +242,10 @@ class InstrumentMap:
             # Nothing to do
             return
 
-        stype_in = SType(metadata.stype_in)
+        try:
+            stype_in = SType(metadata.stype_in)
+        except ValueError:
+            stype_in = None
         stype_out = SType(metadata.stype_out)
 
         for symbol_in, entries in metadata.mappings.items():
