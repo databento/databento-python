@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.25.0 - TBD
+## 0.25.0 - 2024-01-09
 
 #### Breaking changes
 - Removed deprecated `pretty_px` parameter for `DBNStore.to_df`; `price_type` can be used instead
