@@ -4,7 +4,6 @@ import abc
 import decimal
 import itertools
 import logging
-import warnings
 from collections.abc import Generator
 from collections.abc import Iterator
 from io import BytesIO
@@ -826,7 +825,6 @@ class DBNStore:
     @overload
     def to_df(
         self,
-        pretty_px: bool | None = ...,
         price_type: Literal["fixed", "float", "decimal"] = ...,
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
@@ -838,7 +836,6 @@ class DBNStore:
     @overload
     def to_df(
         self,
-        pretty_px: bool | None = ...,
         price_type: Literal["fixed", "float", "decimal"] = ...,
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
@@ -849,7 +846,6 @@ class DBNStore:
 
     def to_df(
         self,
-        pretty_px: bool | None = None,
         price_type: Literal["fixed", "float", "decimal"] = "float",
         pretty_ts: bool = True,
         map_symbols: bool = True,
@@ -861,11 +857,6 @@ class DBNStore:
 
         Parameters
         ----------
-        pretty_px : bool, default True
-            This parameter is deprecated and will be removed in a future release.
-            If all price columns should be converted from `int` to `float` at
-            the correct scale (using the fixed-precision scalar 1e-9). Null
-            prices are replaced with NaN.
         price_type : str, default "float"
             The price type to use for price fields.
             If "fixed", prices will have a type of `int` in fixed decimal format; each unit representing 1e-9 or 0.000000001.
@@ -899,20 +890,6 @@ class DBNStore:
             If the schema for the array cannot be determined.
 
         """
-        if pretty_px is True:
-            warnings.warn(
-                'The argument `pretty_px` is deprecated and will be removed in a future release; `price_type="float"` can be used instead.',
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        elif pretty_px is False:
-            price_type = "fixed"
-            warnings.warn(
-                'The argument `pretty_px` is deprecated and will be removed in a future release; `price_type="fixed"` can be used instead.',
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
         schema = validate_maybe_enum(schema, Schema, "schema")
         if schema is None:
             if self.schema is None:

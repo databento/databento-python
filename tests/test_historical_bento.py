@@ -292,7 +292,7 @@ def test_to_df_with_mbo_data_returns_expected_record(
     # Act
     df = data.to_df(
         pretty_ts=False,
-        pretty_px=False,
+        price_type="fixed",
         map_symbols=False,
     )
 
@@ -324,7 +324,7 @@ def test_to_df_with_stub_ohlcv_data_returns_expected_record(
     # Act
     df = data.to_df(
         pretty_ts=False,
-        pretty_px=False,
+        price_type="fixed",
         map_symbols=False,
     )
 

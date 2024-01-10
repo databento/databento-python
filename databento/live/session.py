@@ -366,12 +366,15 @@ class Session:
                     loop=self._loop,
                 )
 
-            self._protocol.subscribe(
+        asyncio.run_coroutine_threadsafe(
+            self._subscribe_task(
                 schema=schema,
                 symbols=symbols,
                 stype_in=stype_in,
                 start=start,
-            )
+            ),
+            loop=self._loop,
+        ).result()
 
     def resume_reading(self) -> None:
         """
@@ -477,7 +480,7 @@ class Session:
         )
 
         try:
-            await asyncio.wait_for(
+            session_id = await asyncio.wait_for(
                 protocol.authenticated,
                 timeout=AUTH_TIMEOUT_SECONDS,
             )
@@ -488,9 +491,29 @@ class Session:
             ) from None
         except ValueError as exc:
             raise BentoError(f"User authentication failed: {exc!s}") from None
+        else:
+            logger.info("assigned session id %s", session_id)
 
         logger.info(
             "authentication with remote gateway completed",
         )
 
         return transport, protocol
+
+    async def _subscribe_task(
+        self,
+        schema: Schema | str,
+        symbols: Iterable[str] | Iterable[Number] | str | Number = ALL_SYMBOLS,
+        stype_in: SType | str = SType.RAW_SYMBOL,
+        start: str | int | None = None,
+    ) -> None:
+        with self._lock:
+            if self._protocol is None:
+                return
+
+            self._protocol.subscribe(
+                schema=schema,
+                symbols=symbols,
+                stype_in=stype_in,
+                start=start,
+            )

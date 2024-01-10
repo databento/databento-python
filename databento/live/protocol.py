@@ -283,6 +283,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
 
+        subscription_bytes: list[bytes] = []
         for batch in chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE):
             batch_str = ",".join(batch)
             message = SubscriptionRequest(
@@ -291,8 +292,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 symbols=batch_str,
                 start=optional_datetime_to_unix_nanoseconds(start),
             )
+            subscription_bytes.append(bytes(message))
 
-            self.transport.write(bytes(message))
+        self.transport.writelines(subscription_bytes)
 
     def start(
         self,
@@ -312,8 +314,6 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         try:
             self._dbn_decoder.write(bytes(data))
             records = self._dbn_decoder.decode()
-        except ValueError:
-            pass  # expected for partial records
         except Exception:
             logger.exception("error decoding DBN record")
             self.__transport.close()

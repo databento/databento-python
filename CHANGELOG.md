@@ -1,8 +1,20 @@
 # Changelog
 
+## 0.25.0 - 2024-01-09
+
+#### Breaking changes
+- Removed deprecated `pretty_px` parameter for `DBNStore.to_df`; `price_type` can be used instead
+
+#### Bug fixes
+- Fixed an issue where the `Live` client would not raise an exception when reading an incompatible DBN version
+- Fixed an issue where sending lots of subscriptions could cause a `BufferError`
+- Fixed an issue where `Historical.batch.download` was slow
+- Fixed an issue where `Historical.timeseries.get_range` was slow
+- Fixed an issue where reading a DBN file with non-empty metadata symbol mappings and mixed `SType` would cause an error when mapping symbols (credit: Jakob Lövhall)
+
 ## 0.24.1 - 2023-12-15
 
-##### Enhancements
+#### Enhancements
 - Added new publisher value for OPRA MIAX Sapphire
 
 #### Bug fixes

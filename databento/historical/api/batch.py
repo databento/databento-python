@@ -370,7 +370,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
             logger.debug("Starting download of file %s", output_path.name)
             with open(output_path, mode=mode) as f:
-                for chunk in response.iter_content():
+                for chunk in response.iter_content(chunk_size=None):
                     f.write(chunk)
             logger.debug("Download of %s completed", output_path.name)
 
