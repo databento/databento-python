@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as dt
-from numbers import Number
 from typing import Any
 
 import numpy as np
@@ -105,7 +104,7 @@ def test_optional_symbols_list_to_list_given_valid_inputs_returns_expected(
     ],
 )
 def test_optional_symbols_list_to_list_int(
-    symbols: list[Number] | Number | None,
+    symbols: list[int] | int | None,
     stype: SType,
     expected: list[object] | type[Exception],
 ) -> None:
@@ -138,20 +137,10 @@ def test_optional_symbols_list_to_list_int(
             SType.INSTRUMENT_ID,
             ["12345", "67890"],
         ),
-        pytest.param(
-            [np.int_(12345), np.longlong(67890)],
-            SType.INSTRUMENT_ID,
-            ["12345", "67890"],
-        ),
-        pytest.param(
-            [np.int_(12345), np.longlong(67890)],
-            SType.INSTRUMENT_ID,
-            ["12345", "67890"],
-        ),
     ],
 )
 def test_optional_symbols_list_to_list_numpy(
-    symbols: list[Number] | Number | None,
+    symbols: list[int] | int | None,
     stype: SType,
     expected: list[object] | type[Exception],
 ) -> None:
@@ -190,7 +179,7 @@ def test_optional_symbols_list_to_list_numpy(
     ],
 )
 def test_optional_symbols_list_to_list_raw_symbol(
-    symbols: list[Number] | Number | None,
+    symbols: list[int] | int | None,
     stype: SType,
     expected: list[object] | type[Exception],
 ) -> None:

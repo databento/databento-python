@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.26.0 - 2024-01-16
+
+This release adds support for transcoding DBN data into Apache parquet.
+
+#### Enhancements
+- Added `DBNStore.to_parquet` for transcoding DBN data into Apache parquet using `pyarrow`
+- Upgraded `databento-dbn` to 0.15.0
+
 ## 0.25.0 - 2024-01-09
 
 #### Breaking changes

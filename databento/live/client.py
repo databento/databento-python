@@ -8,7 +8,6 @@ import queue
 import threading
 from collections.abc import Iterable
 from concurrent import futures
-from numbers import Number
 from os import PathLike
 from typing import IO, Final
 
@@ -409,7 +408,7 @@ class Live:
         self,
         dataset: Dataset | str,
         schema: Schema | str,
-        symbols: Iterable[str] | Iterable[Number] | str | Number = ALL_SYMBOLS,
+        symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
     ) -> None:
@@ -428,7 +427,7 @@ class Live:
             The dataset for the subscription.
         schema : Schema or str
             The schema to subscribe to.
-        symbols : Iterable[str | Number] or str or Number, default 'ALL_SYMBOLS'
+        symbols : Iterable[str | int] or str or int, default 'ALL_SYMBOLS'
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.

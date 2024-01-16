@@ -148,7 +148,7 @@ def create_symbol_mapping_message(
     SymbolMappingMsg
 
     """
-    return SymbolMappingMsg(  # type: ignore [call-arg]
+    return SymbolMappingMsg(
         publisher_id=publisher_id,
         instrument_id=instrument_id,
         ts_event=ts_event,
@@ -172,7 +172,7 @@ def create_metadata(
     limit: int | None = None,
     ts_out: bool = False,
 ) -> Metadata:
-    return Metadata(  # type: ignore [call-arg]
+    return Metadata(
         dataset=dataset,
         start=start,
         stype_out=stype_out,
@@ -357,7 +357,7 @@ def test_instrument_map_insert_symbol_mapping_message_v1(
         start_ts=start_date,
         end_ts=end_date,
     )
-    sym_msg_v1 = SymbolMappingMsgV1(  # type: ignore [call-arg]
+    sym_msg_v1 = SymbolMappingMsgV1(
         publisher_id=sym_msg.publisher_id,
         instrument_id=sym_msg.instrument_id,
         ts_event=sym_msg.ts_event,
