@@ -18,6 +18,7 @@ from requests.auth import HTTPBasicAuth
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoClientError
 from databento.common.error import BentoDeprecationWarning
+from databento.common.error import BentoError
 from databento.common.error import BentoServerError
 from databento.common.error import BentoWarning
 from databento.common.system import USER_AGENT
@@ -132,8 +133,11 @@ class BentoHttpAPI:
             else:
                 writer = open(path, "x+b")
 
-            for chunk in response.iter_content(chunk_size=None):
-                writer.write(chunk)
+            try:
+                for chunk in response.iter_content(chunk_size=None):
+                    writer.write(chunk)
+            except Exception as exc:
+                raise BentoError(f"Error streaming response: {exc}")
 
             if path is None:
                 writer.seek(0)
@@ -169,8 +173,11 @@ class BentoHttpAPI:
                 else:
                     writer = open(path, "x+b")
 
-                async for chunk in response.content.iter_chunks():
-                    writer.write(chunk[0])
+                try:
+                    async for chunk in response.content.iter_chunks():
+                        writer.write(chunk[0])
+                except Exception as exc:
+                    raise BentoError(f"Error streaming response: {exc}")
 
                 if path is None:
                     writer.seek(0)

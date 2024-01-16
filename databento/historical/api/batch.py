@@ -20,6 +20,7 @@ from requests.auth import HTTPBasicAuth
 from databento.common.enums import Delivery
 from databento.common.enums import Packaging
 from databento.common.enums import SplitDuration
+from databento.common.error import BentoError
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
@@ -371,8 +372,11 @@ class BatchHttpAPI(BentoHttpAPI):
 
             logger.debug("Starting download of file %s", output_path.name)
             with open(output_path, mode=mode) as f:
-                for chunk in response.iter_content(chunk_size=None):
-                    f.write(chunk)
+                try:
+                    for chunk in response.iter_content(chunk_size=None):
+                        f.write(chunk)
+                except Exception as exc:
+                    raise BentoError(f"Error downloading file: {exc}")
             logger.debug("Download of %s completed", output_path.name)
 
     async def download_async(
@@ -512,9 +516,12 @@ class BatchHttpAPI(BentoHttpAPI):
 
                 logger.debug("Starting async download of file %s", output_path.name)
                 with open(output_path, mode=mode) as f:
-                    async for chunk in response.content.iter_chunks():
-                        data: bytes = chunk[0]
-                        f.write(data)
+                    try:
+                        async for chunk in response.content.iter_chunks():
+                            data: bytes = chunk[0]
+                            f.write(data)
+                    except Exception as exc:
+                        raise BentoError(f"Error downloading file: {exc}")
                 logger.debug("Download of %s completed", output_path.name)
 
     def _get_file_download_headers_and_mode(
