@@ -434,7 +434,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
             self.__transport.close()
 
         elif self.mode is MockLiveMode.REPEAT:
-            metadata = Metadata("UNIT.TEST", 0, SType.RAW_SYMBOL, [], [], [], [])  # type: ignore [call-arg]
+            metadata = Metadata("UNIT.TEST", 0, SType.RAW_SYMBOL, [], [], [], [])
             self.__transport.write(bytes(metadata))
 
             loop = asyncio.get_event_loop()

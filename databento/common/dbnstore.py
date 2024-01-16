@@ -1192,7 +1192,7 @@ class DBNStore:
             pretty_ts=pretty_ts,
             has_metadata=True,
             map_symbols=map_symbols,
-            symbol_interval_map=symbol_map,  # type: ignore [arg-type]
+            symbol_interval_map=symbol_map,
             schema=schema,
         )
 

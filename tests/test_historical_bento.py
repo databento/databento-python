@@ -782,8 +782,8 @@ def test_dbnstore_iterable(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     record_list: list[DBNRecord] = list(dbnstore)
-    first: MBOMsg = record_list[0]  # type: ignore
-    second: MBOMsg = record_list[1]  # type: ignore
+    first: MBOMsg = record_list[0]
+    second: MBOMsg = record_list[1]
 
     # Assert
     assert first.hd.length == 14
@@ -882,9 +882,7 @@ def test_dbnstore_buffer_short(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO))
-        .read()
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
     )
 
     # Act
@@ -917,9 +915,7 @@ def test_dbnstore_buffer_long(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO))
-        .read()
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
     )
 
     # Act
@@ -952,9 +948,7 @@ def test_dbnstore_buffer_rewind(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO))
-        .read()
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
     )
 
     # Act
@@ -989,9 +983,7 @@ def test_dbnstore_to_ndarray_with_count(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, schema))
-        .read()
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
     )
 
     # Act
@@ -1074,9 +1066,7 @@ def test_dbnstore_to_ndarray_with_schema(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, schema))
-        .read()
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
     )
 
     # Act
@@ -1210,9 +1200,7 @@ def test_dbnstore_to_df_with_count(
     """
     # Arrange
     dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, schema))
-        .read()
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
     )
 
     # Act
