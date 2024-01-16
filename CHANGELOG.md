@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.26.0 - TBD
+## 0.26.0 - 2024-01-16
 
 This release adds support for transcoding DBN data into Apache parquet.
 
