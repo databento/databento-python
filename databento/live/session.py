@@ -227,6 +227,20 @@ class Session:
 
         self._user_gateway: str | None = user_gateway
         self._port = port
+        self._session_id: int = 0
+
+    @property
+    def session_id(self) -> int:
+        """
+        Return the authenticated session ID. A zero value indicates no session
+        has started.
+
+        Returns
+        -------
+        int
+
+        """
+        return self._session_id
 
     def is_authenticated(self) -> bool:
         """
@@ -489,13 +503,11 @@ class Session:
                 f"Authentication with {gateway}:{port} timed out after "
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",
             ) from None
-        except ValueError as exc:
-            raise BentoError(f"User authentication failed: {exc!s}") from None
-        else:
-            logger.info("assigned session id %s", session_id)
 
+        self._session_id = session_id
         logger.info(
-            "authentication with remote gateway completed",
+            "authenticated session %s",
+            self.session_id,
         )
 
         return transport, protocol
