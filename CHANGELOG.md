@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.27.0 - TBD
+
+#### Breaking changes
+- Renamed `DatatbentoLiveProtocol.started` to `DatatbentoLiveProtocol.is_started` which now returns a bool instead of an `asyncio.Event`
+
+#### Bug fixes
+- Fixed an issue where an error message from the live gateway would not properly raise an exception if the connection closed before `Live.start` was called
+
 ## 0.26.0 - 2024-01-16
 
 This release adds support for transcoding DBN data into Apache parquet.

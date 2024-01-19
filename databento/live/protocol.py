@@ -82,7 +82,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         self._authenticated: asyncio.Future[int] = asyncio.Future()
         self._disconnected: asyncio.Future[None] = asyncio.Future()
-        self._started = asyncio.Event()
+        self._started: bool = False
 
     @property
     def authenticated(self) -> asyncio.Future[int]:
@@ -118,14 +118,14 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         return self._disconnected
 
     @property
-    def started(self) -> asyncio.Event:
+    def is_started(self) -> bool:
         """
-        Event that is set when the session has started streaming. This occurs
-        when the SessionStart message is sent to the gateway.
+        True if the session has started streaming. This occurs when the
+        SessionStart message is sent to the gateway.
 
         Returns
         -------
-        asyncio.Event
+        bool
 
         """
         return self._started
@@ -219,7 +219,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         logger.debug("read %d bytes from remote gateway", nbytes)
         data = self.__buffer[:nbytes]
 
-        if self.started.is_set():
+        if self.authenticated.done():
             self._process_dbn(data)
         else:
             self._process_gateway(data)
@@ -303,7 +303,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         """
         logger.debug("sending start")
         message = SessionStart()
-        self.started.set()
+        self._started = True
         self.transport.write(bytes(message))
 
     def _process_dbn(self, data: bytes) -> None:

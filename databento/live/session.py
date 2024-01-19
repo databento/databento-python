@@ -276,7 +276,8 @@ class Session:
 
     def is_started(self) -> bool:
         """
-        Return true if the session's connection has started streaming.
+        Return true if the session's connection has started streaming, false
+        otherwise.
 
         Returns
         -------
@@ -286,7 +287,7 @@ class Session:
         with self._lock:
             if self._protocol is None:
                 return False
-            return self._protocol.started.is_set()
+            return self._protocol.is_started
 
     @property
     def metadata(self) -> databento_dbn.Metadata | None:
