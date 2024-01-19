@@ -253,7 +253,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        output_dir: PathLike or str
+        output_dir: PathLike[str] or str
             The directory to download the file(s) to.
         job_id : str
             The batch job identifier.
@@ -397,7 +397,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        output_dir: PathLike or str
+        output_dir: PathLike[str] or str
             The directory to download the file(s) to.
         job_id : str
             The batch job identifier.

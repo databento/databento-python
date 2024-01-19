@@ -132,7 +132,7 @@ class FileDataSource(DataSource):
         The name of the file.
     nbytes : int
         The size of the data in bytes; equal to the file size.
-    path : PathLike or str
+    path : PathLike[str] or str
         The path of the file.
     reader : IO[bytes]
         A `BufferedReader` for this file-backed data.
@@ -634,7 +634,7 @@ class DBNStore:
 
         Parameters
         ----------
-        path : Path or str
+        path : PathLike[str] or str
             The path to read from.
 
         Returns
@@ -695,7 +695,7 @@ class DBNStore:
     def request_full_definitions(
         self,
         client: Historical,
-        path: Path | str | None = None,
+        path: PathLike[str] | str | None = None,
     ) -> DBNStore:
         """
         Request full instrument definitions based on the metadata properties.
@@ -706,7 +706,7 @@ class DBNStore:
         ----------
         client : Historical
             The historical client to use for the request (contains the API key).
-        path : Path or str, optional
+        path : PathLike[str] or str, optional
             The path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns
@@ -768,7 +768,7 @@ class DBNStore:
 
     def to_csv(
         self,
-        path: Path | str,
+        path: PathLike[str] | str,
         pretty_px: bool = True,
         pretty_ts: bool = True,
         map_symbols: bool = True,
@@ -780,7 +780,7 @@ class DBNStore:
 
         Parameters
         ----------
-        path : Path or str
+        path : PathLike[str] or str
             The file path to write to.
         pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at
@@ -922,7 +922,7 @@ class DBNStore:
 
     def to_parquet(
         self,
-        path: Path | str,
+        path: PathLike[str] | str,
         price_type: Literal["fixed", "float"] = "float",
         pretty_ts: bool = True,
         map_symbols: bool = True,
@@ -995,13 +995,13 @@ class DBNStore:
             if writer is not None:
                 writer.close()
 
-    def to_file(self, path: Path | str) -> None:
+    def to_file(self, path: PathLike[str] | str) -> None:
         """
         Write the data to a DBN file at the given path.
 
         Parameters
         ----------
-        path : str
+        path : PathLike[str] or str
             The file path to write to.
 
         Raises
@@ -1021,7 +1021,7 @@ class DBNStore:
 
     def to_json(
         self,
-        path: Path | str,
+        path: PathLike[str] | str,
         pretty_px: bool = True,
         pretty_ts: bool = True,
         map_symbols: bool = True,
@@ -1033,7 +1033,7 @@ class DBNStore:
 
         Parameters
         ----------
-        path : Path or str
+        path : PathLike[str] or str
             The file path to write to.
         pretty_px : bool, default True
             If all price columns should be converted from `int` to `float` at

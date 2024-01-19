@@ -18,7 +18,7 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
 
     Parameters
     ----------
-    value: PathLike or str
+    value: PathLike[str] or str
         The value to validate.
     param : str
         The name of the parameter being validated (for any error message).
@@ -49,7 +49,7 @@ def validate_file_write_path(value: PathLike[str] | str, param: str) -> Path:
 
     Parameters
     ----------
-    value: PathLike or str
+    value: PathLike[str] or str
         The value to validate.
     param : str
         The name of the parameter being validated (for any error message).

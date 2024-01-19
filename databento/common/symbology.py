@@ -43,8 +43,8 @@ class MappingInterval(NamedTuple):
 
 
 def _validate_path_pair(
-    in_file: Path | PathLike[str] | str,
-    out_file: Path | PathLike[str] | str | None,
+    in_file: PathLike[str] | str,
+    out_file: PathLike[str] | str | None,
 ) -> tuple[Path, Path]:
     in_file_valid = Path(in_file)
 
@@ -74,9 +74,9 @@ def _validate_path_pair(
 
 
 def map_symbols_csv(
-    symbology_file: Path | PathLike[str] | str,
-    csv_file: Path | PathLike[str] | str,
-    out_file: Path | PathLike[str] | str | None = None,
+    symbology_file: PathLike[str] | str,
+    csv_file: PathLike[str] | str,
+    out_file: PathLike[str] | str | None = None,
 ) -> Path:
     """
     Use a `symbology.json` file to map a symbols column onto an existing CSV
@@ -84,12 +84,12 @@ def map_symbols_csv(
 
     Parameters
     ----------
-    symbology_file: Path | PathLike[str] | str
+    symbology_file: PathLike[str] | str
         Path to a `symbology.json` file to use as a symbology source.
-    csv_file: Path | PathLike[str] | str
+    csv_file: PathLike[str] | str
         Path to a CSV file that contains encoded DBN data; must contain
         a `ts_recv` or `ts_event` and `instrument_id` column.
-    out_file: Path | PathLike[str] | str (optional)
+    out_file: PathLike[str] | str (optional)
         Path to a file to write results to. If unspecified, `_mapped` will be
         appended to the `csv_file` name.
 
@@ -119,9 +119,9 @@ def map_symbols_csv(
 
 
 def map_symbols_json(
-    symbology_file: Path | PathLike[str] | str,
-    json_file: Path | PathLike[str] | str,
-    out_file: Path | PathLike[str] | str | None = None,
+    symbology_file: PathLike[str] | str,
+    json_file: PathLike[str] | str,
+    out_file: PathLike[str] | str | None = None,
 ) -> Path:
     """
     Use a `symbology.json` file to insert a symbols key into records of an
@@ -129,11 +129,11 @@ def map_symbols_json(
 
     Parameters
     ----------
-    symbology_file: Path | PathLike[str] | str
+    symbology_file: PathLike[str] | str
         Path to a `symbology.json` file to use as a symbology source.
-    json_file: Path | PathLike[str] | str
+    json_file: PathLike[str] | str
         Path to a JSON file that contains encoded DBN data.
-    out_file: Path | PathLike[str] | str (optional)
+    out_file: PathLike[str] | str (optional)
         Path to a file to write results to. If unspecified, `_mapped` will be
         appended to the `json_file` name.
 
@@ -243,7 +243,9 @@ class InstrumentMap:
             return
 
         stype_in = SType(metadata.stype_in) if metadata.stype_in is not None else None
-        stype_out = SType(metadata.stype_out) if metadata.stype_out is not None else None
+        stype_out = (
+            SType(metadata.stype_out) if metadata.stype_out is not None else None
+        )
 
         for symbol_in, entries in metadata.mappings.items():
             for entry in entries:
@@ -395,8 +397,8 @@ class InstrumentMap:
 
     def map_symbols_csv(
         self,
-        csv_file: Path | PathLike[str] | str,
-        out_file: Path | PathLike[str] | str | None = None,
+        csv_file: PathLike[str] | str,
+        out_file: PathLike[str] | str | None = None,
     ) -> Path:
         """
         Use the loaded symbology data to map a symbols column onto an existing
@@ -404,10 +406,10 @@ class InstrumentMap:
 
         Parameters
         ----------
-        csv_file: Path | PathLike[str] | str
+        csv_file: PathLike[str] | str
             Path to a CSV file that contains encoded DBN data; must contain
             a `ts_recv` or `ts_event` and `instrument_id` column.
-        out_file: Path | PathLike[str] | str (optional)
+        out_file: PathLike[str] | str (optional)
             Path to a file to write results to. If unspecified, `_mapped` will be
             appended to the `csv_file` name.
 
@@ -474,8 +476,8 @@ class InstrumentMap:
 
     def map_symbols_json(
         self,
-        json_file: Path | PathLike[str] | str,
-        out_file: Path | PathLike[str] | str | None = None,
+        json_file: PathLike[str] | str,
+        out_file: PathLike[str] | str | None = None,
     ) -> Path:
         """
         Use the loaded symbology data to insert a symbols key into records of
@@ -483,9 +485,9 @@ class InstrumentMap:
 
         Parameters
         ----------
-        json_file: Path | PathLike[str] | str
+        json_file: PathLike[str] | str
             Path to a JSON file that contains encoded DBN data.
-        out_file: Path | PathLike[str] | str (optional)
+        out_file: PathLike[str] | str (optional)
             Path to a file to write results to. If unspecified, `_mapped` will be
             appended to the `json_file` name.
 
