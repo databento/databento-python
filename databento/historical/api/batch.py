@@ -376,7 +376,7 @@ class BatchHttpAPI(BentoHttpAPI):
                     for chunk in response.iter_content(chunk_size=None):
                         f.write(chunk)
                 except Exception as exc:
-                    raise BentoError(f"Error downloading file: {exc}")
+                    raise BentoError(f"Error downloading file: {exc}") from None
             logger.debug("Download of %s completed", output_path.name)
 
     async def download_async(
@@ -521,7 +521,7 @@ class BatchHttpAPI(BentoHttpAPI):
                             data: bytes = chunk[0]
                             f.write(data)
                     except Exception as exc:
-                        raise BentoError(f"Error downloading file: {exc}")
+                        raise BentoError(f"Error downloading file: {exc}") from None
                 logger.debug("Download of %s completed", output_path.name)
 
     def _get_file_download_headers_and_mode(

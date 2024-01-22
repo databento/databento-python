@@ -137,7 +137,7 @@ class BentoHttpAPI:
                 for chunk in response.iter_content(chunk_size=None):
                     writer.write(chunk)
             except Exception as exc:
-                raise BentoError(f"Error streaming response: {exc}")
+                raise BentoError(f"Error streaming response: {exc}") from None
 
             if path is None:
                 writer.seek(0)
@@ -177,7 +177,7 @@ class BentoHttpAPI:
                     async for chunk in response.content.iter_chunks():
                         writer.write(chunk[0])
                 except Exception as exc:
-                    raise BentoError(f"Error streaming response: {exc}")
+                    raise BentoError(f"Error streaming response: {exc}") from None
 
                 if path is None:
                     writer.seek(0)

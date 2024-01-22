@@ -414,12 +414,12 @@ class Session:
         try:
             self._protocol.authenticated.result()
         except Exception as exc:
-            raise BentoError(exc)
+            raise BentoError(exc) from None
 
         try:
             self._protocol.disconnected.result()
         except Exception as exc:
-            raise BentoError(exc)
+            raise BentoError(exc) from None
 
         self._protocol = self._transport = None
 

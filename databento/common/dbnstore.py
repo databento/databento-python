@@ -1319,7 +1319,7 @@ class NDArrayBytesIterator(NDArrayIterator):
         except ValueError:
             raise BentoError(
                 "DBN file is truncated or contains an incomplete record",
-            )
+            ) from None
 
 
 class DataFrameIterator:
