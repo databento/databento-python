@@ -7,7 +7,7 @@
 - Upgraded `databento-dbn` to 0.15.1
 
 #### Breaking changes
-- Renamed `DatatbentoLiveProtocol.started` to `DatatbentoLiveProtocol.is_started` which now returns a bool instead of an `asyncio.Event`
+- Renamed `DatabentoLiveProtocol.started` to `DatabentoLiveProtocol.is_started` which now returns a bool instead of an `asyncio.Event`
 
 #### Bug fixes
 - Fixed an issue where an error message from the live gateway would not properly raise an exception if the connection closed before `Live.start` was called
@@ -258,7 +258,7 @@ This release includes updates to the fields in text encodings (CSV and JSON), yo
 ## 0.14.0 - 2023-06-14
 
 #### Enhancements
-- Added `DatatbentoLiveProtocol` class
+- Added `DatabentoLiveProtocol` class
 - Added `metadata` property to `Live`
 - Added support for reusing a `Live` client to reconnect
 - Added support for emitting warnings in API response headers
