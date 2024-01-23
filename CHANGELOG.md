@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.27.0 - TBD
+## 0.27.0 - 2024-01-23
 
 #### Enhancements
 - Added `Session.session_id` property which will contain the numerical session ID once a live session has been authenticated
