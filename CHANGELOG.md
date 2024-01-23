@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.27.0 - 2024-01-23
+
+#### Enhancements
+- Added `Session.session_id` property which will contain the numerical session ID once a live session has been authenticated
+- Upgraded `databento-dbn` to 0.15.1
+
+#### Breaking changes
+- Renamed `DatabentoLiveProtocol.started` to `DatabentoLiveProtocol.is_started` which now returns a bool instead of an `asyncio.Event`
+
+#### Bug fixes
+- Fixed an issue where an error message from the live gateway would not properly raise an exception if the connection closed before `Live.start` was called
+
 ## 0.26.0 - 2024-01-16
 
 This release adds support for transcoding DBN data into Apache parquet.
@@ -246,7 +258,7 @@ This release includes updates to the fields in text encodings (CSV and JSON), yo
 ## 0.14.0 - 2023-06-14
 
 #### Enhancements
-- Added `DatatbentoLiveProtocol` class
+- Added `DatabentoLiveProtocol` class
 - Added `metadata` property to `Live`
 - Added support for reusing a `Live` client to reconnect
 - Added support for emitting warnings in API response headers

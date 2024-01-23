@@ -227,6 +227,20 @@ class Session:
 
         self._user_gateway: str | None = user_gateway
         self._port = port
+        self._session_id: int = 0
+
+    @property
+    def session_id(self) -> int:
+        """
+        Return the authenticated session ID. A zero value indicates no session
+        has started.
+
+        Returns
+        -------
+        int
+
+        """
+        return self._session_id
 
     def is_authenticated(self) -> bool:
         """
@@ -276,7 +290,8 @@ class Session:
 
     def is_started(self) -> bool:
         """
-        Return true if the session's connection has started streaming.
+        Return true if the session's connection has started streaming, false
+        otherwise.
 
         Returns
         -------
@@ -286,7 +301,7 @@ class Session:
         with self._lock:
             if self._protocol is None:
                 return False
-            return self._protocol.started.is_set()
+            return self._protocol.is_started
 
     @property
     def metadata(self) -> databento_dbn.Metadata | None:
@@ -413,12 +428,12 @@ class Session:
         try:
             self._protocol.authenticated.result()
         except Exception as exc:
-            raise BentoError(exc)
+            raise BentoError(exc) from None
 
         try:
             self._protocol.disconnected.result()
         except Exception as exc:
-            raise BentoError(exc)
+            raise BentoError(exc) from None
 
         self._protocol = self._transport = None
 
@@ -488,13 +503,11 @@ class Session:
                 f"Authentication with {gateway}:{port} timed out after "
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",
             ) from None
-        except ValueError as exc:
-            raise BentoError(f"User authentication failed: {exc!s}") from None
-        else:
-            logger.info("assigned session id %s", session_id)
 
+        self._session_id = session_id
         logger.info(
-            "authentication with remote gateway completed",
+            "authenticated session %s",
+            self.session_id,
         )
 
         return transport, protocol

@@ -90,7 +90,6 @@ async def test_protocol_connection_streaming(
     )
 
     protocol.start()
-    await asyncio.wait_for(protocol.started.wait(), timeout=1)
     await asyncio.wait_for(protocol.disconnected, timeout=1)
 
     # Assert

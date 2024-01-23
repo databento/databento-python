@@ -80,7 +80,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
-        path : PathLike or str, optional
+        path : PathLike[str] or str, optional
             The file path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns
@@ -177,7 +177,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
             The output symbology type to resolve to.
         limit : int, optional
             The maximum number of records to return. If `None` then no limit.
-        path : PathLike or str, optional
+        path : PathLike[str] or str, optional
             The file path to stream the data to on disk (will then return a `DBNStore`).
 
         Returns

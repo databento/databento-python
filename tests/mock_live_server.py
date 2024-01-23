@@ -15,6 +15,7 @@ import time
 from concurrent import futures
 from functools import singledispatchmethod
 from io import BytesIO
+from os import PathLike
 from typing import Callable, NewType, TypeVar
 
 import zstandard
@@ -80,7 +81,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         version: str,
         user_api_keys: dict[str, str],
         message_queue: MessageQueue,
-        dbn_path: pathlib.Path,
+        dbn_path: PathLike[str],
         mode: MockLiveMode = MockLiveMode.REPLAY,
     ) -> None:
         self.__transport: asyncio.Transport
@@ -99,7 +100,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self._is_streaming: bool = False
         self._repeater_tasks: set[asyncio.Task[None]] = set()
 
-        self._dbn_path = dbn_path
+        self._dbn_path = pathlib.Path(dbn_path)
         self._user_api_keys = user_api_keys
 
     @property
@@ -392,7 +393,6 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
             )
             self.__transport.write(bytes(auth_success))
 
-
     @handle_client_message.register(SubscriptionRequest)
     def _(self, message: SubscriptionRequest) -> None:
         logger.info("received subscription request: %s", str(message).strip())
@@ -548,7 +548,7 @@ class MockLiveServer:
         user_api_keys: dict[str, str],
         message_queue: MessageQueue,
         version: str,
-        dbn_path: pathlib.Path,
+        dbn_path: PathLike[str],
         mode: MockLiveMode,
     ) -> Callable[[], MockLiveServerProtocol]:
         def factory() -> MockLiveServerProtocol:
@@ -567,7 +567,7 @@ class MockLiveServer:
         cls,
         host: str = "localhost",
         port: int = 0,
-        dbn_path: pathlib.Path = pathlib.Path.cwd(),
+        dbn_path: PathLike[str] = pathlib.Path.cwd(),
         mode: MockLiveMode = MockLiveMode.REPLAY,
     ) -> MockLiveServer:
         """
@@ -582,7 +582,7 @@ class MockLiveServer:
         port : int
             The port to bind for the mock server.
             Defaults to 0 which will bind to an open port.
-        dbn_path : pathlib.Path (default: cwd)
+        dbn_path : PathLike[str] (default: cwd)
             A path to DBN files for streaming.
             The files must contain the schema name and end with
             `.dbn.zst`.

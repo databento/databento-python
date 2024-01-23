@@ -405,6 +405,29 @@ def test_live_subscribe(
     assert message.start == start
 
 
+@pytest.mark.usefixtures("mock_live_server")
+async def test_live_subscribe_session_id(
+    live_client: client.Live,
+) -> None:
+    """
+    Test that a session ID is assigned after the connection is authenticated.
+    """
+    # Arrange
+    old_session_id = live_client._session.session_id
+
+    # Act
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=ALL_SYMBOLS,
+    )
+
+    # Assert
+    assert live_client._session.session_id != old_session_id
+    assert live_client._session.session_id != 0
+
+
 @pytest.mark.skipif(platform.system() == "Windows", reason="timeout on windows")
 async def test_live_subscribe_large_symbol_list(
     live_client: client.Live,
