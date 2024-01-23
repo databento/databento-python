@@ -4,6 +4,7 @@
 
 #### Enhancements
 - Added `Session.session_id` property which will contain the numerical session ID once a live session has been authenticated
+- Upgraded `databento-dbn` to 0.15.1
 
 #### Breaking changes
 - Renamed `DatatbentoLiveProtocol.started` to `DatatbentoLiveProtocol.is_started` which now returns a bool instead of an `asyncio.Event`
