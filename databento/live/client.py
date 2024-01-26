@@ -127,9 +127,14 @@ class Live:
 
     def __iter__(self) -> Live:
         logger.debug("starting iteration")
-        self._dbn_queue._enabled.set()
-        if not self._session.is_started() and self.is_connected():
+        if self._session.is_started():
+            logger.error("iteration started after session has started")
+            raise ValueError(
+                "Cannot start iteration after streaming has started, records may be missed. Don't call `Live.start` before iterating.",
+            )
+        elif self.is_connected():
             self.start()
+        self._dbn_queue._enabled.set()
         return self
 
     def __next__(self) -> DBNRecord:
@@ -358,12 +363,14 @@ class Live:
         """
         Start the live client session.
 
+        It is not necessary to call `Live.start` before iterating a `Live` client and doing so will result in an error.
+
         Raises
         ------
         ValueError
-            If `start()` is called before a subscription has been made.
-            If `start()` is called after streaming has already started.
-            If `start()` is called after the live session has closed.
+            If `Live.start` is called before a subscription has been made.
+            If `Live.start` is called after streaming has already started.
+            If `Live.start` is called after the live session has closed.
 
         See Also
         --------
@@ -388,7 +395,7 @@ class Live:
         Raises
         ------
         ValueError
-            If `stop()` is called before a connection has been made.
+            If `Live.stop` is called before a connection has been made.
 
         See Also
         --------
@@ -505,7 +512,7 @@ class Live:
     ) -> None:
         """
         Block until the session closes or a timeout is reached. A session will
-        close after `stop()` is called or the remote gateway disconnects.
+        close after `Live.stop` is called or the remote gateway disconnects.
 
         Parameters
         ----------
@@ -548,7 +555,7 @@ class Live:
     ) -> None:
         """
         Coroutine to wait until the session closes or a timeout is reached. A
-        session will close after `stop()` is called or the remote gateway
+        session will close after `Live.stop` is called or the remote gateway
         disconnects.
 
         Parameters

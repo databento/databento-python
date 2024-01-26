@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.28.0 - TBD
+
+#### Breaking change
+- Iterating a `Live` client after the streaming session has started will now raise a `ValueError`. Calling `Live.start` is not necessary when iterating the `Live` client
+
 ## 0.27.0 - 2024-01-23
 
 #### Enhancements

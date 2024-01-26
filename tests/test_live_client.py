@@ -345,6 +345,48 @@ def test_live_start_before_subscribe(
         live_client.start()
 
 
+def test_live_iteration_after_start(
+    live_client: client.Live,
+) -> None:
+    """
+    Test that iterating the Live client after it is started raises a
+    ValueError.
+    """
+    # Arrange
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    # Act
+    live_client.start()
+
+    # Assert
+    with pytest.raises(ValueError):
+        iter(live_client)
+
+
+def test_live_async_iteration_after_start(
+    live_client: client.Live,
+) -> None:
+    """
+    Test that async-iterating the Live client after it is started raises a
+    ValueError.
+    """
+    # Arrange
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    # Act
+    live_client.start()
+
+    # Assert
+    with pytest.raises(ValueError):
+        live_client.__aiter__()
+
+
 @pytest.mark.parametrize(
     "schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
