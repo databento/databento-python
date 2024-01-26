@@ -837,7 +837,7 @@ async def test_live_async_iteration_backpressure(
     when the queue is depleted when iterating asynchronously.
     """
     # Arrange
-    monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 4)
+    monkeypatch.setattr(session, "DBN_QUEUE_CAPACITY", 2)
 
     live_client = client.Live(
         key=test_api_key,
@@ -878,10 +878,11 @@ async def test_live_async_iteration_dropped(
     test_api_key: str,
 ) -> None:
     """
-    Test that an artificially small queue size will drop messages when full.
+    Test that an artificially small queue size will not drop messages when
+    full.
     """
     # Arrange
-    monkeypatch.setattr(client, "DEFAULT_QUEUE_SIZE", 1)
+    monkeypatch.setattr(session, "DBN_QUEUE_CAPACITY", 1)
 
     live_client = client.Live(
         key=test_api_key,
@@ -911,7 +912,7 @@ async def test_live_async_iteration_dropped(
     records = list(live_it)
 
     # Assert
-    assert len(records) == 1
+    assert len(records) == 4
     assert live_client._dbn_queue.empty()
 
 

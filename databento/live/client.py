@@ -9,7 +9,7 @@ import threading
 from collections.abc import Iterable
 from concurrent import futures
 from os import PathLike
-from typing import IO, Final
+from typing import IO
 
 import databento_dbn
 from databento_dbn import Schema
@@ -33,7 +33,6 @@ from databento.live.session import _SessionProtocol
 
 
 logger = logging.getLogger(__name__)
-DEFAULT_QUEUE_SIZE: Final = 2048
 
 
 class Live:
@@ -85,7 +84,7 @@ class Live:
         self._dataset: Dataset | str = ""
         self._ts_out = ts_out
 
-        self._dbn_queue: DBNQueue = DBNQueue(maxsize=DEFAULT_QUEUE_SIZE)
+        self._dbn_queue: DBNQueue = DBNQueue()
         self._metadata: SessionMetadata = SessionMetadata()
         self._symbology_map: dict[int, str | int] = {}
         self._user_callbacks: dict[RecordCallback, ExceptionCallback | None] = {
@@ -120,10 +119,37 @@ class Live:
         return iter(self)
 
     async def __anext__(self) -> DBNRecord:
+        if not self._dbn_queue.is_enabled():
+            raise ValueError("iteration has not started")
+
+        loop = asyncio.get_running_loop()
+
         try:
-            return next(self)
-        except StopIteration:
-            raise StopAsyncIteration
+            return self._dbn_queue.get_nowait()
+        except queue.Empty:
+            while True:
+                try:
+                    return await loop.run_in_executor(
+                        None,
+                        self._dbn_queue.get,
+                        True,
+                        0.1,
+                    )
+                except queue.Empty:
+                    if self._session.is_disconnected():
+                        break
+        finally:
+            if not self._dbn_queue.is_full() and not self._session.is_reading():
+                logger.debug(
+                    "resuming reading with %d pending records",
+                    self._dbn_queue.qsize(),
+                )
+                self._session.resume_reading()
+
+        self._dbn_queue.disable()
+        await self.wait_for_close()
+        logger.debug("completed async iteration")
+        raise StopAsyncIteration
 
     def __iter__(self) -> Live:
         logger.debug("starting iteration")
@@ -138,30 +164,28 @@ class Live:
         return self
 
     def __next__(self) -> DBNRecord:
-        if self._dbn_queue is None:
+        if not self._dbn_queue.is_enabled():
             raise ValueError("iteration has not started")
 
-        while not self._session.is_disconnected() or self._dbn_queue.qsize() > 0:
+        while True:
             try:
-                record = self._dbn_queue.get(block=False)
+                record = self._dbn_queue.get(timeout=0.1)
             except queue.Empty:
-                continue
+                if self._session.is_disconnected():
+                    break
             else:
-                logger.debug(
-                    "yielding %s record from next",
-                    type(record).__name__,
-                )
                 return record
             finally:
-                if not self._dbn_queue.half_full() and not self._session.is_reading():
+                if not self._dbn_queue.is_full() and not self._session.is_reading():
                     logger.debug(
                         "resuming reading with %d pending records",
-                        self._dbn_queue._qsize(),
+                        self._dbn_queue.qsize(),
                     )
                     self._session.resume_reading()
 
-        self._dbn_queue._enabled.clear()
+        self._dbn_queue.disable()
         self.block_for_close()
+        logger.debug("completed iteration")
         raise StopIteration
 
     def __repr__(self) -> str:
