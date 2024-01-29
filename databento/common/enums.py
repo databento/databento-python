@@ -40,7 +40,7 @@ def coercible(enum_type: type[M]) -> type[M]:
 
     Notes
     -----
-    This decorator makes some assuptions about your Enum class.
+    This decorator makes some assumptions about your Enum class.
         1. Your attribute names are all UPPERCASE
         2. Your attribute values are all lowercase
 
@@ -99,6 +99,7 @@ class StringyMixin:
         if isinstance(self, int):
             return getattr(self, "name").lower()
         return getattr(self, "value")
+
 
 @unique
 @coercible

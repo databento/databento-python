@@ -215,7 +215,7 @@ def validate_semantic_string(value: str, param: str) -> str:
     if not value:
         raise ValueError(f"The `{param}` cannot be an empty string.")
     if str.isspace(value):
-        raise ValueError(f"The `{param}` cannot contain only whitepsace.")
+        raise ValueError(f"The `{param}` cannot contain only whitespace.")
     if not str.isprintable(value):
         raise ValueError(f"The `{param}` cannot contain unprintable characters.")
     return value

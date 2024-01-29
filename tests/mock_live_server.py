@@ -181,7 +181,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
     def user_api_keys(self) -> dict[str, str]:
         """
         Return a dictionary of user api keys for testing. The keys to this
-        dictionary are the bucket_ids. The value shoud be a single user API
+        dictionary are the bucket_ids. The value should be a single user API
         key.
 
         Returns
@@ -475,7 +475,7 @@ class MockLiveServer:
     -------
     create(host="localhost", port=0)
         Factory method to create a new MockLiveServer instance.
-        This is the prefered way to create an instance of
+        This is the preferred way to create an instance of
         this class.
 
     See Also
