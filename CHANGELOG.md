@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.28.0 - TBD
+## 0.28.0 - 2024-02-01
 
 #### Enhancements
 - Substantially increased iteration queue size
@@ -12,7 +12,7 @@
 #### Breaking changes
 - Iterating a `Live` client after the streaming session has started will now raise a `ValueError`. Calling `Live.start` is not necessary when iterating the `Live` client
 - Moved constant `databento.live.client.DEFAULT_QUEUE_SIZE` to `databento.live.session.DBN_QUEUE_CAPACITY`
-- Removed `maxsize` parameter from `DBNQueue` constructor, `None` is now used instead
+- Removed `maxsize` parameter from `DBNQueue` constructor. `DBNQueue` now subclasses `SimpleQueue` instead
 - Removed property `DBNQueue.enabled`, use `DBNQueue.is_enabled` instead
 - Removed method `DBNQueue.is_half_full`, use `DBNQueue.is_full` instead
 
