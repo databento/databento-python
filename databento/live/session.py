@@ -25,41 +25,98 @@ logger = logging.getLogger(__name__)
 
 AUTH_TIMEOUT_SECONDS: Final = 2.0
 CONNECT_TIMEOUT_SECONDS: Final = 5.0
+DBN_QUEUE_CAPACITY: Final = 2**20
 DEFAULT_REMOTE_PORT: Final = 13000
 
 
-class DBNQueue(queue.Queue):  # type: ignore [type-arg]
+class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
     """
     Queue for DBNRecords that can only be pushed to when enabled.
-
-    Parameters
-    ----------
-    maxsize : int
-        The `maxsize` for the Queue.
-
     """
 
-    def __init__(self, maxsize: int) -> None:
-        super().__init__(maxsize)
+    def __init__(self) -> None:
+        super().__init__()
         self._enabled = threading.Event()
 
-    @property
-    def enabled(self) -> bool:
+    def is_enabled(self) -> bool:
         """
-        True if the Queue will allow pushing.
+        Return True if the Queue will allow pushing; False otherwise.
 
         A queue should only be enabled when it has a consumer.
 
         """
         return self._enabled.is_set()
 
-    def half_full(self) -> bool:
+    def is_full(self) -> bool:
         """
-        Return True when the queue has reached half capacity.
+        Return True when the queue has reached capacity; False otherwise.
         """
-        with self.mutex:
-            return self._qsize() > self.maxsize // 2
+        return self.qsize() > DBN_QUEUE_CAPACITY
 
+    def enable(self) -> None:
+        """
+        Enable the DBN queue for pushing.
+        """
+        self._enabled.set()
+
+    def disable(self) -> None:
+        """
+        Disable the DBN queue for pushing.
+        """
+        self._enabled.clear()
+
+    def put(self, item: DBNRecord, block: bool = True, timeout: float | None = None) -> None:
+        """
+        Put an item on the queue if the queue is enabled.
+
+        Parameters
+        ----------
+        item: DBNRecord
+            The DBNRecord to put into the queue
+        block: bool, default True
+            Block if necessary until a free slot is available or the `timeout` is reached
+        timeout: float | None, default None
+            The maximum amount of time to block, when `block` is True, for the queue to become enabled.
+
+        Raises
+        ------
+        BentoError
+            If the queue is not enabled.
+            If the queue is not enabled within `timeout` seconds.
+
+        See Also
+        --------
+        queue.SimpleQueue.put
+
+        """
+        if self._enabled.wait(timeout):
+            return super().put(item, block, timeout)
+        if timeout is not None:
+            raise BentoError(f"queue is not enabled after {timeout} second(s)")
+        raise BentoError("queue is not enabled")
+
+    def put_nowait(self, item: DBNRecord) -> None:
+        """
+        Put an item on the queue, if the queue is enabled, without blocking.
+
+        Parameters
+        ----------
+        item: DBNRecord
+            The DBNRecord to put into the queue
+
+        Raises
+        ------
+        BentoError
+            If the queue is not enabled.
+
+        See Also
+        --------
+        queue.SimpleQueue.put_nowait
+
+        """
+        if self.is_enabled():
+            return super().put_nowait(item)
+        raise BentoError("queue is not enabled")
 
 @dataclasses.dataclass
 class SessionMetadata:
@@ -173,22 +230,16 @@ class _SessionProtocol(DatabentoLiveProtocol):
                 if exc_callback is not None:
                     exc_callback(exc)
 
-        if self._dbn_queue.enabled:
-            try:
-                self._dbn_queue.put_nowait(record)
-            except queue.Full:
-                logger.error(
-                    "record queue is full; dropped %s record ts_event=%s",
-                    type(record).__name__,
-                    record.ts_event,
+        if self._dbn_queue.is_enabled():
+            self._dbn_queue.put(record)
+
+            # DBNQueue has no max size; so check if it's above capacity, and if so, pause reading
+            if self._dbn_queue.is_full():
+                logger.warning(
+                    "record queue is full; %d record(s) to be processed",
+                    self._dbn_queue.qsize(),
                 )
-            else:
-                if self._dbn_queue.half_full():
-                    logger.warning(
-                        "record queue is full; %d record(s) to be processed",
-                        self._dbn_queue._qsize(),
-                    )
-                    self.transport.pause_reading()
+                self.transport.pause_reading()
 
         return super().received_record(record)
 

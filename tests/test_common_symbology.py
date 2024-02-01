@@ -321,6 +321,7 @@ def test_instrument_map_insert_metadata_empty_mappings(
     # Assert
     assert instrument_map._data == {}
 
+
 @pytest.mark.parametrize(
     "stype_in,symbol_in,stype_out,symbol_out,instrument_id,expected_symbol",
     [
@@ -372,7 +373,6 @@ def test_instrument_map_insert_symbol_mapping_message_v1(
 
     # Assert
     assert instrument_map.resolve(instrument_id, start_date.date()) == expected_symbol
-
 
 
 @pytest.mark.parametrize(
@@ -931,7 +931,7 @@ def test_instrument_map_symbols_json(
     schema: Schema,
 ) -> None:
     """
-    Test that a JSON file without mapped symbols is equivelant to a JSON file
+    Test that a JSON file without mapped symbols is equivalent to a JSON file
     with mapped symbols after processing with map_symbols_json.
     """
     # Arrange, Act
