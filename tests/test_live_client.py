@@ -604,11 +604,10 @@ def test_live_block_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that block_for_close terminates the session when the timeout is
-    reached.
+    Test that block_for_close stops the session when the timeout is reached.
     """
     # Arrange
-    monkeypatch.setattr(live_client, "terminate", MagicMock())
+    monkeypatch.setattr(live_client, "stop", MagicMock())
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
@@ -619,7 +618,7 @@ def test_live_block_for_close_timeout(
 
     # Act, Assert
     live_client.block_for_close(timeout=0)
-    live_client.terminate.assert_called_once()  # type: ignore
+    live_client.stop.assert_called_once()  # type: ignore
 
 
 @pytest.mark.usefixtures("mock_live_server")
@@ -679,11 +678,10 @@ async def test_live_wait_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that wait_for_close terminates the session when the timeout is
-    reached.
+    Test that wait_for_close stops the session when the timeout is reached.
     """
     # Arrange
-    monkeypatch.setattr(live_client, "terminate", MagicMock())
+    monkeypatch.setattr(live_client, "stop", MagicMock())
 
     # Act
     live_client.subscribe(
@@ -696,7 +694,7 @@ async def test_live_wait_for_close_timeout(
     await live_client.wait_for_close(timeout=0)
 
     # Assert
-    live_client.terminate.assert_called_once()  # type: ignore
+    live_client.stop.assert_called_once()  # type: ignore
 
 
 @pytest.mark.usefixtures("mock_live_server")

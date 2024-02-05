@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.28.1 - TBD
+
+#### Bug fixes
+- `Live.block_for_close` and `Live.wait_for_close` will now call `Live.stop` when a timeout is reached instead of `Live.terminate` to close the stream more gracefully
+
 ## 0.28.0 - 2024-02-01
 
 #### Enhancements
