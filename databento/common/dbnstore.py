@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+import pytz
 import zstandard
 from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import Compression
@@ -47,6 +48,7 @@ from databento.common.constants import SCHEMA_STRUCT_MAP_V1
 from databento.common.error import BentoError
 from databento.common.symbology import InstrumentMap
 from databento.common.types import DBNRecord
+from databento.common.types import Default
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
@@ -830,6 +832,7 @@ class DBNStore:
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
+        tz: pytz.BaseTzInfo | str = ...,
         count: None = ...,
     ) -> pd.DataFrame:
         ...
@@ -841,6 +844,7 @@ class DBNStore:
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
+        tz: pytz.BaseTzInfo | str = ...,
         count: int = ...,
     ) -> DataFrameIterator:
         ...
@@ -851,6 +855,7 @@ class DBNStore:
         pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
+        tz: pytz.BaseTzInfo | str | Default[pytz.BaseTzInfo] = Default[pytz.BaseTzInfo](pytz.UTC),
         count: int | None = None,
     ) -> pd.DataFrame | DataFrameIterator:
         """
@@ -865,7 +870,7 @@ class DBNStore:
             If "decimal", prices will be instances of `decimal.Decimal`.
         pretty_ts : bool, default True
             If all timestamp columns should be converted from UNIX nanosecond
-            `int` to tz-aware UTC `pd.Timestamp`.
+            `int` to tz-aware `pd.Timestamp`. The timezone can be specified using the `tz` parameter.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
@@ -873,6 +878,8 @@ class DBNStore:
         schema : Schema or str, optional
             The DBN schema for the dataframe.
             This is only required when reading a DBN stream with mixed record types.
+        tz : pytz.BaseTzInfo or str, default UTC
+            If `pretty_ts` is `True`, all timestamps will be converted to the specified timezone.
         count : int, optional
             If set, instead of returning a single `DataFrame` a `DataFrameIterator`
             instance will be returned. When iterated, this object will yield
@@ -892,6 +899,14 @@ class DBNStore:
 
         """
         schema = validate_maybe_enum(schema, Schema, "schema")
+
+        if isinstance(tz, Default):
+            tz = tz.value  # consume default
+        elif not pretty_ts:
+            raise ValueError("A timezone was specified when `pretty_ts` is `False`. Did you mean to set `pretty_ts=True`?")
+
+        if not isinstance(tz, pytz.BaseTzInfo):
+            tz = pytz.timezone(tz)
         if schema is None:
             if self.schema is None:
                 raise ValueError("a schema must be specified for mixed DBN data")
@@ -910,6 +925,7 @@ class DBNStore:
             count=count,
             struct_type=self._schema_struct_map[schema],
             instrument_map=self._instrument_map,
+            tz=tz,
             price_type=price_type,
             pretty_ts=pretty_ts,
             map_symbols=map_symbols,
@@ -1334,6 +1350,7 @@ class DataFrameIterator:
         count: int | None,
         struct_type: type[DBNRecord],
         instrument_map: InstrumentMap,
+        tz: pytz.BaseTzInfo,
         price_type: Literal["fixed", "float", "decimal"] = "float",
         pretty_ts: bool = True,
         map_symbols: bool = True,
@@ -1345,6 +1362,7 @@ class DataFrameIterator:
         self._pretty_ts = pretty_ts
         self._map_symbols = map_symbols
         self._instrument_map = instrument_map
+        self._tz = tz
 
     def __iter__(self) -> DataFrameIterator:
         return self
@@ -1411,7 +1429,7 @@ class DataFrameIterator:
 
     def _format_pretty_ts(self, df: pd.DataFrame) -> None:
         for field in self._struct_type._timestamp_fields:
-            df[field] = pd.to_datetime(df[field], utc=True, errors="coerce")
+            df[field] = pd.to_datetime(df[field], utc=True, errors="coerce").dt.tz_convert(self._tz)
 
     def _format_set_index(self, df: pd.DataFrame) -> None:
         index_column = self._struct_type._ordered_fields[0]
