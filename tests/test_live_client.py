@@ -4,7 +4,6 @@ Unit tests for the Live client.
 from __future__ import annotations
 
 import pathlib
-import platform
 import random
 import string
 from io import BytesIO
@@ -470,7 +469,6 @@ async def test_live_subscribe_session_id(
     assert live_client._session.session_id != 0
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="timeout on windows")
 async def test_live_subscribe_large_symbol_list(
     live_client: client.Live,
     mock_live_server: MockLiveServer,
@@ -795,7 +793,6 @@ def test_live_add_stream_path_directory(
         live_client.add_stream(tmp_path)
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:
@@ -824,7 +821,6 @@ async def test_live_async_iteration(
     assert isinstance(records[3], databento_dbn.MBOMsg)
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_backpressure(
     monkeypatch: pytest.MonkeyPatch,
     mock_live_server: MockLiveServer,
@@ -869,7 +865,6 @@ async def test_live_async_iteration_backpressure(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_dropped(
     monkeypatch: pytest.MonkeyPatch,
     mock_live_server: MockLiveServer,
@@ -914,7 +909,6 @@ async def test_live_async_iteration_dropped(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_stop(
     live_client: client.Live,
 ) -> None:
@@ -941,7 +935,6 @@ async def test_live_async_iteration_stop(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 def test_live_sync_iteration(
     live_client: client.Live,
 ) -> None:
