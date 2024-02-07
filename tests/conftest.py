@@ -8,13 +8,11 @@ import pathlib
 import random
 import string
 import threading
-from collections.abc import AsyncGenerator
 from collections.abc import Generator
 from collections.abc import Iterable
 from typing import Callable
 
 import pytest
-import pytest_asyncio
 from databento import historical
 from databento import live
 from databento.common.publishers import Dataset
@@ -200,13 +198,35 @@ def fixture_test_api_key() -> str:
     return f"db-{random_str}"
 
 
-@pytest_asyncio.fixture(name="mock_live_server")
-async def fixture_mock_live_server(
+@pytest.fixture(name="thread_loop", scope="session")
+def fixture_thread_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
+    """
+    Fixture for a threaded event loop.
+
+    Yields
+    ------
+    asyncio.AbstractEventLoop
+
+    """
+    loop = asyncio.new_event_loop()
+    thread = threading.Thread(
+        name="MockLiveServer",
+        target=loop.run_forever,
+        args=(),
+        daemon=True,
+    )
+    thread.start()
+    yield loop
+    loop.stop()
+
+@pytest.fixture(name="mock_live_server")
+def fixture_mock_live_server(
+    thread_loop: asyncio.AbstractEventLoop,
     test_api_key: str,
     caplog: pytest.LogCaptureFixture,
     unused_tcp_port: int,
     monkeypatch: pytest.MonkeyPatch,
-) -> AsyncGenerator[MockLiveServer, None]:
+) -> Generator[MockLiveServer, None, None]:
     """
     Fixture for a MockLiveServer instance.
 
@@ -229,16 +249,6 @@ async def fixture_mock_live_server(
         "CONNECT_TIMEOUT_SECONDS",
         1,
     )
-
-    loop = asyncio.new_event_loop()
-    thread = threading.Thread(
-        name="MockLiveServer",
-        target=loop.run_forever,
-        args=(),
-        daemon=True,
-    )
-    thread.start()
-
     with caplog.at_level("DEBUG"):
         mock_live_server = asyncio.run_coroutine_threadsafe(
             coro=MockLiveServer.create(
@@ -246,23 +256,15 @@ async def fixture_mock_live_server(
                 port=unused_tcp_port,
                 dbn_path=TESTS_ROOT / "data",
             ),
-            loop=loop,
+            loop=thread_loop,
         ).result()
 
         yield mock_live_server
 
         asyncio.run_coroutine_threadsafe(
             coro=mock_live_server.stop(),
-            loop=loop,
+            loop=thread_loop,
         ).result()
-
-        loop.run_in_executor(
-            None,
-            loop.stop,
-        )
-
-        thread.join()
-
 
 @pytest.fixture(name="historical_client")
 def fixture_historical_client(
