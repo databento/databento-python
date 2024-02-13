@@ -463,8 +463,7 @@ class Live:
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
         start : str or int, optional
-            UNIX nanosecond epoch timestamp to start streaming from. Must be
-            within 24 hours.
+            UNIX nanosecond epoch timestamp to start streaming from (inclusive), based on `ts_event`. Must be within 24 hours except when requesting the mbo or definition schemas.
 
         Raises
         ------
