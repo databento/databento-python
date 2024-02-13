@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.29.0 - 2024-02-13
+
+#### Enhancements
+- Added `tz` parameter to `DBNStore.to_df` which will convert all timestamp fields from UTC to a specified timezone when used with `pretty_ts`
+
+#### Bug fixes
+- `Live.block_for_close` and `Live.wait_for_close` will now call `Live.stop` when a timeout is reached instead of `Live.terminate` to close the stream more gracefully
+
 ## 0.28.0 - 2024-02-01
 
 #### Enhancements

@@ -13,7 +13,9 @@ import databento.common.dbnstore
 import numpy as np
 import pandas as pd
 import pytest
+import pytz
 import zstandard
+from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
@@ -1330,3 +1332,68 @@ def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
 
     # Assert
     assert len(df_iter) == 4
+
+
+@pytest.mark.parametrize(
+    "timezone",
+    [
+        "US/Central",
+        "US/Eastern",
+        "Europe/Vienna",
+        "Asia/Dubai",
+        "UTC",
+    ],
+)
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+def test_dbnstore_to_df_with_timezone(
+    test_data: Callable[[Dataset, Schema], bytes],
+    schema: Schema,
+    timezone: str,
+) -> None:
+    """
+    Test that setting the `tz` parameter in `DBNStore.to_df` converts all
+    timestamp fields into the specified timezone.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
+    )
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    # Act
+    df = dbnstore.to_df(tz=timezone)
+    df.reset_index(inplace=True)
+
+    # Assert
+    expected_timezone = pytz.timezone(timezone)._utcoffset
+    failures = []
+    struct = SCHEMA_STRUCT_MAP[schema]
+    for field in struct._timestamp_fields:
+        if df[field].dt.tz._utcoffset != expected_timezone:
+            failures.append(field)
+
+    assert not failures
+
+
+def test_dbnstore_to_df_with_timezone_pretty_ts_error(
+    test_data: Callable[[Dataset, Schema], bytes],
+) -> None:
+    """
+    Test that setting the `tz` parameter in `DBNStore.to_df` when `pretty_ts`
+    is `False` causes an error.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
+    )
+    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+
+    # Act, Assert
+    with pytest.raises(ValueError):
+        dbnstore.to_df(
+            pretty_ts=False,
+            tz=pytz.UTC,
+        )

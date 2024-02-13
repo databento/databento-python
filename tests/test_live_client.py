@@ -4,7 +4,6 @@ Unit tests for the Live client.
 from __future__ import annotations
 
 import pathlib
-import platform
 import random
 import string
 from io import BytesIO
@@ -470,7 +469,6 @@ async def test_live_subscribe_session_id(
     assert live_client._session.session_id != 0
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="timeout on windows")
 async def test_live_subscribe_large_symbol_list(
     live_client: client.Live,
     mock_live_server: MockLiveServer,
@@ -604,11 +602,10 @@ def test_live_block_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that block_for_close terminates the session when the timeout is
-    reached.
+    Test that block_for_close stops the session when the timeout is reached.
     """
     # Arrange
-    monkeypatch.setattr(live_client, "terminate", MagicMock())
+    monkeypatch.setattr(live_client, "stop", MagicMock())
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
@@ -619,7 +616,7 @@ def test_live_block_for_close_timeout(
 
     # Act, Assert
     live_client.block_for_close(timeout=0)
-    live_client.terminate.assert_called_once()  # type: ignore
+    live_client.stop.assert_called_once()  # type: ignore
 
 
 @pytest.mark.usefixtures("mock_live_server")
@@ -679,11 +676,10 @@ async def test_live_wait_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that wait_for_close terminates the session when the timeout is
-    reached.
+    Test that wait_for_close stops the session when the timeout is reached.
     """
     # Arrange
-    monkeypatch.setattr(live_client, "terminate", MagicMock())
+    monkeypatch.setattr(live_client, "stop", MagicMock())
 
     # Act
     live_client.subscribe(
@@ -696,7 +692,7 @@ async def test_live_wait_for_close_timeout(
     await live_client.wait_for_close(timeout=0)
 
     # Assert
-    live_client.terminate.assert_called_once()  # type: ignore
+    live_client.stop.assert_called_once()  # type: ignore
 
 
 @pytest.mark.usefixtures("mock_live_server")
@@ -797,7 +793,6 @@ def test_live_add_stream_path_directory(
         live_client.add_stream(tmp_path)
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:
@@ -826,7 +821,6 @@ async def test_live_async_iteration(
     assert isinstance(records[3], databento_dbn.MBOMsg)
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_backpressure(
     monkeypatch: pytest.MonkeyPatch,
     mock_live_server: MockLiveServer,
@@ -871,7 +865,6 @@ async def test_live_async_iteration_backpressure(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_dropped(
     monkeypatch: pytest.MonkeyPatch,
     mock_live_server: MockLiveServer,
@@ -916,7 +909,6 @@ async def test_live_async_iteration_dropped(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 async def test_live_async_iteration_stop(
     live_client: client.Live,
 ) -> None:
@@ -943,7 +935,6 @@ async def test_live_async_iteration_stop(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows runner")
 def test_live_sync_iteration(
     live_client: client.Live,
 ) -> None:

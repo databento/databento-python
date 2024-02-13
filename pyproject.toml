@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "databento"
-version = "0.28.0"
+version = "0.29.0"
 description = "Official Python client library for Databento"
 authors = [
     "Databento <support@databento.com>",
@@ -51,6 +51,7 @@ ruff = "^0.0.291"
 types-requests = "^2.30.0.0"
 tomli = "^2.0.1"
 teamcity-messages = "^1.32"
+types-pytz = "^2024.1.0.20240203"
 
 [build-system]
 requires = ["poetry-core"]

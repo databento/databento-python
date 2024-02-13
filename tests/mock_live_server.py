@@ -711,7 +711,6 @@ class MockLiveServer:
         )
 
         self.server.close()
-        await self.server.wait_closed()
 
 
 if __name__ == "__main__":

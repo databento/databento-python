@@ -463,8 +463,7 @@ class Live:
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
         start : str or int, optional
-            UNIX nanosecond epoch timestamp to start streaming from. Must be
-            within 24 hours.
+            UNIX nanosecond epoch timestamp to start streaming from (inclusive), based on `ts_event`. Must be within 24 hours except when requesting the mbo or definition schemas.
 
         Raises
         ------
@@ -538,6 +537,9 @@ class Live:
         Block until the session closes or a timeout is reached. A session will
         close after `Live.stop` is called or the remote gateway disconnects.
 
+        If a `timeout` is specified, `Live.stop` will be called when the
+        timeout is reached.
+
         Parameters
         ----------
         timeout : float, optional
@@ -562,8 +564,8 @@ class Live:
                 loop=Live._loop,
             ).result(timeout=timeout)
         except (futures.TimeoutError, KeyboardInterrupt) as exc:
-            logger.info("terminating session due to %s", type(exc).__name__)
-            self.terminate()
+            logger.info("closing session due to %s", type(exc).__name__)
+            self.stop()
             if isinstance(exc, KeyboardInterrupt):
                 raise
         except BentoError:
@@ -581,6 +583,9 @@ class Live:
         Coroutine to wait until the session closes or a timeout is reached. A
         session will close after `Live.stop` is called or the remote gateway
         disconnects.
+
+        If a `timeout` is specified, `Live.stop` will be called when the
+        timeout is reached.
 
         Parameters
         ----------
@@ -610,8 +615,8 @@ class Live:
         try:
             await asyncio.wait_for(waiter, timeout=timeout)
         except (asyncio.TimeoutError, KeyboardInterrupt) as exc:
-            logger.info("terminating session due to %s", type(exc).__name__)
-            self.terminate()
+            logger.info("closing session due to %s", type(exc).__name__)
+            self.stop()
             if isinstance(exc, KeyboardInterrupt):
                 raise
         except BentoError:
