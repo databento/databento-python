@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.29.0 - TBD
+## 0.29.0 - 2024-02-13
 
 #### Enhancements
 - Added `tz` parameter to `DBNStore.to_df` which will convert all timestamp fields from UTC to a specified timezone when used with `pretty_ts`
