@@ -15,6 +15,8 @@ from databento_dbn import Schema
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 @pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema.variants()])
@@ -42,6 +44,8 @@ def test_memory_data_source(
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 @pytest.mark.parametrize("schema", [pytest.param(x) for x in Schema.variants()])

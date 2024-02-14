@@ -1,6 +1,7 @@
 """
 Utility to generate stub data for testing purposes.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -55,15 +56,48 @@ MANIFEST: Final = {
         (Schema.TBBO, ["AAPL  230331C00157500"], "2023-03-28"),
         (Schema.TRADES, ["AAPL  230331C00157500"], "2023-03-28"),
         (Schema.OHLCV_1S, ["AAPL  230331C00157500"], "2023-03-28"),
+        (Schema.OHLCV_1M, ["AAPL  230331C00157500"], "2023-03-28"),
+        (Schema.OHLCV_1H, ["AAPL  230331C00157500"], "2023-03-28"),
+        (Schema.OHLCV_1D, ["AAPL  230331C00157500"], "2023-03-28"),
         (Schema.DEFINITION, ["AAPL  230331C00157500"], "2023-03-28"),
         (Schema.STATISTICS, ["AAPL  230331C00157500"], "2023-03-28"),
     ],
     Dataset.DBEQ_BASIC: [
         (Schema.MBP_1, ["QQQ"], "2023-03-28"),
+        (Schema.MBP_10, ["QQQ"], "2023-03-28"),
         (Schema.TBBO, ["QQQ"], "2023-03-28"),
         (Schema.TRADES, ["QQQ"], "2023-03-28"),
         (Schema.OHLCV_1S, ["QQQ"], "2023-03-28"),
+        (Schema.OHLCV_1M, ["QQQ"], "2023-03-28"),
+        (Schema.OHLCV_1H, ["QQQ"], "2023-03-28"),
+        (Schema.OHLCV_1D, ["QQQ"], "2023-03-28"),
         (Schema.DEFINITION, ["QQQ"], "2023-03-28"),
+    ],
+    Dataset.IFEU_IMPACT: [
+        (Schema.MBO, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.MBP_1, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.MBP_10, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.TBBO, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.TRADES, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.OHLCV_1S, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.OHLCV_1M, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.OHLCV_1H, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.OHLCV_1D, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.DEFINITION, ["BRN FMJ0024!"], "2024-01-18"),
+        (Schema.STATISTICS, ["BRN FMJ0024!"], "2024-01-18"),
+    ],
+    Dataset.NDEX_IMPACT: [
+        (Schema.MBO, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.MBP_1, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.MBP_10, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.TBBO, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.TRADES, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.OHLCV_1S, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.OHLCV_1M, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.OHLCV_1H, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.OHLCV_1D, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.DEFINITION, ["TFM FMH0024!"], "2024-01-18"),
+        (Schema.STATISTICS, ["TFM FMH0024!"], "2024-01-18"),
     ],
 }
 

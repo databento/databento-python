@@ -449,6 +449,8 @@ def test_to_df_with_price_type_handles_null(
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 @pytest.mark.parametrize(

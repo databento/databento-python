@@ -1003,6 +1003,8 @@ async def test_live_callback(
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 @pytest.mark.parametrize(
@@ -1054,6 +1056,8 @@ async def test_live_stream_to_dbn(
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 @pytest.mark.parametrize(
