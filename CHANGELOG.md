@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.30.0 - TBD
+
+#### Enhancements
+- Changed how `SymbolMappingMsg` objects are ingested by `InstrumentMap` to single source the timestamp parsing from the `dbn` package.
+
+#### Breaking changes
+- Changed `Live.add_stream` to use the exclusive write mode when handling file paths so existing files won't be overwritten.
+
 ## 0.29.0 - 2024-02-13
 
 #### Enhancements

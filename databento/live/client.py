@@ -357,6 +357,7 @@ class Live:
             If `stream` is not a writable byte stream.
         OSError
             If `stream` is not a path to a writeable file.
+            If `stream` is a path to a file that exists.
 
         See Also
         --------
@@ -364,7 +365,7 @@ class Live:
 
         """
         if isinstance(stream, (str, PathLike)):
-            stream = pathlib.Path(stream).open("wb")
+            stream = pathlib.Path(stream).open("xb")
 
         if not hasattr(stream, "write"):
             raise ValueError(f"{type(stream).__name__} does not support write()")
