@@ -978,7 +978,7 @@ def test_dbnstore_buffer_rewind(
 )
 def test_dbnstore_to_ndarray_with_count(
     schema: Schema,
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
     count: int,
 ) -> None:
     """
@@ -986,13 +986,9 @@ def test_dbnstore_to_ndarray_with_count(
     without.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
-    )
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, schema))
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     expected = dbnstore.to_ndarray()
     nd_iter = dbnstore.to_ndarray(count=count)
 
@@ -1030,7 +1026,7 @@ def test_dbnstore_to_ndarray_with_count(
 )
 def test_dbnstore_to_ndarray_with_count_live(
     schema: Schema,
-    live_test_data: bytes,
+    live_test_data_path: Path,
     count: int,
 ) -> None:
     """
@@ -1038,11 +1034,9 @@ def test_dbnstore_to_ndarray_with_count_live(
     without.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    dbnstore = DBNStore.from_file(live_test_data_path)
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     expected = dbnstore.to_ndarray(schema=schema)
     nd_iter = dbnstore.to_ndarray(schema=schema, count=count)
 
@@ -1062,20 +1056,16 @@ def test_dbnstore_to_ndarray_with_count_live(
 )
 def test_dbnstore_to_ndarray_with_schema(
     schema: Schema,
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     """
     Test that calling to_ndarray with schema produces an identical result to
     without.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
-    )
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, schema))
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     expected = dbnstore.to_ndarray()
     actual = dbnstore.to_ndarray(schema=schema)
 
@@ -1085,22 +1075,16 @@ def test_dbnstore_to_ndarray_with_schema(
 
 
 def test_dbnstore_to_ndarray_with_count_empty(
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     """
     Test that calling to_ndarray on a DBNStore that contains no data with count
     set returns an iterator for one empty ndarray.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
-        .read()
-    )
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.TRADES))
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     nd_iter = dbnstore.to_ndarray(
         schema=Schema.MBO,
         count=10,
@@ -1126,16 +1110,14 @@ def test_dbnstore_to_ndarray_with_count_empty(
     ],
 )
 def test_dbnstore_to_ndarray_with_schema_live(
-    live_test_data: bytes,
+    live_test_data_path: Path,
     schema: Schema,
     expected_count: int,
 ) -> None:
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    dbnstore = DBNStore.from_file(live_test_data_path)
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     array = dbnstore.to_ndarray(schema=schema)
 
     # Assert
@@ -1143,22 +1125,16 @@ def test_dbnstore_to_ndarray_with_schema_live(
 
 
 def test_dbnstore_to_ndarray_with_schema_empty(
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     """
     Test that calling to_ndarray on a DBNStore that contains no data of the
     specified schema returns an empty DataFrame.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
-        .read()
-    )
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.TRADES))
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     array = dbnstore.to_ndarray(schema=Schema.MBO)
 
     # Assert
@@ -1166,18 +1142,15 @@ def test_dbnstore_to_ndarray_with_schema_empty(
 
 
 def test_dbnstore_to_ndarray_with_schema_empty_live(
-    live_test_data: bytes,
+    live_test_data_path: Path,
 ) -> None:
     """
     Test that a schema must be specified for live data.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    dbnstore = DBNStore.from_file(path=live_test_data_path)
 
-    # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
-    # Assert
+    # Act, Assert
     with pytest.raises(ValueError):
         dbnstore.to_ndarray()
 
@@ -1196,20 +1169,16 @@ def test_dbnstore_to_ndarray_with_schema_empty_live(
 )
 def test_dbnstore_to_df_with_count(
     schema: Schema,
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
     count: int,
 ) -> None:
     """
     Test that calling to_df with count produces an identical result to without.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
-    )
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, schema))
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     expected = dbnstore.to_df()
     df_iter = dbnstore.to_df(count=count)
 
@@ -1243,18 +1212,16 @@ def test_dbnstore_to_df_with_count(
 )
 def test_dbnstore_to_df_with_schema_live(
     schema: Schema,
-    live_test_data: bytes,
+    live_test_data_path: Path,
     expected_count: int,
 ) -> None:
     """
     Test that calling to_df with schema produces a DataFrame for live data.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    dbnstore = DBNStore.from_file(path=live_test_data_path)
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     df = dbnstore.to_df(schema=schema)
 
     # Assert
@@ -1262,22 +1229,16 @@ def test_dbnstore_to_df_with_schema_live(
 
 
 def test_dbnstore_to_df_with_schema_empty(
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     """
     Test that calling to_df on a DBNStore that contains no data of the
     specified schema returns an empty DataFrame.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
-        .read()
-    )
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.TRADES))
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     df = dbnstore.to_df(schema=Schema.MBO)
 
     # Assert
@@ -1285,22 +1246,16 @@ def test_dbnstore_to_df_with_schema_empty(
 
 
 def test_dbnstore_to_df_with_count_empty(
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     """
     Test that calling to_df on a DBNStore that contains no data with count set
     returns an iterator for one empty DataFrame.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
-        .read()
-    )
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.TRADES))
 
     # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
-
     df_iter = dbnstore.to_df(
         schema=Schema.MBO,
         count=10,
@@ -1311,7 +1266,7 @@ def test_dbnstore_to_df_with_count_empty(
 
 
 def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
@@ -1320,16 +1275,10 @@ def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
     set.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data(Dataset.GLBX_MDP3, Schema.TRADES))
-        .read()
-    )
-
-    # Act
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.TRADES))
     monkeypatch.setattr(DBNStore, "stype_out", MagicMock(return_type=SType.RAW_SYMBOL))
 
+    # Act
     df_iter = dbnstore.to_df()
 
     # Assert
@@ -1351,7 +1300,7 @@ def test_dbnstore_to_df_cannot_map_symbols_default_to_false(
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
 )
 def test_dbnstore_to_df_with_timezone(
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
     schema: Schema,
     timezone: str,
 ) -> None:
@@ -1360,10 +1309,7 @@ def test_dbnstore_to_df_with_timezone(
     timestamp fields into the specified timezone.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, schema)).read()
-    )
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, schema))
 
     # Act
     df = dbnstore.to_df(tz=timezone)
@@ -1381,17 +1327,14 @@ def test_dbnstore_to_df_with_timezone(
 
 
 def test_dbnstore_to_df_with_timezone_pretty_ts_error(
-    test_data: Callable[[Dataset, Schema], bytes],
+    test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     """
     Test that setting the `tz` parameter in `DBNStore.to_df` when `pretty_ts`
     is `False` causes an error.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
-    )
-    dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
 
     # Act, Assert
     with pytest.raises(ValueError):
@@ -1399,3 +1342,30 @@ def test_dbnstore_to_df_with_timezone_pretty_ts_error(
             pretty_ts=False,
             tz=pytz.UTC,
         )
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+def test_dbnstore_to_df_with_timezone_map_symbols(
+    test_data_path: Callable[[Dataset, Schema], Path],
+    schema: Schema,
+) -> None:
+    """
+    Test that setting the `tz` parameter in `DBNStore.to_df` does not affect
+    symbol mappings.
+
+    This test relies on the offset of 'Pacific/Midway' being large
+    enough to push records into the previous day which will be outside
+    the symbology mappings.
+
+    """
+    # Arrange
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, schema))
+
+    # Act
+    df = dbnstore.to_df(tz="Pacific/Midway")
+
+    # Assert
+    assert df["symbol"].notna().all()

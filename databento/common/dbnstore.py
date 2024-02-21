@@ -1378,15 +1378,18 @@ class DataFrameIterator:
 
         self._format_hidden_fields(df)
 
-        self._format_px(df, self._price_type)
-
         if self._pretty_ts:
             self._format_pretty_ts(df)
 
-        self._format_set_index(df)
-
         if self._map_symbols:
             self._format_map_symbols(df)
+
+        if self._pretty_ts:
+            self._format_timezone(df)
+
+        self._format_px(df, self._price_type)
+
+        self._format_set_index(df)
 
         return df
 
@@ -1402,12 +1405,19 @@ class DataFrameIterator:
                 df[column] = df[column].str.decode("utf-8")
 
     def _format_map_symbols(self, df: pd.DataFrame) -> None:
-        df_index = df.index if self._pretty_ts else pd.to_datetime(df.index, utc=True)
+        # the first ordered field will be ts_recv or ts_event when appropriate
+        ts_name = self._struct_type._ordered_fields[0]
+
+        df_index = df[ts_name] if self._pretty_ts else pd.to_datetime(df[ts_name], utc=True)
         dates = [ts.date() for ts in df_index]
         df["symbol"] = [
             self._instrument_map.resolve(inst, dates[i])
             for i, inst in enumerate(df["instrument_id"])
         ]
+
+    def _format_timezone(self, df: pd.DataFrame) -> None:
+        for field in self._struct_type._timestamp_fields:
+            df[field] = df[field].dt.tz_convert(self._tz)
 
     def _format_px(
         self,
@@ -1429,8 +1439,9 @@ class DataFrameIterator:
 
     def _format_pretty_ts(self, df: pd.DataFrame) -> None:
         for field in self._struct_type._timestamp_fields:
-            df[field] = pd.to_datetime(df[field], utc=True, errors="coerce").dt.tz_convert(self._tz)
+            df[field] = pd.to_datetime(df[field], utc=True, errors="coerce")
 
     def _format_set_index(self, df: pd.DataFrame) -> None:
+        # the first ordered field will be ts_recv or ts_event when appropriate
         index_column = self._struct_type._ordered_fields[0]
         df.set_index(index_column, inplace=True)

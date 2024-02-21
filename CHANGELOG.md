@@ -3,10 +3,13 @@
 ## 0.30.0 - TBD
 
 #### Enhancements
-- Changed how `SymbolMappingMsg` objects are ingested by `InstrumentMap` to single source the timestamp parsing from the `dbn` package.
+- Changed how `SymbolMappingMsg` objects are ingested by `InstrumentMap` to single source the timestamp parsing from the `databento-dbn` package
+
+#### Bug fixes
+- Fixed an issue where setting a timezone in `DBNStore.to_df` could cause invalid symbol mappings
 
 #### Breaking changes
-- Changed `Live.add_stream` to use the exclusive write mode when handling file paths so existing files won't be overwritten.
+- Changed `Live.add_stream` to use the exclusive write mode when handling file paths so existing files won't be overwritten
 
 ## 0.29.0 - 2024-02-13
 
