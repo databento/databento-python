@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.30.0 - TBD
+## 0.30.0 - 2024-02-22
 
 #### Enhancements
 - Changed how `SymbolMappingMsg` objects are ingested by `InstrumentMap` to single source the timestamp parsing from the `databento-dbn` package
