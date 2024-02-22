@@ -17,6 +17,8 @@ from tests.mock_live_server import MockLiveServer
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 async def test_protocol_connection(
@@ -51,6 +53,8 @@ async def test_protocol_connection(
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 async def test_protocol_connection_streaming(

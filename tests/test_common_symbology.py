@@ -852,6 +852,8 @@ def test_instrument_map_ignore_duplicate(
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
         Dataset.DBEQ_BASIC,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
     ],
 )
 @pytest.mark.parametrize(

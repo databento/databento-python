@@ -1,9 +1,21 @@
 # Changelog
 
+## 0.30.0 - 2024-02-22
+
+#### Enhancements
+- Changed how `SymbolMappingMsg` objects are ingested by `InstrumentMap` to single source the timestamp parsing from the `databento-dbn` package
+
+#### Bug fixes
+- Fixed an issue where setting a timezone in `DBNStore.to_df` could cause invalid symbol mappings
+
+#### Breaking changes
+- Changed `Live.add_stream` to use the exclusive write mode when handling file paths so existing files won't be overwritten
+
 ## 0.29.0 - 2024-02-13
 
 #### Enhancements
 - Added `tz` parameter to `DBNStore.to_df` which will convert all timestamp fields from UTC to a specified timezone when used with `pretty_ts`
+- Added new publisher values for consolidated DBEQ.MAX
 
 #### Bug fixes
 - `Live.block_for_close` and `Live.wait_for_close` will now call `Live.stop` when a timeout is reached instead of `Live.terminate` to close the stream more gracefully

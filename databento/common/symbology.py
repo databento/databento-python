@@ -297,12 +297,12 @@ class InstrumentMap:
         if msg.start_ts == UNDEF_TIMESTAMP:
             start_ts = pd.Timestamp.min
         else:
-            start_ts = msg.start_ts
+            start_ts = msg.pretty_start_ts
 
         if msg.end_ts == UNDEF_TIMESTAMP:
             end_ts = pd.Timestamp.max
         else:
-            end_ts = msg.end_ts
+            end_ts = msg.pretty_end_ts
 
         # Need to decide if we care about the input or output symbol
         # For smart symbology, the output symbol is more useful
@@ -314,8 +314,8 @@ class InstrumentMap:
         self._insert_interval(
             msg.hd.instrument_id,
             MappingInterval(
-                start_date=pd.Timestamp(start_ts, unit="ns", tz="utc").date(),
-                end_date=pd.Timestamp(end_ts, unit="ns", tz="utc").date(),
+                start_date=start_ts.date(),
+                end_date=end_ts.date(),
                 symbol=symbol,
             ),
         )
