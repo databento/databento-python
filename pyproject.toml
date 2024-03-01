@@ -57,6 +57,9 @@ types-pytz = "^2024.1.0.20240203"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line_length = 100
+
 [tool.mypy]
 python_version = 3.8
 disallow_untyped_defs = true

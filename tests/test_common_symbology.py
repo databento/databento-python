@@ -961,3 +961,38 @@ def test_instrument_map_symbols_json(
     # Assert
     assert outfile == written_path
     assert outfile.read_text() == expected_path.read_text()
+
+
+def test_insert_symbology_json_mismatched_stypes(
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
+) -> None:
+    """
+    Test setting JSON symbology data.
+    """
+    # Arrange
+    store = DBNStore.from_file(test_data_path(Dataset.XNAS_ITCH, Schema.TRADES))
+
+    result = {
+        "NVDA": [
+            {
+                "d0": store.start.date().isoformat(),
+                "d1": store.end.date().isoformat(),
+                "s": "6155",
+            },
+        ],
+    }
+    sym_resp = create_symbology_response(
+        result=result,
+        symbols=store.symbols,
+        stype_in=SType.RAW_SYMBOL,
+        stype_out=SType.INSTRUMENT_ID,
+        start_date=store.start.date(),
+        end_date=store.end.date(),
+    )
+
+    # Act
+    store.insert_symbology_json(sym_resp)
+
+    # Assert
+    assert store.to_df().iloc[0]["symbol"] == "NVDA"
+    assert store.to_df().iloc[0]["instrument_id"] == 6155

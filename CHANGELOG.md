@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.31.0 - TBD
+
+#### Enhancements
+- Added `DBNStore.insert_symbology_json` convenience method for adding symbology data from a JSON dict or file path
+
 ## 0.30.0 - 2024-02-22
 
 #### Enhancements
