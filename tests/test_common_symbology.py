@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 import pathlib
 from collections.abc import Iterable
+from collections.abc import Sequence
 from typing import Callable
 from typing import NamedTuple
 
+import databento_dbn
 import pandas as pd
 import pytest
 from databento.common.dbnstore import DBNStore
@@ -149,7 +151,7 @@ def create_symbol_mapping_message(
     SymbolMappingMsg
 
     """
-    return SymbolMappingMsg(
+    return SymbolMappingMsg(  # type: ignore [call-arg]
         publisher_id=publisher_id,
         instrument_id=instrument_id,
         ts_event=ts_event,
@@ -163,7 +165,7 @@ def create_symbol_mapping_message(
 
 
 def create_metadata(
-    mappings: Iterable[SymbolMapping],
+    mappings: Sequence[databento_dbn.SymbolMapping],
     dataset: str = "UNIT.TEST",
     start: int = UNDEF_TIMESTAMP,
     end: int = UNDEF_TIMESTAMP,
@@ -234,7 +236,7 @@ def test_instrument_map_insert_metadata(
 
     metadata = create_metadata(
         stype_in=stype_in,
-        mappings=mappings,
+        mappings=mappings,  # type: ignore [arg-type]
     )
 
     # Act
@@ -273,7 +275,7 @@ def test_instrument_map_insert_metadata_multiple_mappings(
         )
 
     metadata = create_metadata(
-        mappings=mappings,
+        mappings=mappings,  # type: ignore [arg-type]
     )
 
     # Act
@@ -313,7 +315,7 @@ def test_instrument_map_insert_metadata_empty_mappings(
     ]
 
     metadata = create_metadata(
-        mappings=mappings,
+        mappings=mappings,  # type: ignore [arg-type]
     )
 
     # Act
@@ -360,7 +362,7 @@ def test_instrument_map_insert_symbol_mapping_message_v1(
         end_ts=end_date,
     )
     sym_msg_v1 = SymbolMappingMsgV1(
-        publisher_id=sym_msg.publisher_id,
+        publisher_id=sym_msg.publisher_id,  # type: ignore [call-arg]
         instrument_id=sym_msg.instrument_id,
         ts_event=sym_msg.ts_event,
         stype_in_symbol=sym_msg.stype_in_symbol,

@@ -49,6 +49,7 @@ from databento.common.error import BentoError
 from databento.common.symbology import InstrumentMap
 from databento.common.types import DBNRecord
 from databento.common.types import Default
+from databento.common.types import MappingIntervalDict
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
@@ -367,6 +368,7 @@ class DBNStore:
         # Read metadata
         self._metadata: Metadata = Metadata.decode(
             metadata_bytes.getvalue(),
+            upgrade_policy=VersionUpgradePolicy.AS_IS,
         )
 
         self._instrument_map = InstrumentMap()
@@ -380,10 +382,7 @@ class DBNStore:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
             if raw:
                 decoder.write(raw)
-                try:
-                    records = decoder.decode()
-                except ValueError:
-                    continue
+                records = decoder.decode()
                 for record in records:
                     if isinstance(record, databento_dbn.Metadata):
                         continue
@@ -471,7 +470,7 @@ class DBNStore:
         return self._data_source.nbytes
 
     @property
-    def mappings(self) -> dict[str, list[dict[str, Any]]]:
+    def mappings(self) -> dict[str, list[MappingIntervalDict]]:
         """
         Return the symbology mappings for the data.
 
@@ -1225,7 +1224,7 @@ class DBNStore:
             pretty_ts=pretty_ts,
             has_metadata=True,
             map_symbols=map_symbols,
-            symbol_interval_map=symbol_map,
+            symbol_interval_map=symbol_map,  # type: ignore [arg-type]
             schema=schema,
         )
 
