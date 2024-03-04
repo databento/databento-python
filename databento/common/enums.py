@@ -4,7 +4,8 @@ from enum import Enum
 from enum import Flag
 from enum import IntFlag
 from enum import unique
-from typing import Callable, TypeVar
+from typing import Callable
+from typing import TypeVar
 
 
 M = TypeVar("M", bound=Enum)

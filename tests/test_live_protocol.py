@@ -69,10 +69,14 @@ async def test_protocol_connection_streaming(
     """
     # Arrange
     monkeypatch.setattr(
-        DatabentoLiveProtocol, "received_metadata", metadata_mock := MagicMock(),
+        DatabentoLiveProtocol,
+        "received_metadata",
+        metadata_mock := MagicMock(),
     )
     monkeypatch.setattr(
-        DatabentoLiveProtocol, "received_record", record_mock := MagicMock(),
+        DatabentoLiveProtocol,
+        "received_record",
+        record_mock := MagicMock(),
     )
 
     _, protocol = await asyncio.get_event_loop().create_connection(

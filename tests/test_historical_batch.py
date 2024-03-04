@@ -77,9 +77,7 @@ def test_batch_submit_job_sends_expected_request(
 
     # Assert
     call = mocked_post.call_args.kwargs
-    assert (
-        call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.submit_job"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.submit_job"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -118,9 +116,7 @@ def test_batch_list_jobs_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.list_jobs"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.list_jobs"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -145,9 +141,7 @@ def test_batch_list_files_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.list_files"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.list_files"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -178,9 +172,7 @@ def test_batch_download_single_file_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.list_files"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.list_files"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))

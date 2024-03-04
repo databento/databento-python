@@ -10,18 +10,16 @@ from collections.abc import Mapping
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import (
-    IO,
-    TYPE_CHECKING,
-    Any,
-    BinaryIO,
-    Callable,
-    Final,
-    Literal,
-    Protocol,
-    TextIO,
-    overload,
-)
+from typing import IO
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import BinaryIO
+from typing import Callable
+from typing import Final
+from typing import Literal
+from typing import Protocol
+from typing import TextIO
+from typing import overload
 
 import databento_dbn
 import numpy as np

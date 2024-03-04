@@ -190,10 +190,7 @@ class Live:
 
     def __repr__(self) -> str:
         name = self.__class__.__name__
-        return (
-            f"<{name}(dataset={self.dataset}, "
-            f"key=****{self._key[-BUCKET_ID_LENGTH:]}>"
-        )
+        return f"<{name}(dataset={self.dataset}, key=****{self._key[-BUCKET_ID_LENGTH:]}>"
 
     @property
     def dataset(self) -> str:

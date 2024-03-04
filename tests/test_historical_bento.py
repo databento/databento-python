@@ -5,7 +5,9 @@ import datetime as dt
 import decimal
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any
+from typing import Callable
+from typing import Literal
 from unittest.mock import MagicMock
 
 import databento

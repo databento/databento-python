@@ -1,4 +1,7 @@
-from typing import Callable, Generic, TypeVar, Union
+from typing import Callable
+from typing import Generic
+from typing import TypeVar
+from typing import Union
 
 import databento_dbn
 
@@ -23,6 +26,8 @@ RecordCallback = Callable[[DBNRecord], None]
 ExceptionCallback = Callable[[Exception], None]
 
 _T = TypeVar("_T")
+
+
 class Default(Generic[_T]):
     """
     A container for a default value. This is to be used when a callable wants

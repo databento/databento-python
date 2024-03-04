@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 import pathlib
 from collections.abc import Iterable
-from typing import Callable, NamedTuple
+from typing import Callable
+from typing import NamedTuple
 
 import pandas as pd
 import pytest

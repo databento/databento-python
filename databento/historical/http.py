@@ -6,7 +6,8 @@ from collections.abc import Iterable
 from io import BytesIO
 from json.decoder import JSONDecodeError
 from os import PathLike
-from typing import IO, Any
+from typing import IO
+from typing import Any
 
 import aiohttp
 import requests
@@ -78,9 +79,11 @@ class BentoHttpAPI:
                 url=url,
                 params=params,
                 headers=self._headers,
-                auth=aiohttp.BasicAuth(login=self._key, password="", encoding="utf-8")
-                if basic_auth
-                else None,
+                auth=(
+                    aiohttp.BasicAuth(login=self._key, password="", encoding="utf-8")
+                    if basic_auth
+                    else None
+                ),
                 timeout=self.TIMEOUT,
             ) as response:
                 check_backend_warnings(response)
@@ -160,9 +163,11 @@ class BentoHttpAPI:
                 url=url,
                 data=data,
                 headers=self._headers,
-                auth=aiohttp.BasicAuth(login=self._key, password="", encoding="utf-8")
-                if basic_auth
-                else None,
+                auth=(
+                    aiohttp.BasicAuth(login=self._key, password="", encoding="utf-8")
+                    if basic_auth
+                    else None
+                ),
                 timeout=self.TIMEOUT,
             ) as response:
                 check_backend_warnings(response)

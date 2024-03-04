@@ -1,6 +1,7 @@
 """
 Functions for handling challenge-response authentication.
 """
+
 import argparse
 import hashlib
 import os

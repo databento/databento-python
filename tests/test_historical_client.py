@@ -116,10 +116,7 @@ def test_re_request_symbology_makes_expected_request(
 
     # Assert
     call = mocked_post.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/symbology.resolve"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/symbology.resolve"
     assert call["data"] == {
         "dataset": "GLBX.MDP3",
         "symbols": "ESH1",
@@ -160,10 +157,7 @@ def test_request_full_definitions_expected_request(
 
     # Assert
     call = mocked_post.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
     assert call["data"] == {
         "dataset": "GLBX.MDP3",
         "start": "2020-12-28T00:00:00+00:00",

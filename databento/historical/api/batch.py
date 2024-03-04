@@ -145,9 +145,9 @@ class BatchHttpAPI(BentoHttpAPI):
             "stype_in": str(stype_in_valid),
             "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
             "encoding": str(validate_enum(encoding, Encoding, "encoding")),
-            "compression": str(validate_enum(compression, Compression, "compression"))
-            if compression
-            else None,
+            "compression": (
+                str(validate_enum(compression, Compression, "compression")) if compression else None
+            ),
             "pretty_px": pretty_px,
             "pretty_ts": pretty_ts,
             "map_symbols": map_symbols,
@@ -155,9 +155,9 @@ class BatchHttpAPI(BentoHttpAPI):
             "split_duration": str(
                 validate_enum(split_duration, SplitDuration, "split_duration"),
             ),
-            "packaging": str(validate_enum(packaging, Packaging, "packaging"))
-            if packaging
-            else None,
+            "packaging": (
+                str(validate_enum(packaging, Packaging, "packaging")) if packaging else None
+            ),
             "delivery": str(validate_enum(delivery, Delivery, "delivery")),
         }
 

@@ -116,10 +116,7 @@ def test_get_range_sends_expected_request(
 
     # Assert
     call = mocked_post.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -166,10 +163,7 @@ def test_get_range_with_limit_sends_expected_request(
 
     # Assert
     call = mocked_post.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/timeseries.get_range"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))

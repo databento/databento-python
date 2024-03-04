@@ -1,6 +1,7 @@
 """
 Tests specific to releasing a version of databento-python.
 """
+
 from __future__ import annotations
 
 import operator
@@ -46,6 +47,7 @@ def fixture_pyproject_version() -> str:
     with open(PROJECT_ROOT / "pyproject.toml", "rb") as pyproject:
         data = tomli.load(pyproject)
     return data["tool"]["poetry"]["version"]
+
 
 @pytest.mark.release
 def test_release_changelog(changelog: str, pyproject_version: str) -> None:
