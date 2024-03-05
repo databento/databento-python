@@ -6,7 +6,9 @@ import logging
 import queue
 import threading
 from collections.abc import Iterable
-from typing import IO, Callable, Final
+from typing import IO
+from typing import Callable
+from typing import Final
 
 import databento_dbn
 from databento_dbn import Schema
@@ -117,6 +119,7 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
         if self.is_enabled():
             return super().put_nowait(item)
         raise BentoError("queue is not enabled")
+
 
 @dataclasses.dataclass
 class SessionMetadata:

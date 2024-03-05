@@ -1,6 +1,7 @@
 """
 Pytest fixtures.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -219,6 +220,7 @@ def fixture_thread_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     yield loop
     loop.stop()
 
+
 @pytest.fixture(name="mock_live_server")
 def fixture_mock_live_server(
     thread_loop: asyncio.AbstractEventLoop,
@@ -265,6 +267,7 @@ def fixture_mock_live_server(
             coro=mock_live_server.stop(),
             loop=thread_loop,
         ).result()
+
 
 @pytest.fixture(name="historical_client")
 def fixture_historical_client(

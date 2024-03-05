@@ -1,6 +1,7 @@
 """
 Unit tests for CRAM.
 """
+
 import pytest
 from databento.common import cram
 

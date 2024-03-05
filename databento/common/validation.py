@@ -38,8 +38,7 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
         return Path(value)
     except TypeError:
         raise TypeError(
-            f"The `{param}` was not a valid path type. "
-            "Use any of [str, bytes, os.PathLike].",
+            f"The `{param}` was not a valid path type. " "Use any of [str, bytes, os.PathLike].",
         ) from None
 
 
@@ -253,8 +252,7 @@ def validate_smart_symbol(symbol: str) -> str:
     if len(tokens) > 3 or not all(tokens):
         raise ValueError(
             f"value `{symbol}` is not a valid smart symbol format; ",
-            "valid formats are [ROOT], [ROOT].[ASSET_CLASS], and "
-            "[ROOT].[ROLL_RULE].[RANK].",
+            "valid formats are [ROOT], [ROOT].[ASSET_CLASS], and " "[ROOT].[ROLL_RULE].[RANK].",
         )
 
     if len(tokens) == 3:

@@ -173,6 +173,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         asycnio.BufferedProtocol.connection_lost
 
         """
+        super().connection_lost(exc)
         if not self.disconnected.done():
             if exc is None:
                 logger.info("connection closed")
@@ -180,7 +181,6 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             else:
                 logger.error("connection lost", exc_info=exc)
                 self.disconnected.set_exception(exc)
-        super().connection_lost(exc)
 
     def eof_received(self) -> bool | None:
         """

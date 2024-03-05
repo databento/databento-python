@@ -28,6 +28,7 @@ def test_validate_path_given_wrong_types_raises_type_error(
     with pytest.raises(TypeError):
         validate_path(value, "param")
 
+
 def test_validate_file_write_path(
     tmp_path: Path,
 ) -> None:
@@ -35,12 +36,14 @@ def test_validate_file_write_path(
     test_file = tmp_path / "test.file"
     validate_file_write_path(test_file, "param")
 
+
 def test_validate_file_write_path_is_dir(
     tmp_path: Path,
 ) -> None:
     # Arrange, Act, Assert
     with pytest.raises(IsADirectoryError):
         validate_file_write_path(tmp_path, "param")
+
 
 def test_validate_file_write_path_exists(
     tmp_path: Path,
@@ -50,6 +53,7 @@ def test_validate_file_write_path_exists(
     test_file.touch()
     with pytest.raises(FileExistsError):
         validate_file_write_path(test_file, "param")
+
 
 @pytest.mark.parametrize(
     "value, enum",
@@ -65,10 +69,12 @@ def test_validate_enum_given_wrong_types_raises_type_error(
     with pytest.raises(ValueError):
         validate_enum(value, enum, "param")
 
+
 def test_validate_enum_given_invalid_value_raises_value_error() -> None:
     # Arrange, Act, Assert
     with pytest.raises(ValueError):
         validate_enum("invalid", Encoding, "encoding")
+
 
 @pytest.mark.parametrize(
     "value, enum, expected",
@@ -86,9 +92,11 @@ def test_validate_enum_given_valid_value_returns_expected_output(
     # Arrange, Act, Assert
     assert validate_enum(value, enum, "param") == expected
 
+
 def test_validate_maybe_enum_give_none_returns_none() -> None:
     # Arrange, Act, Assert
     assert validate_maybe_enum(None, Encoding, "encoding") is None
+
 
 @pytest.mark.parametrize(
     "url, expected",
@@ -114,6 +122,7 @@ def test_validate_gateway(
     else:
         with pytest.raises(expected):
             validate_gateway(url)
+
 
 @pytest.mark.parametrize(
     "symbol, expected",

@@ -46,6 +46,7 @@ def test_maybe_values_list_to_string_given_valid_inputs_returns_expected(
     # Assert
     assert result == expected
 
+
 @pytest.mark.parametrize(
     "stype, symbols, expected",
     [

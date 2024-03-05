@@ -1,4 +1,9 @@
-from typing import Callable, Generic, TypeVar, Union
+import datetime as dt
+from typing import Callable
+from typing import Generic
+from typing import TypedDict
+from typing import TypeVar
+from typing import Union
 
 import databento_dbn
 
@@ -16,13 +21,17 @@ DBNRecord = Union[
     databento_dbn.SymbolMappingMsg,
     databento_dbn.SymbolMappingMsgV1,
     databento_dbn.SystemMsg,
+    databento_dbn.SystemMsgV1,
     databento_dbn.ErrorMsg,
+    databento_dbn.ErrorMsgV1,
 ]
 
 RecordCallback = Callable[[DBNRecord], None]
 ExceptionCallback = Callable[[Exception], None]
 
 _T = TypeVar("_T")
+
+
 class Default(Generic[_T]):
     """
     A container for a default value. This is to be used when a callable wants
@@ -52,3 +61,23 @@ class Default(Generic[_T]):
 
         """
         return self._value
+
+
+class MappingIntervalDict(TypedDict):
+    """
+    Represents a symbol mapping over a start and end date range interval.
+
+    Parameters
+    ----------
+    start_date : dt.date
+        The start of the mapping period.
+    end_date : dt.date
+        The end of the mapping period.
+    symbol : str
+        The symbol value.
+
+    """
+
+    start_date: dt.date
+    end_date: dt.date
+    symbol: str

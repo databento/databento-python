@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.31.0 - 2024-03-05
+
+#### Enhancements
+- Added `DBNStore.insert_symbology_json` convenience method for adding symbology data from a JSON dict or file path
+- Upgraded `databento-dbn` to 0.16.0
+
 ## 0.30.0 - 2024-02-22
 
 #### Enhancements

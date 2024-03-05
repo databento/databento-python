@@ -84,10 +84,7 @@ def test_client_error_str_and_repr() -> None:
 
     # Assert
     assert str(error) == "400 Bad Request"
-    assert (
-        repr(error)
-        == "BentoClientError(request_id=None, http_status=400, message=Bad Request)"
-    )
+    assert repr(error) == "BentoClientError(request_id=None, http_status=400, message=Bad Request)"
 
 
 def test_server_error_str_and_repr() -> None:

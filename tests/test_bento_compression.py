@@ -1,6 +1,7 @@
 """
 Unit tests for DBNStore compression.
 """
+
 from io import BytesIO
 
 import pytest

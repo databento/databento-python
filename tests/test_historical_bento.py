@@ -5,7 +5,9 @@ import datetime as dt
 import decimal
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, Literal
+from typing import Any
+from typing import Callable
+from typing import Literal
 from unittest.mock import MagicMock
 
 import databento
@@ -786,8 +788,8 @@ def test_dbnstore_iterable(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     record_list: list[DBNRecord] = list(dbnstore)
-    first: MBOMsg = record_list[0]
-    second: MBOMsg = record_list[1]
+    first: MBOMsg = record_list[0]  # type: ignore [assignment]
+    second: MBOMsg = record_list[1]  # type: ignore [assignment]
 
     # Assert
     assert first.hd.length == 14

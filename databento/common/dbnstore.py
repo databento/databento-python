@@ -6,20 +6,20 @@ import itertools
 import logging
 from collections.abc import Generator
 from collections.abc import Iterator
+from collections.abc import Mapping
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import (
-    IO,
-    TYPE_CHECKING,
-    Any,
-    BinaryIO,
-    Callable,
-    Final,
-    Literal,
-    Protocol,
-    overload,
-)
+from typing import IO
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import BinaryIO
+from typing import Callable
+from typing import Final
+from typing import Literal
+from typing import Protocol
+from typing import TextIO
+from typing import overload
 
 import databento_dbn
 import numpy as np
@@ -49,6 +49,7 @@ from databento.common.error import BentoError
 from databento.common.symbology import InstrumentMap
 from databento.common.types import DBNRecord
 from databento.common.types import Default
+from databento.common.types import MappingIntervalDict
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
@@ -108,20 +109,16 @@ class DataSource(abc.ABC):
     Abstract base class for backing DBNStore instances with data.
     """
 
-    def __init__(self, source: object) -> None:
-        ...
+    def __init__(self, source: object) -> None: ...
 
     @property
-    def name(self) -> str:
-        ...
+    def name(self) -> str: ...
 
     @property
-    def nbytes(self) -> int:
-        ...
+    def nbytes(self) -> int: ...
 
     @property
-    def reader(self) -> IO[bytes]:
-        ...
+    def reader(self) -> IO[bytes]: ...
 
 
 class FileDataSource(DataSource):
@@ -371,6 +368,7 @@ class DBNStore:
         # Read metadata
         self._metadata: Metadata = Metadata.decode(
             metadata_bytes.getvalue(),
+            upgrade_policy=VersionUpgradePolicy.AS_IS,
         )
 
         self._instrument_map = InstrumentMap()
@@ -384,10 +382,7 @@ class DBNStore:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
             if raw:
                 decoder.write(raw)
-                try:
-                    records = decoder.decode()
-                except ValueError:
-                    continue
+                records = decoder.decode()
                 for record in records:
                     if isinstance(record, databento_dbn.Metadata):
                         continue
@@ -475,7 +470,7 @@ class DBNStore:
         return self._data_source.nbytes
 
     @property
-    def mappings(self) -> dict[str, list[dict[str, Any]]]:
+    def mappings(self) -> dict[str, list[MappingIntervalDict]]:
         """
         Return the symbology mappings for the data.
 
@@ -675,6 +670,27 @@ class DBNStore:
         """
         return cls(MemoryDataSource(data))
 
+    def insert_symbology_json(
+        self,
+        json_data: str | Mapping[str, Any] | TextIO,
+        clear_existing: bool = True,
+    ) -> None:
+        """
+        Insert the given JSON data obtained from the `symbology.resolve`
+        endpoint or a `symbology.json` file.
+
+        Parameters
+        ----------
+        json_data : str | Mapping[str, Any] | TextIO
+            The JSON data to insert.
+        clear_existing : bool, default True
+            If existing symbology data should be cleared from the internal mappings.
+
+        """
+        if clear_existing:
+            self._instrument_map.clear()
+        self._instrument_map.insert_json(json_data)
+
     def replay(self, callback: Callable[[Any], None]) -> None:
         """
         Replay data by passing records sequentially to the given callback.
@@ -834,8 +850,7 @@ class DBNStore:
         schema: Schema | str | None = ...,
         tz: pytz.BaseTzInfo | str = ...,
         count: None = ...,
-    ) -> pd.DataFrame:
-        ...
+    ) -> pd.DataFrame: ...
 
     @overload
     def to_df(
@@ -846,8 +861,7 @@ class DBNStore:
         schema: Schema | str | None = ...,
         tz: pytz.BaseTzInfo | str = ...,
         count: int = ...,
-    ) -> DataFrameIterator:
-        ...
+    ) -> DataFrameIterator: ...
 
     def to_df(
         self,
@@ -855,7 +869,9 @@ class DBNStore:
         pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
-        tz: pytz.BaseTzInfo | str | Default[pytz.BaseTzInfo] = Default[pytz.BaseTzInfo](pytz.UTC),
+        tz: pytz.BaseTzInfo | str | Default[pytz.BaseTzInfo] = Default[pytz.BaseTzInfo](
+            pytz.UTC,
+        ),
         count: int | None = None,
     ) -> pd.DataFrame | DataFrameIterator:
         """
@@ -903,7 +919,9 @@ class DBNStore:
         if isinstance(tz, Default):
             tz = tz.value  # consume default
         elif not pretty_ts:
-            raise ValueError("A timezone was specified when `pretty_ts` is `False`. Did you mean to set `pretty_ts=True`?")
+            raise ValueError(
+                "A timezone was specified when `pretty_ts` is `False`. Did you mean to set `pretty_ts=True`?",
+            )
 
         if not isinstance(tz, pytz.BaseTzInfo):
             tz = pytz.timezone(tz)
@@ -1096,16 +1114,14 @@ class DBNStore:
         self,
         schema: Schema | str | None = ...,
         count: None = ...,
-    ) -> np.ndarray[Any, Any]:
-        ...
+    ) -> np.ndarray[Any, Any]: ...
 
     @overload
     def to_ndarray(
         self,
         schema: Schema | str | None = ...,
         count: int = ...,
-    ) -> NDArrayIterator:
-        ...
+    ) -> NDArrayIterator: ...
 
     def to_ndarray(
         self,
@@ -1208,7 +1224,7 @@ class DBNStore:
             pretty_ts=pretty_ts,
             has_metadata=True,
             map_symbols=map_symbols,
-            symbol_interval_map=symbol_map,
+            symbol_interval_map=symbol_map,  # type: ignore [arg-type]
             schema=schema,
         )
 
@@ -1242,12 +1258,10 @@ class DBNStore:
 
 class NDArrayIterator(Protocol):
     @abc.abstractmethod
-    def __iter__(self) -> NDArrayIterator:
-        ...
+    def __iter__(self) -> NDArrayIterator: ...
 
     @abc.abstractmethod
-    def __next__(self) -> np.ndarray[Any, Any]:
-        ...
+    def __next__(self) -> np.ndarray[Any, Any]: ...
 
 
 class NDArrayStreamIterator(NDArrayIterator):

@@ -16,7 +16,9 @@ from concurrent import futures
 from functools import singledispatchmethod
 from io import BytesIO
 from os import PathLike
-from typing import Callable, NewType, TypeVar
+from typing import Callable
+from typing import NewType
+from typing import TypeVar
 
 import zstandard
 from databento.common import cram
@@ -629,9 +631,7 @@ class MockLiveServer:
 
         # Initialize the MockLiveServer instance
         mock_live_server._server = server
-        mock_live_server._host, mock_live_server._port, *_ = server.sockets[
-            -1
-        ].getsockname()
+        mock_live_server._host, mock_live_server._port, *_ = server.sockets[-1].getsockname()
         mock_live_server._user_api_keys = user_api_keys
         mock_live_server._message_queue = message_queue
 

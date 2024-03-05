@@ -3,8 +3,11 @@ from __future__ import annotations
 import json
 import pathlib
 from collections.abc import Iterable
-from typing import Callable, NamedTuple
+from collections.abc import Sequence
+from typing import Callable
+from typing import NamedTuple
 
+import databento_dbn
 import pandas as pd
 import pytest
 from databento.common.dbnstore import DBNStore
@@ -148,7 +151,7 @@ def create_symbol_mapping_message(
     SymbolMappingMsg
 
     """
-    return SymbolMappingMsg(
+    return SymbolMappingMsg(  # type: ignore [call-arg]
         publisher_id=publisher_id,
         instrument_id=instrument_id,
         ts_event=ts_event,
@@ -162,7 +165,7 @@ def create_symbol_mapping_message(
 
 
 def create_metadata(
-    mappings: Iterable[SymbolMapping],
+    mappings: Sequence[databento_dbn.SymbolMapping],
     dataset: str = "UNIT.TEST",
     start: int = UNDEF_TIMESTAMP,
     end: int = UNDEF_TIMESTAMP,
@@ -233,7 +236,7 @@ def test_instrument_map_insert_metadata(
 
     metadata = create_metadata(
         stype_in=stype_in,
-        mappings=mappings,
+        mappings=mappings,  # type: ignore [arg-type]
     )
 
     # Act
@@ -272,7 +275,7 @@ def test_instrument_map_insert_metadata_multiple_mappings(
         )
 
     metadata = create_metadata(
-        mappings=mappings,
+        mappings=mappings,  # type: ignore [arg-type]
     )
 
     # Act
@@ -312,7 +315,7 @@ def test_instrument_map_insert_metadata_empty_mappings(
     ]
 
     metadata = create_metadata(
-        mappings=mappings,
+        mappings=mappings,  # type: ignore [arg-type]
     )
 
     # Act
@@ -359,7 +362,7 @@ def test_instrument_map_insert_symbol_mapping_message_v1(
         end_ts=end_date,
     )
     sym_msg_v1 = SymbolMappingMsgV1(
-        publisher_id=sym_msg.publisher_id,
+        publisher_id=sym_msg.publisher_id,  # type: ignore [call-arg]
         instrument_id=sym_msg.instrument_id,
         ts_event=sym_msg.ts_event,
         stype_in_symbol=sym_msg.stype_in_symbol,
@@ -961,3 +964,38 @@ def test_instrument_map_symbols_json(
     # Assert
     assert outfile == written_path
     assert outfile.read_text() == expected_path.read_text()
+
+
+def test_insert_symbology_json_mismatched_stypes(
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
+) -> None:
+    """
+    Test setting JSON symbology data.
+    """
+    # Arrange
+    store = DBNStore.from_file(test_data_path(Dataset.XNAS_ITCH, Schema.TRADES))
+
+    result = {
+        "NVDA": [
+            {
+                "d0": store.start.date().isoformat(),
+                "d1": store.end.date().isoformat(),
+                "s": "6155",
+            },
+        ],
+    }
+    sym_resp = create_symbology_response(
+        result=result,
+        symbols=store.symbols,
+        stype_in=SType.RAW_SYMBOL,
+        stype_out=SType.INSTRUMENT_ID,
+        start_date=store.start.date(),
+        end_date=store.end.date(),
+    )
+
+    # Act
+    store.insert_symbology_json(sym_resp)
+
+    # Assert
+    assert store.to_df().iloc[0]["symbol"] == "NVDA"
+    assert store.to_df().iloc[0]["instrument_id"] == 6155

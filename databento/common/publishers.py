@@ -10,7 +10,6 @@ from databento.common.enums import coercible
 # ruff: noqa: C901
 
 
-
 @unique
 @coercible
 class Venue(StringyMixin, str, Enum):
@@ -419,6 +418,7 @@ class Venue(StringyMixin, str, Enum):
             return "Long-Term Stock Exchange, Inc."
         raise ValueError("Unexpected Venue value")
 
+
 @unique
 @coercible
 class Dataset(StringyMixin, str, Enum):
@@ -718,6 +718,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.DBEQ_MAX:
             return "Databento Equities Max"
         raise ValueError("Unexpected Dataset value")
+
 
 @unique
 @coercible
@@ -1301,6 +1302,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.DBEQ_MAX_LTSE:
             return 80
         raise ValueError("Invalid Publisher")
+
     @property
     def venue(self) -> Venue:
         """
@@ -1467,6 +1469,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.DBEQ_MAX_LTSE:
             return Venue.LTSE
         raise ValueError("Unexpected Publisher value")
+
     @property
     def dataset(self) -> Dataset:
         """

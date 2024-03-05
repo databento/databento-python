@@ -21,10 +21,7 @@ def test_list_publishers_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_publishers"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_publishers"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -47,10 +44,7 @@ def test_list_datasets_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_datasets"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_datasets"
     assert ("start_date", "2018-01-01") in call["params"]
     assert ("end_date", "2020-01-01") in call["params"]
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
@@ -72,10 +66,7 @@ def test_list_schemas_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_schemas"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_schemas"
     assert ("dataset", "GLBX.MDP3") in call["params"]
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
@@ -99,10 +90,7 @@ def test_list_fields_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_fields"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_fields"
     assert ("schema", "mbo") in call["params"]
     assert ("encoding", "dbn") in call["params"]
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
@@ -132,10 +120,7 @@ def test_list_unit_price_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_unit_prices"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_unit_prices"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -189,8 +174,7 @@ def test_get_dataset_range_sends_expected_request(
     # Assert
     call = mocked_get.call_args.kwargs
     assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_dataset_range"
+        call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_dataset_range"
     )
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
@@ -221,10 +205,7 @@ def test_get_record_count_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_record_count"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_record_count"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
@@ -261,8 +242,7 @@ def test_get_billable_size_sends_expected_request(
     # Assert
     call = mocked_get.call_args.kwargs
     assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_billable_size"
+        call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_billable_size"
     )
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
@@ -300,10 +280,7 @@ def test_get_cost_sends_expected_request(
 
     # Assert
     call = mocked_get.call_args.kwargs
-    assert (
-        call["url"]
-        == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_cost"
-    )
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_cost"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
