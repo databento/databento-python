@@ -25,8 +25,8 @@ from databento.live.protocol import DatabentoLiveProtocol
 
 logger = logging.getLogger(__name__)
 
-AUTH_TIMEOUT_SECONDS: Final = 2.0
-CONNECT_TIMEOUT_SECONDS: Final = 5.0
+AUTH_TIMEOUT_SECONDS: Final = 30.0
+CONNECT_TIMEOUT_SECONDS: Final = 10.0
 DBN_QUEUE_CAPACITY: Final = 2**20
 DEFAULT_REMOTE_PORT: Final = 13000
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.31.1 - TBD
+
+#### Enhancements
+- Increase `Live` session connection & authentication timeouts
+
 ## 0.31.0 - 2024-03-05
 
 #### Enhancements
