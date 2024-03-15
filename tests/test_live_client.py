@@ -503,6 +503,51 @@ async def test_live_subscribe_large_symbol_list(
     assert reconstructed == large_symbol_list
 
 
+async def test_live_subscribe_from_callback(
+    live_client: client.Live,
+    mock_live_server: MockLiveServer,
+) -> None:
+    """
+    Test that `Live.subscribe` can be called from a callback.
+    """
+    # Arrange
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.OHLCV_1H,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST0",
+    )
+
+    def cb_sub(_: DBNRecord) -> None:
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=Schema.MBO,
+            stype_in=SType.RAW_SYMBOL,
+            symbols="TEST1",
+        )
+
+    live_client.add_callback(cb_sub)
+
+    # Act
+    first_sub = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    )
+
+    live_client.start()
+
+    second_sub = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    )
+
+    await live_client.wait_for_close()
+
+    # Assert
+    assert first_sub.symbols == "TEST0"
+    assert second_sub.symbols == "TEST1"
+
+
 @pytest.mark.usefixtures("mock_live_server")
 def test_live_stop(
     live_client: client.Live,

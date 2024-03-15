@@ -5,6 +5,9 @@
 #### Enhancements
 - Increase `Live` session connection & authentication timeouts
 
+#### Bug fixes
+- Fixed an issue where calling `Live.subscribe` from a `Live` client callback would cause a deadlock
+
 ## 0.31.0 - 2024-03-05
 
 #### Enhancements

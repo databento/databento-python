@@ -16,6 +16,7 @@ from concurrent import futures
 from functools import singledispatchmethod
 from io import BytesIO
 from os import PathLike
+from typing import Any
 from typing import Callable
 from typing import NewType
 from typing import TypeVar
@@ -32,9 +33,7 @@ from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 from databento.live.gateway import parse_gateway_message
-from databento_dbn import Metadata
 from databento_dbn import Schema
-from databento_dbn import SType
 
 
 LIVE_SERVER_VERSION: str = "1.0.0"
@@ -100,7 +99,8 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self._version: str = version
         self._is_authenticated: bool = False
         self._is_streaming: bool = False
-        self._repeater_tasks: set[asyncio.Task[None]] = set()
+        self._subscriptions: list[SubscriptionRequest] = []
+        self._tasks: set[asyncio.Task[None]] = set()
 
         self._dbn_path = pathlib.Path(dbn_path)
         self._user_api_keys = user_api_keys
@@ -156,6 +156,18 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         return self._is_streaming
 
     @property
+    def dataset_path(self) -> pathlib.Path:
+        """
+        The path to the DBN files for serving.
+
+        Returns
+        -------
+        Path
+
+        """
+        return self._dbn_path / (self._dataset or "")
+
+    @property
     def mode(self) -> MockLiveMode:
         """
         Return the mock live server replay mode.
@@ -204,6 +216,18 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
 
         """
         return str(hash(self))
+
+    @property
+    def subscriptions(self) -> tuple[SubscriptionRequest, ...]:
+        """
+        The received subscriptions.
+
+        Returns
+        -------
+        tuple[SubscriptionRequest, ...]
+
+        """
+        return tuple(self._subscriptions)
 
     @property
     def version(self) -> str:
@@ -353,11 +377,11 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         logger.info("received CRAM response: %s", message.auth)
         if self.is_authenticated:
             logger.error("authentication request sent when already authenticated")
-            self.__transport.close()
+            self.__transport.write_eof()
             return
         if self.is_streaming:
             logger.error("authentication request sent while streaming")
-            self.__transport.close()
+            self.__transport.write_eof()
             return
 
         _, bucket_id = message.auth.split("-")
@@ -400,54 +424,49 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         logger.info("received subscription request: %s", str(message).strip())
         if not self.is_authenticated:
             logger.error("subscription request sent while unauthenticated")
-            self.__transport.close()
+            self.__transport.write_eof()
+
+        self._subscriptions.append(message)
 
         if self.is_streaming:
-            logger.error("subscription request sent while streaming")
-            self.__transport.close()
-
-        self._schemas.append(Schema(message.schema))
+            self.create_server_task(message)
 
     @handle_client_message.register(SessionStart)
     def _(self, message: SessionStart) -> None:
         logger.info("received session start request: %s", str(message).strip())
         self._is_streaming = True
 
-        dataset_path = self._dbn_path / (self._dataset or "")
+        for sub in self.subscriptions:
+            self.create_server_task(sub)
+
+    def create_server_task(self, message: SubscriptionRequest) -> None:
         if self.mode is MockLiveMode.REPLAY:
-            for schema in self._schemas:
-                for test_data_path in dataset_path.glob(f"*{schema}.dbn.zst"):
-                    decompressor = zstandard.ZstdDecompressor().stream_reader(
-                        test_data_path.read_bytes(),
-                    )
-                    logger.info(
-                        "streaming %s for %s schema",
-                        test_data_path.name,
-                        schema,
-                    )
-                    self.__transport.write(decompressor.readall())
-
-            logger.info(
-                "data streaming for %d schema(s) completed",
-                len(self._schemas),
-            )
-
-            self.__transport.write_eof()
-            self.__transport.close()
-
-        elif self.mode is MockLiveMode.REPEAT:
-            metadata = Metadata("UNIT.TEST", 0, SType.RAW_SYMBOL, [], [], [], [])
-            self.__transport.write(bytes(metadata))
-
-            loop = asyncio.get_event_loop()
-            for schema in self._schemas:
-                task = loop.create_task(self.repeater(schema))
-                self._repeater_tasks.add(task)
-                task.add_done_callback(self._repeater_tasks.remove)
+            task = asyncio.create_task(self.replay_task(schema=Schema(message.schema)))
         else:
-            raise ValueError(f"unsupported mode {MockLiveMode.REPEAT}")
+            task = asyncio.create_task(self.repeater_task(schema=Schema(message.schema)))
 
-    async def repeater(self, schema: Schema) -> None:
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.remove)
+        task.add_done_callback(self.check_done)
+
+    def check_done(self, _: Any) -> None:
+        if not self._tasks:
+            logger.info("streaming tasks completed")
+            self.__transport.write_eof()
+
+    async def replay_task(self, schema: Schema) -> None:
+        for test_data_path in self.dataset_path.glob(f"*{schema}.dbn.zst"):
+            decompressor = zstandard.ZstdDecompressor().stream_reader(
+                test_data_path.read_bytes(),
+            )
+            logger.info(
+                "streaming %s for %s schema",
+                test_data_path.name,
+                schema,
+            )
+            self.__transport.write(decompressor.readall())
+
+    async def repeater_task(self, schema: Schema) -> None:
         struct = SCHEMA_STRUCT_MAP[schema]
         repeated = bytes(struct(*[0] * 12))  # for now we only support MBP_1
 
