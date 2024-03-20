@@ -1,8 +1,8 @@
 name: test
 
 on:
+  pull_request:
   push:
-    branches: [main, dev]
 
 jobs:
   test:
@@ -30,13 +30,13 @@ jobs:
         shell: bash
 
       - name: Test (release)
-        timeout-minutes: 5
+        timeout-minutes: 2
         if: ${{ github.ref == 'refs/heads/main' }}
         run: scripts/test.sh --release
         shell: bash
 
       - name: Test
-        timeout-minutes: 5
+        timeout-minutes: 2
         if: ${{ github.ref != 'refs/heads/main' }}
         run: scripts/test.sh
         shell: bash

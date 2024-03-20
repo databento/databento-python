@@ -199,18 +199,24 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
 
     F_LAST
         Last message in the packet from the venue for a given `instrument_id`.
+    F_TOB
+        Indicates a top-of-book message, not an individual order.
     F_SNAPSHOT
         Message sourced from a replay, such as a snapshot server.
     F_MBP
         Aggregated price level message, not an individual order.
     F_BAD_TS_RECV
         The `ts_recv` value is inaccurate (clock issues or reordering).
+    F_MAYBE_BAD_BOOK
+        Indicates an unrecoverable gap was detected in the channel.
 
     Other bits are reserved and have no current meaning.
 
     """
 
     F_LAST = 128
+    F_TOB = 64
     F_SNAPSHOT = 32
     F_MBP = 16
     F_BAD_TS_RECV = 8
+    F_MAYBE_BAD_BOOK = 4

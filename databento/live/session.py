@@ -25,8 +25,8 @@ from databento.live.protocol import DatabentoLiveProtocol
 
 logger = logging.getLogger(__name__)
 
-AUTH_TIMEOUT_SECONDS: Final = 2.0
-CONNECT_TIMEOUT_SECONDS: Final = 5.0
+AUTH_TIMEOUT_SECONDS: Final = 30.0
+CONNECT_TIMEOUT_SECONDS: Final = 10.0
 DBN_QUEUE_CAPACITY: Final = 2**20
 DEFAULT_REMOTE_PORT: Final = 13000
 
@@ -434,15 +434,12 @@ class Session:
                     loop=self._loop,
                 )
 
-        asyncio.run_coroutine_threadsafe(
-            self._subscribe_task(
+            self._protocol.subscribe(
                 schema=schema,
                 symbols=symbols,
                 stype_in=stype_in,
                 start=start,
-            ),
-            loop=self._loop,
-        ).result()
+            )
 
     def resume_reading(self) -> None:
         """
@@ -565,21 +562,3 @@ class Session:
         )
 
         return transport, protocol
-
-    async def _subscribe_task(
-        self,
-        schema: Schema | str,
-        symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
-        stype_in: SType | str = SType.RAW_SYMBOL,
-        start: str | int | None = None,
-    ) -> None:
-        with self._lock:
-            if self._protocol is None:
-                return
-
-            self._protocol.subscribe(
-                schema=schema,
-                symbols=symbols,
-                stype_in=stype_in,
-                start=start,
-            )
