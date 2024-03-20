@@ -4,6 +4,7 @@
 
 #### Enhancements
 - Increase `Live` session connection & authentication timeouts
+- Added new `F_TOB` and `F_MAYBE_BAD_BOOK` variants to `RecordFlags`
 
 #### Bug fixes
 - Fixed an issue where calling `Live.subscribe` from a `Live` client callback would cause a deadlock
