@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.31.2 - TBD
+
+#### Bug fixes
+- Removed live session ID parsing to `int`, that could cause a session to fail when
+  nothing was wrong
+
 ## 0.31.1 - 2024-03-20
 
 #### Enhancements

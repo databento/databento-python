@@ -80,23 +80,23 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         )
         self._gateway_decoder = GatewayDecoder()
 
-        self._authenticated: asyncio.Future[int] = asyncio.Future()
+        self._authenticated: asyncio.Future[str | None] = asyncio.Future()
         self._disconnected: asyncio.Future[None] = asyncio.Future()
         self._started: bool = False
 
     @property
-    def authenticated(self) -> asyncio.Future[int]:
+    def authenticated(self) -> asyncio.Future[str | None]:
         """
         Future that completes when authentication with the gateway is
         completed.
 
-        The result will contain the session id if successful.
+        The result will contain the session ID if successful.
         The exception will contain a BentoError if authentication
         fails for any reason.
 
         Returns
         -------
-        asyncio.Future[int]
+        asyncio.Future[str | None]
 
         """
         return self._authenticated
@@ -391,10 +391,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             )
             self.transport.close()
         else:
-            if message.session_id is None:
-                session_id = 0
-            else:
-                session_id = int(message.session_id)
+            session_id = message.session_id
 
             logger.debug(
                 "CRAM authenticated session id assigned `%s`",
