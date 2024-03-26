@@ -6,6 +6,13 @@
 - Removed live session ID parsing to `int`, that could cause a session to fail when
   nothing was wrong
 
+#### Breaking changes
+- Renamed publishers from deprecated datasets to their respective sources (`XNAS.NLS`
+and `XNYS.TRADES` respectively)
+
+#### Deprecations
+- Deprecated dataset values `FINN.NLS` and `FINY.TRADES`
+
 ## 0.31.1 - 2024-03-20
 
 #### Enhancements
