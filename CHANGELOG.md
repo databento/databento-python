@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.31.2 - TBD
+## 0.32.0 - TBD
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.17.0
 
 #### Bug fixes
 - Removed live session ID parsing to `int`, that could cause a session to fail when
