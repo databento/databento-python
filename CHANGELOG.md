@@ -3,6 +3,7 @@
 ## 0.32.0 - TBD
 
 #### Enhancements
+- Improved exception messages when multiple `ErrorMsg` are received by the `Live` client
 - Upgraded `databento-dbn` to 0.17.0
 
 #### Bug fixes
