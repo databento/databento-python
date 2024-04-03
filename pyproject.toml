@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Office/Business :: Financial :: Investment",
 ]
 readme = "README.md"
-documentation = "https://docs.databento.com"
+documentation = "https://databento.com/docs"
 homepage = "https://databento.com"
 repository = "https://github.com/databento/databento-python"
 

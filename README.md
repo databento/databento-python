@@ -10,22 +10,22 @@
 The official Python client library for [Databento](https://databento.com).
 
 Key features include:
-- Fast, lightweight access to both live and historical data from [multiple markets](https://docs.databento.com/knowledge-base/new-users/venues-and-publishers?historical=python&live=python).
-- [Multiple schemas](https://docs.databento.com/knowledge-base/new-users/market-data-schemas?historical=python&live=python) such as MBO, MBP, top of book, OHLCV, last sale, and more.
-- [Fully normalized](https://docs.databento.com/knowledge-base/new-users/normalization?historical=python&live=python), i.e. identical message schemas for both live and historical data, across multiple asset classes.
-- Provides mappings between different symbology systems, including [smart symbology](https://docs.databento.com/api-reference-historical/basics/symbology?historical=python&live=python) for futures rollovers.
+- Fast, lightweight access to both live and historical data from [multiple markets](https://databento.com/docs/knowledge-base/new-users/venues-and-publishers?historical=python&live=python).
+- [Multiple schemas](https://databento.com/docs/knowledge-base/new-users/market-data-schemas?historical=python&live=python) such as MBO, MBP, top of book, OHLCV, last sale, and more.
+- [Fully normalized](https://databento.com/docs/knowledge-base/new-users/normalization?historical=python&live=python), i.e. identical message schemas for both live and historical data, across multiple asset classes.
+- Provides mappings between different symbology systems, including [smart symbology](https://databento.com/docs/api-reference-historical/basics/symbology?historical=python&live=python) for futures rollovers.
 - [Point-in-time]() instrument definitions, free of look-ahead bias and retroactive adjustments.
-- Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://docs.databento.com/knowledge-base/new-users/dbn-encoding?historical=python&live=python).
-- Event-driven [market replay](https://docs.databento.com/api-reference-historical/helpers/bento-replay?historical=python&live=python), including at high-frequency order book granularity.
-- Support for [batch download](https://docs.databento.com/knowledge-base/new-users/stream-vs-batch?historical=python&live=python) of flat files.
+- Reads and stores market data in an extremely efficient file format using [Databento Binary Encoding](https://databento.com/docs/knowledge-base/new-users/dbn-encoding?historical=python&live=python).
+- Event-driven [market replay](https://databento.com/docs/api-reference-historical/helpers/bento-replay?historical=python&live=python), including at high-frequency order book granularity.
+- Support for [batch download](https://databento.com/docs/knowledge-base/new-users/stream-vs-batch?historical=python&live=python) of flat files.
 - Support for [pandas](https://pandas.pydata.org/docs/), CSV, and JSON.
 
 ## Documentation
-The best place to begin is with our [Getting started](https://docs.databento.com/getting-started?historical=python&live=python) guide.
+The best place to begin is with our [Getting started](https://databento.com/docs/getting-started?historical=python&live=python) guide.
 
-You can find our full client API reference on the [Historical Reference](https://docs.databento.com/api-reference-historical?historical=python&live=python) and
-[Live Reference](https://docs.databento.com/reference-live?historical=python&live=python) sections of our documentation. See also the
-[Examples](https://docs.databento.com/examples?historical=python&live=python) section for various tutorials and code samples.
+You can find our full client API reference on the [Historical Reference](https://databento.com/docs/api-reference-historical?historical=python&live=python) and
+[Live Reference](https://databento.com/docs/reference-live?historical=python&live=python) sections of our documentation. See also the
+[Examples](https://databento.com/docs/examples?historical=python&live=python) section for various tutorials and code samples.
 
 ## Requirements
 The library is fully compatible with the latest distribution of Anaconda 3.8 and above.
@@ -79,7 +79,7 @@ array = data.to_ndarray()  # to ndarray
 ```
 
 Note that the API key was also passed as a parameter, which is
-[not recommended for production applications](https://docs.databento.com/knowledge-base/new-users/security-managing-api-keys?historical=python&live=python).
+[not recommended for production applications](https://databento.com/docs/knowledge-base/new-users/security-managing-api-keys?historical=python&live=python).
 Instead, you can leave out this parameter to pass your API key via the `DATABENTO_API_KEY` environment variable:
 
 ```python
