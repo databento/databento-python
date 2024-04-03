@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.32.0 - TBD
+## 0.32.0 - 2024-04-04
 
 #### Enhancements
 - Improved exception messages when multiple `ErrorMsg` are received by the `Live` client
