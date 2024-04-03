@@ -19,7 +19,7 @@ DBNRecord = Union[
     databento_dbn.InstrumentDefMsg,
     databento_dbn.InstrumentDefMsgV1,
     databento_dbn.StatMsg,
-    databento_dbn.StatusMsg,  # type: ignore [name-defined]
+    databento_dbn.StatusMsg,
     databento_dbn.SymbolMappingMsg,
     databento_dbn.SymbolMappingMsgV1,
     databento_dbn.SystemMsg,

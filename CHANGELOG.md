@@ -4,7 +4,7 @@
 
 #### Enhancements
 - Improved exception messages when multiple `ErrorMsg` are received by the `Live` client
-- Upgraded `databento-dbn` to 0.17.0
+- Upgraded `databento-dbn` to 0.17.1
 
 #### Bug fixes
 - Removed live session ID parsing to `int`, that could cause a session to fail when
