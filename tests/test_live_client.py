@@ -1424,6 +1424,18 @@ async def test_live_stream_with_reconnect(
         pytest.skip("no stub data for ohlcv-eod schema")
     if schema == "imbalance":
         pytest.skip("imbalance is not supported for GLBX.MDP3")
+    if schema == "cbbo":
+        pytest.skip("no stub data for cbbo schema")
+    if schema == "cbbo-1s":
+        pytest.skip("no stub data for cbbo-1s schema")
+    if schema == "cbbo-1m":
+        pytest.skip("no stub data for cbbo-1m schema")
+    if schema == "bbo-1s":
+        pytest.skip("no stub data for bbo-1s schema")
+    if schema == "bbo-1m":
+        pytest.skip("no stub data for bbo-1m schema")
+    if schema == "tcbbo":
+        pytest.skip("no stub data for tcbbo schema")
 
     output = tmp_path / "output.dbn"
     live_client.add_stream(output.open("wb", buffering=0))

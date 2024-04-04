@@ -80,23 +80,24 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         )
         self._gateway_decoder = GatewayDecoder()
 
-        self._authenticated: asyncio.Future[int] = asyncio.Future()
+        self._authenticated: asyncio.Future[str | None] = asyncio.Future()
         self._disconnected: asyncio.Future[None] = asyncio.Future()
+        self._error_msgs: list[str] = []
         self._started: bool = False
 
     @property
-    def authenticated(self) -> asyncio.Future[int]:
+    def authenticated(self) -> asyncio.Future[str | None]:
         """
         Future that completes when authentication with the gateway is
         completed.
 
-        The result will contain the session id if successful.
+        The result will contain the session ID if successful.
         The exception will contain a BentoError if authentication
         fails for any reason.
 
         Returns
         -------
-        asyncio.Future[int]
+        asyncio.Future[str | None]
 
         """
         return self._authenticated
@@ -323,15 +324,22 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 if isinstance(record, databento_dbn.Metadata):
                     self.received_metadata(record)
                     continue
-
                 if isinstance(record, databento_dbn.ErrorMsg):
                     logger.error(
                         "gateway error: %s",
                         record.err,
                     )
-                    self.disconnected.set_exception(
-                        BentoError(record.err),
-                    )
+                    self._error_msgs.append(record.err)
+                    if record.is_last:
+                        if len(self._error_msgs) > 1:
+                            errors = ", ".join(self._error_msgs)
+                            error_msg = f"The following errors occurred: {errors}"
+                        else:
+                            error_msg = self._error_msgs[-1]
+                        self._error_msgs.clear()
+                        self.disconnected.set_exception(
+                            BentoError(error_msg),
+                        )
                 if isinstance(record, databento_dbn.SystemMsg):
                     if record.is_heartbeat:
                         logger.debug("gateway heartbeat")
@@ -391,10 +399,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             )
             self.transport.close()
         else:
-            if message.session_id is None:
-                session_id = 0
-            else:
-                session_id = int(message.session_id)
+            session_id = message.session_id
 
             logger.debug(
                 "CRAM authenticated session id assigned `%s`",

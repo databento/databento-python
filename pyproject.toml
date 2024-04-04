@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "databento"
-version = "0.31.1"
+version = "0.32.0"
 description = "Official Python client library for Databento"
 authors = [
     "Databento <support@databento.com>",
@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Office/Business :: Financial :: Investment",
 ]
 readme = "README.md"
-documentation = "https://docs.databento.com"
+documentation = "https://databento.com/docs"
 homepage = "https://databento.com"
 repository = "https://github.com/databento/databento-python"
 
@@ -32,7 +32,7 @@ aiohttp = [
     {version = "^3.8.3", python = "<3.12"},
     {version = "^3.9.0", python = "^3.12"}
 ]
-databento-dbn = "0.16.0"
+databento-dbn = "0.17.1"
 numpy = [
     {version = ">=1.23.5", python = "<3.12"},
     {version = "^1.26.0", python = "^3.12"}

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.32.0 - 2024-04-04
+
+#### Enhancements
+- Improved exception messages when multiple `ErrorMsg` are received by the `Live` client
+- Upgraded `databento-dbn` to 0.17.1
+
+#### Bug fixes
+- Removed live session ID parsing to `int`, that could cause a session to fail when
+  nothing was wrong
+
+#### Breaking changes
+- Renamed publishers from deprecated datasets to their respective sources (`XNAS.NLS`
+and `XNYS.TRADES` respectively)
+
+#### Deprecations
+- Deprecated dataset values `FINN.NLS` and `FINY.TRADES`
+
 ## 0.31.1 - 2024-03-20
 
 #### Enhancements

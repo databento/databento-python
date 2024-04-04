@@ -9,6 +9,7 @@ import databento_dbn
 
 
 DBNRecord = Union[
+    databento_dbn.CbboMsg,
     databento_dbn.MBOMsg,
     databento_dbn.MBP1Msg,
     databento_dbn.MBP10Msg,
@@ -18,6 +19,7 @@ DBNRecord = Union[
     databento_dbn.InstrumentDefMsg,
     databento_dbn.InstrumentDefMsgV1,
     databento_dbn.StatMsg,
+    databento_dbn.StatusMsg,
     databento_dbn.SymbolMappingMsg,
     databento_dbn.SymbolMappingMsgV1,
     databento_dbn.SystemMsg,

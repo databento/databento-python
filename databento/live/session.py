@@ -281,17 +281,17 @@ class Session:
 
         self._user_gateway: str | None = user_gateway
         self._port = port
-        self._session_id: int = 0
+        self._session_id: str | None = None
 
     @property
-    def session_id(self) -> int:
+    def session_id(self) -> str | None:
         """
-        Return the authenticated session ID. A zero value indicates no session
+        Return the authenticated session ID. A None value indicates no session
         has started.
 
         Returns
         -------
-        int
+        str | None
 
         """
         return self._session_id

@@ -458,9 +458,9 @@ class Dataset(StringyMixin, str, Enum):
     EPRL_DOM
         MIAX Pearl Depth.
     FINN_NLS
-        FINRA/Nasdaq TRF.
+        FINRA/Nasdaq TRF (DEPRECATED).
     FINY_TRADES
-        FINRA/NYSE TRF.
+        FINRA/NYSE TRF (DEPRECATED).
     OPRA_PILLAR
         OPRA Binary.
     DBEQ_BASIC
@@ -690,9 +690,9 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.EPRL_DOM:
             return "MIAX Pearl Depth"
         if self == Dataset.FINN_NLS:
-            return "FINRA/Nasdaq TRF"
+            return "FINRA/Nasdaq TRF (DEPRECATED)"
         if self == Dataset.FINY_TRADES:
-            return "FINRA/NYSE TRF"
+            return "FINRA/NYSE TRF (DEPRECATED)"
         if self == Dataset.OPRA_PILLAR:
             return "OPRA Binary"
         if self == Dataset.DBEQ_BASIC:
@@ -758,11 +758,11 @@ class Publisher(StringyMixin, str, Enum):
         MEMX Memoir Depth.
     EPRL_DOM_EPRL
         MIAX Pearl Depth.
-    FINN_NLS_FINN
+    XNAS_NLS_FINN
         FINRA/Nasdaq TRF Carteret.
-    FINN_NLS_FINC
+    XNAS_NLS_FINC
         FINRA/Nasdaq TRF Chicago.
-    FINY_TRADES_FINY
+    XNYS_TRADES_FINY
         FINRA/NYSE TRF.
     OPRA_PILLAR_AMXO
         OPRA - NYSE American.
@@ -905,9 +905,9 @@ class Publisher(StringyMixin, str, Enum):
     XCIS_TRADES_XCIS = "XCIS.TRADES.XCIS"
     MEMX_MEMOIR_MEMX = "MEMX.MEMOIR.MEMX"
     EPRL_DOM_EPRL = "EPRL.DOM.EPRL"
-    FINN_NLS_FINN = "FINN.NLS.FINN"
-    FINN_NLS_FINC = "FINN.NLS.FINC"
-    FINY_TRADES_FINY = "FINY.TRADES.FINY"
+    XNAS_NLS_FINN = "XNAS.NLS.FINN"
+    XNAS_NLS_FINC = "XNAS.NLS.FINC"
+    XNYS_TRADES_FINY = "XNYS.TRADES.FINY"
     OPRA_PILLAR_AMXO = "OPRA.PILLAR.AMXO"
     OPRA_PILLAR_XBOX = "OPRA.PILLAR.XBOX"
     OPRA_PILLAR_XCBO = "OPRA.PILLAR.XCBO"
@@ -1008,11 +1008,11 @@ class Publisher(StringyMixin, str, Enum):
         if value == 16:
             return Publisher.EPRL_DOM_EPRL
         if value == 17:
-            return Publisher.FINN_NLS_FINN
+            return Publisher.XNAS_NLS_FINN
         if value == 18:
-            return Publisher.FINN_NLS_FINC
+            return Publisher.XNAS_NLS_FINC
         if value == 19:
-            return Publisher.FINY_TRADES_FINY
+            return Publisher.XNYS_TRADES_FINY
         if value == 20:
             return Publisher.OPRA_PILLAR_AMXO
         if value == 21:
@@ -1173,11 +1173,11 @@ class Publisher(StringyMixin, str, Enum):
             return 15
         if self == Publisher.EPRL_DOM_EPRL:
             return 16
-        if self == Publisher.FINN_NLS_FINN:
+        if self == Publisher.XNAS_NLS_FINN:
             return 17
-        if self == Publisher.FINN_NLS_FINC:
+        if self == Publisher.XNAS_NLS_FINC:
             return 18
-        if self == Publisher.FINY_TRADES_FINY:
+        if self == Publisher.XNYS_TRADES_FINY:
             return 19
         if self == Publisher.OPRA_PILLAR_AMXO:
             return 20
@@ -1340,11 +1340,11 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.MEMX
         if self == Publisher.EPRL_DOM_EPRL:
             return Venue.EPRL
-        if self == Publisher.FINN_NLS_FINN:
+        if self == Publisher.XNAS_NLS_FINN:
             return Venue.FINN
-        if self == Publisher.FINN_NLS_FINC:
+        if self == Publisher.XNAS_NLS_FINC:
             return Venue.FINC
-        if self == Publisher.FINY_TRADES_FINY:
+        if self == Publisher.XNYS_TRADES_FINY:
             return Venue.FINY
         if self == Publisher.OPRA_PILLAR_AMXO:
             return Venue.AMXO
@@ -1507,12 +1507,12 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.MEMX_MEMOIR
         if self == Publisher.EPRL_DOM_EPRL:
             return Dataset.EPRL_DOM
-        if self == Publisher.FINN_NLS_FINN:
-            return Dataset.FINN_NLS
-        if self == Publisher.FINN_NLS_FINC:
-            return Dataset.FINN_NLS
-        if self == Publisher.FINY_TRADES_FINY:
-            return Dataset.FINY_TRADES
+        if self == Publisher.XNAS_NLS_FINN:
+            return Dataset.XNAS_NLS
+        if self == Publisher.XNAS_NLS_FINC:
+            return Dataset.XNAS_NLS
+        if self == Publisher.XNYS_TRADES_FINY:
+            return Dataset.XNYS_TRADES
         if self == Publisher.OPRA_PILLAR_AMXO:
             return Dataset.OPRA_PILLAR
         if self == Publisher.OPRA_PILLAR_XBOX:
@@ -1674,11 +1674,11 @@ class Publisher(StringyMixin, str, Enum):
             return "MEMX Memoir Depth"
         if self == Publisher.EPRL_DOM_EPRL:
             return "MIAX Pearl Depth"
-        if self == Publisher.FINN_NLS_FINN:
+        if self == Publisher.XNAS_NLS_FINN:
             return "FINRA/Nasdaq TRF Carteret"
-        if self == Publisher.FINN_NLS_FINC:
+        if self == Publisher.XNAS_NLS_FINC:
             return "FINRA/Nasdaq TRF Chicago"
-        if self == Publisher.FINY_TRADES_FINY:
+        if self == Publisher.XNYS_TRADES_FINY:
             return "FINRA/NYSE TRF"
         if self == Publisher.OPRA_PILLAR_AMXO:
             return "OPRA - NYSE American"
