@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.33.0 - TBD
+
+#### Enhancements
+- The `Historical.batch.download` and `Historical.batch.download_async` methods will now automatically retry the download if a rate limit (HTTP 429) error is received
+- The `Historical.batch.download` and `Historical.batch.download_async` methods will now retry failed downloads automatically
+- The `Historical.batch.download` and `Historical.batch.download_async` methods will now download files concurrently
+- The `output_dir` parameter for `Historical.batch.download` and `Historical.batch.download_async` is now optional and will default to the current working directory if unspecified
+
+#### Breaking changes
+- The `enable_partial_downloads` parameter for `Historical.batch.download` and `Historical.batch.download_async` has been removed, partial files will always be resumed which was the default behavior
+- The parameters for `Historical.batch.download` and `Historical.batch.download_async` have been reordered because `output_dir` is now optional, `job_id` now comes first
+
 ## 0.32.0 - 2024-04-04
 
 #### Enhancements

@@ -38,7 +38,7 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
         return Path(value)
     except TypeError:
         raise TypeError(
-            f"The `{param}` was not a valid path type. " "Use any of [str, bytes, os.PathLike].",
+            f"The `{param}` was not a valid path type. " "Use any of [PathLike[str], str].",
         ) from None
 
 

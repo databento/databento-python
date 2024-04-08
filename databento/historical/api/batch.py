@@ -1,14 +1,22 @@
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import logging
-import os
+import time
+import warnings
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import as_completed
+from dataclasses import dataclass
 from datetime import date
 from os import PathLike
 from pathlib import Path
+from time import sleep
 from typing import Any
+from typing import ClassVar
+from typing import Final
 
-import aiohttp
 import pandas as pd
 import requests
 from databento_dbn import Compression
@@ -21,21 +29,25 @@ from databento.common.enums import Delivery
 from databento.common.enums import Packaging
 from databento.common.enums import SplitDuration
 from databento.common.error import BentoError
+from databento.common.error import BentoHttpError
+from databento.common.error import BentoWarning
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.parsing import optional_values_list_to_string
 from databento.common.publishers import Dataset
+from databento.common.types import Default
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_path
 from databento.common.validation import validate_semantic_string
 from databento.historical.api import API_VERSION
 from databento.historical.http import BentoHttpAPI
 from databento.historical.http import check_http_error
-from databento.historical.http import check_http_error_async
 
 
 logger = logging.getLogger(__name__)
+
+BATCH_DOWNLOAD_MAX_RETRIES: Final = 3
 
 
 class BatchHttpAPI(BentoHttpAPI):
@@ -238,10 +250,10 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def download(
         self,
-        output_dir: PathLike[str] | str,
         job_id: str,
+        output_dir: PathLike[str] | str | None = None,
         filename_to_download: str | None = None,
-        enable_partial_downloads: bool = True,
+        enable_partial_downloads: Default[bool] = Default[bool](True),
     ) -> list[Path]:
         """
         Download a batch job or a specific file to `{output_dir}/{job_id}/`.
@@ -253,15 +265,14 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        output_dir: PathLike[str] or str
-            The directory to download the file(s) to.
         job_id : str
             The batch job identifier.
+        output_dir: PathLike[str] or str, optional
+            The directory to download the file(s) to.
+            If `None`, defaults to the current working directory.
         filename_to_download : str, optional
             The specific file to download.
             If `None` then will download all files for the batch job.
-        enable_partial_downloads : bool, default True
-            If partially downloaded files will be resumed using range request(s).
 
         Returns
         -------
@@ -276,115 +287,33 @@ class BatchHttpAPI(BentoHttpAPI):
             If a file fails to download.
 
         """
-        output_dir = validate_path(output_dir, "output_dir")
-        self._check_api_key()
-
-        params: list[tuple[str, str | None]] = [
-            ("job_id", job_id),
-        ]
-
-        job_files: list[dict[str, Any]] = self._get(
-            url=self._base_url + ".list_files",
-            params=params,
-            basic_auth=True,
-        ).json()
-
-        if not job_files:
-            logger.error("Cannot download batch job %s (no files found).", job_id)
-            raise RuntimeError(f"no files for batch job {job_id}")
-
-        if filename_to_download:
-            # A specific file is being requested
-            is_file_found = False
-            for details in job_files:
-                if details["filename"] == filename_to_download:
-                    # Reduce files to download only the single file
-                    job_files = [details]
-                    is_file_found = True
-                    break
-            if not is_file_found:
-                logger.error(
-                    "Cannot download batch job %s file (%s not found)",
-                    job_id,
-                    filename_to_download,
-                )
-                raise ValueError(
-                    f"{filename_to_download} is not a file for batch job {job_id}",
-                )
-
-        # Prepare job directory
-        job_dir = Path(output_dir) / job_id
-        os.makedirs(job_dir, exist_ok=True)
-
-        file_paths = []
-        for details in job_files:
-            filename = str(details["filename"])
-            output_path = job_dir / filename
-            logger.info(
-                "Downloading batch job file to %s ...",
-                output_path,
+        # TODO: Remove after a reasonable deprecation period
+        if not isinstance(enable_partial_downloads, Default):
+            warnings.warn(
+                "The parameter `enable_partial_downloads` has been removed and will cause an error if set in the future. Partially downloaded files will always be resumed.",
+                category=BentoWarning,
+                stacklevel=2,
             )
 
-            urls = details.get("urls")
-            if not urls:
-                raise ValueError(
-                    f"Cannot download {filename}, URLs were not found in manifest.",
-                )
+        if filename_to_download is None:
+            filenames_to_download = None
+        else:
+            filenames_to_download = [filename_to_download]
 
-            https_url = urls.get("https")
-            if not https_url:
-                raise ValueError(
-                    f"Cannot download {filename} over HTTPS, "
-                    "'download' delivery is not available for this job.",
-                )
-
-            self._download_file(
-                url=https_url,
-                filesize=int(details["size"]),
-                output_path=output_path,
-                enable_partial_downloads=enable_partial_downloads,
-            )
-            file_paths.append(output_path)
-
-        return file_paths
-
-    def _download_file(
-        self,
-        url: str,
-        filesize: int,
-        output_path: Path,
-        enable_partial_downloads: bool,
-    ) -> None:
-        headers, mode = self._get_file_download_headers_and_mode(
-            filesize=filesize,
-            output_path=output_path,
-            enable_partial_downloads=enable_partial_downloads,
+        batch_download = _BatchDownload(
+            self,
+            job_id=job_id,
+            output_dir=output_dir,
+            filenames_to_download=filenames_to_download,
         )
 
-        with requests.get(
-            url=url,
-            headers=headers,
-            auth=HTTPBasicAuth(username=self._key, password=""),
-            allow_redirects=True,
-            stream=True,
-        ) as response:
-            check_http_error(response)
-
-            logger.debug("Starting download of file %s", output_path.name)
-            with open(output_path, mode=mode) as f:
-                try:
-                    for chunk in response.iter_content(chunk_size=None):
-                        f.write(chunk)
-                except Exception as exc:
-                    raise BentoError(f"Error downloading file: {exc}") from None
-            logger.debug("Download of %s completed", output_path.name)
+        return batch_download.download()
 
     async def download_async(
         self,
         output_dir: PathLike[str] | str,
         job_id: str,
         filename_to_download: str | None = None,
-        enable_partial_downloads: bool = True,
     ) -> list[Path]:
         """
         Asynchronously download a batch job or a specific file to
@@ -404,8 +333,6 @@ class BatchHttpAPI(BentoHttpAPI):
         filename_to_download : str, optional
             The specific file to download.
             If `None` then will download all files for the batch job.
-        enable_partial_downloads : bool, default True
-            If partially downloaded files will be resumed using range request(s).
 
         Returns
         -------
@@ -420,126 +347,226 @@ class BatchHttpAPI(BentoHttpAPI):
             If a file fails to download.
 
         """
-        output_dir = validate_path(output_dir, "output_dir")
-        self._check_api_key()
+        if filename_to_download is None:
+            filenames_to_download = None
+        else:
+            filenames_to_download = [filename_to_download]
 
-        params: list[tuple[str, str | None]] = [
-            ("job_id", job_id),
-        ]
-
-        job_files: list[dict[str, Any]] = await self._get_json_async(
-            url=self._base_url + ".list_files",
-            params=params,
-            basic_auth=True,
+        batch_download = _BatchDownload(
+            self,
+            job_id=job_id,
+            output_dir=output_dir,
+            filenames_to_download=filenames_to_download,
         )
 
-        if not job_files:
-            logger.error("Cannot download batch job %s (no files found).", job_id)
-            raise RuntimeError(f"no files for batch job {job_id}")
+        return await batch_download.download_async()
 
-        if filename_to_download:
-            # A specific file is being requested
-            is_file_found = False
-            for details in job_files:
-                if details["filename"] == filename_to_download:
-                    # Reduce files to download only the single file
-                    job_files = [details]
-                    is_file_found = True
-                    break
-            if not is_file_found:
-                logger.error(
-                    "Cannot download batch job %s file (%s not found)",
-                    job_id,
-                    filename_to_download,
+    def _download_batch_file(
+        self,
+        batch_download_file: _BatchDownloadFile,
+        output_path: Path,
+    ) -> Path:
+        """
+        Download a batch file.
+
+        Parameters
+        ----------
+        batch_download_file : _BatchDownloadFile
+            Instance of `_BatchDownloadFile` containing the data from the batch job manifest.
+        output_path : Path
+            The output path of the file.
+
+        Returns
+        -------
+        Path
+
+        Raises
+        ------
+        BentoError
+            If the file fails to download.
+
+        """
+        attempts = 0
+        logger.info(
+            "Downloading batch job file to %s",
+            output_path,
+        )
+        while True:
+            headers: dict[str, str] = self._headers.copy()
+            if output_path.exists():
+                existing_size = output_path.stat().st_size
+                headers["Range"] = f"bytes={existing_size}-{batch_download_file.size - 1}"
+                mode = "ab"
+            else:
+                mode = "wb"
+            try:
+                with requests.get(
+                    url=batch_download_file.https_url,
+                    headers=headers,
+                    auth=HTTPBasicAuth(username=self._key, password=""),
+                    allow_redirects=True,
+                    stream=True,
+                ) as response:
+                    check_http_error(response)
+                    with open(output_path, mode=mode) as f:
+                        for chunk in response.iter_content(chunk_size=None):
+                            f.write(chunk)
+            except BentoHttpError as exc:
+                if exc.http_status == 429:
+                    wait_time = int(exc.headers.get("Retry-After", 1))
+                    sleep(wait_time)
+                    continue  # try again
+                raise
+            except Exception as exc:
+                if attempts < BATCH_DOWNLOAD_MAX_RETRIES:
+                    logger.error(
+                        f"Retrying download of {output_path.name} due to error: {exc}",
+                    )
+                    attempts += 1
+                    continue  # try again
+                raise BentoError(f"Error downloading file: {exc}") from None
+
+            logger.debug("Download of %s completed", output_path.name)
+            hash_algo, _, hash_hex = batch_download_file.hash_str.partition(":")
+
+            if hash_algo == "sha256":
+                start = time.perf_counter()
+                output_hash = hashlib.sha256(output_path.read_bytes())
+                logger.info(
+                    "%s hash time %f second(s)",
+                    output_path.name,
+                    time.perf_counter() - start,
                 )
-                raise ValueError(
-                    f"{filename_to_download} is not a file for batch job {job_id}",
+                if output_hash.hexdigest() != hash_hex:
+                    warn_msg = f"Downloaded file failed checksum validation: {output_path.name}"
+                    logger.warn(warn_msg)
+                    warnings.warn(warn_msg, category=BentoWarning)
+            else:
+                logger.warning(
+                    "Skipping %s checksum because %s is not supported",
+                    output_path.name,
+                    hash_algo,
                 )
 
-        # Prepare job directory
-        job_dir = Path(output_dir) / job_id
-        os.makedirs(job_dir, exist_ok=True)
+            return output_path
 
-        file_paths = []
-        for details in job_files:
-            filename = str(details["filename"])
-            output_path = job_dir / filename
-            logger.info(
-                "Downloading batch job file to %s ...",
-                output_path,
-            )
 
-            urls = details.get("urls")
-            if not urls:
-                raise ValueError(
-                    f"Cannot download {filename}, URLs were not found in manifest.",
-                )
+@dataclass
+class _BatchDownloadFile:
+    filename: str
+    hash_str: str
+    https_url: str
+    size: int
 
-            https_url = urls.get("https")
-            if not https_url:
+
+class _BatchDownload:
+    """
+    Helper class for downloading multiple batch files.
+
+    Supports sync and async downloads using a shared `ThreadPoolExecutor`.
+
+    """
+
+    _executor: ClassVar = ThreadPoolExecutor(
+        thread_name_prefix="databento_batch",
+    )
+
+    def __init__(
+        self,
+        batch_http_api: BatchHttpAPI,
+        job_id: str,
+        output_dir: PathLike[str] | str | None = None,
+        filenames_to_download: Iterable[str] | None = None,
+    ):
+        if output_dir is None:
+            output_dir = Path.cwd()
+
+        job_details = batch_http_api.list_files(job_id)
+        if not job_details:
+            error_message = f"No files found for batch job {job_id}"
+            logger.error(error_message)
+            raise RuntimeError(error_message)
+
+        filenames_to_download = (
+            set(filenames_to_download) if filenames_to_download is not None else None
+        )
+        target_files = []
+        for file_detail in job_details:
+            try:
+                filename = str(file_detail["filename"])
+                hash_digest = str(file_detail["hash"])
+                size = int(file_detail["size"])
+                urls = file_detail["urls"]
+            except KeyError as exc:
+                missing_key = exc.args[0]
+                raise BentoError(f"Batch job manifest missing key '{missing_key}'") from None
+            except TypeError:
+                raise BentoError("Error parsing job manifest") from None
+
+            try:
+                https_url = urls["https"]
+            except KeyError:
                 raise ValueError(
                     f"Cannot download {filename} over HTTPS, "
                     "'download' delivery is not available for this job.",
+                ) from None
+
+            if filenames_to_download is None or filename in filenames_to_download:
+                target_files.append(
+                    _BatchDownloadFile(
+                        filename=filename,
+                        hash_str=hash_digest,
+                        https_url=https_url,
+                        size=size,
+                    ),
                 )
 
-            await self._download_file_async(
-                url=https_url,
-                filesize=int(details["size"]),
-                output_path=output_path,
-                enable_partial_downloads=enable_partial_downloads,
+        self._batch_http_api = batch_http_api
+        self._output_dir = validate_path(output_dir, "output_dir") / job_id
+        self._target_files = target_files
+
+    def download(self) -> list[Path]:
+        self._output_dir.mkdir(exist_ok=True)
+
+        tasks = []
+        for target in self._target_files:
+            tasks.append(
+                self._executor.submit(
+                    self._batch_http_api._download_batch_file,
+                    target,
+                    self._output_dir / target.filename,
+                ),
             )
-            file_paths.append(output_path)
+
+        file_paths = []
+        for completed in as_completed(tasks):
+            path = completed.result()
+            file_paths.append(path)
 
         return file_paths
 
-    async def _download_file_async(
-        self,
-        url: str,
-        filesize: int,
-        output_path: Path,
-        enable_partial_downloads: bool,
-    ) -> None:
-        headers, mode = self._get_file_download_headers_and_mode(
-            filesize=filesize,
-            output_path=output_path,
-            enable_partial_downloads=enable_partial_downloads,
-        )
+    async def download_async(self) -> list[Path]:
+        self._output_dir.mkdir(exist_ok=True)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                url=url,
-                headers=headers,
-                auth=aiohttp.BasicAuth(login=self._key, password="", encoding="utf-8"),
-                timeout=self.TIMEOUT,
-            ) as response:
-                await check_http_error_async(response)
+        tasks = []
+        for target in self._target_files:
+            tasks.append(
+                asyncio.get_running_loop().run_in_executor(
+                    self._executor,
+                    self._batch_http_api._download_batch_file,
+                    target,
+                    self._output_dir / target.filename,
+                ),
+            )
 
-                logger.debug("Starting async download of file %s", output_path.name)
-                with open(output_path, mode=mode) as f:
-                    try:
-                        async for chunk in response.content.iter_chunks():
-                            data: bytes = chunk[0]
-                            f.write(data)
-                    except Exception as exc:
-                        raise BentoError(f"Error downloading file: {exc}") from None
-                logger.debug("Download of %s completed", output_path.name)
+        file_paths = []
+        for completed in asyncio.as_completed(tasks):
+            try:
+                path = await completed
+            except Exception:
+                for task in tasks:
+                    task.cancel()
+                raise
+            file_paths.append(path)
 
-    def _get_file_download_headers_and_mode(
-        self,
-        filesize: int,
-        output_path: Path,
-        enable_partial_downloads: bool,
-    ) -> tuple[dict[str, str], str]:
-        headers: dict[str, str] = self._headers.copy()
-        mode = "wb"
-
-        # Check if file already exists in partially downloaded state
-        if enable_partial_downloads and output_path.is_file():
-            existing_size = output_path.stat().st_size
-            if existing_size < filesize:
-                # Make range request for partial download,
-                # will be from next byte to end of file.
-                headers["Range"] = f"bytes={existing_size}-{filesize - 1}"
-                mode = "ab"
-
-        return headers, mode
+        return file_paths

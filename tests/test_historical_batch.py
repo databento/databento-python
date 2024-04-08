@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import databento as db
@@ -155,29 +156,120 @@ def test_batch_list_files_sends_expected_request(
 def test_batch_download_single_file_sends_expected_request(
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,
+    tmp_path: Path,
 ) -> None:
+    """
+    Test batch download by setting up a MagicMock and checking the download
+    request that will be sent.
+    """
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
     job_id = "GLBX-20220610-5DEFXVTMSM"
     filename = "glbx-mdp3-20220610.mbo.csv.zst"
+    hash = "sha256:abcdef"
+    size = 1024
+
+    # Mock the call to list files so it returns a test manifest
+    monkeypatch.setattr(
+        historical_client.batch,
+        "list_files",
+        mocked_batch_list_files := MagicMock(
+            return_value=[
+                {
+                    "filename": filename,
+                    "hash": hash,
+                    "size": size,
+                    "urls": {
+                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{filename}",
+                        "ftp": "",
+                    },
+                },
+            ],
+        ),
+    )
+
+    # Mock the call for get, so we can capture the download arguments
+    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
 
     # Act
-    with pytest.raises(ValueError):
-        # We expect this to fail since this is not a real batch job.
-        historical_client.batch.download(
-            job_id=job_id,
-            output_dir="my_data",
-            filename_to_download=filename,
-        )
+    historical_client.batch.download(
+        job_id=job_id,
+        output_dir=tmp_path,
+        filename_to_download=filename,
+    )
 
     # Assert
+    assert mocked_batch_list_files.call_args.args == (job_id,)
+
     call = mocked_get.call_args.kwargs
-    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.list_files"
-    assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+    assert call["allow_redirects"]
     assert call["headers"]["accept"] == "application/json"
-    assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
-    assert call["params"] == [
-        ("job_id", job_id),
-    ]
-    assert call["timeout"] == (100, 100)
-    assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+    assert call["stream"]
+    assert call["url"] == f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{filename}"
+
+
+def test_batch_download_rate_limit_429(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+    tmp_path: Path,
+) -> None:
+    """
+    Tests batch download by setting up a MagicMock which will return a 429
+    status code followed by a 200 with the content "unittest".
+
+    A file should be "downloaded" which contains this content, having
+    retried the request due to the 429.
+
+    """
+    # Arrange
+    job_id = "GLBX-20220610-5DEFXVTMSM"
+    filename = "glbx-mdp3-20220610.mbo.csv.zst"
+    hash = "sha256:abcdef"
+    size = 1024
+
+    # Mock the call to list files so it returns a test manifest
+    monkeypatch.setattr(
+        historical_client.batch,
+        "list_files",
+        mocked_batch_list_files := MagicMock(
+            return_value=[
+                {
+                    "filename": filename,
+                    "hash": hash,
+                    "size": size,
+                    "urls": {
+                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{filename}",
+                        "ftp": "",
+                    },
+                },
+            ],
+        ),
+    )
+
+    # Mock the call for get, so we can simulate a 429 response
+    rate_limit_response = requests.Response()
+    rate_limit_response.status_code = 429
+    rate_limit_response.headers["Retry-After"] = "0"
+    ok_response = MagicMock()
+    ok_response.__enter__.return_value = MagicMock(
+        status_code=200,
+        iter_content=MagicMock(return_value=iter([b"unittest"])),
+    )
+    monkeypatch.setattr(
+        requests,
+        "get",
+        MagicMock(
+            side_effect=[rate_limit_response, ok_response],
+        ),
+    )
+
+    # Act
+    downloaded_files = historical_client.batch.download(
+        job_id=job_id,
+        output_dir=tmp_path,
+        filename_to_download=filename,
+    )
+
+    # Assert
+    assert mocked_batch_list_files.call_args.args == (job_id,)
+    assert len(downloaded_files) == 1
+    assert downloaded_files[0].read_text() == "unittest"
