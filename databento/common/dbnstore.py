@@ -29,6 +29,7 @@ import pyarrow.parquet as pq
 import pytz
 import zstandard
 from databento_dbn import FIXED_PRICE_SCALE
+from databento_dbn import UNDEF_PRICE
 from databento_dbn import Compression
 from databento_dbn import DBNDecoder
 from databento_dbn import Encoding
@@ -42,7 +43,6 @@ from databento_dbn import Transcoder
 from databento_dbn import VersionUpgradePolicy
 
 from databento.common.constants import DEFINITION_TYPE_MAX_MAP
-from databento.common.constants import INT64_NULL
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP_V1
 from databento.common.error import BentoError
@@ -1422,12 +1422,18 @@ class DataFrameIterator:
         # the first ordered field will be ts_recv or ts_event when appropriate
         ts_name = self._struct_type._ordered_fields[0]
 
-        df_index = df[ts_name] if self._pretty_ts else pd.to_datetime(df[ts_name], utc=True)
-        dates = [ts.date() for ts in df_index]
-        df["symbol"] = [
-            self._instrument_map.resolve(inst, dates[i])
-            for i, inst in enumerate(df["instrument_id"])
-        ]
+        if df.empty:
+            df["symbol"] = []
+        else:
+            df["symbol"] = df.apply(
+                lambda r: self._instrument_map.resolve(
+                    r["instrument_id"],
+                    (
+                        r[ts_name] if self._pretty_ts else pd.to_datetime(r[ts_name], utc=True)
+                    ).date(),
+                ),
+                axis=1,
+            )
 
     def _format_timezone(self, df: pd.DataFrame) -> None:
         for field in self._struct_type._timestamp_fields:
@@ -1441,13 +1447,12 @@ class DataFrameIterator:
         px_fields = self._struct_type._price_fields
 
         if price_type == "decimal":
-            for field in px_fields:
-                df[field] = (
-                    df[field].replace(INT64_NULL, np.nan).apply(decimal.Decimal) / FIXED_PRICE_SCALE
-                )
+            df[px_fields] = (
+                df[px_fields].replace(UNDEF_PRICE, np.nan).applymap(decimal.Decimal)
+                / FIXED_PRICE_SCALE
+            )
         elif price_type == "float":
-            for field in px_fields:
-                df[field] = df[field].replace(INT64_NULL, np.nan) / FIXED_PRICE_SCALE
+            df[px_fields] = df[px_fields].replace(UNDEF_PRICE, np.nan) / FIXED_PRICE_SCALE
         else:
             return  # do nothing
 
