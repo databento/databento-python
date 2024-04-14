@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.33.0 - TBD
+## 0.33.0 - 2024-04-16
 
 #### Enhancements
 - The `Historical.batch.download` and `Historical.batch.download_async` methods will now automatically retry the download if a rate limit (HTTP 429) error is received
