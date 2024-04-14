@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -165,8 +166,9 @@ def test_batch_download_single_file_sends_expected_request(
     # Arrange
     job_id = "GLBX-20220610-5DEFXVTMSM"
     filename = "glbx-mdp3-20220610.mbo.csv.zst"
-    hash = "sha256:abcdef"
-    size = 1024
+    file_content = b""
+    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
+    file_size = len(file_content)
 
     # Mock the call to list files so it returns a test manifest
     monkeypatch.setattr(
@@ -176,8 +178,8 @@ def test_batch_download_single_file_sends_expected_request(
             return_value=[
                 {
                     "filename": filename,
-                    "hash": hash,
-                    "size": size,
+                    "hash": file_hash,
+                    "size": file_size,
                     "urls": {
                         "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{filename}",
                         "ftp": "",
@@ -223,8 +225,9 @@ def test_batch_download_rate_limit_429(
     # Arrange
     job_id = "GLBX-20220610-5DEFXVTMSM"
     filename = "glbx-mdp3-20220610.mbo.csv.zst"
-    hash = "sha256:abcdef"
-    size = 1024
+    file_content = b"unittest"
+    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
+    file_size = len(file_content)
 
     # Mock the call to list files so it returns a test manifest
     monkeypatch.setattr(
@@ -234,8 +237,8 @@ def test_batch_download_rate_limit_429(
             return_value=[
                 {
                     "filename": filename,
-                    "hash": hash,
-                    "size": size,
+                    "hash": file_hash,
+                    "size": file_size,
                     "urls": {
                         "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{filename}",
                         "ftp": "",
@@ -252,7 +255,7 @@ def test_batch_download_rate_limit_429(
     ok_response = MagicMock()
     ok_response.__enter__.return_value = MagicMock(
         status_code=200,
-        iter_content=MagicMock(return_value=iter([b"unittest"])),
+        iter_content=MagicMock(return_value=iter([file_content])),
     )
     monkeypatch.setattr(
         requests,
@@ -272,4 +275,4 @@ def test_batch_download_rate_limit_429(
     # Assert
     assert mocked_batch_list_files.call_args.args == (job_id,)
     assert len(downloaded_files) == 1
-    assert downloaded_files[0].read_text() == "unittest"
+    assert downloaded_files[0].read_bytes() == file_content

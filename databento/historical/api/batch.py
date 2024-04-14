@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
-import time
 import warnings
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
@@ -430,16 +429,10 @@ class BatchHttpAPI(BentoHttpAPI):
             hash_algo, _, hash_hex = batch_download_file.hash_str.partition(":")
 
             if hash_algo == "sha256":
-                start = time.perf_counter()
                 output_hash = hashlib.sha256(output_path.read_bytes())
-                logger.info(
-                    "%s hash time %f second(s)",
-                    output_path.name,
-                    time.perf_counter() - start,
-                )
                 if output_hash.hexdigest() != hash_hex:
                     warn_msg = f"Downloaded file failed checksum validation: {output_path.name}"
-                    logger.warn(warn_msg)
+                    logger.warning(warn_msg)
                     warnings.warn(warn_msg, category=BentoWarning)
             else:
                 logger.warning(
