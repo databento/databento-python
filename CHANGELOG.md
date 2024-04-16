@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.34.0 - TBD
+
+#### Enhancements
+- Added `pip-system-certs` dependency for Windows platforms to prevent a connection issue in `requests` when behind a proxy
+
 ## 0.33.0 - 2024-04-16
 
 #### Enhancements
