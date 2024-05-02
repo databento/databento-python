@@ -11,6 +11,9 @@
 - Fixed an issue where `batch.download`, `batch.download_async`, and `timeseries.get_range` could use a lot of memory while streaming data
 - Fixed an issue where reusing a `Live` client with an open output stream would drop DBN records when received at the same time as the `Metadata` header
 
+##### Deprecations
+- The `start_date` and `end_date` keys in the response from `Historical.metadata.get_dataset_range` will be removed in a future release. Use the new `start` and `end` keys instead, which include time resolution
+
 ## 0.33.0 - 2024-04-16
 
 #### Enhancements
