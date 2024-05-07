@@ -394,8 +394,16 @@ class BatchHttpAPI(BentoHttpAPI):
             headers: dict[str, str] = self._headers.copy()
             if output_path.exists():
                 existing_size = output_path.stat().st_size
-                headers["Range"] = f"bytes={existing_size}-{batch_download_file.size - 1}"
-                mode = "ab"
+                if existing_size < batch_download_file.size:
+                    headers["Range"] = f"bytes={existing_size}-{batch_download_file.size - 1}"
+                    mode = "ab"
+                elif existing_size == batch_download_file.size:
+                    # File exists and is complete
+                    break
+                else:
+                    raise FileExistsError(
+                        f"Batch file {output_path.name} already exists and has a larger than expected size.",
+                    )
             else:
                 mode = "wb"
             try:
@@ -424,24 +432,26 @@ class BatchHttpAPI(BentoHttpAPI):
                     attempts += 1
                     continue  # try again
                 raise BentoError(f"Error downloading file: {exc}") from None
-
-            logger.debug("Download of %s completed", output_path.name)
-            hash_algo, _, hash_hex = batch_download_file.hash_str.partition(":")
-
-            if hash_algo == "sha256":
-                output_hash = hashlib.sha256(output_path.read_bytes())
-                if output_hash.hexdigest() != hash_hex:
-                    warn_msg = f"Downloaded file failed checksum validation: {output_path.name}"
-                    logger.warning(warn_msg)
-                    warnings.warn(warn_msg, category=BentoWarning)
             else:
-                logger.warning(
-                    "Skipping %s checksum because %s is not supported",
-                    output_path.name,
-                    hash_algo,
-                )
+                break
 
-            return output_path
+        logger.debug("Download of %s completed", output_path.name)
+        hash_algo, _, hash_hex = batch_download_file.hash_str.partition(":")
+
+        if hash_algo == "sha256":
+            output_hash = hashlib.sha256(output_path.read_bytes())
+            if output_hash.hexdigest() != hash_hex:
+                warn_msg = f"Downloaded file failed checksum validation: {output_path.name}"
+                logger.warning(warn_msg)
+                warnings.warn(warn_msg, category=BentoWarning)
+        else:
+            logger.warning(
+                "Skipping %s checksum because %s is not supported",
+                output_path.name,
+                hash_algo,
+            )
+
+        return output_path
 
 
 @dataclass

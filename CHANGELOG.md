@@ -6,6 +6,9 @@
 - Added `pip-system-certs` dependency for Windows platforms to prevent a connection issue in `requests` when behind a proxy
 - Iteration of the `Live` client will now automatically call `Live.stop` when the iterator is destroyed, such as when a for loop is escaped with an exception or `break` statement.
 
+#### Bug fixes
+- Fixed an issue where `batch.download` and `batch.download_async` would fail if requested files already existed in the output directory
+
 ## 0.33.0 - 2024-04-16
 
 #### Enhancements
