@@ -8,6 +8,7 @@
 
 #### Bug fixes
 - Fixed an issue where `batch.download` and `batch.download_async` would fail if requested files already existed in the output directory
+- Fixed an issue where `batch.download`, `batch.download_async`, and `timeseries.get_range` could use a lot of memory while streaming data
 
 ## 0.33.0 - 2024-04-16
 

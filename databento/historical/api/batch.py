@@ -24,6 +24,7 @@ from databento_dbn import Schema
 from databento_dbn import SType
 from requests.auth import HTTPBasicAuth
 
+from databento.common.constants import HTTP_STREAMING_READ_SIZE
 from databento.common.enums import Delivery
 from databento.common.enums import Packaging
 from databento.common.enums import SplitDuration
@@ -416,7 +417,7 @@ class BatchHttpAPI(BentoHttpAPI):
                 ) as response:
                     check_http_error(response)
                     with open(output_path, mode=mode) as f:
-                        for chunk in response.iter_content(chunk_size=None):
+                        for chunk in response.iter_content(chunk_size=HTTP_STREAMING_READ_SIZE):
                             f.write(chunk)
             except BentoHttpError as exc:
                 if exc.http_status == 429:
