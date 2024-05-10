@@ -5,23 +5,25 @@ Pytest fixtures.
 from __future__ import annotations
 
 import asyncio
+import logging
 import pathlib
 import random
 import string
-import threading
+from collections.abc import AsyncGenerator
 from collections.abc import Generator
 from collections.abc import Iterable
 from typing import Callable
 
+import databento.live.session
 import pytest
 from databento import historical
 from databento import live
 from databento.common.publishers import Dataset
-from databento.live import session
 from databento_dbn import Schema
 
 from tests import TESTS_ROOT
-from tests.mock_live_server import MockLiveServer
+from tests.mockliveserver.fixture import MockLiveServerInterface
+from tests.mockliveserver.fixture import fixture_mock_live_server  # noqa
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -86,6 +88,14 @@ def pytest_collection_modifyitems(
         # Skip release tests if `--release` was not specified
         if "release" in item.keywords and not config.getoption("--release"):
             item.add_marker(skip_release)
+
+
+@pytest.fixture(name="event_loop", scope="module")
+def fixture_event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(name="live_test_data_path")
@@ -199,74 +209,13 @@ def fixture_test_api_key() -> str:
     return f"db-{random_str}"
 
 
-@pytest.fixture(name="thread_loop", scope="session")
-def fixture_thread_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    """
-    Fixture for a threaded event loop.
-
-    Yields
-    ------
-    asyncio.AbstractEventLoop
-
-    """
-    loop = asyncio.new_event_loop()
-    thread = threading.Thread(
-        name="MockLiveServer",
-        target=loop.run_forever,
-        args=(),
-        daemon=True,
-    )
-    thread.start()
-    yield loop
-    loop.stop()
-
-
-@pytest.fixture(name="mock_live_server")
-def fixture_mock_live_server(
-    thread_loop: asyncio.AbstractEventLoop,
+@pytest.fixture(name="test_live_api_key")
+async def fixture_test_live_api_key(
     test_api_key: str,
-    caplog: pytest.LogCaptureFixture,
-    unused_tcp_port: int,
-    monkeypatch: pytest.MonkeyPatch,
-) -> Generator[MockLiveServer, None, None]:
-    """
-    Fixture for a MockLiveServer instance.
-
-    Yields
-    ------
-    MockLiveServer
-
-    """
-    monkeypatch.setenv(
-        name="DATABENTO_API_KEY",
-        value=test_api_key,
-    )
-    monkeypatch.setattr(
-        session,
-        "AUTH_TIMEOUT_SECONDS",
-        1,
-    )
-    monkeypatch.setattr(
-        session,
-        "CONNECT_TIMEOUT_SECONDS",
-        1,
-    )
-    with caplog.at_level("DEBUG"):
-        mock_live_server = asyncio.run_coroutine_threadsafe(
-            coro=MockLiveServer.create(
-                host="127.0.0.1",
-                port=unused_tcp_port,
-                dbn_path=TESTS_ROOT / "data",
-            ),
-            loop=thread_loop,
-        ).result()
-
-        yield mock_live_server
-
-        asyncio.run_coroutine_threadsafe(
-            coro=mock_live_server.stop(),
-            loop=thread_loop,
-        ).result()
+    mock_live_server: MockLiveServerInterface,
+) -> AsyncGenerator[str, None]:
+    async with mock_live_server.api_key_context(test_api_key):
+        yield test_api_key
 
 
 @pytest.fixture(name="historical_client")
@@ -289,10 +238,12 @@ def fixture_historical_client(
 
 
 @pytest.fixture(name="live_client")
-def fixture_live_client(
-    test_api_key: str,
-    mock_live_server: MockLiveServer,
-) -> Generator[live.client.Live, None, None]:
+async def fixture_live_client(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> AsyncGenerator[live.client.Live, None]:
     """
     Fixture for a Live client to connect to the MockLiveServer.
 
@@ -301,11 +252,25 @@ def fixture_live_client(
     Live
 
     """
-    test_client = live.client.Live(
-        key=test_api_key,
-        gateway=mock_live_server.host,
-        port=mock_live_server.port,
+    monkeypatch.setattr(
+        databento.live.session,
+        "AUTH_TIMEOUT_SECONDS",
+        0.5,
     )
-    yield test_client
-    if test_client.is_connected():
+    monkeypatch.setattr(
+        databento.live.session,
+        "CONNECT_TIMEOUT_SECONDS",
+        0.5,
+    )
+
+    with caplog.at_level(logging.DEBUG):
+        test_client = live.client.Live(
+            key=test_live_api_key,
+            gateway=mock_live_server.host,
+            port=mock_live_server.port,
+        )
+
+        with mock_live_server.test_context():
+            yield test_client
+
         test_client.stop()

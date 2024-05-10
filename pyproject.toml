@@ -47,12 +47,13 @@ zstandard = ">=0.21.0"
 black = "^23.9.1"
 mypy = "1.5.1"
 pytest = "^7.4.2"
-pytest-asyncio = ">=0.21.0"
+pytest-asyncio = "==0.21.1"
 ruff = "^0.0.291"
 types-requests = "^2.30.0.0"
 tomli = "^2.0.1"
 teamcity-messages = "^1.32"
 types-pytz = "^2024.1.0.20240203"
+types-aiofiles = "^23.2.0.20240403"
 
 [build-system]
 requires = ["poetry-core"]

@@ -4,6 +4,7 @@ import dataclasses
 import logging
 from io import BytesIO
 from operator import attrgetter
+from typing import SupportsBytes
 from typing import TypeVar
 
 from databento_dbn import Encoding
@@ -20,15 +21,20 @@ T = TypeVar("T", bound="GatewayControl")
 
 
 @dataclasses.dataclass
-class GatewayControl:
+class GatewayControl(SupportsBytes):
     """
     Base class for gateway control messages.
     """
 
     @classmethod
-    def parse(cls: type[T], line: str) -> T:
+    def parse(cls: type[T], line: str | bytes) -> T:
         """
         Parse a message of type `T` from a string.
+
+        Parameters
+        ----------
+        line : str | bytes
+            The data to parse into a GatewayControl message.
 
         Returns
         -------
@@ -40,17 +46,20 @@ class GatewayControl:
             If the line fails to parse.
 
         """
-        if not line.endswith("\n"):
-            raise ValueError(f"`{line.strip()}` does not end with a newline")
+        if isinstance(line, bytes):
+            line = line.decode("utf-8")
 
-        split_tokens = [t.partition("=") for t in line[:-1].split("|")]
+        if not line.endswith("\n"):
+            raise ValueError(f"'{line!r}' does not end with a newline")
+
+        split_tokens = [t.partition("=") for t in line.strip().split("|")]
         data_dict = {k: v for k, _, v in split_tokens}
 
         try:
             return cls(**data_dict)
         except TypeError:
             raise ValueError(
-                f"`{line.strip()} is not a parsible {cls.__name__}",
+                f"'{line!r}'is not a parsible {cls.__name__}",
             ) from None
 
     def __str__(self) -> str:
@@ -154,7 +163,7 @@ def parse_gateway_message(line: str) -> GatewayControl:
             return message_cls.parse(line)
         except ValueError:
             continue
-    raise ValueError(f"`{line.strip()}` is not a parsible gateway message")
+    raise ValueError(f"'{line.strip()}' is not a parsible gateway message")
 
 
 class GatewayDecoder:

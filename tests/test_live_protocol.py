@@ -7,7 +7,7 @@ from databento.live.protocol import DatabentoLiveProtocol
 from databento_dbn import Schema
 from databento_dbn import SType
 
-from tests.mock_live_server import MockLiveServer
+from tests.mockliveserver.fixture import MockLiveServerInterface
 
 
 @pytest.mark.parametrize(
@@ -22,8 +22,8 @@ from tests.mock_live_server import MockLiveServer
     ],
 )
 async def test_protocol_connection(
-    mock_live_server: MockLiveServer,
-    test_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
     dataset: Dataset,
 ) -> None:
     """
@@ -33,7 +33,7 @@ async def test_protocol_connection(
     # Arrange
     transport, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
-            api_key=test_api_key,
+            api_key=test_live_api_key,
             dataset=dataset,
         ),
         host=mock_live_server.host,
@@ -59,8 +59,8 @@ async def test_protocol_connection(
 )
 async def test_protocol_connection_streaming(
     monkeypatch: pytest.MonkeyPatch,
-    mock_live_server: MockLiveServer,
-    test_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
     dataset: Dataset,
 ) -> None:
     """
@@ -81,7 +81,7 @@ async def test_protocol_connection_streaming(
 
     _, protocol = await asyncio.get_event_loop().create_connection(
         protocol_factory=lambda: DatabentoLiveProtocol(
-            api_key=test_api_key,
+            api_key=test_live_api_key,
             dataset=dataset,
         ),
         host=mock_live_server.host,

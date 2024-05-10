@@ -6,9 +6,10 @@ import argparse
 import hashlib
 import os
 import sys
+from typing import Final
 
 
-BUCKET_ID_LENGTH = 5
+BUCKET_ID_LENGTH: Final = 5
 
 
 def get_challenge_response(challenge: str, key: str) -> str:
