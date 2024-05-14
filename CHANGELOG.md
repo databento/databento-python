@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.34.0 - 2024-05-14
+
+#### Enhancements
+- Added `pip-system-certs` dependency for Windows platforms to prevent a connection issue in `requests` when behind a proxy
+- Iteration of the `Live` client will now automatically call `Live.stop` when the iterator is destroyed, such as when a for loop is escaped with an exception or `break` statement.
+
+#### Bug fixes
+- Fixed an issue where `batch.download` and `batch.download_async` would fail if requested files already existed in the output directory
+- Fixed an issue where `batch.download`, `batch.download_async`, and `timeseries.get_range` could use a lot of memory while streaming data
+- Fixed an issue where reusing a `Live` client with an open output stream would drop DBN records when received at the same time as the `Metadata` header
+
 ## 0.33.0 - 2024-04-16
 
 #### Enhancements

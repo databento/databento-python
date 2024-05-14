@@ -8,6 +8,7 @@ from json.decoder import JSONDecodeError
 from os import PathLike
 from typing import IO
 from typing import Any
+from typing import Final
 
 import aiohttp
 import requests
@@ -16,6 +17,7 @@ from aiohttp import ContentTypeError
 from requests import Response
 from requests.auth import HTTPBasicAuth
 
+from databento.common.constants import HTTP_STREAMING_READ_SIZE
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoClientError
 from databento.common.error import BentoDeprecationWarning
@@ -25,7 +27,7 @@ from databento.common.error import BentoWarning
 from databento.common.system import USER_AGENT
 
 
-WARNING_HEADER_FIELD: str = "X-Warning"
+WARNING_HEADER_FIELD: Final = "X-Warning"
 
 
 class BentoHttpAPI:
@@ -137,7 +139,7 @@ class BentoHttpAPI:
                 writer = open(path, "x+b")
 
             try:
-                for chunk in response.iter_content(chunk_size=None):
+                for chunk in response.iter_content(chunk_size=HTTP_STREAMING_READ_SIZE):
                     writer.write(chunk)
             except Exception as exc:
                 raise BentoError(f"Error streaming response: {exc}") from None

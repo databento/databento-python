@@ -115,78 +115,17 @@ class Live:
         if not Live._thread.is_alive():
             Live._thread.start()
 
-    def __aiter__(self) -> Live:
+    def __aiter__(self) -> LiveIterator:
         return iter(self)
 
-    async def __anext__(self) -> DBNRecord:
-        if not self._dbn_queue.is_enabled():
-            raise ValueError("iteration has not started")
-
-        loop = asyncio.get_running_loop()
-
-        try:
-            return self._dbn_queue.get_nowait()
-        except queue.Empty:
-            while True:
-                try:
-                    return await loop.run_in_executor(
-                        None,
-                        self._dbn_queue.get,
-                        True,
-                        0.1,
-                    )
-                except queue.Empty:
-                    if self._session.is_disconnected():
-                        break
-        finally:
-            if not self._dbn_queue.is_full() and not self._session.is_reading():
-                logger.debug(
-                    "resuming reading with %d pending records",
-                    self._dbn_queue.qsize(),
-                )
-                self._session.resume_reading()
-
-        self._dbn_queue.disable()
-        await self.wait_for_close()
-        logger.debug("completed async iteration")
-        raise StopAsyncIteration
-
-    def __iter__(self) -> Live:
+    def __iter__(self) -> LiveIterator:
         logger.debug("starting iteration")
         if self._session.is_started():
             logger.error("iteration started after session has started")
             raise ValueError(
                 "Cannot start iteration after streaming has started, records may be missed. Don't call `Live.start` before iterating.",
             )
-        elif self.is_connected():
-            self.start()
-        self._dbn_queue._enabled.set()
-        return self
-
-    def __next__(self) -> DBNRecord:
-        if not self._dbn_queue.is_enabled():
-            raise ValueError("iteration has not started")
-
-        while True:
-            try:
-                record = self._dbn_queue.get(timeout=0.1)
-            except queue.Empty:
-                if self._session.is_disconnected():
-                    break
-            else:
-                return record
-            finally:
-                if not self._dbn_queue.is_full() and not self._session.is_reading():
-                    logger.debug(
-                        "resuming reading with %d pending records",
-                        self._dbn_queue.qsize(),
-                    )
-                    self._session.resume_reading()
-
-        self._dbn_queue.disable()
-        self.block_for_close()
-        logger.debug("completed iteration")
-        raise StopIteration
+        return LiveIterator(self)
 
     def __repr__(self) -> str:
         name = self.__class__.__name__
@@ -661,3 +600,93 @@ class Live:
             instrument_id = record.instrument_id
             self._symbology_map[instrument_id] = record.stype_out_symbol
             logger.info("added symbology mapping %s to %d", out_symbol, instrument_id)
+
+
+class LiveIterator:
+    """
+    Iterator class for the `Live` client. Automatically starts the client when
+    created and will stop it when destroyed. This provides context-manager-like
+    behavior to for loops.
+
+    Parameters
+    ----------
+    client : Live
+        The Live client that spawned this LiveIterator.
+
+    """
+
+    def __init__(self, client: Live):
+        client._dbn_queue._enabled.set()
+        client.start()
+        self._client = client
+
+    @property
+    def client(self) -> Live:
+        return self._client
+
+    def __iter__(self) -> LiveIterator:
+        return self
+
+    def __del__(self) -> None:
+        if self.client.is_connected():
+            self.client.stop()
+            self.client.block_for_close()
+            logger.debug("iteration aborted")
+
+    async def __anext__(self) -> DBNRecord:
+        if not self.client._dbn_queue.is_enabled():
+            raise ValueError("iteration has not started")
+
+        loop = asyncio.get_running_loop()
+
+        try:
+            return self.client._dbn_queue.get_nowait()
+        except queue.Empty:
+            while True:
+                try:
+                    return await loop.run_in_executor(
+                        None,
+                        self.client._dbn_queue.get,
+                        True,
+                        0.1,
+                    )
+                except queue.Empty:
+                    if self.client._session.is_disconnected():
+                        break
+        finally:
+            if not self.client._dbn_queue.is_full() and not self.client._session.is_reading():
+                logger.debug(
+                    "resuming reading with %d pending records",
+                    self.client._dbn_queue.qsize(),
+                )
+                self.client._session.resume_reading()
+
+        self.client._dbn_queue.disable()
+        await self.client.wait_for_close()
+        logger.debug("async iteration completed")
+        raise StopAsyncIteration
+
+    def __next__(self) -> DBNRecord:
+        if not self.client._dbn_queue.is_enabled():
+            raise ValueError("iteration has not started")
+
+        while True:
+            try:
+                record = self.client._dbn_queue.get(timeout=0.1)
+            except queue.Empty:
+                if self.client._session.is_disconnected():
+                    break
+            else:
+                return record
+            finally:
+                if not self.client._dbn_queue.is_full() and not self.client._session.is_reading():
+                    logger.debug(
+                        "resuming reading with %d pending records",
+                        self.client._dbn_queue.qsize(),
+                    )
+                    self.client._session.resume_reading()
+
+        self.client._dbn_queue.disable()
+        self.client.block_for_close()
+        logger.debug("iteration completed")
+        raise StopIteration

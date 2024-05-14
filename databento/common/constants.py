@@ -25,6 +25,8 @@ DEFINITION_TYPE_MAX_MAP: Final = {
     x[0]: np.iinfo(x[1]).max for x in InstrumentDefMsg._dtypes if not isinstance(x[1], str)
 }
 
+HTTP_STREAMING_READ_SIZE: Final = 2**12
+
 SCHEMA_STRUCT_MAP: Final[dict[Schema, type[DBNRecord]]] = {
     Schema.DEFINITION: InstrumentDefMsg,
     Schema.IMBALANCE: ImbalanceMsg,

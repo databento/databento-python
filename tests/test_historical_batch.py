@@ -276,3 +276,147 @@ def test_batch_download_rate_limit_429(
     assert mocked_batch_list_files.call_args.args == (job_id,)
     assert len(downloaded_files) == 1
     assert downloaded_files[0].read_bytes() == file_content
+
+
+def test_batch_download_file_exists(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+    tmp_path: Path,
+) -> None:
+    """
+    Tests batch download by setting up a MagicMock which will return the
+    content "unittest".
+
+    A subsequent call to batch.download should not fail.
+
+    """
+    # Arrange
+    job_id = "GLBX-20220610-5DEFXVTMSM"
+    filename = "glbx-mdp3-20220610.mbo.csv.zst"
+    file_content = b"unittest"
+    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
+    file_size = len(file_content)
+
+    # Mock the call to list files so it returns a test manifest
+    monkeypatch.setattr(
+        historical_client.batch,
+        "list_files",
+        mocked_batch_list_files := MagicMock(
+            return_value=[
+                {
+                    "filename": filename,
+                    "hash": file_hash,
+                    "size": file_size,
+                    "urls": {
+                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{filename}",
+                        "ftp": "",
+                    },
+                },
+            ],
+        ),
+    )
+
+    # Mock the call for get, so we can simulate a 429 response
+    ok_response = MagicMock()
+    ok_response.__enter__.return_value = MagicMock(
+        status_code=200,
+        iter_content=MagicMock(return_value=iter([file_content])),
+    )
+    monkeypatch.setattr(
+        requests,
+        "get",
+        MagicMock(
+            side_effect=[ok_response],
+        ),
+    )
+
+    # Act
+    historical_client.batch.download(
+        job_id=job_id,
+        output_dir=tmp_path,
+        filename_to_download=filename,
+    )
+
+    downloaded_files = historical_client.batch.download(
+        job_id=job_id,
+        output_dir=tmp_path,
+        filename_to_download=filename,
+    )
+
+    # Assert
+    assert mocked_batch_list_files.call_args.args == (job_id,)
+    assert len(downloaded_files) == 1
+    assert downloaded_files[0].read_bytes() == file_content
+
+
+def test_batch_download_file_larger_than_expected(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+    tmp_path: Path,
+) -> None:
+    """
+    Tests batch download by setting up a MagicMock which will return the
+    content "unittest".
+
+    Then, write some extra bytes to that file, and ensure a subsequent
+    call to batch.download will raise an exception.
+
+    """
+    # Arrange
+    job_id = "GLBX-20220610-5DEFXVTMSM"
+    filename = "glbx-mdp3-20220610.mbo.csv.zst"
+    file_content = b"unittest"
+    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
+    file_size = len(file_content)
+
+    # Mock the call to list files so it returns a test manifest
+    monkeypatch.setattr(
+        historical_client.batch,
+        "list_files",
+        MagicMock(
+            return_value=[
+                {
+                    "filename": filename,
+                    "hash": file_hash,
+                    "size": file_size,
+                    "urls": {
+                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{filename}",
+                        "ftp": "",
+                    },
+                },
+            ],
+        ),
+    )
+
+    # Mock the call for get, so we can simulate a 429 response
+    ok_response = MagicMock()
+    ok_response.__enter__.return_value = MagicMock(
+        status_code=200,
+        iter_content=MagicMock(return_value=iter([file_content])),
+    )
+    monkeypatch.setattr(
+        requests,
+        "get",
+        MagicMock(
+            side_effect=[ok_response],
+        ),
+    )
+
+    # Act
+    downloaded_files = historical_client.batch.download(
+        job_id=job_id,
+        output_dir=tmp_path,
+        filename_to_download=filename,
+    )
+
+    # Increase the existing file size with some junk
+    with downloaded_files[-1].open(mode="ab") as out:
+        out.write(b"junk")
+
+    # Assert
+    with pytest.raises(FileExistsError):
+        historical_client.batch.download(
+            job_id=job_id,
+            output_dir=tmp_path,
+            filename_to_download=filename,
+        )

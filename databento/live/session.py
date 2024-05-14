@@ -11,6 +11,7 @@ from typing import Callable
 from typing import Final
 
 import databento_dbn
+from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
 
@@ -195,28 +196,29 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._user_streams = user_streams
 
     def _process_dbn(self, data: bytes) -> None:
-        # Do no re-write the metadata to the stream to avoid corruption
-        if not self._metadata or not data.startswith(b"DBN"):
-            for stream, exc_callback in self._user_streams.items():
-                try:
-                    stream.write(data)
-                except Exception as exc:
-                    stream_name = getattr(stream, "name", str(stream))
-                    logger.error(
-                        "error writing %d bytes to `%s` stream",
-                        len(data),
-                        stream_name,
-                        exc_info=exc,
-                    )
-                    if exc_callback is not None:
-                        exc_callback(exc)
+        start_index = 0
+        if data.startswith(b"DBN") and self._metadata:
+            # We have already received metata for the stream
+            # Set start index to metadata length
+            start_index = int.from_bytes(data[4:8], byteorder="little") + 8
+            self._metadata.check(Metadata.decode(bytes(data[:start_index])))
+        for stream, exc_callback in self._user_streams.items():
+            try:
+                stream.write(data[start_index:])
+            except Exception as exc:
+                stream_name = getattr(stream, "name", str(stream))
+                logger.error(
+                    "error writing %d bytes to `%s` stream",
+                    len(data[start_index:]),
+                    stream_name,
+                    exc_info=exc,
+                )
+                if exc_callback is not None:
+                    exc_callback(exc)
         return super()._process_dbn(data)
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
-        if not self._metadata:
-            self._metadata.data = metadata
-        else:
-            self._metadata.check(metadata)
+        self._metadata.data = metadata
         return super().received_metadata(metadata)
 
     def received_record(self, record: DBNRecord) -> None:

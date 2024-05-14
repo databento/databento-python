@@ -198,7 +198,7 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
     Represents record flags.
 
     F_LAST
-        Last message in the packet from the venue for a given `instrument_id`.
+        Marks the last record in a single event for a given `instrument_id`.
     F_TOB
         Indicates a top-of-book message, not an individual order.
     F_SNAPSHOT
