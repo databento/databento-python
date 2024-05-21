@@ -121,6 +121,7 @@ class SubscriptionRequest(GatewayControl):
     stype_in: SType
     symbols: str
     start: int | None = None
+    snapshot: int = 0
 
 
 @dataclasses.dataclass

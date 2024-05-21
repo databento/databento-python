@@ -174,6 +174,43 @@ def test_live_connection_cram_failure(
 
 
 @pytest.mark.parametrize(
+    "start",
+    [
+        "now",
+        "2022-06-10T12:00",
+        1671717080706865759,
+    ],
+)
+def test_live_subscription_with_snapshot_failed(
+    mock_live_server: MockLiveServer,
+    test_api_key: str,
+    start: str | int,
+) -> None:
+    """
+    Test that an invalid snapshot subscription raises a ValueError.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
+
+    # Act, Assert
+    with pytest.raises(ValueError) as exc:
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=Schema.MBO,
+            symbols=ALL_SYMBOLS,
+            start=start,
+            use_snapshot=True,
+        )
+
+    # Ensure this was an authentication error
+    exc.match(r"Subscription with snapshot expects start=None")
+
+
+@pytest.mark.parametrize(
     "dataset",
     [pytest.param(dataset, id=str(dataset)) for dataset in Dataset],
 )
@@ -446,6 +483,52 @@ def test_live_subscribe(
     assert message.stype_in == stype_in
     assert message.symbols == symbols
     assert message.start == start
+    assert message.snapshot == "0"
+
+
+@pytest.mark.parametrize(
+    "use_snapshot",
+    [
+        False,
+        True,
+    ],
+)
+def test_live_subscribe_snapshot(
+    live_client: client.Live,
+    mock_live_server: MockLiveServer,
+    use_snapshot: bool,
+) -> None:
+    """
+    Test that use_snapshot parameter is assigned correctly.
+    """
+    # Arrange
+
+    schema = Schema.MBO
+    stype_in = SType.RAW_SYMBOL
+    symbols = ALL_SYMBOLS
+    start = None
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=schema,
+        stype_in=stype_in,
+        symbols=symbols,
+        start=start,
+        use_snapshot=use_snapshot,
+    )
+
+    # Act
+    message = mock_live_server.get_message_of_type(
+        gateway.SubscriptionRequest,
+        timeout=1,
+    )
+
+    # Assert
+    assert message.schema == schema
+    assert message.stype_in == stype_in
+    assert message.symbols == symbols
+    assert message.start == start
+    assert message.snapshot == str(int(use_snapshot))
 
 
 @pytest.mark.usefixtures("mock_live_server")

@@ -256,6 +256,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
+        use_snapshot: bool = False,
     ) -> None:
         """
         Send a SubscriptionRequest to the gateway.
@@ -271,15 +272,19 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         start : str or int, optional
             UNIX nanosecond epoch timestamp to start streaming from. Must be
             within 24 hours.
+        use_snapshot: bool, default to 'False'
+            Reserved for future use.
 
         """
         logger.info(
-            "sending subscription to %s:%s %s start=%s",
+            "sending subscription to %s:%s %s start=%s use_snapshot=%s",
             schema,
             stype_in,
             symbols,
             start if start is not None else "now",
+            use_snapshot,
         )
+
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
 
@@ -291,6 +296,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 stype_in=stype_in_valid,
                 symbols=batch_str,
                 start=optional_datetime_to_unix_nanoseconds(start),
+                snapshot=int(use_snapshot),
             )
             subscription_bytes.append(bytes(message))
 

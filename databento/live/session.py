@@ -408,6 +408,7 @@ class Session:
         symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
+        use_snapshot: bool = False,
     ) -> None:
         """
         Send a subscription request on the current connection. This will create
@@ -426,6 +427,8 @@ class Session:
         start : str or int, optional
             UNIX nanosecond epoch timestamp to start streaming from. Must be
             within 24 hours.
+        use_snapshot: bool, default to 'False'
+            Reserved for future use.
 
         """
         with self._lock:
@@ -441,6 +444,7 @@ class Session:
                 symbols=symbols,
                 stype_in=stype_in,
                 start=start,
+                use_snapshot=use_snapshot,
             )
 
     def resume_reading(self) -> None:
