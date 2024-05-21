@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.34.1 - TBD
+## 0.34.1 - 2024-05-21
 
 #### Enhancements
 - Added `use_snapshot` parameter to `Live.subscribe`, defaults to `False`
