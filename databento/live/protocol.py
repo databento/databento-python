@@ -360,7 +360,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         try:
             self._gateway_decoder.write(data)
             controls = self._gateway_decoder.decode()
-        except ValueError:
+        except Exception:
             logger.exception("error decoding control message")
             self.transport.close()
             raise
