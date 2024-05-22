@@ -46,8 +46,7 @@ class BentoHttpAPI:
         if self._key == "YOUR_API_KEY":
             raise ValueError(
                 "The API key is currently set to 'YOUR_API_KEY'. "
-                "Please replace this value with a valid API key. "
-                "You can find these through your Databento user portal.",
+                "Please replace this value with a key from your user portal https://databento.com/portal/keys",
             )
 
     def _get(
