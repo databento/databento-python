@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.35.0 - TBD
+
+#### Breaking changes
+- Rename `use_snapshot` parameter in `Live.subscribe` function to `snapshot`
+
 ## 0.34.1 - 2024-05-21
 
 #### Enhancements
