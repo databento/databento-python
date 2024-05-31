@@ -3,6 +3,8 @@
 ## 0.35.0 - TBD
 
 #### Enhancements
+- Added optional `heartbeat_interval_s` parameter to `Live` client for configuring the
+  interval at which the gateway will send heartbeat records
 - Upgraded `databento-dbn` to 0.18.0
 
 #### Breaking changes

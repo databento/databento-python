@@ -50,6 +50,9 @@ class Live:
     ts_out: bool, default False
         If set, DBN records will be timestamped when they are sent by the
         gateway.
+    heartbeat_interval_s: int, optional
+        The interval in seconds at which the gateway will send heartbeat records if no
+        other data records are sent.
 
     """
 
@@ -66,6 +69,7 @@ class Live:
         gateway: str | None = None,
         port: int = DEFAULT_REMOTE_PORT,
         ts_out: bool = False,
+        heartbeat_interval_s: int | None = None,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -83,6 +87,7 @@ class Live:
 
         self._dataset: Dataset | str = ""
         self._ts_out = ts_out
+        self._heartbeat_interval_s = heartbeat_interval_s
 
         self._dbn_queue: DBNQueue = DBNQueue()
         self._metadata: SessionMetadata = SessionMetadata()
@@ -102,6 +107,7 @@ class Live:
                 loop=self._loop,
                 metadata=self._metadata,
                 ts_out=self._ts_out,
+                heartbeat_interval_s=self._heartbeat_interval_s,
             )
 
         self._session: Session = Session(

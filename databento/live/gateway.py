@@ -108,6 +108,7 @@ class AuthenticationRequest(GatewayControl):
     encoding: Encoding = Encoding.DBN
     details: str | None = None
     ts_out: str = "0"
+    heartbeat_interval_s: int | None = None
     client: str = USER_AGENT
 
 

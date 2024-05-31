@@ -55,6 +55,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         The dataset for authentication.
     ts_out : bool, default False
         Flag for requesting `ts_out` to be appending to all records in the session.
+    heartbeat_interval_s: int, optional
+        The interval in seconds at which the gateway will send heartbeat records if no
+        other data records are sent.
 
     See Also
     --------
@@ -67,6 +70,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         api_key: str,
         dataset: Dataset | str,
         ts_out: bool = False,
+        heartbeat_interval_s: int | None = None,
     ) -> None:
         self.__api_key = api_key
         self.__transport: asyncio.Transport | None = None
@@ -74,6 +78,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         self._dataset = validate_semantic_string(dataset, "dataset")
         self._ts_out = ts_out
+        self._heartbeat_interval_s = heartbeat_interval_s
 
         self._dbn_decoder = databento_dbn.DBNDecoder(
             upgrade_policy=VersionUpgradePolicy.UPGRADE,
@@ -392,6 +397,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             auth=response,
             dataset=self._dataset,
             ts_out=str(int(self._ts_out)),
+            heartbeat_interval_s=self._heartbeat_interval_s,
         )
         logger.debug("sending CRAM challenge response: %s", str(auth_request).strip())
         self.transport.write(bytes(auth_request))

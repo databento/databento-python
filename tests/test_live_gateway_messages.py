@@ -30,16 +30,17 @@ ALL_MESSAGES = (
     [
         pytest.param(
             "auth=abcd1234|dataset=GLBX.MDP3|encoding=json\n",
-            ("abcd1234", "GLBX.MDP3", "json", None, "0"),
+            ("abcd1234", "GLBX.MDP3", "json", None, "0", None),
         ),
         pytest.param(
-            "auth=abcd1234|dataset=GLBX.MDP3|ts_out=1\n",
+            "auth=abcd1234|dataset=GLBX.MDP3|heartbeat_interval_s=10|ts_out=1\n",
             (
                 "abcd1234",
                 "GLBX.MDP3",
                 str(Encoding.DBN),
                 None,
                 "1",
+                "10",
             ),
         ),
         pytest.param(
@@ -50,10 +51,11 @@ ALL_MESSAGES = (
                 str(Encoding.DBN),
                 None,
                 "0",
+                None,
             ),
         ),
         pytest.param(
-            "auth=abcd1234|dataset=GLBX.MDP3|ts_out=1|encoding=csv|extra=key\n",
+            "auth=abcd1234|dataset=GLBX.MDP3|ts_out=1|encoding=csv|heartbeat_interval_s=5|extra=key\n",
             ValueError,
         ),
     ],
@@ -74,6 +76,7 @@ def test_parse_authentication_request(
             msg.encoding,
             msg.details,
             msg.ts_out,
+            msg.heartbeat_interval_s,
         ) == expected
     else:
         with pytest.raises(expected):
@@ -97,8 +100,9 @@ def test_parse_authentication_request(
                 dataset=Dataset.XNAS_ITCH,
                 ts_out="1",
                 client="unittest",
+                heartbeat_interval_s=35,
             ),
-            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1|client=unittest\n",
+            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1|heartbeat_interval_s=35|client=unittest\n",
         ),
     ],
 )

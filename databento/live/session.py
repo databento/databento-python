@@ -186,6 +186,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
+        heartbeat_interval_s: int | None = None,
     ):
         super().__init__(api_key, dataset, ts_out)
 
