@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.35.0 - TBD
+## 0.35.0 - 2024-06-04
 
 #### Enhancements
 - Added optional `heartbeat_interval_s` parameter to `Live` client for configuring the
