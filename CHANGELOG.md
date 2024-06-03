@@ -6,6 +6,7 @@
 - Added optional `heartbeat_interval_s` parameter to `Live` client for configuring the
   interval at which the gateway will send heartbeat records
 - Upgraded `databento-dbn` to 0.18.0
+- Added new off-market publisher values for `IFEU.IMPACT` and `NDEX.IMPACT`
 
 #### Breaking changes
 - Renamed `CbboMsg` to `CBBOMsg`.

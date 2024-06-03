@@ -100,6 +100,8 @@ class Venue(StringyMixin, str, Enum):
         MIAX Sapphire.
     LTSE
         Long-Term Stock Exchange, Inc..
+    XOFF
+        Off-Exchange Transactions - Listed Instruments.
 
     """
 
@@ -145,6 +147,7 @@ class Venue(StringyMixin, str, Enum):
     DBEQ = "DBEQ"
     SPHR = "SPHR"
     LTSE = "LTSE"
+    XOFF = "XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -235,6 +238,8 @@ class Venue(StringyMixin, str, Enum):
             return Venue.SPHR
         if value == 42:
             return Venue.LTSE
+        if value == 43:
+            return Venue.XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -325,6 +330,8 @@ class Venue(StringyMixin, str, Enum):
             return 41
         if self == Venue.LTSE:
             return 42
+        if self == Venue.XOFF:
+            return 43
         raise ValueError("Invalid Venue")
 
     @property
@@ -416,6 +423,8 @@ class Venue(StringyMixin, str, Enum):
             return "MIAX Sapphire"
         if self == Venue.LTSE:
             return "Long-Term Stock Exchange, Inc."
+        if self == Venue.XOFF:
+            return "Off-Exchange Transactions - Listed Instruments"
         raise ValueError("Unexpected Venue value")
 
 
@@ -901,6 +910,10 @@ class Publisher(StringyMixin, str, Enum):
         Nasdaq Basic - FINRA/Nasdaq TRF Carteret.
     XNAS_BASIC_FINC
         Nasdaq Basic - FINRA/Nasdaq TRF Chicago.
+    IFEU_IMPACT_XOFF
+        ICE Futures Europe - Off-Market Trades.
+    NDEX_IMPACT_XOFF
+        ICE Endex - Off-Market Trades.
 
     """
 
@@ -987,6 +1000,8 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_BASIC_XNAS = "XNAS.BASIC.XNAS"
     XNAS_BASIC_FINN = "XNAS.BASIC.FINN"
     XNAS_BASIC_FINC = "XNAS.BASIC.FINC"
+    IFEU_IMPACT_XOFF = "IFEU.IMPACT.XOFF"
+    NDEX_IMPACT_XOFF = "NDEX.IMPACT.XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1159,6 +1174,10 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XNAS_BASIC_FINN
         if value == 83:
             return Publisher.XNAS_BASIC_FINC
+        if value == 84:
+            return Publisher.IFEU_IMPACT_XOFF
+        if value == 85:
+            return Publisher.NDEX_IMPACT_XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1331,6 +1350,10 @@ class Publisher(StringyMixin, str, Enum):
             return 82
         if self == Publisher.XNAS_BASIC_FINC:
             return 83
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return 84
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return 85
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1504,6 +1527,10 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.FINN
         if self == Publisher.XNAS_BASIC_FINC:
             return Venue.FINC
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return Venue.XOFF
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return Venue.XOFF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1677,6 +1704,10 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XNAS_BASIC
         if self == Publisher.XNAS_BASIC_FINC:
             return Dataset.XNAS_BASIC
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return Dataset.IFEU_IMPACT
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return Dataset.NDEX_IMPACT
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1850,4 +1881,8 @@ class Publisher(StringyMixin, str, Enum):
             return "Nasdaq Basic - FINRA/Nasdaq TRF Carteret"
         if self == Publisher.XNAS_BASIC_FINC:
             return "Nasdaq Basic - FINRA/Nasdaq TRF Chicago"
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return "ICE Futures Europe - Off-Market Trades"
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return "ICE Endex - Off-Market Trades"
         raise ValueError("Unexpected Publisher value")
