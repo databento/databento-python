@@ -4,7 +4,6 @@ import asyncio
 import contextlib
 import os
 import pathlib
-import signal
 import sys
 from asyncio.subprocess import Process
 from collections.abc import AsyncGenerator
@@ -70,13 +69,22 @@ class MockLiveServerInterface:
             return self._process.stdout
         raise RuntimeError("no stream reader for stdout")
 
-    async def _send_command(self, command: str) -> None:
+    async def _send_command(
+        self,
+        command: str,
+        timeout: float = 1.0,
+    ) -> None:
         if self._process.stdin is None:
             raise RuntimeError("cannot write command to mock live server")
         self._process.stdin.write(
             f"{command.strip()}\n".encode(),
         )
-        line = await self.stdout.readline()
+
+        try:
+            line = await asyncio.wait_for(self.stdout.readline(), timeout)
+        except asyncio.TimeoutError:
+            raise RuntimeError("timeout waiting for command acknowledgement")
+
         line_str = line.decode("utf-8")
 
         if line_str.startswith(f"ack: {command}"):
@@ -140,9 +148,9 @@ class MockLiveServerInterface:
 
     def kill(self) -> None:
         """
-        Kill the mock live server by sending SIGKILL.
+        Kill the mock live server.
         """
-        self._process.send_signal(signal.SIGKILL)
+        self._process.kill()
 
     @contextlib.contextmanager
     def test_context(self) -> Generator[None, None, None]:
@@ -214,6 +222,7 @@ async def fixture_mock_live_server(
         "--echo",
         echo_file.resolve(),
         "--verbose",
+        executable=sys.executable,
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE,
         stderr=sys.stderr,
@@ -236,5 +245,5 @@ async def fixture_mock_live_server(
 
     yield interface
 
-    interface.kill()
-    await asyncio.wait_for(process.wait(), timeout=1)
+    process.terminate()
+    await process.wait()

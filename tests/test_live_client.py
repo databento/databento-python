@@ -5,7 +5,6 @@ Unit tests for the Live client.
 from __future__ import annotations
 
 import pathlib
-import platform
 import random
 import string
 from io import BytesIO
@@ -894,7 +893,6 @@ def test_live_add_stream_path_directory(
         live_client.add_stream(tmp_path)
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:
@@ -998,7 +996,6 @@ async def test_live_async_iteration_dropped(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows")
 async def test_live_async_iteration_stop(
     live_client: client.Live,
 ) -> None:
@@ -1025,7 +1022,6 @@ async def test_live_async_iteration_stop(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows")
 def test_live_sync_iteration(
     live_client: client.Live,
 ) -> None:

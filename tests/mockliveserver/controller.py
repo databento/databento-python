@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import sys
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from pathlib import Path
@@ -18,7 +19,7 @@ from tests.mockliveserver.source import ReplayProtocol
 logger = logging.getLogger(__name__)
 
 
-class CommandProtocol(asyncio.Protocol):
+class Controller:
     command_parser = argparse.ArgumentParser(prog="mockliveserver")
     subparsers = command_parser.add_subparsers(dest="command")
 
@@ -45,47 +46,43 @@ class CommandProtocol(asyncio.Protocol):
         server: asyncio.base_events.Server,
         api_key_table: Mapping[str, set[str]],
         file_replay_table: MutableMapping[tuple[Dataset, Schema], ReplayProtocol],
+        loop: asyncio.AbstractEventLoop,
     ) -> None:
         self._server = server
         self._api_key_table = api_key_table
         self._file_replay_table = file_replay_table
+        self._loop = loop
 
-    def eof_received(self) -> bool | None:
-        self._server.close()
-        return super().eof_received()
+        self._read_task = loop.create_task(self._read_commands())
 
-    def data_received(self, data: bytes) -> None:
-        logger.debug("%d bytes from stdin", len(data))
-        try:
-            command_str = data.decode("utf-8")
-        except Exception:
-            logger.error("error parsing command")
-            raise
+    async def _read_commands(self) -> None:
+        while self._server.is_serving():
+            line = await self._loop.run_in_executor(None, sys.stdin.readline)
+            self.data_received(line.strip())
 
-        for command in command_str.splitlines():
-            params = self.command_parser.parse_args(command.split())
-            command_func = getattr(self, f"_command_{params.command}", None)
-            if command_func is None:
-                raise ValueError(f"{params.command} does not have a command handler")
+    def data_received(self, command_str: str) -> None:
+        params = self.command_parser.parse_args(command_str.split())
+        command_func = getattr(self, f"_command_{params.command}", None)
+        if command_func is None:
+            raise ValueError(f"{params.command} does not have a command handler")
+        else:
+            logger.info("received command: %s", command_str)
+            command_params = dict(params._get_kwargs())
+            command_params.pop("command")
+            try:
+                command_func(**command_params)
+            except Exception:
+                logger.exception("error processing command: %s", params.command)
+                print(f"nack: {command_str}", flush=True)
             else:
-                logger.info("received command: %s", command)
-                command_params = dict(params._get_kwargs())
-                command_params.pop("command")
-                try:
-                    command_func(**command_params)
-                except Exception:
-                    logger.exception("error processing command: %s", params.command)
-                    print(f"nack: {command}", flush=True)
-                else:
-                    print(f"ack: {command}", flush=True)
-
-        return super().data_received(data)
+                print(f"ack: {command_str}", flush=True)
 
     def _command_close(self, *_: str) -> None:
         """
         Close the server.
         """
-        self._server.close()
+        self._read_task.cancel()
+        self._loop.call_soon(self._server.close)
 
     def _command_active_count(self, *_: str) -> None:
         """

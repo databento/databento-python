@@ -11,7 +11,7 @@ from socket import AF_INET
 from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
-from tests.mockliveserver.controller import CommandProtocol
+from tests.mockliveserver.controller import Controller
 from tests.mockliveserver.source import ReplayProtocol
 
 from .server import MockLiveServerProtocol
@@ -84,13 +84,11 @@ async def main() -> None:
     ip, port, *_ = server._sockets[-1].getsockname()  # type: ignore [attr-defined]
 
     # Create command interface for stdin
-    await loop.connect_read_pipe(
-        protocol_factory=lambda: CommandProtocol(
-            api_key_table=api_key_table,
-            file_replay_table=file_replay_table,
-            server=server,
-        ),
-        pipe=sys.stdin,
+    _ = Controller(
+        server=server,
+        api_key_table=api_key_table,
+        file_replay_table=file_replay_table,
+        loop=loop,
     )
 
     # Log Arguments
