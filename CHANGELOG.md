@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.35.0 - 2024-06-04
+
+#### Enhancements
+- Added optional `heartbeat_interval_s` parameter to `Live` client for configuring the
+  interval at which the gateway will send heartbeat records
+- Upgraded `databento-dbn` to 0.18.0
+- Added new off-market publisher values for `IFEU.IMPACT` and `NDEX.IMPACT`
+
+#### Breaking changes
+- Renamed `CbboMsg` to `CBBOMsg`.
+- Renamed `use_snapshot` parameter in `Live.subscribe` function to `snapshot`
+- All Python exceptions raised by `databento-dbn` have been changed to use the `DBNError` type
+
 ## 0.34.1 - 2024-05-21
 
 #### Enhancements
@@ -9,7 +22,7 @@
 
 #### Enhancements
 - Added `pip-system-certs` dependency for Windows platforms to prevent a connection issue in `requests` when behind a proxy
-- Iteration of the `Live` client will now automatically call `Live.stop` when the iterator is destroyed, such as when a for loop is escaped with an exception or `break` statement.
+- Iteration of the `Live` client will now automatically call `Live.stop` when the iterator is destroyed, such as when a for loop is escaped with an exception or `break` statement
 
 #### Bug fixes
 - Fixed an issue where `batch.download` and `batch.download_async` would fail if requested files already existed in the output directory

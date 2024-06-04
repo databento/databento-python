@@ -8,6 +8,8 @@ from typing import TypeVar
 from urllib.parse import urlsplit
 from urllib.parse import urlunsplit
 
+from databento_dbn import DBNError
+
 
 E = TypeVar("E", bound=Enum)
 
@@ -109,7 +111,7 @@ def validate_enum(
     """
     try:
         return enum(value)
-    except ValueError:
+    except (ValueError, DBNError):
         if hasattr(enum, "variants"):
             valid = list(map(str, enum.variants()))  # type: ignore [attr-defined]
         else:

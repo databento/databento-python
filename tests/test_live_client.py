@@ -203,7 +203,7 @@ def test_live_subscription_with_snapshot_failed(
             schema=Schema.MBO,
             symbols=ALL_SYMBOLS,
             start=start,
-            use_snapshot=True,
+            snapshot=True,
         )
 
     # Ensure this was an authentication error
@@ -487,7 +487,7 @@ def test_live_subscribe(
 
 
 @pytest.mark.parametrize(
-    "use_snapshot",
+    "snapshot",
     [
         False,
         True,
@@ -496,10 +496,10 @@ def test_live_subscribe(
 def test_live_subscribe_snapshot(
     live_client: client.Live,
     mock_live_server: MockLiveServer,
-    use_snapshot: bool,
+    snapshot: bool,
 ) -> None:
     """
-    Test that use_snapshot parameter is assigned correctly.
+    Test that snapshot parameter is assigned correctly.
     """
     # Arrange
 
@@ -514,7 +514,7 @@ def test_live_subscribe_snapshot(
         stype_in=stype_in,
         symbols=symbols,
         start=start,
-        use_snapshot=use_snapshot,
+        snapshot=snapshot,
     )
 
     # Act
@@ -528,7 +528,7 @@ def test_live_subscribe_snapshot(
     assert message.stype_in == stype_in
     assert message.symbols == symbols
     assert message.start == start
-    assert message.snapshot == str(int(use_snapshot))
+    assert message.snapshot == str(int(snapshot))
 
 
 @pytest.mark.usefixtures("mock_live_server")

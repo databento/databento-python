@@ -55,6 +55,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         The dataset for authentication.
     ts_out : bool, default False
         Flag for requesting `ts_out` to be appending to all records in the session.
+    heartbeat_interval_s: int, optional
+        The interval in seconds at which the gateway will send heartbeat records if no
+        other data records are sent.
 
     See Also
     --------
@@ -67,6 +70,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         api_key: str,
         dataset: Dataset | str,
         ts_out: bool = False,
+        heartbeat_interval_s: int | None = None,
     ) -> None:
         self.__api_key = api_key
         self.__transport: asyncio.Transport | None = None
@@ -74,6 +78,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         self._dataset = validate_semantic_string(dataset, "dataset")
         self._ts_out = ts_out
+        self._heartbeat_interval_s = heartbeat_interval_s
 
         self._dbn_decoder = databento_dbn.DBNDecoder(
             upgrade_policy=VersionUpgradePolicy.UPGRADE,
@@ -256,7 +261,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
-        use_snapshot: bool = False,
+        snapshot: bool = False,
     ) -> None:
         """
         Send a SubscriptionRequest to the gateway.
@@ -272,17 +277,17 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         start : str or int, optional
             UNIX nanosecond epoch timestamp to start streaming from. Must be
             within 24 hours.
-        use_snapshot: bool, default to 'False'
+        snapshot: bool, default to 'False'
             Reserved for future use.
 
         """
         logger.info(
-            "sending subscription to %s:%s %s start=%s use_snapshot=%s",
+            "sending subscription to %s:%s %s start=%s snapshot=%s",
             schema,
             stype_in,
             symbols,
             start if start is not None else "now",
-            use_snapshot,
+            snapshot,
         )
 
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
@@ -296,7 +301,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 stype_in=stype_in_valid,
                 symbols=batch_str,
                 start=optional_datetime_to_unix_nanoseconds(start),
-                snapshot=int(use_snapshot),
+                snapshot=int(snapshot),
             )
             subscription_bytes.append(bytes(message))
 
@@ -360,7 +365,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         try:
             self._gateway_decoder.write(data)
             controls = self._gateway_decoder.decode()
-        except ValueError:
+        except Exception:
             logger.exception("error decoding control message")
             self.transport.close()
             raise
@@ -392,6 +397,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             auth=response,
             dataset=self._dataset,
             ts_out=str(int(self._ts_out)),
+            heartbeat_interval_s=self._heartbeat_interval_s,
         )
         logger.debug("sending CRAM challenge response: %s", str(auth_request).strip())
         self.transport.write(bytes(auth_request))

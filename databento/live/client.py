@@ -50,6 +50,9 @@ class Live:
     ts_out: bool, default False
         If set, DBN records will be timestamped when they are sent by the
         gateway.
+    heartbeat_interval_s: int, optional
+        The interval in seconds at which the gateway will send heartbeat records if no
+        other data records are sent.
 
     """
 
@@ -66,6 +69,7 @@ class Live:
         gateway: str | None = None,
         port: int = DEFAULT_REMOTE_PORT,
         ts_out: bool = False,
+        heartbeat_interval_s: int | None = None,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -83,6 +87,7 @@ class Live:
 
         self._dataset: Dataset | str = ""
         self._ts_out = ts_out
+        self._heartbeat_interval_s = heartbeat_interval_s
 
         self._dbn_queue: DBNQueue = DBNQueue()
         self._metadata: SessionMetadata = SessionMetadata()
@@ -102,6 +107,7 @@ class Live:
                 loop=self._loop,
                 metadata=self._metadata,
                 ts_out=self._ts_out,
+                heartbeat_interval_s=self._heartbeat_interval_s,
             )
 
         self._session: Session = Session(
@@ -379,7 +385,7 @@ class Live:
         symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
-        use_snapshot: bool = False,
+        snapshot: bool = False,
     ) -> None:
         """
         Subscribe to a data stream. Multiple subscription requests can be made
@@ -402,14 +408,14 @@ class Live:
             The input symbology type to resolve from.
         start : str or int, optional
             UNIX nanosecond epoch timestamp to start streaming from (inclusive), based on `ts_event`. Must be within 24 hours except when requesting the mbo or definition schemas.
-        use_snapshot: bool, default to 'False'
+        snapshot: bool, default to 'False'
             Reserved for future use.
 
         Raises
         ------
         ValueError
             If a dataset is given that does not match the previous datasets.
-            If use_snapshot is True and start is not None.
+            If snapshot is True and start is not None.
         BentoError
             If creating the connection times out.
             If creating the connection fails.
@@ -423,12 +429,12 @@ class Live:
 
         """
         logger.info(
-            "subscribing to %s:%s %s start=%s use_snapshot=%s",
+            "subscribing to %s:%s %s start=%s snapshot=%s",
             schema,
             stype_in,
             symbols,
             start if start is not None else "now",
-            use_snapshot,
+            snapshot,
         )
         dataset = validate_semantic_string(dataset, "dataset")
         schema = validate_enum(schema, Schema, "schema")
@@ -443,7 +449,7 @@ class Live:
                 f"because subscriptions to `{self.dataset}` have already been made.",
             )
 
-        if use_snapshot and start is not None:
+        if snapshot and start is not None:
             raise ValueError("Subscription with snapshot expects start=None")
 
         self._session.subscribe(
@@ -452,7 +458,7 @@ class Live:
             stype_in=stype_in,
             symbols=symbols,
             start=start,
-            use_snapshot=use_snapshot,
+            snapshot=snapshot,
         )
 
     def terminate(self) -> None:

@@ -100,6 +100,8 @@ class Venue(StringyMixin, str, Enum):
         MIAX Sapphire.
     LTSE
         Long-Term Stock Exchange, Inc..
+    XOFF
+        Off-Exchange Transactions - Listed Instruments.
 
     """
 
@@ -145,6 +147,7 @@ class Venue(StringyMixin, str, Enum):
     DBEQ = "DBEQ"
     SPHR = "SPHR"
     LTSE = "LTSE"
+    XOFF = "XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -235,6 +238,8 @@ class Venue(StringyMixin, str, Enum):
             return Venue.SPHR
         if value == 42:
             return Venue.LTSE
+        if value == 43:
+            return Venue.XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -325,6 +330,8 @@ class Venue(StringyMixin, str, Enum):
             return 41
         if self == Venue.LTSE:
             return 42
+        if self == Venue.XOFF:
+            return 43
         raise ValueError("Invalid Venue")
 
     @property
@@ -416,6 +423,8 @@ class Venue(StringyMixin, str, Enum):
             return "MIAX Sapphire"
         if self == Venue.LTSE:
             return "Long-Term Stock Exchange, Inc."
+        if self == Venue.XOFF:
+            return "Off-Exchange Transactions - Listed Instruments"
         raise ValueError("Unexpected Venue value")
 
 
@@ -485,6 +494,8 @@ class Dataset(StringyMixin, str, Enum):
         ICE Endex iMpact.
     DBEQ_MAX
         Databento Equities Max.
+    XNAS_BASIC
+        Nasdaq Basic (NLS+QBBO).
 
     """
 
@@ -518,6 +529,7 @@ class Dataset(StringyMixin, str, Enum):
     IFEU_IMPACT = "IFEU.IMPACT"
     NDEX_IMPACT = "NDEX.IMPACT"
     DBEQ_MAX = "DBEQ.MAX"
+    XNAS_BASIC = "XNAS.BASIC"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -584,6 +596,8 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.NDEX_IMPACT
         if value == 30:
             return Dataset.DBEQ_MAX
+        if value == 31:
+            return Dataset.XNAS_BASIC
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -650,6 +664,8 @@ class Dataset(StringyMixin, str, Enum):
             return 29
         if self == Dataset.DBEQ_MAX:
             return 30
+        if self == Dataset.XNAS_BASIC:
+            return 31
         raise ValueError("Invalid Dataset")
 
     @property
@@ -717,6 +733,8 @@ class Dataset(StringyMixin, str, Enum):
             return "ICE Endex iMpact"
         if self == Dataset.DBEQ_MAX:
             return "Databento Equities Max"
+        if self == Dataset.XNAS_BASIC:
+            return "Nasdaq Basic (NLS+QBBO)"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -833,9 +851,9 @@ class Publisher(StringyMixin, str, Enum):
     DBEQ_PLUS_XNYS
         DBEQ Plus - NYSE.
     DBEQ_PLUS_FINN
-        DBEQ Plus - FINRA/NYSE TRF.
-    DBEQ_PLUS_FINY
         DBEQ Plus - FINRA/Nasdaq TRF Carteret.
+    DBEQ_PLUS_FINY
+        DBEQ Plus - FINRA/NYSE TRF.
     DBEQ_PLUS_FINC
         DBEQ Plus - FINRA/Nasdaq TRF Chicago.
     IFEU_IMPACT_IFEU
@@ -861,9 +879,9 @@ class Publisher(StringyMixin, str, Enum):
     DBEQ_MAX_XNYS
         DBEQ Max - NYSE.
     DBEQ_MAX_FINN
-        DBEQ Max - FINRA/NYSE TRF.
-    DBEQ_MAX_FINY
         DBEQ Max - FINRA/Nasdaq TRF Carteret.
+    DBEQ_MAX_FINY
+        DBEQ Max - FINRA/NYSE TRF.
     DBEQ_MAX_FINC
         DBEQ Max - FINRA/Nasdaq TRF Chicago.
     DBEQ_MAX_BATS
@@ -886,6 +904,16 @@ class Publisher(StringyMixin, str, Enum):
         DBEQ Max - NYSE Arca.
     DBEQ_MAX_LTSE
         DBEQ Max - Long-Term Stock Exchange.
+    XNAS_BASIC_XNAS
+        Nasdaq Basic - Nasdaq.
+    XNAS_BASIC_FINN
+        Nasdaq Basic - FINRA/Nasdaq TRF Carteret.
+    XNAS_BASIC_FINC
+        Nasdaq Basic - FINRA/Nasdaq TRF Chicago.
+    IFEU_IMPACT_XOFF
+        ICE Futures Europe - Off-Market Trades.
+    NDEX_IMPACT_XOFF
+        ICE Endex - Off-Market Trades.
 
     """
 
@@ -969,6 +997,11 @@ class Publisher(StringyMixin, str, Enum):
     DBEQ_MAX_XASE = "DBEQ.MAX.XASE"
     DBEQ_MAX_ARCX = "DBEQ.MAX.ARCX"
     DBEQ_MAX_LTSE = "DBEQ.MAX.LTSE"
+    XNAS_BASIC_XNAS = "XNAS.BASIC.XNAS"
+    XNAS_BASIC_FINN = "XNAS.BASIC.FINN"
+    XNAS_BASIC_FINC = "XNAS.BASIC.FINC"
+    IFEU_IMPACT_XOFF = "IFEU.IMPACT.XOFF"
+    NDEX_IMPACT_XOFF = "NDEX.IMPACT.XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1135,6 +1168,16 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.DBEQ_MAX_ARCX
         if value == 80:
             return Publisher.DBEQ_MAX_LTSE
+        if value == 81:
+            return Publisher.XNAS_BASIC_XNAS
+        if value == 82:
+            return Publisher.XNAS_BASIC_FINN
+        if value == 83:
+            return Publisher.XNAS_BASIC_FINC
+        if value == 84:
+            return Publisher.IFEU_IMPACT_XOFF
+        if value == 85:
+            return Publisher.NDEX_IMPACT_XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1301,6 +1344,16 @@ class Publisher(StringyMixin, str, Enum):
             return 79
         if self == Publisher.DBEQ_MAX_LTSE:
             return 80
+        if self == Publisher.XNAS_BASIC_XNAS:
+            return 81
+        if self == Publisher.XNAS_BASIC_FINN:
+            return 82
+        if self == Publisher.XNAS_BASIC_FINC:
+            return 83
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return 84
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return 85
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1468,6 +1521,16 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.ARCX
         if self == Publisher.DBEQ_MAX_LTSE:
             return Venue.LTSE
+        if self == Publisher.XNAS_BASIC_XNAS:
+            return Venue.XNAS
+        if self == Publisher.XNAS_BASIC_FINN:
+            return Venue.FINN
+        if self == Publisher.XNAS_BASIC_FINC:
+            return Venue.FINC
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return Venue.XOFF
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return Venue.XOFF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1635,6 +1698,16 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.DBEQ_MAX
         if self == Publisher.DBEQ_MAX_LTSE:
             return Dataset.DBEQ_MAX
+        if self == Publisher.XNAS_BASIC_XNAS:
+            return Dataset.XNAS_BASIC
+        if self == Publisher.XNAS_BASIC_FINN:
+            return Dataset.XNAS_BASIC
+        if self == Publisher.XNAS_BASIC_FINC:
+            return Dataset.XNAS_BASIC
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return Dataset.IFEU_IMPACT
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return Dataset.NDEX_IMPACT
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1749,9 +1822,9 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.DBEQ_PLUS_XNYS:
             return "DBEQ Plus - NYSE"
         if self == Publisher.DBEQ_PLUS_FINN:
-            return "DBEQ Plus - FINRA/NYSE TRF"
-        if self == Publisher.DBEQ_PLUS_FINY:
             return "DBEQ Plus - FINRA/Nasdaq TRF Carteret"
+        if self == Publisher.DBEQ_PLUS_FINY:
+            return "DBEQ Plus - FINRA/NYSE TRF"
         if self == Publisher.DBEQ_PLUS_FINC:
             return "DBEQ Plus - FINRA/Nasdaq TRF Chicago"
         if self == Publisher.IFEU_IMPACT_IFEU:
@@ -1777,9 +1850,9 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.DBEQ_MAX_XNYS:
             return "DBEQ Max - NYSE"
         if self == Publisher.DBEQ_MAX_FINN:
-            return "DBEQ Max - FINRA/NYSE TRF"
-        if self == Publisher.DBEQ_MAX_FINY:
             return "DBEQ Max - FINRA/Nasdaq TRF Carteret"
+        if self == Publisher.DBEQ_MAX_FINY:
+            return "DBEQ Max - FINRA/NYSE TRF"
         if self == Publisher.DBEQ_MAX_FINC:
             return "DBEQ Max - FINRA/Nasdaq TRF Chicago"
         if self == Publisher.DBEQ_MAX_BATS:
@@ -1802,4 +1875,14 @@ class Publisher(StringyMixin, str, Enum):
             return "DBEQ Max - NYSE Arca"
         if self == Publisher.DBEQ_MAX_LTSE:
             return "DBEQ Max - Long-Term Stock Exchange"
+        if self == Publisher.XNAS_BASIC_XNAS:
+            return "Nasdaq Basic - Nasdaq"
+        if self == Publisher.XNAS_BASIC_FINN:
+            return "Nasdaq Basic - FINRA/Nasdaq TRF Carteret"
+        if self == Publisher.XNAS_BASIC_FINC:
+            return "Nasdaq Basic - FINRA/Nasdaq TRF Chicago"
+        if self == Publisher.IFEU_IMPACT_XOFF:
+            return "ICE Futures Europe - Off-Market Trades"
+        if self == Publisher.NDEX_IMPACT_XOFF:
+            return "ICE Endex - Off-Market Trades"
         raise ValueError("Unexpected Publisher value")

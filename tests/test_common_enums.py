@@ -7,6 +7,7 @@ from __future__ import annotations
 from enum import Enum
 from enum import Flag
 from itertools import combinations
+from typing import Final
 
 import pytest
 from databento.common.enums import Delivery
@@ -20,31 +21,35 @@ from databento.common.enums import StringyMixin
 from databento.common.enums import SymbologyResolution
 from databento.common.publishers import Dataset
 from databento_dbn import Compression
+from databento_dbn import DBNError
 from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
 
 
-DATABENTO_ENUMS = (
-    Compression,
+NATIVE_ENUMS: Final = (
     Dataset,
-    Encoding,
     FeedMode,
     HistoricalGateway,
     Packaging,
     Delivery,
     RecordFlags,
     RollRule,
-    Schema,
     SplitDuration,
-    SType,
     SymbologyResolution,
+)
+
+DBN_ENUMS: Final = (
+    Compression,
+    Encoding,
+    Schema,
+    SType,
 )
 
 
 @pytest.mark.parametrize(
     "enum_type",
-    (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, int)),
+    (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, int)),
 )
 def test_int_enum_string_coercion(enum_type: type[Enum]) -> None:
     """
@@ -62,7 +67,7 @@ def test_int_enum_string_coercion(enum_type: type[Enum]) -> None:
 
 @pytest.mark.parametrize(
     "enum_type",
-    (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, str)),
+    (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, str)),
 )
 def test_str_enum_case_coercion(enum_type: type[Enum]) -> None:
     """
@@ -81,7 +86,7 @@ def test_str_enum_case_coercion(enum_type: type[Enum]) -> None:
 
 @pytest.mark.parametrize(
     "enum_type",
-    DATABENTO_ENUMS,
+    NATIVE_ENUMS,
 )
 def test_enum_name_coercion(enum_type: type[Enum]) -> None:
     """
@@ -109,7 +114,34 @@ def test_enum_name_coercion(enum_type: type[Enum]) -> None:
 
 @pytest.mark.parametrize(
     "enum_type",
-    (pytest.param(enum) for enum in DATABENTO_ENUMS),
+    DBN_ENUMS,
+)
+def test_dbn_enum_name_coercion(enum_type: type[Enum]) -> None:
+    """
+    Test that DBN enums can be coerced from the member names.
+
+    This includes case and dash conversion to underscores.
+
+    """
+    # Arrange, Act
+    if enum_type in (Compression, Encoding, Schema, SType):
+        enum_it = iter(enum_type.variants())  # type: ignore [attr-defined]
+    else:
+        enum_it = iter(enum_type)
+
+    # Assert
+    for enum in enum_it:
+        assert enum == enum_type(enum.name)
+        assert enum == enum_type(enum.name.replace("_", "-"))
+        assert enum == enum_type(enum.name.lower())
+        assert enum == enum_type(enum.name.upper())
+        with pytest.raises(DBNError):
+            enum_type("bar")  # sanity
+
+
+@pytest.mark.parametrize(
+    "enum_type",
+    (pytest.param(enum) for enum in NATIVE_ENUMS),
 )
 def test_enum_none_not_coercible(enum_type: type[Enum]) -> None:
     """
@@ -129,7 +161,24 @@ def test_enum_none_not_coercible(enum_type: type[Enum]) -> None:
 
 @pytest.mark.parametrize(
     "enum_type",
-    (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, int)),
+    (pytest.param(enum) for enum in DBN_ENUMS),
+)
+def test_dbn_enum_none_not_coercible(enum_type: type[Enum]) -> None:
+    """
+    Test that None type is not coercible and raises a TypeError.
+    """
+    # Arrange, Act
+    if enum_type == Compression:
+        enum_type(None)
+    else:
+        # Assert
+        with pytest.raises(DBNError):
+            enum_type(None)
+
+
+@pytest.mark.parametrize(
+    "enum_type",
+    (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, int)),
 )
 def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     """
@@ -149,7 +198,7 @@ def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
 
 @pytest.mark.parametrize(
     "enum_type",
-    (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, str)),
+    (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, str)),
 )
 def test_str_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     """
@@ -169,7 +218,7 @@ def test_str_enum_stringy_mixin(enum_type: type[Enum]) -> None:
 
 @pytest.mark.parametrize(
     "enum_type",
-    (pytest.param(enum) for enum in DATABENTO_ENUMS if issubclass(enum, Flag)),
+    (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, Flag)),
 )
 def test_int_flags_stringy_mixin(enum_type: type[Flag]) -> None:
     """

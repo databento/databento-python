@@ -186,6 +186,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
+        heartbeat_interval_s: int | None = None,
     ):
         super().__init__(api_key, dataset, ts_out)
 
@@ -408,7 +409,7 @@ class Session:
         symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
-        use_snapshot: bool = False,
+        snapshot: bool = False,
     ) -> None:
         """
         Send a subscription request on the current connection. This will create
@@ -427,7 +428,7 @@ class Session:
         start : str or int, optional
             UNIX nanosecond epoch timestamp to start streaming from. Must be
             within 24 hours.
-        use_snapshot: bool, default to 'False'
+        snapshot: bool, default to 'False'
             Reserved for future use.
 
         """
@@ -444,7 +445,7 @@ class Session:
                 symbols=symbols,
                 stype_in=stype_in,
                 start=start,
-                use_snapshot=use_snapshot,
+                snapshot=snapshot,
             )
 
     def resume_reading(self) -> None:
