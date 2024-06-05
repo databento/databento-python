@@ -9,7 +9,7 @@
 - Added new off-market publisher values for `IFEU.IMPACT` and `NDEX.IMPACT`
 
 #### Breaking changes
-- Renamed `CbboMsg` to `CBBOMsg`.
+- Renamed `CbboMsg` to `CBBOMsg`
 - Renamed `use_snapshot` parameter in `Live.subscribe` function to `snapshot`
 - All Python exceptions raised by `databento-dbn` have been changed to use the `DBNError` type
 
@@ -244,7 +244,7 @@ In some cases, DBN v1 records will be converted to their v2 counterparts:
 - Fixed an issue where `DBNStore.from_bytes` did not rewind seekable buffers
 - Fixed an issue where the `DBNStore` would not map symbols with input symbology of `SType.INSTRUMENT_ID`
 - Fixed an issue with `DBNStore.request_symbology` when the DBN metadata's start date and end date were the same
-- Fixed an issue where closed streams were not removed from a `Live` client on shutdown.
+- Fixed an issue where closed streams were not removed from a `Live` client on shutdown
 
 ## 0.20.0 - 2023-09-21
 
