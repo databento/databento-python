@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.35.1 - TBD
+
+#### Bug fixes
+- Fixed an issue where heartbeat_interval_s was not being sent to the gateway
+
 ## 0.35.0 - 2024-06-04
 
 #### Enhancements

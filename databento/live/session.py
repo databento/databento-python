@@ -188,7 +188,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
     ):
-        super().__init__(api_key, dataset, ts_out)
+        super().__init__(api_key, dataset, ts_out, heartbeat_interval_s)
 
         self._dbn_queue = dbn_queue
         self._loop = loop

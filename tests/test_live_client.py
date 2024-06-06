@@ -250,6 +250,39 @@ async def test_live_connect_auth(
     assert message.encoding == Encoding.DBN
 
 
+async def test_live_connect_auth_with_heartbeat_interval(
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
+) -> None:
+    """
+    Test that setting `heartbeat_interval_s` on a Live client sends that field
+    to the gateway.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        heartbeat_interval_s=10,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    # Act
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
+    )
+
+    # Assert
+    assert message.auth.endswith(live_client.key[-BUCKET_ID_LENGTH:])
+    assert message.dataset == live_client.dataset
+    assert message.encoding == Encoding.DBN
+    assert message.heartbeat_interval_s == "10"
+
+
 async def test_live_connect_auth_two_clients(
     mock_live_server: MockLiveServerInterface,
     test_live_api_key: str,
