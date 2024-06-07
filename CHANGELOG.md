@@ -1,9 +1,12 @@
 # Changelog
 
-## 0.35.1 - TBD
+## 0.36.0 - TBD
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.18.1
 
 #### Bug fixes
-- Fixed an issue where heartbeat_interval_s was not being sent to the gateway
+- Fixed an issue where `heartbeat_interval_s` was not being sent to the gateway
 
 ## 0.35.0 - 2024-06-04
 
