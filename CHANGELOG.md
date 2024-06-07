@@ -7,6 +7,10 @@
 
 #### Bug fixes
 - Fixed an issue where `heartbeat_interval_s` was not being sent to the gateway
+- Fixed an issue where a truncated DBN stream could be written by the `Live` client in the event of an ungraceful disconnect
+
+#### Breaking changes
+- Output streams of the `Live` client added with `Live.add_stream` will now upgrade to the latest DBN version before being written
 
 ## 0.35.0 - 2024-06-04
 
