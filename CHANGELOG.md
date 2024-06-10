@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.36.0 - TBD
+## 0.36.0 - 2024-06-11
 
 #### Enhancements
 - Upgraded `databento-dbn` to 0.18.1
