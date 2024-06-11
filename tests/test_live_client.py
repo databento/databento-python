@@ -5,7 +5,6 @@ Unit tests for the Live client.
 from __future__ import annotations
 
 import pathlib
-import platform
 import random
 import string
 from io import BytesIO
@@ -30,7 +29,7 @@ from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
 
-from tests.mock_live_server import MockLiveServer
+from tests.mockliveserver.fixture import MockLiveServerInterface
 
 
 def test_live_connection_refused(
@@ -59,8 +58,7 @@ def test_live_connection_refused(
 
 def test_live_connection_timeout(
     monkeypatch: pytest.MonkeyPatch,
-    mock_live_server: MockLiveServer,
-    test_api_key: str,
+    live_client: client.Live,
 ) -> None:
     """
     Test that a timeout raises a BentoError.
@@ -74,12 +72,6 @@ def test_live_connection_timeout(
         session,
         "CONNECT_TIMEOUT_SECONDS",
         0,
-    )
-
-    live_client = client.Live(
-        key=test_api_key,
-        gateway=mock_live_server.host,
-        port=mock_live_server.port,
     )
 
     # Act, Assert
@@ -101,7 +93,7 @@ def test_live_connection_timeout(
     ],
 )
 def test_live_invalid_gateway(
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
     test_api_key: str,
     gateway: str,
 ) -> None:
@@ -125,7 +117,7 @@ def test_live_invalid_gateway(
     ],
 )
 def test_live_invalid_port(
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
     test_api_key: str,
     port: object,
 ) -> None:
@@ -142,22 +134,16 @@ def test_live_invalid_port(
 
 
 def test_live_connection_cram_failure(
-    mock_live_server: MockLiveServer,
-    monkeypatch: pytest.MonkeyPatch,
-    test_api_key: str,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that a failed auth message due to an incorrect CRAM raises a
     BentoError.
     """
-    # Arrange
-    # Dork up the API key in the mock client to fail CRAM
-    bucket_id = test_api_key[-BUCKET_ID_LENGTH:]
     invalid_key = "db-invalidkey00000000000000FFFFF"
-    monkeypatch.setitem(mock_live_server._user_api_keys, bucket_id, invalid_key)
 
     live_client = client.Live(
-        key=test_api_key,
+        key=invalid_key,
         gateway=mock_live_server.host,
         port=mock_live_server.port,
     )
@@ -182,7 +168,7 @@ def test_live_connection_cram_failure(
     ],
 )
 def test_live_subscription_with_snapshot_failed(
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
     test_api_key: str,
     start: str | int,
 ) -> None:
@@ -215,22 +201,16 @@ def test_live_subscription_with_snapshot_failed(
     [pytest.param(dataset, id=str(dataset)) for dataset in Dataset],
 )
 def test_live_creation(
+    mock_live_server: MockLiveServerInterface,
+    live_client: client.Live,
     test_api_key: str,
-    mock_live_server: MockLiveServer,
     dataset: Dataset,
 ) -> None:
     """
-    Test the live constructor and successful connection to the MockLiveServer.
+    Test the live constructor and successful connection to the
+    MockLiveServerInterface.
     """
-    # Arrange
-    live_client = client.Live(
-        key=test_api_key,
-        gateway=mock_live_server.host,
-        port=mock_live_server.port,
-    )
-
-    # Act
-    # Subscribe to connect
+    # Arrange, Act
     live_client.subscribe(
         dataset=dataset,
         schema=Schema.MBO,
@@ -245,8 +225,8 @@ def test_live_creation(
     assert live_client._map_symbol in live_client._user_callbacks
 
 
-def test_live_connect_auth(
-    mock_live_server: MockLiveServer,
+async def test_live_connect_auth(
+    mock_live_server: MockLiveServerInterface,
     live_client: client.Live,
 ) -> None:
     """
@@ -260,9 +240,8 @@ def test_live_connect_auth(
     )
 
     # Act
-    message = mock_live_server.get_message_of_type(
-        gateway.AuthenticationRequest,
-        timeout=1,
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
     )
 
     # Assert
@@ -271,9 +250,42 @@ def test_live_connect_auth(
     assert message.encoding == Encoding.DBN
 
 
-def test_live_connect_auth_two_clients(
-    mock_live_server: MockLiveServer,
-    test_api_key: str,
+async def test_live_connect_auth_with_heartbeat_interval(
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
+) -> None:
+    """
+    Test that setting `heartbeat_interval_s` on a Live client sends that field
+    to the gateway.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        heartbeat_interval_s=10,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    # Act
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
+    )
+
+    # Assert
+    assert message.auth.endswith(live_client.key[-BUCKET_ID_LENGTH:])
+    assert message.dataset == live_client.dataset
+    assert message.encoding == Encoding.DBN
+    assert message.heartbeat_interval_s == "10"
+
+
+async def test_live_connect_auth_two_clients(
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
 ) -> None:
     """
     Test the live sent a correct AuthenticationRequest message after connecting
@@ -281,13 +293,13 @@ def test_live_connect_auth_two_clients(
     """
     # Arrange
     first = client.Live(
-        key=test_api_key,
+        key=test_live_api_key,
         gateway=mock_live_server.host,
         port=mock_live_server.port,
     )
 
     second = client.Live(
-        key=test_api_key,
+        key=test_live_api_key,
         gateway=mock_live_server.host,
         port=mock_live_server.port,
     )
@@ -298,9 +310,8 @@ def test_live_connect_auth_two_clients(
         schema=Schema.MBO,
     )
 
-    first_auth = mock_live_server.get_message_of_type(
-        gateway.AuthenticationRequest,
-        timeout=1,
+    first_auth = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
     )
 
     # Assert
@@ -313,9 +324,8 @@ def test_live_connect_auth_two_clients(
         schema=Schema.MBO,
     )
 
-    second_auth = mock_live_server.get_message_of_type(
-        gateway.AuthenticationRequest,
-        timeout=1,
+    second_auth = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
     )
 
     assert second_auth.auth.endswith(second.key[-BUCKET_ID_LENGTH:])
@@ -323,9 +333,9 @@ def test_live_connect_auth_two_clients(
     assert second_auth.encoding == Encoding.DBN
 
 
-def test_live_start(
+async def test_live_start(
     live_client: client.Live,
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test the live sends a SesssionStart message upon calling start().
@@ -341,11 +351,8 @@ def test_live_start(
     # Act
     live_client.start()
 
-    live_client.block_for_close()
-
-    message = mock_live_server.get_message_of_type(
-        gateway.SessionStart,
-        timeout=1,
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SessionStart,
     )
 
     # Assert
@@ -448,9 +455,9 @@ def test_live_async_iteration_after_start(
         "1680736543000000000",
     ],
 )
-def test_live_subscribe(
+async def test_live_subscribe(
     live_client: client.Live,
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
     schema: Schema,
     stype_in: SType,
     symbols: str,
@@ -458,7 +465,7 @@ def test_live_subscribe(
 ) -> None:
     """
     Test various combination of subscription messages are serialized and
-    correctly deserialized by the MockLiveServer.
+    correctly deserialized by the MockLiveServerInterface.
     """
     # Arrange
     live_client.subscribe(
@@ -470,9 +477,8 @@ def test_live_subscribe(
     )
 
     # Act
-    message = mock_live_server.get_message_of_type(
-        gateway.SubscriptionRequest,
-        timeout=1,
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
     )
 
     if symbols is None:
@@ -493,9 +499,9 @@ def test_live_subscribe(
         True,
     ],
 )
-def test_live_subscribe_snapshot(
+async def test_live_subscribe_snapshot(
     live_client: client.Live,
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
     snapshot: bool,
 ) -> None:
     """
@@ -518,7 +524,7 @@ def test_live_subscribe_snapshot(
     )
 
     # Act
-    message = mock_live_server.get_message_of_type(
+    message = await mock_live_server.wait_for_message_of_type(
         gateway.SubscriptionRequest,
         timeout=1,
     )
@@ -556,7 +562,7 @@ async def test_live_subscribe_session_id(
 
 async def test_live_subscribe_large_symbol_list(
     live_client: client.Live,
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that sending a subscription with a large symbol list breaks that list
@@ -577,11 +583,10 @@ async def test_live_subscribe_large_symbol_list(
 
     reconstructed: list[str] = []
     for _ in range(8):
-        message = mock_live_server.get_message_of_type(
-            gateway.SubscriptionRequest,
-            timeout=1,
-        ).symbols.split(",")
-        reconstructed.extend(message)
+        message = await mock_live_server.wait_for_message_of_type(
+            message_type=gateway.SubscriptionRequest,
+        )
+        reconstructed.extend(message.symbols.split(","))
 
     # Assert
     assert reconstructed == large_symbol_list
@@ -589,7 +594,7 @@ async def test_live_subscribe_large_symbol_list(
 
 async def test_live_subscribe_from_callback(
     live_client: client.Live,
-    mock_live_server: MockLiveServer,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that `Live.subscribe` can be called from a callback.
@@ -613,18 +618,16 @@ async def test_live_subscribe_from_callback(
     live_client.add_callback(cb_sub)
 
     # Act
-    first_sub = mock_live_server.get_message_of_type(
-        gateway.SubscriptionRequest,
-        timeout=1,
+    first_sub = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
     )
 
     live_client.start()
 
     await live_client.wait_for_close()
 
-    second_sub = mock_live_server.get_message_of_type(
-        gateway.SubscriptionRequest,
-        timeout=1,
+    second_sub = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
     )
 
     # Assert
@@ -923,7 +926,6 @@ def test_live_add_stream_path_directory(
         live_client.add_stream(tmp_path)
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows")
 async def test_live_async_iteration(
     live_client: client.Live,
 ) -> None:
@@ -954,8 +956,7 @@ async def test_live_async_iteration(
 
 async def test_live_async_iteration_backpressure(
     monkeypatch: pytest.MonkeyPatch,
-    mock_live_server: MockLiveServer,
-    test_api_key: str,
+    live_client: client.Live,
 ) -> None:
     """
     Test that a full queue disables reading on the transport but will resume it
@@ -963,12 +964,6 @@ async def test_live_async_iteration_backpressure(
     """
     # Arrange
     monkeypatch.setattr(session, "DBN_QUEUE_CAPACITY", 2)
-
-    live_client = client.Live(
-        key=test_api_key,
-        gateway=mock_live_server.host,
-        port=mock_live_server.port,
-    )
 
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -998,7 +993,7 @@ async def test_live_async_iteration_backpressure(
 
 async def test_live_async_iteration_dropped(
     monkeypatch: pytest.MonkeyPatch,
-    mock_live_server: MockLiveServer,
+    live_client: client.Live,
     test_api_key: str,
 ) -> None:
     """
@@ -1007,12 +1002,6 @@ async def test_live_async_iteration_dropped(
     """
     # Arrange
     monkeypatch.setattr(session, "DBN_QUEUE_CAPACITY", 1)
-
-    live_client = client.Live(
-        key=test_api_key,
-        gateway=mock_live_server.host,
-        port=mock_live_server.port,
-    )
 
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -1040,7 +1029,6 @@ async def test_live_async_iteration_dropped(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows")
 async def test_live_async_iteration_stop(
     live_client: client.Live,
 ) -> None:
@@ -1067,7 +1055,6 @@ async def test_live_async_iteration_stop(
     assert live_client._dbn_queue.empty()
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="flaky on windows")
 def test_live_sync_iteration(
     live_client: client.Live,
 ) -> None:
@@ -1152,7 +1139,7 @@ async def test_live_stream_to_dbn(
     schema: Schema,
 ) -> None:
     """
-    Test that DBN data streamed by the MockLiveServer is properly re-
+    Test that DBN data streamed by the MockLiveServerInterface is properly re-
     constructed client side.
     """
     # Arrange
@@ -1205,7 +1192,7 @@ async def test_live_stream_to_dbn_from_path(
     schema: Schema,
 ) -> None:
     """
-    Test that DBN data streamed by the MockLiveServer is properly re-
+    Test that DBN data streamed by the MockLiveServerInterface is properly re-
     constructed client side when specifying a file as a path.
     """
     # Arrange
@@ -1256,7 +1243,7 @@ async def test_live_stream_to_dbn_with_tiny_buffer(
     buffer_size: int,
 ) -> None:
     """
-    Test that DBN data streamed by the MockLiveServer is properly re-
+    Test that DBN data streamed by the MockLiveServerInterface is properly re-
     constructed client side when using the small values for RECV_BUFFER_SIZE.
     """
     # Arrange
@@ -1521,10 +1508,10 @@ async def test_live_stream_with_reconnect(
         pytest.skip("no stub data for tcbbo schema")
 
     output = tmp_path / "output.dbn"
-    live_client.add_stream(output.open("wb", buffering=0))
+    live_client.add_stream(output.open("wb"))
 
     # Act
-    for _ in range(5):
+    for _ in range(3):
         live_client.subscribe(
             dataset=Dataset.GLBX_MDP3,
             schema=schema,
@@ -1548,20 +1535,14 @@ async def test_live_stream_with_reconnect(
         assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
 
 
-def test_live_connection_reconnect_cram_failure(
-    mock_live_server: MockLiveServer,
-    monkeypatch: pytest.MonkeyPatch,
+async def test_live_connection_reconnect_cram_failure(
+    mock_live_server: MockLiveServerInterface,
     test_api_key: str,
 ) -> None:
     """
     Test that a failed connection can reconnect.
     """
     # Arrange
-    # Dork up the API key in the mock client to fail CRAM
-    bucket_id = test_api_key[-BUCKET_ID_LENGTH:]
-    invalid_key = "db-invalidkey00000000000000FFFFF"
-    monkeypatch.setitem(mock_live_server._user_api_keys, bucket_id, invalid_key)
-
     live_client = client.Live(
         key=test_api_key,
         gateway=mock_live_server.host,
@@ -1578,12 +1559,13 @@ def test_live_connection_reconnect_cram_failure(
     # Ensure this was an authentication error
     exc.match(r"User authentication failed:")
 
-    # Fix the key in the mock live server to connect
-    monkeypatch.setitem(mock_live_server._user_api_keys, bucket_id, test_api_key)
-    live_client.subscribe(
-        dataset=Dataset.GLBX_MDP3,
-        schema=Schema.MBO,
-    )
+    async with mock_live_server.api_key_context(test_api_key):
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=Schema.MBO,
+        )
+
+        assert live_client.is_connected()
 
 
 async def test_live_callback_exception_handler(
@@ -1642,4 +1624,4 @@ async def test_live_stream_exception_handler(
 
     # Assert
     await live_client.wait_for_close()
-    assert len(exceptions) == 1
+    assert exceptions

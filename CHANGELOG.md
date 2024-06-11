@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.36.0 - 2024-06-11
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.18.1
+
+#### Bug fixes
+- Fixed an issue where `heartbeat_interval_s` was not being sent to the gateway
+- Fixed an issue where a truncated DBN stream could be written by the `Live` client in the event of an ungraceful disconnect
+
+#### Breaking changes
+- Output streams of the `Live` client added with `Live.add_stream` will now upgrade to the latest DBN version before being written
+
 ## 0.35.0 - 2024-06-04
 
 #### Enhancements
@@ -9,7 +21,7 @@
 - Added new off-market publisher values for `IFEU.IMPACT` and `NDEX.IMPACT`
 
 #### Breaking changes
-- Renamed `CbboMsg` to `CBBOMsg`.
+- Renamed `CbboMsg` to `CBBOMsg`
 - Renamed `use_snapshot` parameter in `Live.subscribe` function to `snapshot`
 - All Python exceptions raised by `databento-dbn` have been changed to use the `DBNError` type
 
@@ -244,7 +256,7 @@ In some cases, DBN v1 records will be converted to their v2 counterparts:
 - Fixed an issue where `DBNStore.from_bytes` did not rewind seekable buffers
 - Fixed an issue where the `DBNStore` would not map symbols with input symbology of `SType.INSTRUMENT_ID`
 - Fixed an issue with `DBNStore.request_symbology` when the DBN metadata's start date and end date were the same
-- Fixed an issue where closed streams were not removed from a `Live` client on shutdown.
+- Fixed an issue where closed streams were not removed from a `Live` client on shutdown
 
 ## 0.20.0 - 2023-09-21
 

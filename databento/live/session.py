@@ -4,6 +4,7 @@ import asyncio
 import dataclasses
 import logging
 import queue
+import struct
 import threading
 from collections.abc import Iterable
 from typing import IO
@@ -11,7 +12,6 @@ from typing import Callable
 from typing import Final
 
 import databento_dbn
-from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
 
@@ -188,7 +188,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
     ):
-        super().__init__(api_key, dataset, ts_out)
+        super().__init__(api_key, dataset, ts_out, heartbeat_interval_s)
 
         self._dbn_queue = dbn_queue
         self._loop = loop
@@ -196,33 +196,37 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
 
-    def _process_dbn(self, data: bytes) -> None:
-        start_index = 0
-        if data.startswith(b"DBN") and self._metadata:
-            # We have already received metata for the stream
-            # Set start index to metadata length
-            start_index = int.from_bytes(data[4:8], byteorder="little") + 8
-            self._metadata.check(Metadata.decode(bytes(data[:start_index])))
-        for stream, exc_callback in self._user_streams.items():
-            try:
-                stream.write(data[start_index:])
-            except Exception as exc:
-                stream_name = getattr(stream, "name", str(stream))
-                logger.error(
-                    "error writing %d bytes to `%s` stream",
-                    len(data[start_index:]),
-                    stream_name,
-                    exc_info=exc,
-                )
-                if exc_callback is not None:
-                    exc_callback(exc)
-        return super()._process_dbn(data)
-
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
-        self._metadata.data = metadata
+        if self._metadata:
+            self._metadata.check(metadata)
+        else:
+            metadata_bytes = metadata.encode()
+            for stream, exc_callback in self._user_streams.items():
+                try:
+                    stream.write(metadata_bytes)
+                except Exception as exc:
+                    stream_name = getattr(stream, "name", str(stream))
+                    logger.error(
+                        "error writing %d bytes to `%s` stream",
+                        len(metadata_bytes),
+                        stream_name,
+                        exc_info=exc,
+                    )
+                    if exc_callback is not None:
+                        exc_callback(exc)
+
+            self._metadata.data = metadata
         return super().received_metadata(metadata)
 
     def received_record(self, record: DBNRecord) -> None:
+        self._dispatch_writes(record)
+        self._dispatch_callbacks(record)
+        if self._dbn_queue.is_enabled():
+            self._queue_for_iteration(record)
+
+        return super().received_record(record)
+
+    def _dispatch_callbacks(self, record: DBNRecord) -> None:
         for callback, exc_callback in self._user_callbacks.items():
             try:
                 callback(record)
@@ -236,18 +240,37 @@ class _SessionProtocol(DatabentoLiveProtocol):
                 if exc_callback is not None:
                     exc_callback(exc)
 
-        if self._dbn_queue.is_enabled():
-            self._dbn_queue.put(record)
+    def _dispatch_writes(self, record: DBNRecord) -> None:
+        if hasattr(record, "ts_out"):
+            ts_out_bytes = struct.pack("Q", record.ts_out)
+        else:
+            ts_out_bytes = b""
 
-            # DBNQueue has no max size; so check if it's above capacity, and if so, pause reading
-            if self._dbn_queue.is_full():
-                logger.warning(
-                    "record queue is full; %d record(s) to be processed",
-                    self._dbn_queue.qsize(),
+        record_bytes = bytes(record) + ts_out_bytes
+
+        for stream, exc_callback in self._user_streams.items():
+            try:
+                stream.write(record_bytes)
+            except Exception as exc:
+                stream_name = getattr(stream, "name", str(stream))
+                logger.error(
+                    "error writing %d bytes to `%s` stream",
+                    len(record_bytes),
+                    stream_name,
+                    exc_info=exc,
                 )
-                self.transport.pause_reading()
+                if exc_callback is not None:
+                    exc_callback(exc)
 
-        return super().received_record(record)
+    def _queue_for_iteration(self, record: DBNRecord) -> None:
+        self._dbn_queue.put(record)
+        # DBNQueue has no max size; so check if it's above capacity, and if so, pause reading
+        if self._dbn_queue.is_full():
+            logger.warning(
+                "record queue is full; %d record(s) to be processed",
+                self._dbn_queue.qsize(),
+            )
+            self.transport.pause_reading()
 
 
 class Session:

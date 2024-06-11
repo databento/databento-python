@@ -90,7 +90,7 @@ def test_sources_metadata_returns_expected_json_as_dict(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.metadata.version == 1
+    assert dbnstore.metadata.version == 2
     assert dbnstore.metadata.dataset == "GLBX.MDP3"
     assert dbnstore.metadata.schema == Schema.MBO
     assert dbnstore.metadata.stype_in == SType.RAW_SYMBOL
@@ -123,7 +123,7 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.nbytes == 209
+    assert dbnstore.nbytes == 189
     assert dbnstore.dataset == "GLBX.MDP3"
     assert dbnstore.schema == Schema.MBO
     assert dbnstore.symbols == ["ESH1"]
@@ -171,7 +171,7 @@ def test_file_dbnstore_given_valid_path_initialized_expected_data(
 
     # Assert
     assert dbnstore.dataset == "GLBX.MDP3"
-    assert dbnstore.nbytes == 209
+    assert dbnstore.nbytes == 189
 
 
 def test_to_file_persists_to_disk(
@@ -188,7 +188,7 @@ def test_to_file_persists_to_disk(
 
     # Assert
     assert dbn_path.exists()
-    assert dbn_path.stat().st_size == 209
+    assert dbn_path.stat().st_size == 189
 
 
 def test_to_ndarray_with_stub_data_returns_expected_array(
@@ -925,7 +925,7 @@ def test_dbnstore_buffer_long(
     )
 
     # Act
-    dbn_stub_data += b"\xF0\xFF"
+    dbn_stub_data += b"\xf0\xff"
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
     # Assert
