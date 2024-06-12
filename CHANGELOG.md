@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.36.1 - TBD
+
+#### Enhancements
+- Added type alias `TBBOMsg` for `MBP1Msg`
+
 ## 0.36.0 - 2024-06-11
 
 #### Enhancements
