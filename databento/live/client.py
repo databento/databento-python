@@ -121,6 +121,12 @@ class Live:
         if not Live._thread.is_alive():
             Live._thread.start()
 
+    def __del__(self) -> None:
+        try:
+            self.stop()
+        except ValueError:
+            pass
+
     def __aiter__(self) -> LiveIterator:
         return iter(self)
 

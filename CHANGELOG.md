@@ -4,6 +4,7 @@
 
 #### Enhancements
 - Added type alias `TBBOMsg` for `MBP1Msg`
+- Instances of the `Live` client will now call `Live.stop` when garbage collected
 
 ## 0.36.0 - 2024-06-11
 
