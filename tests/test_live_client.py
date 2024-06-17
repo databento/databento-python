@@ -1487,9 +1487,6 @@ async def test_live_stream_with_reconnect(
 
     """
     # Arrange
-    # TODO: Remove when status schema is available
-    if schema == "status":
-        pytest.skip("no stub data for status schema")
     if schema == "ohlcv-eod":
         pytest.skip("no stub data for ohlcv-eod schema")
     if schema == "imbalance":
@@ -1500,10 +1497,6 @@ async def test_live_stream_with_reconnect(
         pytest.skip("no stub data for cbbo-1s schema")
     if schema == "cbbo-1m":
         pytest.skip("no stub data for cbbo-1m schema")
-    if schema == "bbo-1s":
-        pytest.skip("no stub data for bbo-1s schema")
-    if schema == "bbo-1m":
-        pytest.skip("no stub data for bbo-1m schema")
     if schema == "tcbbo":
         pytest.skip("no stub data for tcbbo schema")
 

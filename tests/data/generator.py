@@ -29,6 +29,8 @@ MANIFEST: Final = {
         (Schema.MBO, ["ESH1"], "2020-12-28"),
         (Schema.MBP_1, ["ESH1"], "2020-12-28"),
         (Schema.MBP_10, ["ESH1"], "2020-12-28"),
+        (Schema.BBO_1S, ["ESH1"], "2020-12-28"),
+        (Schema.BBO_1M, ["ESH1"], "2020-12-28"),
         (Schema.TBBO, ["ESH1"], "2020-12-28"),
         (Schema.TRADES, ["ESH1"], "2020-12-28"),
         (Schema.OHLCV_1S, ["ESH1"], "2020-12-28"),
@@ -37,6 +39,7 @@ MANIFEST: Final = {
         (Schema.OHLCV_1D, ["ESH1"], "2020-12-28"),
         (Schema.DEFINITION, ["ESH1"], "2020-12-28"),
         (Schema.STATISTICS, ["ESH1"], "2020-12-28"),
+        (Schema.STATUS, ["ESH1"], "2020-12-28"),
     ],
     Dataset.XNAS_ITCH: [
         (Schema.MBO, ["NVDA"], "2020-12-28"),
