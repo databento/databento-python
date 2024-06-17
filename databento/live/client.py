@@ -124,7 +124,7 @@ class Live:
     def __del__(self) -> None:
         try:
             self.stop()
-        except ValueError:
+        except (AttributeError, ValueError):
             pass
 
     def __aiter__(self) -> LiveIterator:
