@@ -914,6 +914,14 @@ class Publisher(StringyMixin, str, Enum):
         ICE Futures Europe - Off-Market Trades.
     NDEX_IMPACT_XOFF
         ICE Endex - Off-Market Trades.
+    XNAS_NLS_XBOS
+        Nasdaq NLS - Nasdaq BX.
+    XNAS_NLS_XPSX
+        Nasdaq NLS - Nasdaq PSX.
+    XNAS_BASIC_XBOS
+        Nasdaq Basic - Nasdaq BX.
+    XNAS_BASIC_XPSX
+        Nasdaq Basic - Nasdaq PSX.
 
     """
 
@@ -1002,6 +1010,10 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_BASIC_FINC = "XNAS.BASIC.FINC"
     IFEU_IMPACT_XOFF = "IFEU.IMPACT.XOFF"
     NDEX_IMPACT_XOFF = "NDEX.IMPACT.XOFF"
+    XNAS_NLS_XBOS = "XNAS.NLS.XBOS"
+    XNAS_NLS_XPSX = "XNAS.NLS.XPSX"
+    XNAS_BASIC_XBOS = "XNAS.BASIC.XBOS"
+    XNAS_BASIC_XPSX = "XNAS.BASIC.XPSX"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1178,6 +1190,14 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.IFEU_IMPACT_XOFF
         if value == 85:
             return Publisher.NDEX_IMPACT_XOFF
+        if value == 86:
+            return Publisher.XNAS_NLS_XBOS
+        if value == 87:
+            return Publisher.XNAS_NLS_XPSX
+        if value == 88:
+            return Publisher.XNAS_BASIC_XBOS
+        if value == 89:
+            return Publisher.XNAS_BASIC_XPSX
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1354,6 +1374,14 @@ class Publisher(StringyMixin, str, Enum):
             return 84
         if self == Publisher.NDEX_IMPACT_XOFF:
             return 85
+        if self == Publisher.XNAS_NLS_XBOS:
+            return 86
+        if self == Publisher.XNAS_NLS_XPSX:
+            return 87
+        if self == Publisher.XNAS_BASIC_XBOS:
+            return 88
+        if self == Publisher.XNAS_BASIC_XPSX:
+            return 89
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1531,6 +1559,14 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XOFF
         if self == Publisher.NDEX_IMPACT_XOFF:
             return Venue.XOFF
+        if self == Publisher.XNAS_NLS_XBOS:
+            return Venue.XBOS
+        if self == Publisher.XNAS_NLS_XPSX:
+            return Venue.XPSX
+        if self == Publisher.XNAS_BASIC_XBOS:
+            return Venue.XBOS
+        if self == Publisher.XNAS_BASIC_XPSX:
+            return Venue.XPSX
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1708,6 +1744,14 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.IFEU_IMPACT
         if self == Publisher.NDEX_IMPACT_XOFF:
             return Dataset.NDEX_IMPACT
+        if self == Publisher.XNAS_NLS_XBOS:
+            return Dataset.XNAS_NLS
+        if self == Publisher.XNAS_NLS_XPSX:
+            return Dataset.XNAS_NLS
+        if self == Publisher.XNAS_BASIC_XBOS:
+            return Dataset.XNAS_BASIC
+        if self == Publisher.XNAS_BASIC_XPSX:
+            return Dataset.XNAS_BASIC
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1885,4 +1929,12 @@ class Publisher(StringyMixin, str, Enum):
             return "ICE Futures Europe - Off-Market Trades"
         if self == Publisher.NDEX_IMPACT_XOFF:
             return "ICE Endex - Off-Market Trades"
+        if self == Publisher.XNAS_NLS_XBOS:
+            return "Nasdaq NLS - Nasdaq BX"
+        if self == Publisher.XNAS_NLS_XPSX:
+            return "Nasdaq NLS - Nasdaq PSX"
+        if self == Publisher.XNAS_BASIC_XBOS:
+            return "Nasdaq Basic - Nasdaq BX"
+        if self == Publisher.XNAS_BASIC_XPSX:
+            return "Nasdaq Basic - Nasdaq PSX"
         raise ValueError("Unexpected Publisher value")

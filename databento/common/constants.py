@@ -13,6 +13,7 @@ from databento_dbn import MBP10Msg
 from databento_dbn import OHLCVMsg
 from databento_dbn import Schema
 from databento_dbn import StatMsg
+from databento_dbn import StatusMsg
 from databento_dbn import TradeMsg
 
 from databento.common.types import DBNRecord
@@ -39,6 +40,7 @@ SCHEMA_STRUCT_MAP: Final[dict[Schema, type[DBNRecord]]] = {
     Schema.OHLCV_1D: OHLCVMsg,
     Schema.OHLCV_EOD: OHLCVMsg,
     Schema.STATISTICS: StatMsg,
+    Schema.STATUS: StatusMsg,
     Schema.TBBO: MBP1Msg,
     Schema.TRADES: TradeMsg,
     Schema.CBBO: CBBOMsg,
@@ -60,6 +62,13 @@ SCHEMA_STRUCT_MAP_V1: Final[dict[Schema, type[DBNRecord]]] = {
     Schema.OHLCV_1H: OHLCVMsg,
     Schema.OHLCV_1D: OHLCVMsg,
     Schema.STATISTICS: StatMsg,
+    Schema.STATUS: StatusMsg,
     Schema.TBBO: MBP1Msg,
     Schema.TRADES: TradeMsg,
+    Schema.CBBO: CBBOMsg,
+    Schema.CBBO_1S: CBBOMsg,
+    Schema.CBBO_1M: CBBOMsg,
+    Schema.TCBBO: CBBOMsg,
+    Schema.BBO_1S: MBP1Msg,
+    Schema.BBO_1M: MBP1Msg,
 }

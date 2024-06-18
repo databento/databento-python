@@ -44,6 +44,10 @@ from databento.live.client import Live
 from databento.version import __version__  # noqa
 
 
+# Alias for convenience
+TBBOMsg = MBP1Msg
+
+
 __all__ = [
     "API_VERSION",
     "DBNStore",
