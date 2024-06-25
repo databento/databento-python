@@ -330,7 +330,7 @@ class DBNStore:
 
     See Also
     --------
-    https://databento.com/docs/knowledge-base/new-users/dbn-encoding
+    https://databento.com/docs/standards-and-conventions/databento-binary-encoding
 
     """
 

@@ -415,7 +415,9 @@ class Live:
         start : str or int, optional
             UNIX nanosecond epoch timestamp to start streaming from (inclusive), based on `ts_event`. Must be within 24 hours except when requesting the mbo or definition schemas.
         snapshot: bool, default to 'False'
-            Reserved for future use.
+            Request subscription with snapshot. The `start` parameter must be `None`.
+
+
 
         Raises
         ------

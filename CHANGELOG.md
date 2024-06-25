@@ -1,10 +1,15 @@
 # Changelog
 
+## 0.36.2 - 2024-06-25
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.18.2
+
 ## 0.36.1 - 2024-06-18
 
 #### Enhancements
 - Added type alias `TBBOMsg` for `MBP1Msg`
-- Added support for `BBO-1s`, `BBO-1m`, and `Status` schemas
+- Added support for `bbo-1s`, `bbo-1m`, and `status` schemas
 - Instances of the `Live` client will now call `Live.stop` when garbage collected
 - Added new publisher values for `XNAS.BASIC` and `XNAS.NLS`
 
