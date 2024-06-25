@@ -452,7 +452,7 @@ class Session:
             UNIX nanosecond epoch timestamp to start streaming from. Must be
             within 24 hours.
         snapshot: bool, default to 'False'
-            Reserved for future use.
+            Request subscription with snapshot. The `start` parameter must be `None`.
 
         """
         with self._lock:

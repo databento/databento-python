@@ -278,7 +278,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             UNIX nanosecond epoch timestamp to start streaming from. Must be
             within 24 hours.
         snapshot: bool, default to 'False'
-            Reserved for future use.
+            Request subscription with snapshot. The `start` parameter must be `None`.
 
         """
         logger.info(
