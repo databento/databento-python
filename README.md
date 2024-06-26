@@ -25,7 +25,7 @@ The best place to begin is with our [Getting started](https://databento.com/docs
 
 You can find our full client API reference on the [Historical Reference](https://databento.com/docs/api-reference-historical?historical=python&live=python) and
 [Live Reference](https://databento.com/docs/reference-live?historical=python&live=python) sections of our documentation. See also the
-[Examples](https://databento.com/docs/examples?historical=python&live=python) section for various tutorials and code samples.
+[Examples](https://databento.com/docs/examples-and-tutorials?historical=python&live=python) section for various tutorials and code samples.
 
 ## Requirements
 The library is fully compatible with the latest distribution of Anaconda 3.8 and above.
