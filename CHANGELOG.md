@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.36.3 - 2024-07-02
+
+#### Enhancements
+- Added export of `StatType` enum from `databento_dbn` to the root `databento` package
+
 ## 0.36.2 - 2024-06-25
 
 #### Enhancements

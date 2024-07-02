@@ -13,6 +13,7 @@ from databento_dbn import Metadata
 from databento_dbn import OHLCVMsg
 from databento_dbn import Schema
 from databento_dbn import StatMsg
+from databento_dbn import StatType
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
@@ -85,6 +86,7 @@ __all__ = [
     "InstrumentDefMsg",
     "ImbalanceMsg",
     "ErrorMsg",
+    "StatType",
     "SystemMsg",
     "SymbolMappingMsg",
 ]
