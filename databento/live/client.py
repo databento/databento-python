@@ -605,6 +605,7 @@ class Live:
         Cleanup any stateful client data.
         """
         self._symbology_map.clear()
+        self._dataset = ""
 
         to_remove = []
         for stream in self._user_streams:

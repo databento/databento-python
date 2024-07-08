@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.36.4 - TBD
+
+#### Enhancements
+- A disconnected `Live` client can now be reused with a different dataset
+
 ## 0.36.3 - 2024-07-02
 
 #### Enhancements
