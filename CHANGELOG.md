@@ -4,6 +4,7 @@
 
 #### Enhancements
 - A disconnected `Live` client can now be reused with a different dataset
+- Upgraded `databento-dbn` to 0.18.3
 
 ## 0.36.3 - 2024-07-02
 
