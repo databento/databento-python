@@ -26,6 +26,7 @@ from databento.common.enums import Delivery
 from databento.common.enums import FeedMode
 from databento.common.enums import HistoricalGateway
 from databento.common.enums import Packaging
+from databento.common.enums import ReconnectPolicy
 from databento.common.enums import RecordFlags
 from databento.common.enums import RollRule
 from databento.common.enums import SplitDuration
@@ -70,6 +71,7 @@ __all__ = [
     "InstrumentMap",
     "Live",
     "Packaging",
+    "ReconnectPolicy",
     "RollRule",
     "Schema",
     "SplitDuration",

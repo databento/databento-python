@@ -65,17 +65,23 @@ async def main() -> None:
 
     api_key_table: dict[str, set[str]] = defaultdict(set)
     file_replay_table: dict[tuple[Dataset, Schema], ReplayProtocol] = {}
+    sessions: list[MockLiveServerProtocol] = []
     echo_stream = open(params.echo, "wb", buffering=0)
 
-    # Create server for incoming connections
-    server = await loop.create_server(
-        protocol_factory=lambda: MockLiveServerProtocol(
+    def protocol_factory() -> MockLiveServerProtocol:
+        protocol = MockLiveServerProtocol(
             loop=loop,
             mode=SessionMode.FILE_REPLAY,
             api_key_table=api_key_table,
             file_replay_table=file_replay_table,
             echo_stream=echo_stream,
-        ),
+        )
+        sessions.append(protocol)
+        return protocol
+
+    # Create server for incoming connections
+    server = await loop.create_server(
+        protocol_factory=protocol_factory,
         family=AF_INET,  # force ipv4
         host=params.host,
         port=params.port,
@@ -88,6 +94,7 @@ async def main() -> None:
         server=server,
         api_key_table=api_key_table,
         file_replay_table=file_replay_table,
+        sessions=sessions,
         loop=loop,
     )
 

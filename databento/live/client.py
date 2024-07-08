@@ -17,19 +17,19 @@ from databento_dbn import SType
 
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.cram import BUCKET_ID_LENGTH
+from databento.common.enums import ReconnectPolicy
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
 from databento.common.types import DBNRecord
 from databento.common.types import ExceptionCallback
+from databento.common.types import ReconnectCallback
 from databento.common.types import RecordCallback
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.live.session import DEFAULT_REMOTE_PORT
-from databento.live.session import DBNQueue
-from databento.live.session import Session
+from databento.live.session import LiveSession
 from databento.live.session import SessionMetadata
-from databento.live.session import _SessionProtocol
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,10 @@ class Live:
     heartbeat_interval_s: int, optional
         The interval in seconds at which the gateway will send heartbeat records if no
         other data records are sent.
+    reconnect_policy: ReconnectPolicy | str, optional
+        The reconnect policy for the live session.
+            - "none": the client will not reconnect (default)
+            - "reconnect": the client will reconnect automatically
 
     """
 
@@ -70,6 +74,7 @@ class Live:
         port: int = DEFAULT_REMOTE_PORT,
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
+        reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -89,34 +94,20 @@ class Live:
         self._ts_out = ts_out
         self._heartbeat_interval_s = heartbeat_interval_s
 
-        self._dbn_queue: DBNQueue = DBNQueue()
         self._metadata: SessionMetadata = SessionMetadata()
         self._symbology_map: dict[int, str | int] = {}
-        self._user_callbacks: dict[RecordCallback, ExceptionCallback | None] = {
-            self._map_symbol: None,
-        }
-        self._user_streams: dict[IO[bytes], ExceptionCallback | None] = {}
 
-        def factory() -> _SessionProtocol:
-            return _SessionProtocol(
-                api_key=self._key,
-                dataset=self._dataset,
-                dbn_queue=self._dbn_queue,
-                user_callbacks=self._user_callbacks,
-                user_streams=self._user_streams,
-                loop=self._loop,
-                metadata=self._metadata,
-                ts_out=self._ts_out,
-                heartbeat_interval_s=self._heartbeat_interval_s,
-            )
-
-        self._session: Session = Session(
+        self._session: LiveSession = LiveSession(
             loop=self._loop,
-            protocol_factory=factory,
-            user_gateway=self._gateway,
-            port=self._port,
+            api_key=key,
             ts_out=ts_out,
+            heartbeat_interval_s=heartbeat_interval_s,
+            user_gateway=self._gateway,
+            user_port=port,
+            reconnect_policy=reconnect_policy,
         )
+
+        self._session._user_callbacks.append((self._map_symbol, None))
 
         if not Live._thread.is_alive():
             Live._thread.start()
@@ -132,7 +123,7 @@ class Live:
 
     def __iter__(self) -> LiveIterator:
         logger.debug("starting iteration")
-        if self._session.is_started():
+        if self._session.is_streaming():
             logger.error("iteration started after session has started")
             raise ValueError(
                 "Cannot start iteration after streaming has started, records may be missed. Don't call `Live.start` before iterating.",
@@ -154,7 +145,7 @@ class Live:
         str
 
         """
-        return self._dataset
+        return self._session.dataset
 
     @property
     def gateway(self) -> str | None:
@@ -179,9 +170,9 @@ class Live:
         databento_dbn.Metadata or None
 
         """
-        if not self._metadata:
+        if not self._session._metadata:
             return None
-        return self._metadata.data
+        return self._session._metadata.data
 
     def is_connected(self) -> bool:
         """
@@ -266,7 +257,8 @@ class Live:
         Raises
         ------
         ValueError
-            If `func` is not callable.
+            If `record_callback` is not callable.
+            If `exception_callback` is not callable.
 
         See Also
         --------
@@ -281,7 +273,7 @@ class Live:
 
         callback_name = getattr(record_callback, "__name__", str(record_callback))
         logger.info("adding user callback %s", callback_name)
-        self._user_callbacks[record_callback] = exception_callback
+        self._session._user_callbacks.append((record_callback, exception_callback))
 
     def add_stream(
         self,
@@ -328,7 +320,47 @@ class Live:
         logger.info("adding user stream %s", stream_name)
         if self.metadata is not None:
             stream.write(bytes(self.metadata))
-        self._user_streams[stream] = exception_callback
+        self._session._user_streams.append((stream, exception_callback))
+
+    def add_reconnect_callback(
+        self,
+        reconnect_callback: ReconnectCallback,
+        exception_callback: ExceptionCallback | None = None,
+    ) -> None:
+        """
+        Add a callback for handling client reconnection events. This will only
+        be called when using a reconnection policy other than
+        `ReconnectPolicy.NONE` and if the session has been started with
+        `Live.start`.
+
+        Two instances of `pandas.Timestamp` will be passed to the callback:
+            - The last `ts_event` or `Metadata.start` value from the disconnected session.
+            - The `Metadata.start` value of the reconnected session.
+
+        Parameters
+        ----------
+        reconnect_callback : Callable[[ReconnectCallback], None]
+            A callback to register for handling reconnection events.
+        exception_callback : Callable[[Exception], None], optional
+            An error handling callback to process exceptions that are raised
+            in `reconnect_callback`.
+
+        Raises
+        ------
+        ValueError
+            If `reconnect_callback` is not callable.
+            If `exception_callback` is not callable.
+
+        """
+        if not callable(reconnect_callback):
+            raise ValueError(f"{reconnect_callback} is not callable")
+
+        if exception_callback is not None and not callable(exception_callback):
+            raise ValueError(f"{exception_callback} is not callable")
+
+        callback_name = getattr(reconnect_callback, "__name__", str(reconnect_callback))
+        logger.info("adding user reconnect callback %s", callback_name)
+        self._session._user_reconnect_callbacks.append((reconnect_callback, exception_callback))
 
     def start(
         self,
@@ -355,7 +387,7 @@ class Live:
             if self.dataset == "":
                 raise ValueError("cannot start a live client without a subscription")
             raise ValueError("cannot start a live client after it is closed")
-        if self._session.is_started():
+        if self._session.is_streaming():
             raise ValueError("client is already started")
 
         self._session.start()
@@ -382,7 +414,7 @@ class Live:
         if not self.is_connected():
             return  # we're already stopped
 
-        self._session.close()
+        self._session.stop()
 
     def subscribe(
         self,
@@ -449,14 +481,6 @@ class Live:
         stype_in = validate_enum(stype_in, SType, "stype_in")
         start = optional_datetime_to_unix_nanoseconds(start)
 
-        if not self.dataset:
-            self._dataset = dataset
-        elif self.dataset != dataset:
-            raise ValueError(
-                f"Cannot subscribe to dataset `{dataset}` "
-                f"because subscriptions to `{self.dataset}` have already been made.",
-            )
-
         if snapshot and start is not None:
             raise ValueError("Subscription with snapshot expects start=None")
 
@@ -487,8 +511,7 @@ class Live:
         logger.info("terminating live client")
         if self._session is None:
             raise ValueError("cannot terminate a live client before it is connected")
-        self._session.abort()
-        self._cleanup_client()
+        self._session.terminate()
 
     def block_for_close(
         self,
@@ -521,20 +544,18 @@ class Live:
         """
         try:
             asyncio.run_coroutine_threadsafe(
-                self._shutdown(),
+                self._session.wait_for_close(),
                 loop=Live._loop,
             ).result(timeout=timeout)
         except (futures.TimeoutError, KeyboardInterrupt) as exc:
             logger.info("closing session due to %s", type(exc).__name__)
-            self.stop()
+            self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
         except BentoError:
             raise
         except Exception:
             raise BentoError("connection lost") from None
-        finally:
-            self._cleanup_client()
 
     async def wait_for_close(
         self,
@@ -568,7 +589,7 @@ class Live:
         """
         waiter = asyncio.wrap_future(
             asyncio.run_coroutine_threadsafe(
-                self._shutdown(),
+                self._session.wait_for_close(),
                 loop=Live._loop,
             ),
         )
@@ -577,7 +598,7 @@ class Live:
             await asyncio.wait_for(waiter, timeout=timeout)
         except (asyncio.TimeoutError, KeyboardInterrupt) as exc:
             logger.info("closing session due to %s", type(exc).__name__)
-            self.stop()
+            self.terminate()
             if isinstance(exc, KeyboardInterrupt):
                 raise
         except BentoError:
@@ -585,39 +606,6 @@ class Live:
         except Exception:
             logger.exception("exception encountered waiting for close")
             raise BentoError("connection lost") from None
-        finally:
-            self._cleanup_client()
-
-    async def _shutdown(self) -> None:
-        """
-        Coroutine to wait for a graceful shutdown.
-
-        This waits for protocol disconnection and all records to
-        complete processing.
-
-        """
-        if self._session is None:
-            return
-        await self._session.wait_for_close()
-
-    def _cleanup_client(self) -> None:
-        """
-        Cleanup any stateful client data.
-        """
-        self._symbology_map.clear()
-        self._dataset = ""
-
-        to_remove = []
-        for stream in self._user_streams:
-            stream_name = getattr(stream, "name", str(stream))
-            if stream.closed:
-                logger.info("removing closed user stream %s", stream_name)
-                to_remove.append(stream)
-            else:
-                stream.flush()
-
-        for key in to_remove:
-            self._user_streams.pop(key)
 
     def _map_symbol(self, record: DBNRecord) -> None:
         if isinstance(record, databento_dbn.SymbolMappingMsg):
@@ -641,8 +629,9 @@ class LiveIterator:
     """
 
     def __init__(self, client: Live):
-        client._dbn_queue._enabled.set()
         client.start()
+        self._dbn_queue = client._session._dbn_queue
+        self._dbn_queue._enabled.set()
         self._client = client
 
     @property
@@ -659,19 +648,19 @@ class LiveIterator:
             logger.debug("iteration aborted")
 
     async def __anext__(self) -> DBNRecord:
-        if not self.client._dbn_queue.is_enabled():
+        if not self._dbn_queue.is_enabled():
             raise ValueError("iteration has not started")
 
         loop = asyncio.get_running_loop()
 
         try:
-            return self.client._dbn_queue.get_nowait()
+            return self._dbn_queue.get_nowait()
         except queue.Empty:
             while True:
                 try:
                     return await loop.run_in_executor(
                         None,
-                        self.client._dbn_queue.get,
+                        self._dbn_queue.get,
                         True,
                         0.1,
                     )
@@ -679,39 +668,39 @@ class LiveIterator:
                     if self.client._session.is_disconnected():
                         break
         finally:
-            if not self.client._dbn_queue.is_full() and not self.client._session.is_reading():
+            if not self._dbn_queue.is_full() and not self.client._session.is_reading():
                 logger.debug(
                     "resuming reading with %d pending records",
-                    self.client._dbn_queue.qsize(),
+                    self._dbn_queue.qsize(),
                 )
                 self.client._session.resume_reading()
 
-        self.client._dbn_queue.disable()
+        self._dbn_queue.disable()
         await self.client.wait_for_close()
         logger.debug("async iteration completed")
         raise StopAsyncIteration
 
     def __next__(self) -> DBNRecord:
-        if not self.client._dbn_queue.is_enabled():
+        if not self._dbn_queue.is_enabled():
             raise ValueError("iteration has not started")
 
         while True:
             try:
-                record = self.client._dbn_queue.get(timeout=0.1)
+                record = self._dbn_queue.get(timeout=0.1)
             except queue.Empty:
                 if self.client._session.is_disconnected():
                     break
             else:
                 return record
             finally:
-                if not self.client._dbn_queue.is_full() and not self.client._session.is_reading():
+                if not self._dbn_queue.is_full() and not self.client._session.is_reading():
                     logger.debug(
                         "resuming reading with %d pending records",
-                        self.client._dbn_queue.qsize(),
+                        self._dbn_queue.qsize(),
                     )
                     self.client._session.resume_reading()
 
-        self.client._dbn_queue.disable()
+        self._dbn_queue.disable()
         self.client.block_for_close()
         logger.debug("iteration completed")
         raise StopIteration

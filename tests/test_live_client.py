@@ -222,7 +222,6 @@ def test_live_creation(
     assert live_client._key == test_api_key
     assert live_client.dataset == dataset
     assert live_client.is_connected() is True
-    assert live_client._map_symbol in live_client._user_callbacks
 
 
 async def test_live_connect_auth(
@@ -715,7 +714,7 @@ def test_live_shutdown_remove_closed_stream(
     live_client.stop()
     live_client.block_for_close()
 
-    assert live_client._user_streams == {}
+    assert live_client._session._user_streams == []
 
 
 def test_live_stop_twice(
@@ -764,10 +763,11 @@ def test_live_block_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that block_for_close stops the session when the timeout is reached.
+    Test that block_for_close terminates the session when the timeout is
+    reached.
     """
     # Arrange
-    monkeypatch.setattr(live_client, "stop", MagicMock())
+    monkeypatch.setattr(live_client, "terminate", MagicMock())
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
         schema=Schema.MBO,
@@ -778,7 +778,7 @@ def test_live_block_for_close_timeout(
 
     # Act, Assert
     live_client.block_for_close(timeout=0)
-    live_client.stop.assert_called_once()  # type: ignore
+    live_client.terminate.assert_called_once()  # type: ignore
 
 
 @pytest.mark.usefixtures("mock_live_server")
@@ -838,10 +838,11 @@ async def test_live_wait_for_close_timeout(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Test that wait_for_close stops the session when the timeout is reached.
+    Test that wait_for_close terminates the session when the timeout is
+    reached.
     """
     # Arrange
-    monkeypatch.setattr(live_client, "stop", MagicMock())
+    monkeypatch.setattr(live_client, "terminate", MagicMock())
 
     # Act
     live_client.subscribe(
@@ -854,7 +855,7 @@ async def test_live_wait_for_close_timeout(
     await live_client.wait_for_close(timeout=0)
 
     # Assert
-    live_client.stop.assert_called_once()  # type: ignore
+    live_client.terminate.assert_called_once()  # type: ignore
 
 
 @pytest.mark.usefixtures("mock_live_server")
@@ -902,9 +903,8 @@ def test_live_add_callback(
     live_client.add_callback(callback)
 
     # Assert
-    assert callback in live_client._user_callbacks
-    assert live_client._user_callbacks[callback] is None
-    assert live_client._user_streams == {}
+    assert len(live_client._session._user_callbacks) == 2  # include map_symbols callback
+    assert (callback, None) in live_client._session._user_callbacks
 
 
 def test_live_add_stream(
@@ -920,8 +920,8 @@ def test_live_add_stream(
     live_client.add_stream(stream)
 
     # Assert
-    assert stream in live_client._user_streams
-    assert live_client._user_streams[stream] is None
+    assert len(live_client._session._user_streams) == 1
+    assert (stream, None) in live_client._session._user_streams
 
 
 def test_live_add_stream_invalid(
@@ -1017,7 +1017,7 @@ async def test_live_async_iteration_backpressure(
 
     # Assert
     assert len(records) == 4
-    assert live_client._dbn_queue.empty()
+    assert live_client._session._dbn_queue.empty()
 
 
 async def test_live_async_iteration_dropped(
@@ -1055,7 +1055,7 @@ async def test_live_async_iteration_dropped(
 
     # Assert
     assert len(records) == 4
-    assert live_client._dbn_queue.empty()
+    assert live_client._session._dbn_queue.empty()
 
 
 async def test_live_async_iteration_stop(
@@ -1081,7 +1081,7 @@ async def test_live_async_iteration_stop(
 
     # Assert
     assert len(records) > 1
-    assert live_client._dbn_queue.empty()
+    assert live_client._session._dbn_queue.empty()
 
 
 def test_live_sync_iteration(
@@ -1333,7 +1333,7 @@ async def test_live_disconnect_async(
     with pytest.raises(BentoError) as exc:
         await wait
 
-    exc.match(r"connection lost")
+    exc.match(r"test")
 
 
 def test_live_disconnect(
@@ -1364,7 +1364,7 @@ def test_live_disconnect(
     with pytest.raises(BentoError) as exc:
         live_client.block_for_close()
 
-    exc.match(r"connection lost")
+    exc.match(r"test")
 
 
 async def test_live_terminate(
@@ -1393,14 +1393,13 @@ async def test_live_terminate(
     "schema",
     (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
-async def test_live_iteration_with_reconnect(
+async def test_live_iteration_with_reuse(
     live_client: client.Live,
     test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     schema: Schema,
 ) -> None:
     """
-    Test that the client can reconnect to the same subscription while
-    iterating.
+    Test that the client can be reused while iterating.
 
     The iteration should yield every record.
 
@@ -1454,24 +1453,23 @@ async def test_live_iteration_with_reconnect(
     "schema",
     (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
-async def test_live_callback_with_reconnect(
+async def test_live_callback_with_reuse(
     live_client: client.Live,
     test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     schema: Schema,
 ) -> None:
     """
-    Test that the client can reconnect to the same subscription with a
-    callback.
+    Test that the client can be reused with a callback.
 
-    That callback should emit every record.
+    That callback should emit every record, but needs to be re-added.
 
     """
     # Arrange
     records: list[DBNRecord] = []
-    live_client.add_callback(records.append)
 
     # Act, Assert
     for _ in range(5):
+        live_client.add_callback(records.append)
         live_client.subscribe(
             dataset=Dataset.GLBX_MDP3,
             schema=schema,
@@ -1503,16 +1501,15 @@ async def test_live_callback_with_reconnect(
     "schema",
     (pytest.param(schema, id=str(schema)) for schema in Schema.variants()),
 )
-async def test_live_stream_with_reconnect(
+async def test_live_stream_with_reuse(
     tmp_path: pathlib.Path,
     live_client: client.Live,
     schema: Schema,
 ) -> None:
     """
-    Test that the client can reconnect to the same subscription with an output
-    stream.
+    Test that the client can be reused with an output stream.
 
-    That output stream should be readable.
+    That output stream should be a valid DBN stream.
 
     """
     # Arrange
@@ -1556,12 +1553,12 @@ async def test_live_stream_with_reconnect(
         assert isinstance(record, SCHEMA_STRUCT_MAP[schema])
 
 
-async def test_live_connection_reconnect_cram_failure(
+async def test_live_connection_reuse_cram_failure(
     mock_live_server: MockLiveServerInterface,
     test_api_key: str,
 ) -> None:
     """
-    Test that a failed connection can reconnect.
+    Test that a client with a failed connection can be reused.
     """
     # Arrange
     live_client = client.Live(

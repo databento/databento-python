@@ -140,6 +140,18 @@ class MockLiveServerInterface:
         """
         await self._send_command(f"del_key {api_key}")
 
+    async def disconnect(self, session_id: str) -> None:
+        """
+        Send the "disconnect" command.
+
+        Parameters
+        ----------
+        session_id : str
+            The live session ID to disconnect.
+
+        """
+        await self._send_command(f"disconnect {session_id}")
+
     async def close(self) -> None:
         """
         Send the "close" command.

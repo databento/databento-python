@@ -90,6 +90,14 @@ def pytest_collection_modifyitems(
             item.add_marker(skip_release)
 
 
+@pytest.fixture(autouse=True)
+def fixture_log_capture(
+    caplog: pytest.LogCaptureFixture,
+) -> Generator[None, None, None]:
+    with caplog.at_level(logging.DEBUG):
+        yield
+
+
 @pytest.fixture(name="event_loop", scope="module")
 def fixture_event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     policy = asyncio.get_event_loop_policy()
@@ -241,7 +249,6 @@ def fixture_historical_client(
 async def fixture_live_client(
     test_live_api_key: str,
     mock_live_server: MockLiveServerInterface,
-    caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncGenerator[live.client.Live, None]:
     """
@@ -263,14 +270,13 @@ async def fixture_live_client(
         0.5,
     )
 
-    with caplog.at_level(logging.DEBUG):
-        test_client = live.client.Live(
-            key=test_live_api_key,
-            gateway=mock_live_server.host,
-            port=mock_live_server.port,
-        )
+    test_client = live.client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
 
-        with mock_live_server.test_context():
-            yield test_client
+    with mock_live_server.test_context():
+        yield test_client
 
-        test_client.stop()
+    test_client.stop()
