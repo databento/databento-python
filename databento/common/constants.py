@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Final
 
 import numpy as np
+from databento_dbn import BBOMsg
 from databento_dbn import CBBOMsg
 from databento_dbn import ImbalanceMsg
 from databento_dbn import InstrumentDefMsg
@@ -47,8 +48,8 @@ SCHEMA_STRUCT_MAP: Final[dict[Schema, type[DBNRecord]]] = {
     Schema.CBBO_1S: CBBOMsg,
     Schema.CBBO_1M: CBBOMsg,
     Schema.TCBBO: CBBOMsg,
-    Schema.BBO_1S: MBP1Msg,
-    Schema.BBO_1M: MBP1Msg,
+    Schema.BBO_1S: BBOMsg,
+    Schema.BBO_1M: BBOMsg,
 }
 
 SCHEMA_STRUCT_MAP_V1: Final[dict[Schema, type[DBNRecord]]] = {
@@ -69,6 +70,6 @@ SCHEMA_STRUCT_MAP_V1: Final[dict[Schema, type[DBNRecord]]] = {
     Schema.CBBO_1S: CBBOMsg,
     Schema.CBBO_1M: CBBOMsg,
     Schema.TCBBO: CBBOMsg,
-    Schema.BBO_1S: MBP1Msg,
-    Schema.BBO_1M: MBP1Msg,
+    Schema.BBO_1S: BBOMsg,
+    Schema.BBO_1M: BBOMsg,
 }

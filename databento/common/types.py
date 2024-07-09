@@ -9,6 +9,7 @@ import databento_dbn
 
 
 DBNRecord = Union[
+    databento_dbn.BBOMsg,
     databento_dbn.CBBOMsg,
     databento_dbn.MBOMsg,
     databento_dbn.MBP1Msg,

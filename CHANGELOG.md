@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.36.4 - TBD
+## 0.37.0 - TBD
 
 #### Enhancements
 - A disconnected `Live` client can now be reused with a different dataset
-- Upgraded `databento-dbn` to 0.18.3
+- Upgraded `databento-dbn` to 0.19.0
 
 ## 0.36.3 - 2024-07-02
 
