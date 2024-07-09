@@ -460,7 +460,7 @@ async def test_live_subscribe(
     mock_live_server: MockLiveServerInterface,
     schema: Schema,
     stype_in: SType,
-    symbols: str,
+    symbols: str | None,
     start: str,
 ) -> None:
     """
@@ -633,6 +633,35 @@ async def test_live_subscribe_from_callback(
     # Assert
     assert first_sub.symbols == "TEST0"
     assert second_sub.symbols == "TEST1"
+
+
+async def test_live_subscribe_different_dataset(
+    live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
+) -> None:
+    """
+    Test that once a Live client is disconnected, it can be used with a
+    different subscription dataset.
+    """
+    # Arrange
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    # Act
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
+    live_client.start()
+    await live_client.wait_for_close()
+
+    # Assert
+    live_client.subscribe(
+        dataset=Dataset.XNAS_ITCH,
+        schema=Schema.MBO,
+    )
 
 
 @pytest.mark.usefixtures("mock_live_server")
@@ -1487,18 +1516,17 @@ async def test_live_stream_with_reconnect(
 
     """
     # Arrange
-    if schema == "ohlcv-eod":
-        pytest.skip("no stub data for ohlcv-eod schema")
-    if schema == "imbalance":
-        pytest.skip("imbalance is not supported for GLBX.MDP3")
-    if schema == "cbbo":
-        pytest.skip("no stub data for cbbo schema")
-    if schema == "cbbo-1s":
-        pytest.skip("no stub data for cbbo-1s schema")
-    if schema == "cbbo-1m":
-        pytest.skip("no stub data for cbbo-1m schema")
-    if schema == "tcbbo":
-        pytest.skip("no stub data for tcbbo schema")
+    if schema in (
+        "ohlcv-eod",
+        "imbalance",
+        "cbbo",
+        "cbbo-1s",
+        "cbbo-1m",
+        "tcbbo",
+        "bbo-1s",
+        "bbo-1m",
+    ):
+        pytest.skip(f"no stub data for {schema} schema")
 
     output = tmp_path / "output.dbn"
     live_client.add_stream(output.open("wb"))
