@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.37.1 - TBD
+
+#### Enhancements
+- Added platform information to the user agent reported by the `Historical` and `Live` clients
+
 ## 0.37.0 - 2024-07-09
 
 #### Enhancements
