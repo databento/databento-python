@@ -9,6 +9,7 @@ This release adds a new feature to the `Live` client for automatically reconnect
 - Added `reconnect_policy` parameter to the `Live` client to specify client reconnection behavior
 - Added `Live.add_reconnect_callback` method for specifying a callback to handle client reconnections
 - Added platform information to the user agent reported by the `Historical` and `Live` clients
+- Upgraded `databento-dbn` to 0.19.1
 
 #### Breaking changes
 - Calling `Live.stop` will now clear all user streams and callbacks
