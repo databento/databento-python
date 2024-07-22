@@ -10,7 +10,9 @@ from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
 
+from databento.common import API_VERSION
 from databento.common.dbnstore import DBNStore
+from databento.common.http import BentoHttpAPI
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
@@ -18,8 +20,6 @@ from databento.common.publishers import Dataset
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_semantic_string
-from databento.historical.api import API_VERSION
-from databento.historical.http import BentoHttpAPI
 
 
 class TimeseriesHttpAPI(BentoHttpAPI):

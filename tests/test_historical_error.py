@@ -8,8 +8,8 @@ import pytest
 import requests
 from databento.common.error import BentoClientError
 from databento.common.error import BentoServerError
-from databento.historical.http import check_http_error
-from databento.historical.http import check_http_error_async
+from databento.common.http import check_http_error
+from databento.common.http import check_http_error_async
 
 
 @pytest.mark.parametrize(

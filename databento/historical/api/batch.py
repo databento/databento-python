@@ -24,6 +24,7 @@ from databento_dbn import Schema
 from databento_dbn import SType
 from requests.auth import HTTPBasicAuth
 
+from databento.common import API_VERSION
 from databento.common.constants import HTTP_STREAMING_READ_SIZE
 from databento.common.enums import Delivery
 from databento.common.enums import Packaging
@@ -31,6 +32,8 @@ from databento.common.enums import SplitDuration
 from databento.common.error import BentoError
 from databento.common.error import BentoHttpError
 from databento.common.error import BentoWarning
+from databento.common.http import BentoHttpAPI
+from databento.common.http import check_http_error
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
@@ -40,9 +43,6 @@ from databento.common.types import Default
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_path
 from databento.common.validation import validate_semantic_string
-from databento.historical.api import API_VERSION
-from databento.historical.http import BentoHttpAPI
-from databento.historical.http import check_http_error
 
 
 logger = logging.getLogger(__name__)

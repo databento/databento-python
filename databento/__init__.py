@@ -22,6 +22,7 @@ from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 from databento_dbn import TradeMsg
 
+from databento.common import API_VERSION
 from databento.common import bentologging
 from databento.common import symbology
 from databento.common.dbnstore import DBNStore
@@ -43,9 +44,9 @@ from databento.common.publishers import Publisher
 from databento.common.publishers import Venue
 from databento.common.symbology import InstrumentMap
 from databento.common.types import DBNRecord
-from databento.historical.api import API_VERSION
 from databento.historical.client import Historical
 from databento.live.client import Live
+from databento.reference.client import Reference
 from databento.version import __version__  # noqa
 
 
@@ -73,6 +74,7 @@ __all__ = [
     "HistoricalGateway",
     "InstrumentMap",
     "Live",
+    "Reference",
     "Packaging",
     "ReconnectPolicy",
     "RollRule",

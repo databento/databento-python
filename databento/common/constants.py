@@ -73,3 +73,36 @@ SCHEMA_STRUCT_MAP_V1: Final[dict[Schema, type[DBNRecord]]] = {
     Schema.BBO_1S: BBOMsg,
     Schema.BBO_1M: BBOMsg,
 }
+
+
+CORPORATE_ACTIONS_DATETIME_COLUMNS: Final[list[str]] = [
+    "ts_record",
+    "ts_created",
+]
+
+CORPORATE_ACTIONS_DATE_COLUMNS: Final[list[str]] = [
+    "event_date",
+    "event_created_date",
+    "effective_date",
+    "ex_date",
+    "record_date",
+    "listing_date",
+    "delisting_date",
+    "payment_date",
+    "duebills_redemption_date",
+    "from_date",
+    "to_date",
+    "registration_date",
+    "start_date",
+    "end_date",
+    "open_date",
+    "close_date",
+    "start_subscription_date",
+    "end_subscription_date",
+    "option_election_date",
+    "withdrawal_right_from_date",
+    "withdrawal_rights_to_date",
+    "notification_date",
+    "financial_year_end_date",
+    "exp_completion_date",
+]

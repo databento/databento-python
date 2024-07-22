@@ -18,6 +18,7 @@ import databento.live.session
 import pytest
 from databento import historical
 from databento import live
+from databento import reference
 from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
@@ -239,6 +240,25 @@ def fixture_historical_client(
 
     """
     test_client = historical.client.Historical(
+        key=test_api_key,
+        gateway="localhost",
+    )
+    yield test_client
+
+
+@pytest.fixture(name="reference_client")
+def fixture_reference_client(
+    test_api_key: str,
+) -> Generator[reference.client.Reference, None, None]:
+    """
+    Fixture for a Reference client.
+
+    Yields
+    ------
+    Reference
+
+    """
+    test_client = reference.client.Reference(
         key=test_api_key,
         gateway="localhost",
     )
