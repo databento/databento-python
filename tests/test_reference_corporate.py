@@ -1,7 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Optional
-from typing import Union
 from unittest.mock import MagicMock
 
 import databento as db
@@ -40,7 +40,7 @@ from tests import TESTS_ROOT
 def test_corporate_actions_get_range_sends_expected_request(
     monkeypatch: pytest.MonkeyPatch,
     reference_client: Reference,
-    events: Optional[Union[Iterable[str], str]],
+    events: Iterable[str] | str | None,
     data_events: str,
 ) -> None:
     # Arrange
