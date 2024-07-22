@@ -107,7 +107,7 @@ async def test_reconnect_before_start(
 @pytest.mark.parametrize(
     "symbols",
     [
-        ("TEST0"),
+        ("TEST0",),
         ("TEST0", "TEST1"),
         ("TEST0", "TEST1", "TEST2"),
     ],
