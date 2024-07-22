@@ -1,6 +1,8 @@
 import logging
 import warnings
 
+from databento_dbn import BBOMsg
+from databento_dbn import CBBOMsg
 from databento_dbn import Compression
 from databento_dbn import Encoding
 from databento_dbn import ErrorMsg
@@ -14,6 +16,7 @@ from databento_dbn import OHLCVMsg
 from databento_dbn import Schema
 from databento_dbn import StatMsg
 from databento_dbn import StatType
+from databento_dbn import StatusMsg
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
@@ -75,22 +78,25 @@ __all__ = [
     "RollRule",
     "Schema",
     "SplitDuration",
+    "StatType",
     "SType",
     "SymbologyResolution",
     # DBN Record Types
     "Metadata",
+    "BBOMsg",
+    "CBBOMsg",
+    "ErrorMsg",
+    "ImbalanceMsg",
+    "InstrumentDefMsg",
     "MBOMsg",
     "MBP1Msg",
     "MBP10Msg",
-    "TradeMsg",
     "OHLCVMsg",
     "StatMsg",
-    "InstrumentDefMsg",
-    "ImbalanceMsg",
-    "ErrorMsg",
-    "StatType",
-    "SystemMsg",
+    "StatusMsg",
     "SymbolMappingMsg",
+    "SystemMsg",
+    "TradeMsg",
 ]
 
 # Setup logging

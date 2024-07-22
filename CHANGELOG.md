@@ -10,6 +10,7 @@ This release adds a new feature to the `Live` client for automatically reconnect
 - Added `Live.add_reconnect_callback` method for specifying a callback to handle client reconnections
 - Added platform information to the user agent reported by the `Historical` and `Live` clients
 - Upgraded `databento-dbn` to 0.19.1
+- Added `BBOMsg`, `CBBOMsg`, and `StatusMsg` exports to the root `databento` package
 
 #### Breaking changes
 - Calling `Live.stop` will now clear all user streams and callbacks
