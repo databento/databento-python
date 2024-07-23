@@ -12,6 +12,7 @@ from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
+from tests.mockliveserver.server import MockLiveServerProtocol
 from tests.mockliveserver.source import FileReplay
 from tests.mockliveserver.source import ReplayProtocol
 
@@ -41,16 +42,21 @@ class Controller:
     add_dbn.add_argument("schema", type=str)
     add_dbn.add_argument("dbn_file", type=str)
 
+    disconnect = subparsers.add_parser("disconnect", help="disconnect a live session")
+    disconnect.add_argument("session_id", type=str)
+
     def __init__(
         self,
         server: asyncio.base_events.Server,
         api_key_table: Mapping[str, set[str]],
         file_replay_table: MutableMapping[tuple[Dataset, Schema], ReplayProtocol],
+        sessions: list[MockLiveServerProtocol],
         loop: asyncio.AbstractEventLoop,
     ) -> None:
         self._server = server
         self._api_key_table = api_key_table
         self._file_replay_table = file_replay_table
+        self._sessions = sessions
         self._loop = loop
 
         self._read_task = loop.create_task(self._read_commands())
@@ -132,3 +138,11 @@ class Controller:
             return
 
         self._file_replay_table[(dataset_valid, schema_valid)] = FileReplay(dbn_path)
+
+    def _command_disconnect(self, session_id: str | None) -> None:
+        for session in self._sessions:
+            if session_id is None or session.session_id == session_id:
+                logger.info("disconnecting session %s", session.session_id)
+                session.transport.abort()
+                return
+        raise ValueError(f"no session with id {session_id}")

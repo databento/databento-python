@@ -18,6 +18,7 @@ import databento.live.session
 import pytest
 from databento import historical
 from databento import live
+from databento import reference
 from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
@@ -88,6 +89,14 @@ def pytest_collection_modifyitems(
         # Skip release tests if `--release` was not specified
         if "release" in item.keywords and not config.getoption("--release"):
             item.add_marker(skip_release)
+
+
+@pytest.fixture(autouse=True)
+def fixture_log_capture(
+    caplog: pytest.LogCaptureFixture,
+) -> Generator[None, None, None]:
+    with caplog.at_level(logging.DEBUG):
+        yield
 
 
 @pytest.fixture(name="event_loop", scope="module")
@@ -237,11 +246,29 @@ def fixture_historical_client(
     yield test_client
 
 
+@pytest.fixture(name="reference_client")
+def fixture_reference_client(
+    test_api_key: str,
+) -> Generator[reference.client.Reference, None, None]:
+    """
+    Fixture for a Reference client.
+
+    Yields
+    ------
+    Reference
+
+    """
+    test_client = reference.client.Reference(
+        key=test_api_key,
+        gateway="localhost",
+    )
+    yield test_client
+
+
 @pytest.fixture(name="live_client")
 async def fixture_live_client(
     test_live_api_key: str,
     mock_live_server: MockLiveServerInterface,
-    caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncGenerator[live.client.Live, None]:
     """
@@ -263,14 +290,13 @@ async def fixture_live_client(
         0.5,
     )
 
-    with caplog.at_level(logging.DEBUG):
-        test_client = live.client.Live(
-            key=test_live_api_key,
-            gateway=mock_live_server.host,
-            port=mock_live_server.port,
-        )
+    test_client = live.client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+    )
 
-        with mock_live_server.test_context():
-            yield test_client
+    with mock_live_server.test_context():
+        yield test_client
 
-        test_client.stop()
+    test_client.stop()

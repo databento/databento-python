@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.38.0 - 2024-07-23
+
+This release adds a new feature to the `Live` client for automatically reconnecting when an unexpected disconnection occurs.
+
+#### Enhancements
+- Added `Reference` data client with `corporate_actions.get_range(...)` method
+- Added `ReconnectPolicy` enumeration
+- Added `reconnect_policy` parameter to the `Live` client to specify client reconnection behavior
+- Added `Live.add_reconnect_callback` method for specifying a callback to handle client reconnections
+- Added platform information to the user agent reported by the `Historical` and `Live` clients
+- Upgraded `databento-dbn` to 0.19.1
+- Added `BBOMsg`, `CBBOMsg`, and `StatusMsg` exports to the root `databento` package
+
+#### Breaking changes
+- Calling `Live.stop` will now clear all user streams and callbacks
+- Renamed `Session` to `LiveSession` in the `databento.live.session` module
+
 ## 0.37.0 - 2024-07-09
 
 #### Enhancements

@@ -6,6 +6,7 @@ from typing import TypeVar
 from typing import Union
 
 import databento_dbn
+import pandas as pd
 
 
 DBNRecord = Union[
@@ -31,6 +32,7 @@ DBNRecord = Union[
 
 RecordCallback = Callable[[DBNRecord], None]
 ExceptionCallback = Callable[[Exception], None]
+ReconnectCallback = Callable[[pd.Timestamp, pd.Timestamp], None]
 
 _T = TypeVar("_T")
 

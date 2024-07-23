@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from databento.historical.http import check_backend_warnings
+from databento.common.http import check_backend_warnings
 from requests import Response
 
 

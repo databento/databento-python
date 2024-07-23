@@ -7,6 +7,7 @@ from functools import singledispatchmethod
 from typing import Final
 
 import databento_dbn
+from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
 from databento_dbn import VersionUpgradePolicy
@@ -87,6 +88,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         self._authenticated: asyncio.Future[str | None] = asyncio.Future()
         self._disconnected: asyncio.Future[None] = asyncio.Future()
+        self._metadata_received: asyncio.Future[Metadata] = asyncio.Future()
         self._error_msgs: list[str] = []
         self._started: bool = False
 
@@ -124,7 +126,19 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         return self._disconnected
 
     @property
-    def is_started(self) -> bool:
+    def metadata_received(self) -> asyncio.Future[Metadata]:
+        """
+        Future that completes when the session metadata had been received.
+
+        Returns
+        -------
+        asyncio.Future[Metadata]
+
+        """
+        return self._metadata_received
+
+    @property
+    def is_streaming(self) -> bool:
         """
         True if the session has started streaming. This occurs when the
         SessionStart message is sent to the gateway.
@@ -185,7 +199,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 logger.info("connection closed")
                 self.disconnected.set_result(None)
             else:
-                logger.error("connection lost", exc_info=exc)
+                logger.error("connection lost: %s", exc)
                 self.disconnected.set_exception(exc)
 
     def eof_received(self) -> bool | None:
@@ -242,7 +256,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         metadata : databento_dbn.Metadata
 
         """
-        pass
+        self._metadata_received.set_result(metadata)
 
     def received_record(self, record: DBNRecord) -> None:
         """
@@ -262,9 +276,10 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
         snapshot: bool = False,
-    ) -> None:
+    ) -> list[SubscriptionRequest]:
         """
-        Send a SubscriptionRequest to the gateway.
+        Send a SubscriptionRequest to the gateway. Returns a list of all
+        subscription requests sent to the gateway.
 
         Parameters
         ----------
@@ -280,6 +295,10 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         snapshot: bool, default to 'False'
             Request subscription with snapshot. The `start` parameter must be `None`.
 
+        Returns
+        -------
+        list[SubscriptionRequest]
+
         """
         logger.info(
             "sending subscription to %s:%s %s start=%s snapshot=%s",
@@ -293,7 +312,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
 
-        subscription_bytes: list[bytes] = []
+        subscriptions: list[SubscriptionRequest] = []
         for batch in chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE):
             batch_str = ",".join(batch)
             message = SubscriptionRequest(
@@ -303,9 +322,10 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 start=optional_datetime_to_unix_nanoseconds(start),
                 snapshot=int(snapshot),
             )
-            subscription_bytes.append(bytes(message))
+            subscriptions.append(message)
 
-        self.transport.writelines(subscription_bytes)
+        self.transport.writelines(map(bytes, subscriptions))
+        return subscriptions
 
     def start(
         self,

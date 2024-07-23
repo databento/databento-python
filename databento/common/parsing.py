@@ -310,3 +310,81 @@ def optional_datetime_to_unix_nanoseconds(
     if value is None:
         return None
     return datetime_to_unix_nanoseconds(value)
+
+
+def convert_to_date(value: str) -> date | None:
+    """
+    Convert the given `value` to a date (or None).
+
+    Parameters
+    ----------
+    value : str
+        The date string value to convert.
+
+    Returns
+    -------
+    datetime.date or `None`
+        The corresponding `date` object if the conversion succeeds,
+        or `None` if the input value cannot be converted.
+
+    """
+    # Calling `.date()` on a NaT value will retain the NaT value
+    timestamp = pd.to_datetime(value, utc=True, errors="coerce")
+    return timestamp.date() if pd.notna(timestamp) else None
+
+
+def convert_to_datetime(value: str) -> pd.Timestamp | None:
+    """
+    Convert the given `value` to a pandas Timestamp (or None).
+
+    Parameters
+    ----------
+    value : str
+        The datetime string value to convert.
+
+    Returns
+    -------
+    pandas.Timestamp or None
+        The corresponding `Timestamp` object if the conversion succeeds,
+        or `None` if the input value cannot be converted.
+
+    """
+    return pd.to_datetime(value, utc=True, errors="coerce")
+
+
+def convert_date_columns(df: pd.DataFrame, columns: list[str]) -> None:
+    """
+    Convert the specified columns in a DataFrame to date objects.
+
+    The function modifies the input DataFrame in place.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The pandas DataFrame to modify.
+    columns : List[str]
+        The column names to convert.
+
+    """
+    for column in columns:
+        if column not in df:
+            continue
+        df[column] = df[column].apply(convert_to_date)
+
+
+def convert_datetime_columns(df: pd.DataFrame, columns: list[str]) -> None:
+    """
+    Convert the specified columns in a DataFrame to pandas Timestamp objects.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The pandas DataFrame to modify.
+    columns : List[str]
+        The column names to convert.
+
+    """
+    for column in columns:
+        if column not in df:
+            continue
+        df[column] = df[column].apply(convert_to_datetime)

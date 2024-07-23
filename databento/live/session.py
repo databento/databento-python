@@ -7,20 +7,24 @@ import queue
 import struct
 import threading
 from collections.abc import Iterable
+from functools import partial
 from typing import IO
-from typing import Callable
 from typing import Final
 
 import databento_dbn
+import pandas as pd
 from databento_dbn import Schema
 from databento_dbn import SType
 
 from databento.common.constants import ALL_SYMBOLS
+from databento.common.enums import ReconnectPolicy
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
 from databento.common.types import DBNRecord
 from databento.common.types import ExceptionCallback
+from databento.common.types import ReconnectCallback
 from databento.common.types import RecordCallback
+from databento.live.gateway import SubscriptionRequest
 from databento.live.protocol import DatabentoLiveProtocol
 
 
@@ -181,8 +185,8 @@ class _SessionProtocol(DatabentoLiveProtocol):
         api_key: str,
         dataset: Dataset | str,
         dbn_queue: DBNQueue,
-        user_callbacks: dict[RecordCallback, ExceptionCallback | None],
-        user_streams: dict[IO[bytes], ExceptionCallback | None],
+        user_callbacks: list[tuple[RecordCallback, ExceptionCallback | None]],
+        user_streams: list[tuple[IO[bytes], ExceptionCallback | None]],
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
@@ -195,13 +199,14 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._metadata: SessionMetadata = metadata
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
+        self._last_ts_event: pd.Timestamp | None = None
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         if self._metadata:
             self._metadata.check(metadata)
         else:
             metadata_bytes = metadata.encode()
-            for stream, exc_callback in self._user_streams.items():
+            for stream, exc_callback in self._user_streams:
                 try:
                     stream.write(metadata_bytes)
                 except Exception as exc:
@@ -223,11 +228,12 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._dispatch_callbacks(record)
         if self._dbn_queue.is_enabled():
             self._queue_for_iteration(record)
+        self._last_ts_event = record.pretty_ts_event
 
         return super().received_record(record)
 
     def _dispatch_callbacks(self, record: DBNRecord) -> None:
-        for callback, exc_callback in self._user_callbacks.items():
+        for callback, exc_callback in self._user_callbacks:
             try:
                 callback(record)
             except Exception as exc:
@@ -248,7 +254,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
 
         record_bytes = bytes(record) + ts_out_bytes
 
-        for stream, exc_callback in self._user_streams.items():
+        for stream, exc_callback in self._user_streams:
             try:
                 stream.write(record_bytes)
             except Exception as exc:
@@ -273,53 +279,83 @@ class _SessionProtocol(DatabentoLiveProtocol):
             self.transport.pause_reading()
 
 
-class Session:
+class LiveSession:
     """
     Parameters
     ----------
     loop : asyncio.AbstractEventLoop
         The event loop to create the connection in and submit tasks to.
-    protocol_factory : Callable[[], _SessionProtocol]
-        The factory to use for creating connections in this session.
-    user_gateway : str, optional
-        Override for the remote gateway.
-    port : int, optional
-        Override for the remote port.
+    api_key: str
+        The Databento API key for authentication
     ts_out : bool, default False
         Flag for requesting `ts_out` to be appending to all records in the session.
+    heartbeat_interval_s: int, optional
+        The interval in seconds at which the gateway will send heartbeat records if no
+        other data records are sent.
+    user_gateway : str, optional
+        Override for the remote gateway.
+    user_port : int, optional
+        Override for the remote port.
+    reconnect_policy: ReconnectPolicy | str, optional
+        The reconnect policy for the live session.
+            - "none": the client will not reconnect (default)
+            - "reconnect": the client will reconnect automatically
     """
 
     def __init__(
         self,
         loop: asyncio.AbstractEventLoop,
-        protocol_factory: Callable[[], _SessionProtocol],
-        user_gateway: str | None = None,
-        port: int = DEFAULT_REMOTE_PORT,
+        api_key: str,
         ts_out: bool = False,
+        heartbeat_interval_s: int | None = None,
+        user_gateway: str | None = None,
+        user_port: int = DEFAULT_REMOTE_PORT,
+        reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
     ) -> None:
+        self._dbn_queue = DBNQueue()
         self._lock = threading.RLock()
         self._loop = loop
-        self._ts_out = ts_out
-        self._protocol_factory = protocol_factory
-
-        self._transport: asyncio.Transport | None = None
-        self._protocol: _SessionProtocol | None = None
-
+        self._metadata = SessionMetadata()
         self._user_gateway: str | None = user_gateway
-        self._port = port
+        self._user_callbacks: list[tuple[RecordCallback, ExceptionCallback | None]] = []
+        self._user_streams: list[tuple[IO[bytes], ExceptionCallback | None]] = []
+        self._user_reconnect_callbacks: list[tuple[ReconnectCallback, ExceptionCallback | None]] = (
+            []
+        )
+        self._port: int = user_port
+
+        self._api_key = api_key
+        self._ts_out = ts_out
+        self._heartbeat_interval_s = heartbeat_interval_s
+
+        self._protocol: _SessionProtocol | None = None
+        self._transport: asyncio.Transport | None = None
         self._session_id: str | None = None
+
+        self._subscriptions: list[SubscriptionRequest] = []
+        self._reconnect_policy = ReconnectPolicy(reconnect_policy)
+        self._reconnect_task: asyncio.Task[None] | None = None
+
+        self._dataset = ""
+
+    @property
+    def api_key(self) -> str:
+        return self._api_key
+
+    @property
+    def dataset(self) -> str:
+        return self._dataset
+
+    @property
+    def ts_out(self) -> bool:
+        return self._ts_out
+
+    @property
+    def heartbeat_interval_s(self) -> int | None:
+        return self._heartbeat_interval_s
 
     @property
     def session_id(self) -> str | None:
-        """
-        Return the authenticated session ID. A None value indicates no session
-        has started.
-
-        Returns
-        -------
-        str | None
-
-        """
         return self._session_id
 
     def is_authenticated(self) -> bool:
@@ -352,7 +388,10 @@ class Session:
         with self._lock:
             if self._protocol is None:
                 return True
-            return self._protocol.disconnected.done()
+            if self._reconnect_task is not None:
+                return self._reconnect_task.done()
+            else:
+                return self._protocol.disconnected.done()
 
     def is_reading(self) -> bool:
         """
@@ -368,7 +407,16 @@ class Session:
                 return False
             return self._transport.is_reading()
 
-    def is_started(self) -> bool:
+    def resume_reading(self) -> None:
+        """
+        Resume reading from the connection.
+        """
+        with self._lock:
+            if self._transport is None:
+                return
+            self._loop.call_soon_threadsafe(self._transport.resume_reading)
+
+    def is_streaming(self) -> bool:
         """
         Return true if the session's connection has started streaming, false
         otherwise.
@@ -381,49 +429,34 @@ class Session:
         with self._lock:
             if self._protocol is None:
                 return False
-            return self._protocol.is_started
+            return self._protocol.is_streaming
 
-    @property
-    def metadata(self) -> databento_dbn.Metadata | None:
+    def stop(self) -> None:
         """
-        Return the current session's Metadata.
-
-        Returns
-        -------
-        databento_dbn.Metadata
-
-        """
-        with self._lock:
-            if self._protocol is None:
-                return None
-            return self._protocol._metadata.data
-
-    def abort(self) -> None:
-        """
-        Abort the current connection immediately. Buffered data will be lost.
-
-        See Also
-        --------
-        Session.close
-
-        """
-        with self._lock:
-            if self._transport is None:
-                return
-            self._transport.abort()
-            self._protocol = None
-
-    def close(self) -> None:
-        """
-        Close the current connection.
+        Stop the current connection.
         """
         with self._lock:
             if self._transport is None:
                 return
             if self._transport.can_write_eof():
-                self._loop.call_soon_threadsafe(self._transport.write_eof)
+                self._transport.write_eof()
             else:
-                self._loop.call_soon_threadsafe(self._transport.close)
+                self._transport.close()
+
+    def start(self) -> None:
+        """
+        Send the start message on the current connection.
+
+        Raises
+        ------
+        ValueError
+            If there is no connection.
+
+        """
+        with self._lock:
+            if self._protocol is None:
+                raise ValueError("session is not connected")
+            self._protocol.start()
 
     def subscribe(
         self,
@@ -455,45 +488,33 @@ class Session:
             Request subscription with snapshot. The `start` parameter must be `None`.
 
         """
-        with self._lock:
-            if self._protocol is None:
-                self._connect(
-                    dataset=dataset,
-                    port=self._port,
-                    loop=self._loop,
-                )
-
-            self._protocol.subscribe(
-                schema=schema,
-                symbols=symbols,
-                stype_in=stype_in,
-                start=start,
-                snapshot=snapshot,
+        if not self.dataset:
+            self._dataset = dataset
+        elif self.dataset != dataset:
+            raise ValueError(
+                f"Cannot subscribe to dataset `{dataset}` "
+                f"because subscriptions to `{self.dataset}` have already been made.",
             )
 
-    def resume_reading(self) -> None:
-        """
-        Resume reading from the connection.
-        """
-        with self._lock:
-            if self._transport is None:
-                return
-            self._loop.call_soon_threadsafe(self._transport.resume_reading)
-
-    def start(self) -> None:
-        """
-        Send the start message on the current connection.
-
-        Raises
-        ------
-        ValueError
-            If there is no connection.
-
-        """
         with self._lock:
             if self._protocol is None:
-                raise ValueError("session is not connected")
-            self._protocol.start()
+                self._connect(dataset=dataset)
+
+            self._subscriptions.extend(
+                self._protocol.subscribe(
+                    schema=schema,
+                    symbols=symbols,
+                    stype_in=stype_in,
+                    start=start,
+                    snapshot=snapshot,
+                ),
+            )
+
+    def terminate(self) -> None:
+        if self._transport is None:
+            return
+        self._transport.abort()
+        self._cleanup()
 
     async def wait_for_close(self) -> None:
         """
@@ -503,75 +524,102 @@ class Session:
         if self._protocol is None:
             return
 
-        await self._protocol.authenticated
-        await self._protocol.disconnected
-
         try:
-            self._protocol.authenticated.result()
+            await self._protocol.authenticated
         except Exception as exc:
             raise BentoError(exc) from None
 
         try:
-            self._protocol.disconnected.result()
+            if self._reconnect_task is not None:
+                await self._reconnect_task
+            else:
+                await self._protocol.disconnected
         except Exception as exc:
             raise BentoError(exc) from None
 
+        self._cleanup()
+
+    def _cleanup(self) -> None:
+        logger.debug("cleaning up session_id=%s", self.session_id)
+        self._user_callbacks.clear()
+        for item in self._user_streams:
+            stream, _ = item
+            if not stream.closed:
+                stream.flush()
+
+        self._user_callbacks.clear()
+        self._user_streams.clear()
+        self._user_reconnect_callbacks.clear()
+        self._metadata = SessionMetadata()
         self._protocol = self._transport = None
+        self._dataset = ""
+
+    def _create_protocol(self, dataset: Dataset | str) -> _SessionProtocol:
+        return _SessionProtocol(
+            api_key=self.api_key,
+            dataset=dataset,
+            dbn_queue=self._dbn_queue,
+            user_callbacks=self._user_callbacks,
+            user_streams=self._user_streams,
+            loop=self._loop,
+            metadata=self._metadata,
+            ts_out=self.ts_out,
+            heartbeat_interval_s=self.heartbeat_interval_s,
+        )
 
     def _connect(
         self,
         dataset: Dataset | str,
-        port: int,
-        loop: asyncio.AbstractEventLoop,
     ) -> None:
         with self._lock:
             if not self.is_disconnected():
                 return
-            if self._user_gateway is None:
-                subdomain = dataset.lower().replace(".", "-")
-                gateway = f"{subdomain}.lsg.databento.com"
-                logger.debug("using default gateway for dataset %s", dataset)
-            else:
-                gateway = self._user_gateway
-                logger.debug("using user specified gateway: %s", gateway)
-
             self._transport, self._protocol = asyncio.run_coroutine_threadsafe(
                 coro=self._connect_task(
-                    gateway=gateway,
-                    port=port,
+                    dataset=dataset,
                 ),
-                loop=loop,
+                loop=self._loop,
             ).result()
+            if self._reconnect_policy is not ReconnectPolicy.NONE:
+                self._reconnect_task = self._loop.create_task(self._reconnect())
 
     async def _connect_task(
         self,
-        gateway: str,
-        port: int,
+        dataset: Dataset | str,
     ) -> tuple[asyncio.Transport, _SessionProtocol]:
+        if self._user_gateway is None:
+            subdomain = dataset.lower().replace(".", "-")
+            gateway = f"{subdomain}.lsg.databento.com"
+            logger.debug("using default gateway for dataset %s", dataset)
+        else:
+            gateway = self._user_gateway
+            logger.debug("using user specified gateway: %s", gateway)
+
         logger.info("connecting to remote gateway")
         try:
+            factory = partial(self._create_protocol, dataset=dataset)
             transport, protocol = await asyncio.wait_for(
                 self._loop.create_connection(
-                    protocol_factory=self._protocol_factory,
+                    protocol_factory=factory,
                     host=gateway,
-                    port=port,
+                    port=self._port,
                 ),
                 timeout=CONNECT_TIMEOUT_SECONDS,
             )
         except asyncio.TimeoutError:
             raise BentoError(
-                f"Connection to {gateway}:{port} timed out after "
+                f"Connection to {gateway}:{self._port} timed out after "
                 f"{CONNECT_TIMEOUT_SECONDS} second(s).",
             ) from None
         except OSError as exc:
             raise BentoError(
-                f"Connection to {gateway}:{port} failed: {exc}",
+                f"Connection to {gateway}:{self._port} failed: {exc}",
             ) from None
 
         logger.debug(
             "connected to %s:%d",
             gateway,
-            port,
+            self._port,
         )
 
         try:
@@ -581,7 +629,7 @@ class Session:
             )
         except asyncio.TimeoutError:
             raise BentoError(
-                f"Authentication with {gateway}:{port} timed out after "
+                f"Authentication with {gateway}:{self._port} timed out after "
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",
             ) from None
 
@@ -592,3 +640,69 @@ class Session:
         )
 
         return transport, protocol
+
+    async def _reconnect(self) -> None:
+        while True:
+            try:
+                await self._protocol.disconnected
+            except Exception:
+                with self._lock:
+                    logger.info("reconnecting live session")
+
+                    should_restart = self.is_streaming()
+                    if self._protocol._last_ts_event is not None:
+                        gap_start = pd.Timestamp(self._protocol._last_ts_event, tz="UTC")
+                    elif self._metadata.data is not None:
+                        gap_start = self._metadata.data.start
+                    else:
+                        gap_start = pd.Timestamp.utcnow()
+
+                    if self._transport is not None:
+                        self._transport.abort()
+                    self._transport, self._protocol = await self._connect_task(
+                        dataset=self._protocol._dataset,
+                    )
+
+                    for sub in self._subscriptions:
+                        self._protocol.subscribe(
+                            schema=sub.schema,
+                            symbols=sub.symbols,
+                            stype_in=sub.stype_in,
+                            snapshot=bool(sub.snapshot),
+                            start=None,
+                        )
+
+                    if should_restart:
+                        self._protocol.start()
+                        metadata = await self._protocol._metadata_received
+                        gap_end = pd.Timestamp(metadata.start, tz="UTC")
+                        logger.debug(
+                            "reconnection gap of %f second(s)",
+                            (gap_end - gap_start).total_seconds(),
+                        )
+                        self._dispatch_reconnect_callbacks(
+                            gap_start=gap_start,
+                            gap_end=gap_end,
+                        )
+                continue
+            else:
+                return
+
+    def _dispatch_reconnect_callbacks(
+        self,
+        gap_start: pd.Timestamp,
+        gap_end: pd.Timestamp,
+    ) -> None:
+        for callback, exc_callback in self._user_reconnect_callbacks:
+            try:
+                callback(gap_start, gap_end)
+            except Exception as exc:
+                logger.error(
+                    "error dispatching reconnect (%s,%s) to `%s` reconnect callback",
+                    gap_start,
+                    gap_end,
+                    getattr(callback, "__name__", str(callback)),
+                    exc_info=exc,
+                )
+                if exc_callback is not None:
+                    exc_callback(exc)

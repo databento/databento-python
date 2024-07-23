@@ -220,3 +220,10 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
     F_MBP = 16
     F_BAD_TS_RECV = 8
     F_MAYBE_BAD_BOOK = 4
+
+
+@unique
+@coercible
+class ReconnectPolicy(StringyMixin, str, Enum):
+    NONE = "none"
+    RECONNECT = "reconnect"
