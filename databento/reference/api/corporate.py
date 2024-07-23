@@ -34,7 +34,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         start_date: date | str,
         end_date: date | str | None = None,
         dataset: Dataset | str | None = None,
-        symbols: Iterable[str | int] | str | int | None = None,
+        symbols: Iterable[str] | str | None = None,
         stype_in: SType | str = "raw_symbol",
         events: Iterable[str] | str | None = None,
     ) -> pd.DataFrame:
@@ -51,13 +51,13 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             The end date (UTC) of the request time range (exclusive).
         dataset : Dataset or str, optional
             The dataset code (string identifier) for the request.
-        symbols : Iterable[str | int] or str or int, optional
+        symbols : Iterable[str] or str, optional
             The symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
             If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
-            Use any of 'raw_symbol', 'nasdaq_symbol', 'local_code', 'isin', 'us_code',
+            Use any of 'raw_symbol', 'nasdaq_symbol', 'isin', 'us_code',
             'bbg_comp_id', 'bbg_comp_ticker', 'figi', 'figi_ticker'.
         events : Iterable[str] or str, optional
             The event types to filter for.
