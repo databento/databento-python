@@ -496,6 +496,8 @@ class Dataset(StringyMixin, str, Enum):
         Databento Equities Max.
     XNAS_BASIC
         Nasdaq Basic (NLS+QBBO).
+    DBEQ_SUMMARY
+        Databento Equities Summary.
 
     """
 
@@ -530,6 +532,7 @@ class Dataset(StringyMixin, str, Enum):
     NDEX_IMPACT = "NDEX.IMPACT"
     DBEQ_MAX = "DBEQ.MAX"
     XNAS_BASIC = "XNAS.BASIC"
+    DBEQ_SUMMARY = "DBEQ.SUMMARY"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -598,6 +601,8 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.DBEQ_MAX
         if value == 31:
             return Dataset.XNAS_BASIC
+        if value == 32:
+            return Dataset.DBEQ_SUMMARY
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -666,6 +671,8 @@ class Dataset(StringyMixin, str, Enum):
             return 30
         if self == Dataset.XNAS_BASIC:
             return 31
+        if self == Dataset.DBEQ_SUMMARY:
+            return 32
         raise ValueError("Invalid Dataset")
 
     @property
@@ -735,6 +742,8 @@ class Dataset(StringyMixin, str, Enum):
             return "Databento Equities Max"
         if self == Dataset.XNAS_BASIC:
             return "Nasdaq Basic (NLS+QBBO)"
+        if self == Dataset.DBEQ_SUMMARY:
+            return "Databento Equities Summary"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -922,6 +931,8 @@ class Publisher(StringyMixin, str, Enum):
         Nasdaq Basic - Nasdaq BX.
     XNAS_BASIC_XPSX
         Nasdaq Basic - Nasdaq PSX.
+    DBEQ_SUMMARY_DBEQ
+        Databento Equities Summary.
 
     """
 
@@ -1014,6 +1025,7 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_NLS_XPSX = "XNAS.NLS.XPSX"
     XNAS_BASIC_XBOS = "XNAS.BASIC.XBOS"
     XNAS_BASIC_XPSX = "XNAS.BASIC.XPSX"
+    DBEQ_SUMMARY_DBEQ = "DBEQ.SUMMARY.DBEQ"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1198,6 +1210,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XNAS_BASIC_XBOS
         if value == 89:
             return Publisher.XNAS_BASIC_XPSX
+        if value == 90:
+            return Publisher.DBEQ_SUMMARY_DBEQ
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1382,6 +1396,8 @@ class Publisher(StringyMixin, str, Enum):
             return 88
         if self == Publisher.XNAS_BASIC_XPSX:
             return 89
+        if self == Publisher.DBEQ_SUMMARY_DBEQ:
+            return 90
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1567,6 +1583,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XBOS
         if self == Publisher.XNAS_BASIC_XPSX:
             return Venue.XPSX
+        if self == Publisher.DBEQ_SUMMARY_DBEQ:
+            return Venue.DBEQ
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1752,6 +1770,8 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XNAS_BASIC
         if self == Publisher.XNAS_BASIC_XPSX:
             return Dataset.XNAS_BASIC
+        if self == Publisher.DBEQ_SUMMARY_DBEQ:
+            return Dataset.DBEQ_SUMMARY
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1937,4 +1957,6 @@ class Publisher(StringyMixin, str, Enum):
             return "Nasdaq Basic - Nasdaq BX"
         if self == Publisher.XNAS_BASIC_XPSX:
             return "Nasdaq Basic - Nasdaq PSX"
+        if self == Publisher.DBEQ_SUMMARY_DBEQ:
+            return "Databento Equities Summary"
         raise ValueError("Unexpected Publisher value")
