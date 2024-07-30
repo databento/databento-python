@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.39.0 - 2024-07-30
+
+#### Enhancements
+- Added new publisher value for `DBEQ.SUMMARY`
+- Upgraded `databento-dbn` to 0.20.0
+
 ## 0.38.0 - 2024-07-23
 
 This release adds a new feature to the `Live` client for automatically reconnecting when an unexpected disconnection occurs.
