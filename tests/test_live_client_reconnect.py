@@ -91,6 +91,8 @@ async def test_reconnect_before_start(
 
     await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
 
+    live_client.stop()
+
     # Assert
     with pytest.raises(asyncio.TimeoutError):
         await mock_live_server.wait_for_message_of_type(SessionStart)
@@ -165,6 +167,8 @@ async def test_reconnect_subscriptions(
     for _ in range(len(symbols)):
         request = await mock_live_server.wait_for_message_of_type(SubscriptionRequest)
         reconnect_subscriptions.append(request)
+
+    live_client.stop()
 
     # Assert
     for i, symbol in enumerate(symbols):

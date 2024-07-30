@@ -1,9 +1,10 @@
 # Changelog
 
-## 0.38.1 - TBD
+## 0.39.0 - TBD
 
 #### Enhancements
 - Added new publisher value for `DBEQ.SUMMARY`
+- Upgraded `databento-dbn` to 0.20.0
 
 ## 0.38.0 - 2024-07-23
 
