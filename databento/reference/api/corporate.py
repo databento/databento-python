@@ -13,11 +13,9 @@ from databento.common.constants import CORPORATE_ACTIONS_DATETIME_COLUMNS
 from databento.common.http import BentoHttpAPI
 from databento.common.parsing import convert_date_columns
 from databento.common.parsing import convert_datetime_columns
-from databento.common.parsing import datetime_to_date_string
-from databento.common.parsing import optional_date_to_string
+from databento.common.parsing import datetime_to_string
+from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
-from databento.common.publishers import Dataset
-from databento.common.validation import validate_semantic_string
 
 
 class CorporateActionsHttpAPI(BentoHttpAPI):
@@ -31,12 +29,12 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
 
     def get_range(
         self,
-        start_date: date | str,
-        end_date: date | str | None = None,
-        dataset: Dataset | str | None = None,
+        start: pd.Timestamp | date | str | int,
+        end: pd.Timestamp | date | str | int | None = None,
         symbols: Iterable[str] | str | None = None,
         stype_in: SType | str = "raw_symbol",
         events: Iterable[str] | str | None = None,
+        us_only: bool = False,
     ) -> pd.DataFrame:
         """
         Request a new corporate actions time series from Databento.
@@ -45,12 +43,16 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        start_date : date or str
-            The start date (UTC) of the request time range (inclusive).
-        end_date : date or str, optional
-            The end date (UTC) of the request time range (exclusive).
-        dataset : Dataset or str, optional
-            The dataset code (string identifier) for the request.
+        start : pd.Timestamp or date or str or int
+            The start datetime of the request time range (inclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+        end : pd.Timestamp or date or str or int, optional
+            The end datetime of the request time range (exclusive).
+            Assumes UTC as timezone unless passed a tz-aware object.
+            If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+            Values are forward filled based on the resolution provided.
+            Defaults to the same value as `start`.
         symbols : Iterable[str] or str, optional
             The symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
@@ -64,6 +66,8 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             Takes any number of event types per request.
             If not specified then will be for **all** event types.
             See [EVENT](https://databento.com/docs/standards-and-conventions/reference-data-enums#event) enum.
+        us_only : bool, default False
+            If filtering for US markets only.
 
         Returns
         -------
@@ -71,19 +75,18 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             The data converted into a data frame.
 
         """
-        dataset = validate_semantic_string(dataset, "dataset") if dataset is not None else None
         symbols_list = optional_symbols_list_to_list(symbols, SType.RAW_SYMBOL)
 
         if isinstance(events, str):
             events = events.strip().strip(",").split(",")
 
         data: dict[str, object | None] = {
-            "start_date": datetime_to_date_string(start_date),
-            "end_date": optional_date_to_string(end_date),
-            "dataset": dataset,
+            "start": datetime_to_string(start),
+            "end": optional_datetime_to_string(end),
             "symbols": ",".join(symbols_list),
             "stype_in": stype_in,
             "events": ",".join(events) if events else None,
+            "us_only": us_only,
         }
 
         response = self._post(

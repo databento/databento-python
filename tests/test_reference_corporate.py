@@ -52,11 +52,10 @@ def test_corporate_actions_get_range_sends_expected_request(
 
     # Act
     reference_client.corporate_actions.get_range(
-        dataset=None,
         symbols="AAPL",
         stype_in="raw_symbol",
-        start_date="2024-01",
-        end_date="2024-04",
+        start="2024-01",
+        end="2024-04",
         events=events,
     )
 
@@ -69,12 +68,12 @@ def test_corporate_actions_get_range_sends_expected_request(
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
     assert call["data"] == {
-        "dataset": None,
-        "start_date": "2024-01",
-        "end_date": "2024-04",
+        "start": "2024-01",
+        "end": "2024-04",
         "symbols": "AAPL",
         "stype_in": "raw_symbol",
         "events": data_events,
+        "us_only": False,
     }
     assert call["timeout"] == (100, 100)
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
@@ -94,11 +93,10 @@ def test_corporate_actions_get_range_response_parsing(
 
     # Act
     df_raw = reference_client.corporate_actions.get_range(
-        dataset=None,
         symbols="AAPL",
         stype_in="raw_symbol",
-        start_date="2024-01",
-        end_date="2024-04",
+        start="2024-01",
+        end="2024-04",
     )
 
     # Assert
