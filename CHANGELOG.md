@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.39.1 - TBD
+
+#### Bug fixes
+- Fixed an issue where a symbol list which contained a `None` would produce a convoluted exception
+
 ## 0.39.0 - 2024-07-30
 
 #### Enhancements

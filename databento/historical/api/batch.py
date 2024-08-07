@@ -36,8 +36,8 @@ from databento.common.http import BentoHttpAPI
 from databento.common.http import check_http_error
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
-from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.parsing import optional_values_list_to_string
+from databento.common.parsing import symbols_list_to_list
 from databento.common.publishers import Dataset
 from databento.common.types import Default
 from databento.common.validation import validate_enum
@@ -147,7 +147,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
+        symbols_list = symbols_list_to_list(symbols, stype_in_valid)
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": datetime_to_string(start),
