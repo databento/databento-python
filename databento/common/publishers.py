@@ -495,9 +495,13 @@ class Dataset(StringyMixin, str, Enum):
     DBEQ_MAX
         Databento Equities Max.
     XNAS_BASIC
-        Nasdaq Basic (NLS+QBBO).
+        Nasdaq Basic (NLS and QBBO).
     DBEQ_SUMMARY
         Databento Equities Summary.
+    XCIS_BBOTRADES
+        NYSE National BBO and Trades.
+    XNYS_BBOTRADES
+        NYSE BBO and Trades.
 
     """
 
@@ -533,6 +537,8 @@ class Dataset(StringyMixin, str, Enum):
     DBEQ_MAX = "DBEQ.MAX"
     XNAS_BASIC = "XNAS.BASIC"
     DBEQ_SUMMARY = "DBEQ.SUMMARY"
+    XCIS_BBOTRADES = "XCIS.BBOTRADES"
+    XNYS_BBOTRADES = "XNYS.BBOTRADES"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -603,6 +609,10 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.XNAS_BASIC
         if value == 32:
             return Dataset.DBEQ_SUMMARY
+        if value == 33:
+            return Dataset.XCIS_BBOTRADES
+        if value == 34:
+            return Dataset.XNYS_BBOTRADES
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -673,6 +683,10 @@ class Dataset(StringyMixin, str, Enum):
             return 31
         if self == Dataset.DBEQ_SUMMARY:
             return 32
+        if self == Dataset.XCIS_BBOTRADES:
+            return 33
+        if self == Dataset.XNYS_BBOTRADES:
+            return 34
         raise ValueError("Invalid Dataset")
 
     @property
@@ -741,9 +755,13 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.DBEQ_MAX:
             return "Databento Equities Max"
         if self == Dataset.XNAS_BASIC:
-            return "Nasdaq Basic (NLS+QBBO)"
+            return "Nasdaq Basic (NLS and QBBO)"
         if self == Dataset.DBEQ_SUMMARY:
             return "Databento Equities Summary"
+        if self == Dataset.XCIS_BBOTRADES:
+            return "NYSE National BBO and Trades"
+        if self == Dataset.XNYS_BBOTRADES:
+            return "NYSE BBO and Trades"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -933,6 +951,10 @@ class Publisher(StringyMixin, str, Enum):
         Nasdaq Basic - Nasdaq PSX.
     DBEQ_SUMMARY_DBEQ
         Databento Equities Summary.
+    XCIS_BBOTRADES_XCIS
+        NYSE National BBO and Trades.
+    XNYS_BBOTRADES_XNYS
+        NYSE BBO and Trades.
 
     """
 
@@ -1026,6 +1048,8 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_BASIC_XBOS = "XNAS.BASIC.XBOS"
     XNAS_BASIC_XPSX = "XNAS.BASIC.XPSX"
     DBEQ_SUMMARY_DBEQ = "DBEQ.SUMMARY.DBEQ"
+    XCIS_BBOTRADES_XCIS = "XCIS.BBOTRADES.XCIS"
+    XNYS_BBOTRADES_XNYS = "XNYS.BBOTRADES.XNYS"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1212,6 +1236,10 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XNAS_BASIC_XPSX
         if value == 90:
             return Publisher.DBEQ_SUMMARY_DBEQ
+        if value == 91:
+            return Publisher.XCIS_BBOTRADES_XCIS
+        if value == 92:
+            return Publisher.XNYS_BBOTRADES_XNYS
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1398,6 +1426,10 @@ class Publisher(StringyMixin, str, Enum):
             return 89
         if self == Publisher.DBEQ_SUMMARY_DBEQ:
             return 90
+        if self == Publisher.XCIS_BBOTRADES_XCIS:
+            return 91
+        if self == Publisher.XNYS_BBOTRADES_XNYS:
+            return 92
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1585,6 +1617,10 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XPSX
         if self == Publisher.DBEQ_SUMMARY_DBEQ:
             return Venue.DBEQ
+        if self == Publisher.XCIS_BBOTRADES_XCIS:
+            return Venue.XCIS
+        if self == Publisher.XNYS_BBOTRADES_XNYS:
+            return Venue.XNYS
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1772,6 +1808,10 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XNAS_BASIC
         if self == Publisher.DBEQ_SUMMARY_DBEQ:
             return Dataset.DBEQ_SUMMARY
+        if self == Publisher.XCIS_BBOTRADES_XCIS:
+            return Dataset.XCIS_BBOTRADES
+        if self == Publisher.XNYS_BBOTRADES_XNYS:
+            return Dataset.XNYS_BBOTRADES
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1959,4 +1999,8 @@ class Publisher(StringyMixin, str, Enum):
             return "Nasdaq Basic - Nasdaq PSX"
         if self == Publisher.DBEQ_SUMMARY_DBEQ:
             return "Databento Equities Summary"
+        if self == Publisher.XCIS_BBOTRADES_XCIS:
+            return "NYSE National BBO and Trades"
+        if self == Publisher.XNYS_BBOTRADES_XNYS:
+            return "NYSE BBO and Trades"
         raise ValueError("Unexpected Publisher value")

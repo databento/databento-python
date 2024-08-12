@@ -2,6 +2,9 @@
 
 ## 0.39.3 - TBD
 
+#### Enhancements
+- Added new publisher values for `XCIS.BBOTRADES` and `XNYS.BBOTRADES`
+
 #### Bug fixes
 - Fixed an issue receiving multiple DBN v1 `ErrorMsg` in the `Live` client would cause an `InvalidState` error
 
