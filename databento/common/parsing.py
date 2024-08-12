@@ -58,6 +58,26 @@ def optional_values_list_to_string(
     return values_list_to_string(values)
 
 
+def optional_string_to_list(
+    value: Iterable[str] | str | None,
+) -> Iterable[str] | list[str] | None:
+    """
+    Convert a comma-separated string into a list of strings, or return the
+    original input if not a string.
+
+    Parameters
+    ----------
+    value : iterable of str or str, optional
+        The input value to be parsed.
+
+    Returns
+    -------
+    Iterable[str] | list[str] | `None`
+
+    """
+    return value.strip().strip(",").split(",") if isinstance(value, str) else value
+
+
 def optional_symbols_list_to_list(
     symbols: Iterable[str | int | Integral] | str | int | Integral | None,
     stype_in: SType,

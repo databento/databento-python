@@ -14,7 +14,7 @@ if __name__ == "__main__":
         start="2023",
         end="2024-04",
         events="DIV,LIQ",
-        us_only=True,
+        countries="US",
     )
 
     pprint(response.head())

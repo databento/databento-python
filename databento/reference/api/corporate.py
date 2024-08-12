@@ -15,6 +15,7 @@ from databento.common.parsing import convert_date_columns
 from databento.common.parsing import convert_datetime_columns
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
+from databento.common.parsing import optional_string_to_list
 from databento.common.parsing import optional_symbols_list_to_list
 
 
@@ -31,10 +32,14 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         self,
         start: pd.Timestamp | date | str | int,
         end: pd.Timestamp | date | str | int | None = None,
+        index: str = "event_date",
         symbols: Iterable[str] | str | None = None,
         stype_in: SType | str = "raw_symbol",
         events: Iterable[str] | str | None = None,
-        us_only: bool = False,
+        countries: Iterable[str] | str | None = None,
+        security_types: Iterable[str] | str | None = None,
+        flatten: bool = True,
+        pit: bool = False,
     ) -> pd.DataFrame:
         """
         Request a new corporate actions time series from Databento.
@@ -51,8 +56,9 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Values are forward filled based on the resolution provided.
-            Defaults to the same value as `start`.
+        index : str, default 'event_date'
+            The index column to filter the `start` and `end` time range on.
+            Use any of 'event_date', 'ex_date' or 'ts_record'.
         symbols : Iterable[str] or str, optional
             The symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
@@ -64,10 +70,27 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         events : Iterable[str] or str, optional
             The event types to filter for.
             Takes any number of event types per request.
-            If not specified then will be for **all** event types.
+            If not specified then will select **all** event types by default.
             See [EVENT](https://databento.com/docs/standards-and-conventions/reference-data-enums#event) enum.
-        us_only : bool, default False
-            If filtering for US markets only.
+        countries : Iterable[str] or str, optional
+            The listing countries to filter for.
+            Takes any number of two letter ISO 3166-1 alpha-2 country codes per request.
+            If not specified then will select **all** listing countries by default.
+            See [CNTRY](https://databento.com/docs/standards-and-conventions/reference-data-enums#cntry) enum.
+        security_types : Iterable[str] or str, optional
+            The security types to filter for.
+            Takes any number of security types per request.
+            If not specified then will select **all** security types by default.
+            See [SECTYPE](https://databento.com/docs/standards-and-conventions/reference-data-enums#sectype) enum.
+        flatten : bool, default True
+            If nested JSON objects within the `date_info`, `rate_info`, and `event_info` fields
+            should be flattened into separate columns in the resulting DataFrame.
+        pit : bool, default False
+            Determines whether to retain all historical records or only the latest records.
+            If True, all historical records for each `event_unique_id` will be retained, preserving
+            the complete point-in-time history.
+            If False (default), the DataFrame will include only the most recent record for each
+            `event_unique_id` based on the `ts_record` timestamp.
 
         Returns
         -------
@@ -76,17 +99,19 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
 
         """
         symbols_list = optional_symbols_list_to_list(symbols, SType.RAW_SYMBOL)
-
-        if isinstance(events, str):
-            events = events.strip().strip(",").split(",")
+        events = optional_string_to_list(events)
+        countries = optional_string_to_list(countries)
+        security_types = optional_string_to_list(security_types)
 
         data: dict[str, object | None] = {
             "start": datetime_to_string(start),
             "end": optional_datetime_to_string(end),
+            "index": index,
             "symbols": ",".join(symbols_list),
             "stype_in": stype_in,
             "events": ",".join(events) if events else None,
-            "us_only": us_only,
+            "countries": ",".join(countries) if countries else None,
+            "security_types": ",".join(security_types) if security_types else None,
         }
 
         response = self._post(
@@ -96,7 +121,35 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         )
 
         df = pd.read_json(StringIO(response.text), lines=True)
+        if df.empty:
+            return df
+
         convert_datetime_columns(df, CORPORATE_ACTIONS_DATETIME_COLUMNS)
         convert_date_columns(df, CORPORATE_ACTIONS_DATE_COLUMNS)
+
+        if flatten:
+            # Normalize the dynamic JSON fields
+            date_info_normalized = pd.json_normalize(df["date_info"]).set_index(df.index)
+            rate_info_normalized = pd.json_normalize(df["rate_info"]).set_index(df.index)
+            event_info_normalized = pd.json_normalize(df["event_info"]).set_index(df.index)
+
+            # Merge normalized columns
+            df = df.merge(date_info_normalized, left_index=True, right_index=True)
+            df = df.merge(rate_info_normalized, left_index=True, right_index=True)
+            df = df.merge(event_info_normalized, left_index=True, right_index=True)
+
+            # Drop the original JSON columns
+            df.drop(columns=["date_info", "rate_info", "event_info"], inplace=True)
+
+        if pit:
+            df.set_index(index, inplace=True)
+            df.sort_index(inplace=True)
+        else:
+            # Filter for the latest record of each unique event
+            df.sort_values("ts_record", inplace=True)
+            df = df.groupby("event_unique_id").agg("last").reset_index()
+            df.set_index(index, inplace=True)
+            if index != "ts_record":
+                df.sort_index(inplace=True)
 
         return df
