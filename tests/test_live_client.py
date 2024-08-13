@@ -444,7 +444,7 @@ def test_live_async_iteration_after_start(
     [
         pytest.param("NVDA", id="str"),
         pytest.param("ES,CL", id="str-list"),
-        pytest.param(None, id="all-symbols"),
+        pytest.param(ALL_SYMBOLS, id="all-symbols"),
     ],
 )
 @pytest.mark.parametrize(
@@ -459,7 +459,7 @@ async def test_live_subscribe(
     mock_live_server: MockLiveServerInterface,
     schema: Schema,
     stype_in: SType,
-    symbols: str | None,
+    symbols: str,
     start: str,
 ) -> None:
     """

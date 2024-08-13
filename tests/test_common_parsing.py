@@ -6,11 +6,13 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
+from databento.common.constants import ALL_SYMBOLS
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.parsing import optional_values_list_to_string
+from databento.common.parsing import symbols_list_to_list
 from databento_dbn import SType
 
 
@@ -50,7 +52,9 @@ def test_maybe_values_list_to_string_given_valid_inputs_returns_expected(
 @pytest.mark.parametrize(
     "stype, symbols, expected",
     [
-        pytest.param(SType.RAW_SYMBOL, None, ["ALL_SYMBOLS"]),
+        pytest.param(SType.RAW_SYMBOL, None, TypeError),
+        pytest.param(SType.PARENT, ["ES", None], TypeError),
+        pytest.param(SType.PARENT, ["ES", [None]], TypeError),
         pytest.param(SType.PARENT, "ES.fut", ["ES.FUT"]),
         pytest.param(SType.PARENT, "ES,CL", ["ES", "CL"]),
         pytest.param(SType.PARENT, "ES,CL,", ["ES", "CL"]),
@@ -67,22 +71,24 @@ def test_maybe_values_list_to_string_given_valid_inputs_returns_expected(
         pytest.param(SType.PARENT, 123458, ValueError),
     ],
 )
-def test_optional_symbols_list_to_list_given_valid_inputs_returns_expected(
+def test_symbols_list_to_list_given_valid_inputs_returns_expected(
     stype: SType,
     symbols: list[str] | None,
     expected: list[object] | type[Exception],
 ) -> None:
     # Arrange, Act, Assert
     if isinstance(expected, list):
-        assert optional_symbols_list_to_list(symbols, stype) == expected
+        assert symbols_list_to_list(symbols, stype) == expected
     else:
         with pytest.raises(expected):
-            optional_symbols_list_to_list(symbols, stype)
+            symbols_list_to_list(symbols, stype)
 
 
 @pytest.mark.parametrize(
     "symbols, stype, expected",
     [
+        pytest.param([12345, None], SType.INSTRUMENT_ID, TypeError),
+        pytest.param([12345, [None]], SType.INSTRUMENT_ID, TypeError),
         pytest.param(12345, SType.INSTRUMENT_ID, ["12345"]),
         pytest.param("67890", SType.INSTRUMENT_ID, ["67890"]),
         pytest.param([12345, "  67890"], SType.INSTRUMENT_ID, ["12345", "67890"]),
@@ -104,7 +110,7 @@ def test_optional_symbols_list_to_list_given_valid_inputs_returns_expected(
         pytest.param(12345, SType.CONTINUOUS, ValueError),
     ],
 )
-def test_optional_symbols_list_to_list_int(
+def test_symbols_list_to_list_int(
     symbols: list[int] | int | None,
     stype: SType,
     expected: list[object] | type[Exception],
@@ -117,15 +123,18 @@ def test_optional_symbols_list_to_list_int(
     """
     # Arrange, Act, Assert
     if isinstance(expected, list):
-        assert optional_symbols_list_to_list(symbols, stype) == expected
+        assert symbols_list_to_list(symbols, stype) == expected
     else:
         with pytest.raises(expected):
-            optional_symbols_list_to_list(symbols, stype)
+            symbols_list_to_list(symbols, stype)
 
 
 @pytest.mark.parametrize(
     "symbols, stype, expected",
     [
+        pytest.param(None, SType.INSTRUMENT_ID, TypeError),
+        pytest.param([np.byte(120), None], SType.INSTRUMENT_ID, TypeError),
+        pytest.param([np.byte(120), [None]], SType.INSTRUMENT_ID, TypeError),
         pytest.param(np.byte(120), SType.INSTRUMENT_ID, ["120"]),
         pytest.param(np.short(32_000), SType.INSTRUMENT_ID, ["32000"]),
         pytest.param(
@@ -140,7 +149,7 @@ def test_optional_symbols_list_to_list_int(
         ),
     ],
 )
-def test_optional_symbols_list_to_list_numpy(
+def test_symbols_list_to_list_numpy(
     symbols: list[int] | int | None,
     stype: SType,
     expected: list[object] | type[Exception],
@@ -153,15 +162,18 @@ def test_optional_symbols_list_to_list_numpy(
     """
     # Arrange, Act, Assert
     if isinstance(expected, list):
-        assert optional_symbols_list_to_list(symbols, stype) == expected
+        assert symbols_list_to_list(symbols, stype) == expected
     else:
         with pytest.raises(expected):
-            optional_symbols_list_to_list(symbols, stype)
+            symbols_list_to_list(symbols, stype)
 
 
 @pytest.mark.parametrize(
     "symbols, stype, expected",
     [
+        pytest.param(None, SType.RAW_SYMBOL, TypeError),
+        pytest.param(["NVDA", None], SType.RAW_SYMBOL, TypeError),
+        pytest.param(["NVDA", [None]], SType.RAW_SYMBOL, TypeError),
         pytest.param("NVDA", SType.RAW_SYMBOL, ["NVDA"]),
         pytest.param(" nvda  ", SType.RAW_SYMBOL, ["NVDA"]),
         pytest.param("NVDA,amd", SType.RAW_SYMBOL, ["NVDA", "AMD"]),
@@ -179,13 +191,42 @@ def test_optional_symbols_list_to_list_numpy(
         pytest.param(["NVDA", [""]], SType.RAW_SYMBOL, ValueError),
     ],
 )
-def test_optional_symbols_list_to_list_raw_symbol(
+def test_symbols_list_to_list_raw_symbol(
     symbols: list[int] | int | None,
     stype: SType,
     expected: list[object] | type[Exception],
 ) -> None:
     """
     Test that str are allowed for SType.RAW_SYMBOL.
+    """
+    # Arrange, Act, Assert
+    if isinstance(expected, list):
+        assert symbols_list_to_list(symbols, stype) == expected
+    else:
+        with pytest.raises(expected):
+            symbols_list_to_list(symbols, stype)
+
+
+@pytest.mark.parametrize(
+    "symbols, stype, expected",
+    [
+        pytest.param(None, SType.RAW_SYMBOL, [ALL_SYMBOLS]),
+        pytest.param(["NVDA", None], SType.RAW_SYMBOL, TypeError),
+        pytest.param([12345, None], SType.INSTRUMENT_ID, TypeError),
+        pytest.param("NVDA", SType.RAW_SYMBOL, ["NVDA"]),
+        pytest.param(["NVDA", "TSLA"], SType.RAW_SYMBOL, ["NVDA", "TSLA"]),
+        pytest.param(12345, SType.INSTRUMENT_ID, ["12345"]),
+        pytest.param([12345, "67890"], SType.INSTRUMENT_ID, ["12345", "67890"]),
+    ],
+)
+def test_optional_symbols_list_to_list_raw_symbol(
+    symbols: list[int | str] | int | str | None,
+    stype: SType,
+    expected: list[object] | type[Exception],
+) -> None:
+    """
+    Test an optional symbols list converts a value of `None` to `[ALL_SYMBOLS]`
+    and handles other symbols lists.
     """
     # Arrange, Act, Assert
     if isinstance(expected, list):

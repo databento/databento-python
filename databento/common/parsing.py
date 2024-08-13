@@ -58,18 +58,66 @@ def optional_values_list_to_string(
     return values_list_to_string(values)
 
 
-@singledispatch
+def optional_string_to_list(
+    value: Iterable[str] | str | None,
+) -> Iterable[str] | list[str] | None:
+    """
+    Convert a comma-separated string into a list of strings, or return the
+    original input if not a string.
+
+    Parameters
+    ----------
+    value : iterable of str or str, optional
+        The input value to be parsed.
+
+    Returns
+    -------
+    Iterable[str] | list[str] | `None`
+
+    """
+    return value.strip().strip(",").split(",") if isinstance(value, str) else value
+
+
 def optional_symbols_list_to_list(
     symbols: Iterable[str | int | Integral] | str | int | Integral | None,
     stype_in: SType,
 ) -> list[str]:
     """
-    Create a list from a symbols string or iterable of symbol strings (if not
-    None).
+    Create a list from an optional symbols string or iterable of symbol
+    strings. If symbols is `None`, this function returns `[ALL_SYMBOLS]`.
 
     Parameters
     ----------
     symbols : Iterable of str or int or Number, or str or int or Number, optional
+        The symbols to concatenate; or `None`.
+    stype_in : SType
+        The input symbology type for the request.
+
+    Returns
+    -------
+    list[str]
+
+    See Also
+    --------
+    symbols_list_to_list
+
+    """
+    if symbols is None:
+        return [ALL_SYMBOLS]
+    return symbols_list_to_list(symbols, stype_in)
+
+
+@singledispatch
+def symbols_list_to_list(
+    symbols: Iterable[str | int | Integral] | str | int | Integral,
+    stype_in: SType,
+) -> list[str]:
+    """
+    Create a list from a symbols string or iterable of symbol strings.
+
+    Parameters
+    ----------
+    symbols : Iterable of str or int or Number, or str or int or Number
         The symbols to concatenate.
     stype_in : SType
         The input symbology type for the request.
@@ -78,32 +126,14 @@ def optional_symbols_list_to_list(
     -------
     list[str]
 
-    Notes
-    -----
-    If None is given, [ALL_SYMBOLS] is returned.
-
     """
     raise TypeError(
         f"`{symbols}` is not a valid type for symbol input; "
-        "allowed types are Iterable[str | int], str, int, and None.",
+        "allowed types are Iterable[str | int], str, and int.",
     )
 
 
-@optional_symbols_list_to_list.register(cls=type(None))
-def _(_: None, __: SType) -> list[str]:
-    """
-    Dispatch method for optional_symbols_list_to_list. Handles None which
-    defaults to [ALL_SYMBOLS].
-
-    See Also
-    --------
-    optional_symbols_list_to_list
-
-    """
-    return [ALL_SYMBOLS]
-
-
-@optional_symbols_list_to_list.register(cls=Integral)
+@symbols_list_to_list.register(cls=Integral)
 def _(symbols: Integral, stype_in: SType) -> list[str]:
     """
     Dispatch method for optional_symbols_list_to_list. Handles integral types,
@@ -111,7 +141,7 @@ def _(symbols: Integral, stype_in: SType) -> list[str]:
 
     See Also
     --------
-    optional_symbols_list_to_list
+    symbols_list_to_list
 
     """
     if stype_in == SType.INSTRUMENT_ID:
@@ -122,7 +152,7 @@ def _(symbols: Integral, stype_in: SType) -> list[str]:
     )
 
 
-@optional_symbols_list_to_list.register(cls=str)
+@symbols_list_to_list.register(cls=str)
 def _(symbols: str, stype_in: SType) -> list[str]:
     """
     Dispatch method for optional_symbols_list_to_list. Handles str, splitting
@@ -130,7 +160,7 @@ def _(symbols: str, stype_in: SType) -> list[str]:
 
     See Also
     --------
-    optional_symbols_list_to_list
+    symbols_list_to_list
 
     """
     if not symbols:
@@ -147,7 +177,7 @@ def _(symbols: str, stype_in: SType) -> list[str]:
     return list(map(str.upper, map(str.strip, symbol_list)))
 
 
-@optional_symbols_list_to_list.register(cls=Iterable)
+@symbols_list_to_list.register(cls=Iterable)
 def _(symbols: Iterable[Any], stype_in: SType) -> list[str]:
     """
     Dispatch method for optional_symbols_list_to_list. Handles Iterables by
@@ -155,11 +185,11 @@ def _(symbols: Iterable[Any], stype_in: SType) -> list[str]:
 
     See Also
     --------
-    optional_symbols_list_to_list
+    symbols_list_to_list
 
     """
     symbol_to_list = partial(
-        optional_symbols_list_to_list,
+        symbols_list_to_list,
         stype_in=stype_in,
     )
     aggregated: list[str] = []

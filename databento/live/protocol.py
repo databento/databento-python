@@ -17,7 +17,7 @@ from databento.common.constants import ALL_SYMBOLS
 from databento.common.error import BentoError
 from databento.common.iterator import chunk
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
-from databento.common.parsing import optional_symbols_list_to_list
+from databento.common.parsing import symbols_list_to_list
 from databento.common.publishers import Dataset
 from databento.common.types import DBNRecord
 from databento.common.validation import validate_enum
@@ -310,7 +310,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         )
 
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
-        symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
+        symbols_list = symbols_list_to_list(symbols, stype_in_valid)
 
         subscriptions: list[SubscriptionRequest] = []
         for batch in chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE):
