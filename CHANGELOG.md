@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.39.2 - 2024-08-13
+
+#### Enhancements
+- Changed `corporate_actions.get_range(...)` to stream compressed zstd data
+
 ## 0.39.1 - 2024-08-13
 
 #### Bug fixes
