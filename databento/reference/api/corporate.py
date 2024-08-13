@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import date
+from io import BytesIO
 from io import StringIO
 
 import pandas as pd
+import zstandard
+from databento_dbn import Compression
 from databento_dbn import SType
 
 from databento.common import API_VERSION
@@ -112,6 +115,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             "events": ",".join(events) if events else None,
             "countries": ",".join(countries) if countries else None,
             "security_types": ",".join(security_types) if security_types else None,
+            "compression": str(Compression.ZSTD),  # Always request zstd
         }
 
         response = self._post(
@@ -120,7 +124,10 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             basic_auth=True,
         )
 
-        df = pd.read_json(StringIO(response.text), lines=True)
+        decompressor = zstandard.ZstdDecompressor()
+        decompressed_content = decompressor.stream_reader(BytesIO(response.content)).read()
+
+        df = pd.read_json(StringIO(decompressed_content.decode()), lines=True)
         if df.empty:
             return df
 
