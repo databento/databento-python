@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.39.3 - TBD
+
+#### Bug fixes
+- Fixed an issue receiving multiple DBN v1 `ErrorMsg` in the `Live` client would cause an `InvalidState` error
+
 ## 0.39.2 - 2024-08-13
 
 #### Enhancements
