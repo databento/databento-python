@@ -7,6 +7,7 @@
 
 #### Bug fixes
 - Fixed an issue receiving multiple DBN v1 `ErrorMsg` in the `Live` client would cause an `InvalidState` error
+- Fixed an issue where creating `Live` clients in multiple threads could cause a `RuntimeError` upon initialization
 
 ## 0.39.2 - 2024-08-13
 

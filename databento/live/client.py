@@ -61,6 +61,7 @@ class Live:
     """
 
     _loop = asyncio.new_event_loop()
+    _lock = threading.Lock()
     _thread = threading.Thread(
         target=_loop.run_forever,
         name="databento_live",
@@ -109,8 +110,9 @@ class Live:
 
         self._session._user_callbacks.append((self._map_symbol, None))
 
-        if not Live._thread.is_alive():
-            Live._thread.start()
+        with Live._lock:
+            if not Live._thread.is_alive():
+                Live._thread.start()
 
     def __del__(self) -> None:
         try:
