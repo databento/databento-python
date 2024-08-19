@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.39.3 - TBD
+## 0.39.3 - 2024-08-20
 
 #### Enhancements
 - Added new publisher values for `XCIS.BBOTRADES` and `XNYS.BBOTRADES`
