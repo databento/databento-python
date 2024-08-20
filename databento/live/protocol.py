@@ -197,7 +197,16 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         if not self.disconnected.done():
             if exc is None:
                 logger.info("connection closed")
-                self.disconnected.set_result(None)
+                if self._error_msgs:
+                    error_msg = ", ".join(self._error_msgs)
+                    if len(self._error_msgs) > 1:
+                        error_msg = f"The following errors occurred: {error_msg}"
+                    self._error_msgs.clear()
+                    self.disconnected.set_exception(
+                        BentoError(error_msg),
+                    )
+                else:
+                    self.disconnected.set_result(None)
             else:
                 logger.error("connection lost: %s", exc)
                 self.disconnected.set_exception(exc)
@@ -361,17 +370,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                         record.err,
                     )
                     self._error_msgs.append(record.err)
-                    if record.is_last:
-                        if len(self._error_msgs) > 1:
-                            errors = ", ".join(self._error_msgs)
-                            error_msg = f"The following errors occurred: {errors}"
-                        else:
-                            error_msg = self._error_msgs[-1]
-                        self._error_msgs.clear()
-                        self.disconnected.set_exception(
-                            BentoError(error_msg),
-                        )
-                if isinstance(record, databento_dbn.SystemMsg):
+                elif isinstance(record, databento_dbn.SystemMsg):
                     if record.is_heartbeat:
                         logger.debug("gateway heartbeat")
                     else:
