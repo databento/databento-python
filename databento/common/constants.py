@@ -106,3 +106,24 @@ CORPORATE_ACTIONS_DATE_COLUMNS: Final[list[str]] = [
     "financial_year_end_date",
     "exp_completion_date",
 ]
+
+ADJUSTMENT_FACTORS_DATETIME_COLUMNS: Final[list[str]] = [
+    "ts_created",
+]
+
+ADJUSTMENT_FACTORS_DATE_COLUMNS: Final[list[str]] = [
+    "ex_date",
+]
+
+SECURITY_MASTER_DATETIME_COLUMNS: Final[list[str]] = [
+    "ts_record",
+    "ts_effective",
+    "ts_created",
+]
+
+SECURITY_MASTER_DATE_COLUMNS: Final[list[str]] = [
+    "listing_created_date",
+    "listing_date",
+    "delisting_date",
+    "shares_outstanding_date",
+]

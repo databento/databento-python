@@ -4,10 +4,14 @@ from collections.abc import Iterable
 from datetime import date
 from functools import partial
 from functools import singledispatch
+from io import BytesIO
+from io import TextIOWrapper
 from numbers import Integral
+from typing import IO
 from typing import Any
 
 import pandas as pd
+import zstandard
 from databento_dbn import SType
 
 from databento.common.constants import ALL_SYMBOLS
@@ -418,3 +422,28 @@ def convert_datetime_columns(df: pd.DataFrame, columns: list[str]) -> None:
         if column not in df:
             continue
         df[column] = df[column].apply(convert_to_datetime)
+
+
+def convert_ndjson_to_df(data: bytes, compressed: bool) -> pd.DataFrame:
+    """
+    Convert the given NDJSON bytes `data` to a pandas DataFrame.
+
+    Parameters
+    ----------
+    data : bytes
+        The NDJSON data as bytes to be converted.
+    compressed : bool
+        If the content is zstd compressed.
+
+    Returns
+    -------
+    pandas.DataFrame
+
+    """
+    if compressed:
+        decompressor = zstandard.ZstdDecompressor()
+        reader: IO[bytes] = decompressor.stream_reader(data)
+    else:
+        reader = BytesIO(data)
+
+    return pd.read_json(TextIOWrapper(reader), lines=True)
