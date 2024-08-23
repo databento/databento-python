@@ -67,7 +67,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         symbols : Iterable[str] or str, optional
             The symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
-            If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
             Use any of 'raw_symbol', 'nasdaq_symbol', 'isin', 'us_code',

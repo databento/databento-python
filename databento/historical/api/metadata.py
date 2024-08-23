@@ -288,7 +288,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             Defaults to the same value as `start`.
         symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
-            If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'raw_symbol'
@@ -357,7 +357,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             Defaults to the same value as `start`.
         symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
-            If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'raw_symbol'
@@ -429,7 +429,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The data feed mode for the request.
         symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
-            If 'ALL_SYMBOLS' or `None` then will be for **all** symbols.
+            If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         stype_in : SType or str, default 'raw_symbol'
