@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.40.0 - 2024-08-27
+
+#### Enhancements
+- Added `adjustment_factors.get_range(...)` method for `Reference` client
+- Added `security_master.get_range(...)` method for `Reference` client
+- Added `security_master.get_last(...)` method for `Reference` client
+- Upgraded `databento-dbn` to 0.20.1
+
 ## 0.39.3 - 2024-08-20
 
 #### Enhancements

@@ -5,7 +5,9 @@ import os
 
 from databento.common.enums import HistoricalGateway
 from databento.common.validation import validate_gateway
+from databento.reference.api.adjustment import AdjustmentFactorsHttpAPI
 from databento.reference.api.corporate import CorporateActionsHttpAPI
+from databento.reference.api.security import SecurityMasterHttpAPI
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +52,9 @@ class Reference:
         self._key = key
         self._gateway = gateway
 
+        self.adjustment_factors = AdjustmentFactorsHttpAPI(key=key, gateway=gateway)
         self.corporate_actions = CorporateActionsHttpAPI(key=key, gateway=gateway)
+        self.security_master = SecurityMasterHttpAPI(key=key, gateway=gateway)
 
         # Not logging security sensitive `key`
         logger.info("Initialized %s(gateway=%s)", type(self).__name__, self.gateway)
