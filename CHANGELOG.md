@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.40.0 - TBD
+## 0.40.0 - 2024-08-27
 
 #### Enhancements
 - Added `adjustment_factors.get_range(...)` method for `Reference` client
