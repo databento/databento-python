@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.41.0 - TBD
+## 0.41.0 - 2024-09-03
 
 #### Enhancements
 - Added `databento.read_dbn` alias

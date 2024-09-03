@@ -274,7 +274,7 @@ def validate_smart_symbol(symbol: str) -> str:
     return ".".join(tokens)
 
 
-_D = TypeVar("_D", bound=Callable[..., Any])
+_D = TypeVar("_D", bound=Callable)  # type: ignore [type-arg]
 
 
 def deprecated(name: str | None = None) -> Callable[[_D], _D]:
