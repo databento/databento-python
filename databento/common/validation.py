@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import functools
 import os
+import warnings
+from collections.abc import Callable
 from enum import Enum
 from os import PathLike
 from pathlib import Path
+from typing import Any
 from typing import TypeVar
 from urllib.parse import urlsplit
 from urllib.parse import urlunsplit
@@ -44,7 +48,11 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
         ) from None
 
 
-def validate_file_write_path(value: PathLike[str] | str, param: str) -> Path:
+def validate_file_write_path(
+    value: PathLike[str] | str,
+    param: str,
+    exist_ok: bool = False,
+) -> Path:
     """
     Validate whether the given value is a valid path to a writable file.
 
@@ -54,6 +62,8 @@ def validate_file_write_path(value: PathLike[str] | str, param: str) -> Path:
         The value to validate.
     param : str
         The name of the parameter being validated (for any error message).
+    exist_ok : bool, default False
+        If False, raises a `FileExistsError` if the file exists.
 
     Returns
     -------
@@ -75,7 +85,7 @@ def validate_file_write_path(value: PathLike[str] | str, param: str) -> Path:
         raise PermissionError(f"The file `{value}` is not writable.")
     if path_valid.is_dir():
         raise IsADirectoryError(f"The `{param}` was not a path to a file.")
-    if path_valid.is_file():
+    if not exist_ok and path_valid.is_file():
         raise FileExistsError(f"The file `{value}` already exists.")
     return path_valid
 
@@ -262,3 +272,37 @@ def validate_smart_symbol(symbol: str) -> str:
         tokens[1] = tokens[1].lower()  # api expects lower case
 
     return ".".join(tokens)
+
+
+_D = TypeVar("_D", bound=Callable[..., Any])
+
+
+def deprecated(name: str | None = None) -> Callable[[_D], _D]:
+    """
+    Decorate for a function that will emit a deprecation warning.
+
+    Parameters
+    ----------
+    name : str, optional
+        An optional name to use instead of the actual function name.
+
+    Returns
+    -------
+    Callable[..., Any]
+
+    """
+
+    def decorator(func: _D) -> _D:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            func_name = name if name is not None else func.__name__
+            warnings.warn(
+                f"{func_name} is deprecated and will be removed in a future release",
+                category=DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper  # type: ignore
+
+    return decorator

@@ -1029,7 +1029,11 @@ class DBNStore:
             if writer is not None:
                 writer.close()
 
-    def to_file(self, path: PathLike[str] | str) -> None:
+    def to_file(
+        self,
+        path: PathLike[str] | str,
+        mode: Literal["w", "x"] = "w",
+    ) -> None:
         """
         Write the data to a DBN file at the given path.
 
@@ -1037,6 +1041,8 @@ class DBNStore:
         ----------
         path : PathLike[str] or str
             The file path to write to.
+        mode : str, default "w"
+            The file write mode to use, either "x" or "w".
 
         Raises
         ------
@@ -1048,9 +1054,8 @@ class DBNStore:
             If path is not writable.
 
         """
-        file_path = validate_file_write_path(path, "path")
-        with open(file_path, mode="xb") as f:
-            f.write(self._data_source.reader.read())
+        file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
+        file_path.write_bytes(self._data_source.reader.read())
         self._data_source = FileDataSource(file_path)
 
     def to_json(

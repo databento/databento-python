@@ -39,7 +39,6 @@ from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_values_list_to_string
 from databento.common.parsing import symbols_list_to_list
 from databento.common.publishers import Dataset
-from databento.common.types import Default
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_path
 from databento.common.validation import validate_semantic_string
@@ -253,7 +252,6 @@ class BatchHttpAPI(BentoHttpAPI):
         job_id: str,
         output_dir: PathLike[str] | str | None = None,
         filename_to_download: str | None = None,
-        enable_partial_downloads: Default[bool] = Default[bool](True),
     ) -> list[Path]:
         """
         Download a batch job or a specific file to `{output_dir}/{job_id}/`.
@@ -287,14 +285,6 @@ class BatchHttpAPI(BentoHttpAPI):
             If a file fails to download.
 
         """
-        # TODO: Remove after a reasonable deprecation period
-        if not isinstance(enable_partial_downloads, Default):
-            warnings.warn(
-                "The parameter `enable_partial_downloads` has been removed and will cause an error if set in the future. Partially downloaded files will always be resumed.",
-                category=BentoWarning,
-                stacklevel=2,
-            )
-
         if filename_to_download is None:
             filenames_to_download = None
         else:

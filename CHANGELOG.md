@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.41.0 - TBD
+
+#### Enhancements
+- Added `databento.read_dbn` alias
+- Added `mode` parameter to `DBNStore.to_file` to control the file writing mode
+
+#### Breaking changes
+- Changed default write mode for `DBNStore.to_file` to overwrite ("w")
+
+#### Deprecations
+- Deprecated `databento.from_dbn` and will be removed in a future release, use `databento.read_dbn` instead
+
 ## 0.40.0 - 2024-08-27
 
 #### Enhancements

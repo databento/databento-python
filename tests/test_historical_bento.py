@@ -174,12 +174,24 @@ def test_file_dbnstore_given_valid_path_initialized_expected_data(
     assert dbnstore.nbytes == 189
 
 
+@pytest.mark.parametrize(
+    "schema,expected_size",
+    [
+        (Schema.MBO, 189),
+        (Schema.DEFINITION, 290),
+    ],
+)
 def test_to_file_persists_to_disk(
     test_data: Callable[[Dataset, Schema], bytes],
     tmp_path: Path,
+    schema: Schema,
+    expected_size: int,
 ) -> None:
+    """
+    Test the DBNStore.to_file writes files to disk.
+    """
     # Arrange
-    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    stub_data = test_data(Dataset.GLBX_MDP3, schema)
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Act
@@ -188,7 +200,47 @@ def test_to_file_persists_to_disk(
 
     # Assert
     assert dbn_path.exists()
+    assert dbn_path.stat().st_size == expected_size
+
+
+def test_to_file_overwrite(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the default write mode allows files to be overwritten.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    dbn_path = tmp_path / "my_test.dbn"
+    dbnstore.to_file(path=dbn_path)
     assert dbn_path.stat().st_size == 189
+
+    # Act
+    dbnstore.to_file(path=dbn_path)
+
+    # Assert
+    assert dbn_path.exists()
+    assert dbn_path.stat().st_size == 189
+
+
+def test_to_file_exclusive(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the exclusive write mode correctly rejects an existing file path.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    dbn_path = tmp_path / "my_test.dbn"
+    dbnstore.to_file(path=dbn_path)
+
+    # Act, Assert
+    with pytest.raises(FileExistsError):
+        dbnstore.to_file(path=dbn_path, mode="x")
 
 
 def test_to_ndarray_with_stub_data_returns_expected_array(
