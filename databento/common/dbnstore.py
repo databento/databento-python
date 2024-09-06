@@ -792,6 +792,7 @@ class DBNStore:
         map_symbols: bool = True,
         compression: Compression | str = Compression.NONE,
         schema: Schema | str | None = None,
+        mode: Literal["w", "x"] = "w",
     ) -> None:
         """
         Write the data to a file in CSV format.
@@ -816,6 +817,8 @@ class DBNStore:
         schema : Schema or str, optional
             The DBN schema for the csv.
             This is only required when reading a DBN stream with mixed record types.
+        mode : str, default "w"
+            The file write mode to use, either "x" or "w".
 
         Raises
         ------
@@ -825,14 +828,15 @@ class DBNStore:
         """
         compression = validate_enum(compression, Compression, "compression")
         schema = validate_maybe_enum(schema, Schema, "schema")
+        file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
         if schema is None:
             if self.schema is None:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        with open(path, "xb") as output:
+        with open(file_path, f"{mode}b") as output:
             self._transcode(
-                output=output,
+                output=output,  # type: ignore [arg-type]
                 encoding=Encoding.CSV,
                 pretty_px=pretty_px,
                 pretty_ts=pretty_ts,
@@ -961,6 +965,7 @@ class DBNStore:
         pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
+        mode: Literal["w", "x"] = "w",
         **kwargs: Any,
     ) -> None:
         """
@@ -983,6 +988,8 @@ class DBNStore:
         schema : Schema or str, optional
             The DBN schema for the parquet file.
             This is only required when reading a DBN stream with mixed record types.
+        mode : str, default "w"
+            The file write mode to use, either "x" or "w".
 
         Raises
         ------
@@ -994,6 +1001,7 @@ class DBNStore:
         if price_type == "decimal":
             raise ValueError("the 'decimal' price type is not currently supported")
 
+        file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
         schema = validate_maybe_enum(schema, Schema, "schema")
         if schema is None:
             if self.schema is None:
@@ -1015,7 +1023,7 @@ class DBNStore:
                     # Initialize the writer using the first DataFrame
                     parquet_schema = pa.Schema.from_pandas(frame)
                     writer = pq.ParquetWriter(
-                        where=path,
+                        where=file_path,
                         schema=parquet_schema,
                         **kwargs,
                     )
@@ -1066,6 +1074,7 @@ class DBNStore:
         map_symbols: bool = True,
         compression: Compression | str = Compression.NONE,
         schema: Schema | str | None = None,
+        mode: Literal["w", "x"] = "w",
     ) -> None:
         """
         Write the data to a file in JSON format.
@@ -1089,6 +1098,8 @@ class DBNStore:
         schema : Schema or str, optional
             The DBN schema for the json.
             This is only required when reading a DBN stream with mixed record types.
+        mode : str, default "w"
+            The file write mode to use, either "x" or "w".
 
         Raises
         ------
@@ -1098,14 +1109,16 @@ class DBNStore:
         """
         compression = validate_enum(compression, Compression, "compression")
         schema = validate_maybe_enum(schema, Schema, "schema")
+        file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
+
         if schema is None:
             if self.schema is None:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        with open(path, "xb") as output:
+        with open(file_path, f"{mode}b") as output:
             self._transcode(
-                output=output,
+                output=output,  # type: ignore [arg-type]
                 encoding=Encoding.JSON,
                 pretty_px=pretty_px,
                 pretty_ts=pretty_ts,

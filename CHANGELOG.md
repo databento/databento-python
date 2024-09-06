@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.42.0 - TBD
+
+#### Enhancements
+- Added `mode` parameter to `DBNStore.to_csv` to control the file writing mode
+- Added `mode` parameter to `DBNStore.to_json` to control the file writing mode
+- Added `mode` parameter to `DBNStore.to_parquet` to control the file writing mode
+
+#### Breaking changes
+- Changed default write mode for `DBNStore.to_csv` to overwrite ("w")
+- Changed default write mode for `DBNStore.to_json` to overwrite ("w")
+- Changed default write mode for `DBNStore.to_parquet` to overwrite ("w")
+
 ## 0.41.0 - 2024-09-03
 
 #### Enhancements

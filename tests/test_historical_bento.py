@@ -243,6 +243,126 @@ def test_to_file_exclusive(
         dbnstore.to_file(path=dbn_path, mode="x")
 
 
+def test_to_csv_overwrite(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the default write mode allows files to be overwritten.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    csv_path = tmp_path / "my_test.csv"
+    dbnstore.to_csv(path=csv_path)
+    assert csv_path.stat().st_size == 623
+
+    # Act
+    dbnstore.to_csv(path=csv_path)
+
+    # Assert
+    assert csv_path.exists()
+    assert csv_path.stat().st_size == 623
+
+
+def test_to_csv_exclusive(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the exclusive write mode correctly rejects an existing file path.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    csv_path = tmp_path / "my_test.csv"
+    dbnstore.to_csv(path=csv_path)
+
+    # Act, Assert
+    with pytest.raises(FileExistsError):
+        dbnstore.to_csv(path=csv_path, mode="x")
+
+
+def test_to_json_overwrite(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the default write mode allows files to be overwritten.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    json_path = tmp_path / "my_test.json"
+    dbnstore.to_json(path=json_path)
+    assert json_path.stat().st_size == 1216
+
+    # Act
+    dbnstore.to_json(path=json_path)
+
+    # Assert
+    assert json_path.exists()
+    assert json_path.stat().st_size == 1216
+
+
+def test_to_json_exclusive(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the exclusive write mode correctly rejects an existing file path.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    json_path = tmp_path / "my_test.json"
+    dbnstore.to_json(path=json_path)
+
+    # Act, Assert
+    with pytest.raises(FileExistsError):
+        dbnstore.to_json(path=json_path, mode="x")
+
+
+def test_to_parquet_overwrite(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the default write mode allows files to be overwritten.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    parquet_path = tmp_path / "my_test.parquet"
+    dbnstore.to_parquet(path=parquet_path)
+    assert parquet_path.stat().st_size == 9888
+
+    # Act
+    dbnstore.to_parquet(path=parquet_path)
+
+    # Assert
+    assert parquet_path.exists()
+    assert parquet_path.stat().st_size == 9888
+
+
+def test_to_parquet_exclusive(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the exclusive write mode correctly rejects an existing file path.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    parquet_path = tmp_path / "my_test.parquet"
+    dbnstore.to_parquet(path=parquet_path)
+
+    # Act, Assert
+    with pytest.raises(FileExistsError):
+        dbnstore.to_parquet(path=parquet_path, mode="x")
+
+
 def test_to_ndarray_with_stub_data_returns_expected_array(
     test_data: Callable[[Dataset, Schema], bytes],
 ) -> None:
