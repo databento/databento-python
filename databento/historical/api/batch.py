@@ -124,6 +124,7 @@ class BatchHttpAPI(BentoHttpAPI):
             A week starts on Sunday UTC.
         split_size : int, optional
             The maximum size (bytes) of each batched data file before being split.
+            Must be an integer between 1e9 and 10e9 inclusive (1GB - 10GB).
         packaging : Packaging or str {'none', 'zip', 'tar'}, optional
             The archive type to package all batched data files in.
         delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
