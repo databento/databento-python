@@ -20,6 +20,7 @@ import zstandard
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
+from databento.common.error import BentoWarning
 from databento.common.publishers import Dataset
 from databento.common.types import DBNRecord
 from databento_dbn import Compression
@@ -1086,7 +1087,7 @@ def test_dbnstore_buffer_short(
     tmp_path: Path,
 ) -> None:
     """
-    Test that creating a DBNStore with missing bytes raises a BentoError when
+    Test that creating a DBNStore with missing bytes emits a BentoWarning when
     decoding.
     """
     # Arrange
@@ -1098,20 +1099,23 @@ def test_dbnstore_buffer_short(
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data[:-2])
 
     # Assert
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         list(dbnstore)
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_ndarray()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_df()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_csv(tmp_path / "test.csv")
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_json(tmp_path / "test.json")
+
+    with pytest.warns(BentoWarning):
+        dbnstore.to_parquet(tmp_path / "test.parquet")
 
 
 def test_dbnstore_buffer_long(
@@ -1119,7 +1123,7 @@ def test_dbnstore_buffer_long(
     tmp_path: Path,
 ) -> None:
     """
-    Test that creating a DBNStore with excess bytes raises a BentoError when
+    Test that creating a DBNStore with excess bytes emits a BentoWarning when
     decoding.
     """
     # Arrange
@@ -1132,20 +1136,23 @@ def test_dbnstore_buffer_long(
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
     # Assert
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         list(dbnstore)
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_ndarray()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_df()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_csv(tmp_path / "test.csv")
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_json(tmp_path / "test.json")
+
+    with pytest.warns(BentoWarning):
+        dbnstore.to_parquet(tmp_path / "test.parquet")
 
 
 def test_dbnstore_buffer_rewind(
@@ -1574,3 +1581,165 @@ def test_dbnstore_to_df_with_timezone_map_symbols(
 
     # Assert
     assert df["symbol"].notna().all()
+
+
+def test_dbnstore_iterate_truncated_dbn(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to iterate a DBN
+    stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
+    )
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_records = list(complete_store)
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_records = list(truncated_store)
+
+    assert len(truncated_records) == len(complete_records) - 1
+
+
+def test_dbnstore_iterate_truncated_live_dbn(
+    live_test_data: bytes,
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to iterate a live DBN
+    stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_records = list(complete_store)
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_records = list(truncated_store)
+
+    assert len(truncated_records) == len(complete_records) - 1
+
+
+def test_dbnstore_to_df_truncated_dbn(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to create a DataFrame
+    from a DBN stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
+    )
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_df = complete_store.to_df()
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_df = truncated_store.to_df()
+
+    assert len(truncated_df) == len(complete_df) - 1
+
+
+def test_dbnstore_to_df_truncated_live_dbn(
+    live_test_data: bytes,
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to create a DataFrame
+    from a live DBN stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_df = complete_store.to_df(
+        schema=Schema.STATISTICS,
+    )  # Statistics is required because it is the last record
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_df = truncated_store.to_df(schema=Schema.STATISTICS)
+
+    assert len(truncated_df) == len(complete_df) - 1
+
+
+def test_dbnstore_transcode_truncated_dbn(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to transocode from DBN
+    data, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
+    )
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_store.to_csv(tmp_path / "truncated.csv")
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_json(tmp_path / "truncated.json")
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_parquet(tmp_path / "truncated.parquet")
+
+
+def test_dbnstore_transcode_truncated_live_dbn(
+    live_test_data: bytes,
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to transocode from
+    live DBN data, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_store.to_csv(tmp_path / "truncated.csv", schema=Schema.STATISTICS)
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_json(tmp_path / "truncated.json", schema=Schema.STATISTICS)
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_parquet(tmp_path / "truncated.parquet", schema=Schema.STATISTICS)

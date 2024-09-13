@@ -8,6 +8,7 @@
 - Added `mode` parameter to `DBNStore.to_parquet` to control the file writing mode
 - Added `compression` parameter to `DBNStore.to_file` which controls the output compression format
 - Added new consolidated publisher values for `XNAS.BASIC` and `DBEQ.MAX`
+- Changed `DBNStore` to be more tolerant of truncated DBN streams
 
 #### Breaking changes
 - Changed default write mode for `DBNStore.to_csv` to overwrite ("w")

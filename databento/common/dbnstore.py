@@ -4,9 +4,11 @@ import abc
 import decimal
 import itertools
 import logging
+import warnings
 from collections.abc import Generator
 from collections.abc import Iterator
 from collections.abc import Mapping
+from io import BufferedReader
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
@@ -46,6 +48,7 @@ from databento.common.constants import DEFINITION_TYPE_MAX_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP_V1
 from databento.common.error import BentoError
+from databento.common.error import BentoWarning
 from databento.common.symbology import InstrumentMap
 from databento.common.types import DBNRecord
 from databento.common.types import Default
@@ -150,7 +153,7 @@ class FileDataSource(DataSource):
             )
 
         self._name = self._path.name
-        self.__buffer: IO[bytes] | None = None
+        self.__buffer: BufferedReader | None = None
 
     @property
     def name(self) -> str:
@@ -189,13 +192,13 @@ class FileDataSource(DataSource):
         return self._path
 
     @property
-    def reader(self) -> IO[bytes]:
+    def reader(self) -> BufferedReader:
         """
         Return a reader for this file.
 
         Returns
         -------
-        IO
+        BufferedReader
 
         """
         if self.__buffer is None:
@@ -259,14 +262,14 @@ class MemoryDataSource(DataSource):
         return self.__buffer.getbuffer().nbytes
 
     @property
-    def reader(self) -> IO[bytes]:
+    def reader(self) -> BytesIO:
         """
         Return a reader for this buffer. The reader beings at the start of the
         buffer.
 
         Returns
         -------
-        IO
+        BytesIO
 
         """
         self.__buffer.seek(0)
@@ -391,8 +394,8 @@ class DBNStore:
                     yield record
             else:
                 if len(decoder.buffer()) > 0:
-                    raise BentoError(
-                        "DBN file is truncated or contains an incomplete record",
+                    warnings.warn(
+                        BentoWarning("DBN file is truncated or contains an incomplete record"),
                     )
                 break
 
@@ -516,7 +519,7 @@ class DBNStore:
 
         Returns
         -------
-        BinaryIO
+        IO[bytes]
 
         See Also
         --------
@@ -524,13 +527,10 @@ class DBNStore:
 
         """
         if self.compression == Compression.ZSTD:
-            reader: IO[bytes] = zstandard.ZstdDecompressor().stream_reader(
+            return zstandard.ZstdDecompressor().stream_reader(
                 self._data_source.reader,
             )
-        else:
-            reader = self._data_source.reader
-
-        return reader
+        return self._data_source.reader
 
     @property
     def schema(self) -> Schema | None:
@@ -1281,8 +1281,10 @@ class DBNStore:
             transcoder.write(byte_chunk)
 
         if transcoder.buffer():
-            raise BentoError(
-                "DBN file is truncated or contains an incomplete record",
+            warnings.warn(
+                BentoWarning(
+                    "DBN file is truncated or contains an incomplete record",
+                ),
             )
 
         transcoder.flush()
@@ -1327,6 +1329,7 @@ class NDArrayStreamIterator(NDArrayIterator):
         self._dtype = np.dtype(dtype)
         self._offset = offset
         self._count = count
+        self._close_on_next = False
 
         self._reader.seek(offset)
 
@@ -1334,21 +1337,30 @@ class NDArrayStreamIterator(NDArrayIterator):
         return self
 
     def __next__(self) -> np.ndarray[Any, Any]:
+        if self._close_on_next:
+            raise StopIteration
+
         if self._count is None:
             read_size = -1
         else:
             read_size = self._dtype.itemsize * max(self._count, 1)
 
         if buffer := self._reader.read(read_size):
+            loose_bytes = len(buffer) % self._dtype.itemsize
+            if loose_bytes != 0:
+                warnings.warn(
+                    BentoWarning("DBN file is truncated or contains an incomplete record"),
+                )
+                buffer = buffer[:-loose_bytes]
+                self._close_on_next = True  # decode one more buffer before stopping
+
             try:
                 return np.frombuffer(
                     buffer=buffer,
                     dtype=self._dtype,
                 )
-            except ValueError:
-                raise BentoError(
-                    "DBN file is truncated or contains an incomplete record",
-                )
+            except ValueError as exc:
+                raise BentoError("Cannot decode DBN stream") from exc
 
         raise StopIteration
 
@@ -1393,10 +1405,8 @@ class NDArrayBytesIterator(NDArrayIterator):
                 dtype=self._dtype,
                 count=num_records,
             )
-        except ValueError:
-            raise BentoError(
-                "DBN file is truncated or contains an incomplete record",
-            ) from None
+        except ValueError as exc:
+            raise BentoError("Cannot decode DBN stream") from exc
 
 
 class DataFrameIterator:
