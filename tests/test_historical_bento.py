@@ -707,14 +707,14 @@ def test_from_file_given_various_paths_returns_expected_metadata(
     assert data.schema == expected_schema
 
 
-def test_from_dbn_alias(
+def test_read_dbn_alias(
     test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     # Arrange
     path = test_data_path(Dataset.GLBX_MDP3, Schema.MBO)
 
     # Act
-    data = databento.from_dbn(path=path)
+    data = databento.read_dbn(path=path)
 
     # Assert
     assert data.schema == Schema.MBO
