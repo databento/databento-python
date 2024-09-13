@@ -1041,6 +1041,7 @@ class DBNStore:
         self,
         path: PathLike[str] | str,
         mode: Literal["w", "x"] = "w",
+        compression: Compression | str | None = None,
     ) -> None:
         """
         Write the data to a DBN file at the given path.
@@ -1051,6 +1052,8 @@ class DBNStore:
             The file path to write to.
         mode : str, default "w"
             The file write mode to use, either "x" or "w".
+        compression : Compression or str, optional
+            The compression format to write. If `None`, uses the same compression as the underlying data.
 
         Raises
         ------
@@ -1062,9 +1065,35 @@ class DBNStore:
             If path is not writable.
 
         """
+        compression = validate_maybe_enum(compression, Compression, "compression")
         file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
-        file_path.write_bytes(self._data_source.reader.read())
-        self._data_source = FileDataSource(file_path)
+
+        writer: IO[bytes] | zstandard.ZstdCompressionWriter
+        if compression is None or compression == self.compression:
+            # Handle trivial case
+            with open(file_path, mode=f"{mode}b") as writer:
+                reader = self._data_source.reader
+                while chunk := reader.read(2**16):
+                    writer.write(chunk)
+            return
+
+        if compression == Compression.ZSTD:
+            writer = zstandard.ZstdCompressor(
+                write_checksum=True,
+            ).stream_writer(
+                open(file_path, mode=f"{mode}b"),
+                closefd=True,
+            )
+        else:
+            writer = open(file_path, mode=f"{mode}b")
+
+        try:
+            reader = self.reader
+
+            while chunk := reader.read(2**16):
+                writer.write(chunk)
+        finally:
+            writer.close()
 
     def to_json(
         self,

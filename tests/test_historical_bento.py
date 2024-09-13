@@ -22,6 +22,7 @@ from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
 from databento.common.types import DBNRecord
+from databento_dbn import Compression
 from databento_dbn import MBOMsg
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -241,6 +242,36 @@ def test_to_file_exclusive(
     # Act, Assert
     with pytest.raises(FileExistsError):
         dbnstore.to_file(path=dbn_path, mode="x")
+
+
+@pytest.mark.parametrize(
+    "compression",
+    [
+        Compression.NONE,
+        Compression.ZSTD,
+    ],
+)
+def test_to_file_compression(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+    compression: Compression,
+) -> None:
+    """
+    Test that specifying a compression for DBNStore.to_file writes the desired
+    compression mode.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    dbn_path = tmp_path / "my_test.dbn"
+    dbnstore.to_file(
+        path=dbn_path,
+        compression=compression,
+    )
+
+    # Act, Assert
+    new_store = databento.read_dbn(dbn_path)
+    assert new_store.compression == compression
 
 
 def test_to_csv_overwrite(
