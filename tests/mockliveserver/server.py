@@ -5,13 +5,13 @@ import enum
 import logging
 import random
 import string
+from collections.abc import Generator
 from collections.abc import Mapping
 from functools import singledispatchmethod
 from io import BytesIO
 from io import FileIO
 from typing import Any
 from typing import Final
-from typing import Generator
 
 from databento.common import cram
 from databento.common.publishers import Dataset

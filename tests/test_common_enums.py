@@ -2,8 +2,6 @@
 Unit tests for databento.common.enums.
 """
 
-from __future__ import annotations
-
 from enum import Enum
 from enum import Flag
 from itertools import combinations

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.43.0 - TBD
+
+#### Breaking changes
+- Removed support for Python 3.8 due to end of life
+
 ## 0.42.0 - 2024-09-23
 
 #### Enhancements
