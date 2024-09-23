@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.42.0 - TBD
+## 0.42.0 - 2024-09-23
 
 #### Enhancements
 - Added `mode` parameter to `DBNStore.to_csv` to control the file writing mode
