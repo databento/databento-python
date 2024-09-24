@@ -5,7 +5,7 @@
 [![pypi-version](https://img.shields.io/pypi/v/databento)](https://pypi.org/project/databento)
 [![license](https://img.shields.io/github/license/databento/databento-python?color=blue)](./LICENSE)
 [![code-style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Slack](https://img.shields.io/badge/join_Slack-community-darkblue.svg?logo=slack)](http://to.dbn.to/slack)
+[![Slack](https://img.shields.io/badge/join_Slack-community-darkblue.svg?logo=slack)](https://to.dbn.to/slack)
 
 The official Python client library for [Databento](https://databento.com).
 

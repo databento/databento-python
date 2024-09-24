@@ -20,8 +20,10 @@ import zstandard
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
+from databento.common.error import BentoWarning
 from databento.common.publishers import Dataset
 from databento.common.types import DBNRecord
+from databento_dbn import Compression
 from databento_dbn import MBOMsg
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -241,6 +243,156 @@ def test_to_file_exclusive(
     # Act, Assert
     with pytest.raises(FileExistsError):
         dbnstore.to_file(path=dbn_path, mode="x")
+
+
+@pytest.mark.parametrize(
+    "compression",
+    [
+        Compression.NONE,
+        Compression.ZSTD,
+    ],
+)
+def test_to_file_compression(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+    compression: Compression,
+) -> None:
+    """
+    Test that specifying a compression for DBNStore.to_file writes the desired
+    compression mode.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    dbn_path = tmp_path / "my_test.dbn"
+    dbnstore.to_file(
+        path=dbn_path,
+        compression=compression,
+    )
+
+    # Act, Assert
+    new_store = databento.read_dbn(dbn_path)
+    assert new_store.compression == compression
+
+
+def test_to_csv_overwrite(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the default write mode allows files to be overwritten.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    csv_path = tmp_path / "my_test.csv"
+    dbnstore.to_csv(path=csv_path)
+    assert csv_path.stat().st_size == 623
+
+    # Act
+    dbnstore.to_csv(path=csv_path)
+
+    # Assert
+    assert csv_path.exists()
+    assert csv_path.stat().st_size == 623
+
+
+def test_to_csv_exclusive(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the exclusive write mode correctly rejects an existing file path.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    csv_path = tmp_path / "my_test.csv"
+    dbnstore.to_csv(path=csv_path)
+
+    # Act, Assert
+    with pytest.raises(FileExistsError):
+        dbnstore.to_csv(path=csv_path, mode="x")
+
+
+def test_to_json_overwrite(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the default write mode allows files to be overwritten.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    json_path = tmp_path / "my_test.json"
+    dbnstore.to_json(path=json_path)
+    assert json_path.stat().st_size == 1216
+
+    # Act
+    dbnstore.to_json(path=json_path)
+
+    # Assert
+    assert json_path.exists()
+    assert json_path.stat().st_size == 1216
+
+
+def test_to_json_exclusive(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the exclusive write mode correctly rejects an existing file path.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    json_path = tmp_path / "my_test.json"
+    dbnstore.to_json(path=json_path)
+
+    # Act, Assert
+    with pytest.raises(FileExistsError):
+        dbnstore.to_json(path=json_path, mode="x")
+
+
+def test_to_parquet_overwrite(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the default write mode allows files to be overwritten.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    parquet_path = tmp_path / "my_test.parquet"
+    dbnstore.to_parquet(path=parquet_path)
+    assert parquet_path.stat().st_size == 9888
+
+    # Act
+    dbnstore.to_parquet(path=parquet_path)
+
+    # Assert
+    assert parquet_path.exists()
+    assert parquet_path.stat().st_size == 9888
+
+
+def test_to_parquet_exclusive(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the exclusive write mode correctly rejects an existing file path.
+    """
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    dbnstore = DBNStore.from_bytes(data=stub_data)
+    parquet_path = tmp_path / "my_test.parquet"
+    dbnstore.to_parquet(path=parquet_path)
+
+    # Act, Assert
+    with pytest.raises(FileExistsError):
+        dbnstore.to_parquet(path=parquet_path, mode="x")
 
 
 def test_to_ndarray_with_stub_data_returns_expected_array(
@@ -587,14 +739,14 @@ def test_from_file_given_various_paths_returns_expected_metadata(
     assert data.schema == expected_schema
 
 
-def test_from_dbn_alias(
+def test_read_dbn_alias(
     test_data_path: Callable[[Dataset, Schema], Path],
 ) -> None:
     # Arrange
     path = test_data_path(Dataset.GLBX_MDP3, Schema.MBO)
 
     # Act
-    data = databento.from_dbn(path=path)
+    data = databento.read_dbn(path=path)
 
     # Assert
     assert data.schema == Schema.MBO
@@ -935,7 +1087,7 @@ def test_dbnstore_buffer_short(
     tmp_path: Path,
 ) -> None:
     """
-    Test that creating a DBNStore with missing bytes raises a BentoError when
+    Test that creating a DBNStore with missing bytes emits a BentoWarning when
     decoding.
     """
     # Arrange
@@ -947,20 +1099,23 @@ def test_dbnstore_buffer_short(
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data[:-2])
 
     # Assert
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         list(dbnstore)
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_ndarray()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_df()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_csv(tmp_path / "test.csv")
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_json(tmp_path / "test.json")
+
+    with pytest.warns(BentoWarning):
+        dbnstore.to_parquet(tmp_path / "test.parquet")
 
 
 def test_dbnstore_buffer_long(
@@ -968,7 +1123,7 @@ def test_dbnstore_buffer_long(
     tmp_path: Path,
 ) -> None:
     """
-    Test that creating a DBNStore with excess bytes raises a BentoError when
+    Test that creating a DBNStore with excess bytes emits a BentoWarning when
     decoding.
     """
     # Arrange
@@ -981,20 +1136,23 @@ def test_dbnstore_buffer_long(
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data)
 
     # Assert
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         list(dbnstore)
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_ndarray()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_df()
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_csv(tmp_path / "test.csv")
 
-    with pytest.raises(BentoError):
+    with pytest.warns(BentoWarning):
         dbnstore.to_json(tmp_path / "test.json")
+
+    with pytest.warns(BentoWarning):
+        dbnstore.to_parquet(tmp_path / "test.parquet")
 
 
 def test_dbnstore_buffer_rewind(
@@ -1423,3 +1581,165 @@ def test_dbnstore_to_df_with_timezone_map_symbols(
 
     # Assert
     assert df["symbol"].notna().all()
+
+
+def test_dbnstore_iterate_truncated_dbn(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to iterate a DBN
+    stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
+    )
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_records = list(complete_store)
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_records = list(truncated_store)
+
+    assert len(truncated_records) == len(complete_records) - 1
+
+
+def test_dbnstore_iterate_truncated_live_dbn(
+    live_test_data: bytes,
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to iterate a live DBN
+    stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_records = list(complete_store)
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_records = list(truncated_store)
+
+    assert len(truncated_records) == len(complete_records) - 1
+
+
+def test_dbnstore_to_df_truncated_dbn(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to create a DataFrame
+    from a DBN stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
+    )
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_df = complete_store.to_df()
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_df = truncated_store.to_df()
+
+    assert len(truncated_df) == len(complete_df) - 1
+
+
+def test_dbnstore_to_df_truncated_live_dbn(
+    live_test_data: bytes,
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to create a DataFrame
+    from a live DBN stream, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    complete_store = DBNStore.from_bytes(dbn_stub_data)
+    complete_df = complete_store.to_df(
+        schema=Schema.STATISTICS,
+    )  # Statistics is required because it is the last record
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_df = truncated_store.to_df(schema=Schema.STATISTICS)
+
+    assert len(truncated_df) == len(complete_df) - 1
+
+
+def test_dbnstore_transcode_truncated_dbn(
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to transocode from DBN
+    data, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = (
+        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
+    )
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_store.to_csv(tmp_path / "truncated.csv")
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_json(tmp_path / "truncated.json")
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_parquet(tmp_path / "truncated.parquet")
+
+
+def test_dbnstore_transcode_truncated_live_dbn(
+    live_test_data: bytes,
+    tmp_path: Path,
+) -> None:
+    """
+    Test that the DBNStore makes a "best-effort" attempt to transocode from
+    live DBN data, even if it is corrupted/truncated.
+    """
+    # Arrange
+    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    truncated = tmp_path / "truncated.dbn"
+    truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
+
+    # Act
+    truncated_store = DBNStore.from_file(path=truncated)
+
+    # Assert
+    with pytest.warns(BentoWarning):
+        truncated_store.to_csv(tmp_path / "truncated.csv", schema=Schema.STATISTICS)
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_json(tmp_path / "truncated.json", schema=Schema.STATISTICS)
+
+    with pytest.warns(BentoWarning):
+        truncated_store.to_parquet(tmp_path / "truncated.parquet", schema=Schema.STATISTICS)
