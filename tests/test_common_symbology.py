@@ -151,7 +151,7 @@ def create_symbol_mapping_message(
     SymbolMappingMsg
 
     """
-    return SymbolMappingMsg(  # type: ignore [call-arg]
+    return SymbolMappingMsg(
         publisher_id=publisher_id,
         instrument_id=instrument_id,
         ts_event=ts_event,

@@ -1520,6 +1520,7 @@ async def test_live_stream_with_reuse(
         "cbbo-1s",
         "cbbo-1m",
         "tcbbo",
+        "cmbp-1",
         "bbo-1s",
         "bbo-1m",
     ):

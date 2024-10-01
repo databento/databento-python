@@ -2,6 +2,9 @@
 
 ## 0.43.0 - TBD
 
+#### Enhancements
+- Upgraded `databento-dbn` to 0.22.0
+
 #### Breaking changes
 - Removed support for Python 3.8 due to end of life
 
