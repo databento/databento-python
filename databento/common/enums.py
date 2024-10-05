@@ -225,5 +225,21 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
 @unique
 @coercible
 class ReconnectPolicy(StringyMixin, str, Enum):
+    """
+    Live session reconnection policy.
+    """
+
     NONE = "none"
     RECONNECT = "reconnect"
+
+
+@unique
+@coercible
+class PriceType(StringyMixin, str, Enum):
+    """
+    Price type for DataFrame price fields.
+    """
+
+    FIXED = "fixed"
+    FLOAT = "float"
+    DECIMAL = "decimal"

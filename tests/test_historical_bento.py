@@ -646,6 +646,18 @@ def test_to_df_with_price_type_handles_null(
     assert all(np.isnan(df_pretty["strike_price"]))
 
 
+def test_to_df_with_price_type_invalid(
+    test_data: Callable[[Dataset, Schema], bytes],
+) -> None:
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.DEFINITION)
+    data = DBNStore.from_bytes(data=stub_data)
+
+    # Act, Assert
+    with pytest.raises(ValueError):
+        data.to_df(price_type="US/Eastern")
+
+
 @pytest.mark.parametrize(
     "dataset",
     [

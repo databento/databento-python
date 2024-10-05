@@ -47,6 +47,7 @@ from databento_dbn import VersionUpgradePolicy
 from databento.common.constants import DEFINITION_TYPE_MAX_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP_V1
+from databento.common.enums import PriceType
 from databento.common.error import BentoError
 from databento.common.error import BentoWarning
 from databento.common.symbology import InstrumentMap
@@ -848,7 +849,7 @@ class DBNStore:
     @overload
     def to_df(
         self,
-        price_type: Literal["fixed", "float", "decimal"] = ...,
+        price_type: PriceType | str = ...,
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
@@ -859,7 +860,7 @@ class DBNStore:
     @overload
     def to_df(
         self,
-        price_type: Literal["fixed", "float", "decimal"] = ...,
+        price_type: PriceType | str = ...,
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
@@ -869,7 +870,7 @@ class DBNStore:
 
     def to_df(
         self,
-        price_type: Literal["fixed", "float", "decimal"] = "float",
+        price_type: PriceType | str = PriceType.FLOAT,
         pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
@@ -883,7 +884,7 @@ class DBNStore:
 
         Parameters
         ----------
-        price_type : str, default "float"
+        price_type : PriceType or str, default "float"
             The price type to use for price fields.
             If "fixed", prices will have a type of `int` in fixed decimal format; each unit representing 1e-9 or 0.000000001.
             If "float", prices will have a type of `float`.
@@ -918,6 +919,7 @@ class DBNStore:
             If the DBN schema is unspecified and cannot be determined.
 
         """
+        price_type = validate_enum(price_type, PriceType, "price_type")
         schema = validate_maybe_enum(schema, Schema, "schema")
 
         if isinstance(tz, Default):
@@ -1422,7 +1424,7 @@ class DataFrameIterator:
         struct_type: type[DBNRecord],
         instrument_map: InstrumentMap,
         tz: pytz.BaseTzInfo,
-        price_type: Literal["fixed", "float", "decimal"] = "float",
+        price_type: PriceType = PriceType.FLOAT,
         pretty_ts: bool = True,
         map_symbols: bool = True,
     ):
@@ -1499,16 +1501,16 @@ class DataFrameIterator:
     def _format_px(
         self,
         df: pd.DataFrame,
-        price_type: Literal["fixed", "float", "decimal"],
+        price_type: PriceType,
     ) -> None:
         px_fields = self._struct_type._price_fields
 
-        if price_type == "decimal":
+        if price_type == PriceType.DECIMAL:
             df[px_fields] = (
                 df[px_fields].replace(UNDEF_PRICE, np.nan).applymap(decimal.Decimal)
                 / FIXED_PRICE_SCALE
             )
-        elif price_type == "float":
+        elif price_type == PriceType.FLOAT:
             df[px_fields] = df[px_fields].replace(UNDEF_PRICE, np.nan) / FIXED_PRICE_SCALE
         else:
             return  # do nothing
