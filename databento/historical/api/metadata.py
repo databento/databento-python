@@ -188,7 +188,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         start_date: date | str | None = None,
         end_date: date | str | None = None,
-    ) -> dict[str, Any]:
+    ) -> list[dict[str, str]]:
         """
         Get the per date dataset conditions from Databento.
 
@@ -209,7 +209,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        dict[str, Any]
+        list[dict[str, str]]
 
         """
         params: list[tuple[str, str | None]] = [

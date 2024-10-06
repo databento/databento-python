@@ -5,6 +5,9 @@
 #### Enhancements
 - Upgraded `databento-dbn` to 0.22.0
 
+#### Bug fixes
+- Fixed return type hint for `metadata.get_dataset_condition`
+
 #### Breaking changes
 - Removed support for Python 3.8 due to end of life
 
