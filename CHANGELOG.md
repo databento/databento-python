@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.43.0 - TBD
+## 0.43.0 - 2024-10-09
+
+This release drops support for Python 3.8 which has reached end-of-life.
 
 #### Enhancements
 - Upgraded `databento-dbn` to 0.22.1
