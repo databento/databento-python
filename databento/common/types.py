@@ -12,6 +12,7 @@ import pandas as pd
 DBNRecord = Union[
     databento_dbn.BBOMsg,
     databento_dbn.CBBOMsg,
+    databento_dbn.CMBP1Msg,
     databento_dbn.MBOMsg,
     databento_dbn.MBP1Msg,
     databento_dbn.MBP10Msg,

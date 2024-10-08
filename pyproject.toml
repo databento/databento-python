@@ -27,20 +27,20 @@ repository = "https://github.com/databento/databento-python"
 "Bug Tracker" = "https://github.com/databento/databento-python/issues"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 aiohttp = [
     {version = "^3.8.3", python = "<3.12"},
     {version = "^3.9.0", python = "^3.12"}
 ]
-databento-dbn = "0.20.1"
+databento-dbn = "0.22.1"
 numpy = [
     {version = ">=1.23.5", python = "<3.12"},
-    {version = "^1.26.0", python = "^3.12"}
+    {version = ">=1.26.0", python = "^3.12"}
 ]
 pandas = ">=1.5.3"
 pip-system-certs = {version=">=4.0", markers="platform_system == 'Windows'"}
 pyarrow = ">=13.0.0"
-requests = ">=2.24.0"
+requests = ">=2.25.1"
 zstandard = ">=0.21.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -63,7 +63,7 @@ build-backend = "poetry.core.masonry.api"
 line_length = 100
 
 [tool.mypy]
-python_version = 3.8
+python_version = 3.9
 disallow_untyped_defs = true
 disallow_any_generics = true
 disallow_subclassing_any = true

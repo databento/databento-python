@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.43.0 - 2024-10-09
+
+This release drops support for Python 3.8 which has reached end-of-life.
+
+#### Enhancements
+- Added `PriceType` enum for validation of `price_type` parameter in `DBNStore.to_df`
+- Upgraded `databento-dbn` to 0.22.1
+
+#### Bug fixes
+- Fixed return type hint for `metadata.get_dataset_condition`
+
+#### Breaking changes
+- Removed support for Python 3.8 due to end of life
+
 ## 0.42.0 - 2024-09-23
 
 #### Enhancements

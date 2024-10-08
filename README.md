@@ -1,7 +1,7 @@
 # databento-python
 
 [![test](https://github.com/databento/databento-python/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/databento/databento-python/actions/workflows/test.yml)
-![python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![python](https://img.shields.io/badge/python-3.9+-blue.svg)
 [![pypi-version](https://img.shields.io/pypi/v/databento)](https://pypi.org/project/databento)
 [![license](https://img.shields.io/github/license/databento/databento-python?color=blue)](./LICENSE)
 [![code-style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -28,16 +28,16 @@ You can find our full client API reference on the [Historical Reference](https:/
 [Examples](https://databento.com/docs/examples?historical=python&live=python) section for various tutorials and code samples.
 
 ## Requirements
-The library is fully compatible with the latest distribution of Anaconda 3.8 and above.
+The library is fully compatible with the latest distribution of Anaconda 3.9 and above.
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
-- python = "^3.8"
+- python = "^3.9"
 - aiohttp = "^3.8.3"
-- databento-dbn = "0.20.1"
+- databento-dbn = "0.22.1"
 - numpy= ">=1.23.5"
 - pandas = ">=1.5.3"
 - pip-system-certs = ">=4.0" (Windows only)
 - pyarrow = ">=13.0.0"
-- requests = ">=2.24.0"
+- requests = ">=2.25.1"
 - zstandard = ">=0.21.0"
 
 ## Installation

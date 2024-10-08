@@ -2,8 +2,6 @@
 Tests specific to releasing a version of databento-python.
 """
 
-from __future__ import annotations
-
 import operator
 import re
 from datetime import date

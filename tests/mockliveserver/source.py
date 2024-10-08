@@ -1,8 +1,8 @@
+from collections.abc import Generator
+from collections.abc import Iterator
 from pathlib import Path
 from typing import IO
 from typing import Final
-from typing import Generator
-from typing import Iterator
 from typing import Protocol
 
 import zstandard
