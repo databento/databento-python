@@ -3,7 +3,7 @@
 ## 0.43.0 - TBD
 
 #### Enhancements
-- Upgraded `databento-dbn` to 0.22.0
+- Upgraded `databento-dbn` to 0.22.1
 
 #### Bug fixes
 - Fixed return type hint for `metadata.get_dataset_condition`
