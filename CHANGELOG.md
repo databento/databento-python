@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.43.1 - TBD
+
+#### Bug fixes
+- Fixed an issue where validating the checksum of a batch file loaded the entire file into memory
+
 ## 0.43.0 - 2024-10-09
 
 This release drops support for Python 3.8 which has reached end-of-life.
