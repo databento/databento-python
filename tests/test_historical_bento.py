@@ -731,6 +731,33 @@ def test_to_parquet(
     pd.testing.assert_frame_equal(actual, expected)
 
 
+def test_to_parquet_kwargs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    test_data: Callable[[Dataset, Schema], bytes],
+) -> None:
+    # Arrange
+    monkeypatch.setattr(databento.common.dbnstore, "PARQUET_CHUNK_SIZE", 1)
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
+    parquet_file = tmp_path / "test.parquet"
+
+    # Act
+    expected = data.to_df()
+    data.to_parquet(
+        parquet_file,
+        compression="zstd",
+        write_statistics="false",
+    )
+    actual = pd.read_parquet(parquet_file)
+
+    # Replace None values with np.nan
+    actual.fillna(value=np.nan)
+
+    # Assert
+    pd.testing.assert_frame_equal(actual, expected)
+
+
 @pytest.mark.parametrize(
     "expected_schema",
     [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],

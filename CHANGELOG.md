@@ -2,6 +2,9 @@
 
 ## 0.43.1 - TBD
 
+#### Enhancements
+- Keyword arguments to `DBNStore.to_parquet` will now allow `where` and `schema` to be specified
+
 #### Bug fixes
 - Fixed an issue where validating the checksum of a batch file loaded the entire file into memory
 

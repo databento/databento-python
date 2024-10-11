@@ -963,7 +963,7 @@ class DBNStore:
     def to_parquet(
         self,
         path: PathLike[str] | str,
-        price_type: Literal["fixed", "float"] = "float",
+        price_type: PriceType | str = PriceType.FLOAT,
         pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
@@ -992,6 +992,9 @@ class DBNStore:
             This is only required when reading a DBN stream with mixed record types.
         mode : str, default "w"
             The file write mode to use, either "x" or "w".
+        **kwargs : Any
+            Keyword arguments to pass to the `pyarrow.parquet.ParquetWriter`.
+            These can be used to override the default behavior of the writer.
 
         Raises
         ------
@@ -1000,10 +1003,12 @@ class DBNStore:
             If the DBN schema is unspecified and cannot be determined.
 
         """
-        if price_type == "decimal":
+        file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
+        price_type = validate_enum(price_type, PriceType, "price_type")
+
+        if price_type == PriceType.DECIMAL:
             raise ValueError("the 'decimal' price type is not currently supported")
 
-        file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
         schema = validate_maybe_enum(schema, Schema, "schema")
         if schema is None:
             if self.schema is None:
@@ -1025,8 +1030,8 @@ class DBNStore:
                     # Initialize the writer using the first DataFrame
                     parquet_schema = pa.Schema.from_pandas(frame)
                     writer = pq.ParquetWriter(
-                        where=file_path,
-                        schema=parquet_schema,
+                        where=kwargs.pop("where", file_path),
+                        schema=kwargs.pop("schema", parquet_schema),
                         **kwargs,
                     )
                 writer.write_table(
