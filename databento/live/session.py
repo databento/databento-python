@@ -199,7 +199,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._metadata: SessionMetadata = metadata
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
-        self._last_ts_event: pd.Timestamp | None = None
+        self._last_ts_event: int | None = None
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         if self._metadata:
@@ -228,7 +228,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._dispatch_callbacks(record)
         if self._dbn_queue.is_enabled():
             self._queue_for_iteration(record)
-        self._last_ts_event = record.pretty_ts_event
+        self._last_ts_event = record.ts_event
 
         return super().received_record(record)
 
@@ -653,7 +653,7 @@ class LiveSession:
                     if self._protocol._last_ts_event is not None:
                         gap_start = pd.Timestamp(self._protocol._last_ts_event, tz="UTC")
                     elif self._metadata.data is not None:
-                        gap_start = self._metadata.data.start
+                        gap_start = pd.Timestamp(self._metadata.data.start, tz="UTC")
                     else:
                         gap_start = pd.Timestamp.utcnow()
 
