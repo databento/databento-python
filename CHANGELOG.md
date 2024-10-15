@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.43.1 - 2024-10-15
+
+#### Enhancements
+- Keyword arguments to `DBNStore.to_parquet` will now allow `where` and `schema` to be specified
+- Improved record processing time for the `Live` client
+
+#### Bug fixes
+- Fixed an issue where validating the checksum of a batch file loaded the entire file into memory
+
 ## 0.43.0 - 2024-10-09
 
 This release drops support for Python 3.8 which has reached end-of-life.

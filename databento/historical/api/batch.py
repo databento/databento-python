@@ -431,7 +431,11 @@ class BatchHttpAPI(BentoHttpAPI):
         hash_algo, _, hash_hex = batch_download_file.hash_str.partition(":")
 
         if hash_algo == "sha256":
-            output_hash = hashlib.sha256(output_path.read_bytes())
+            output_hash = hashlib.new(hash_algo)
+            with open(output_path, "rb") as fd:
+                while chunk := fd.read(32_000_000):
+                    output_hash.update(chunk)
+
             if output_hash.hexdigest() != hash_hex:
                 warn_msg = f"Downloaded file failed checksum validation: {output_path.name}"
                 logger.warning(warn_msg)
