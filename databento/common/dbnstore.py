@@ -771,10 +771,8 @@ class DBNStore:
         """
         if self.end is None:
             end_date = None
-        elif self.start.date() == self.end.date():
-            end_date = (self.start + pd.Timedelta(days=1)).date()
         else:
-            end_date = self.end
+            end_date = self.end.ceil(freq="D").date()
 
         return client.symbology.resolve(
             dataset=self.dataset,

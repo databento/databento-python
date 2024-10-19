@@ -8,6 +8,7 @@
 
 #### Bug fixes
 - Fixed an issue where validating the checksum of a batch file loaded the entire file into memory
+- Fixed an issue where `DBNStore.request_symbology` could request the wrong end date
 
 ## 0.43.0 - 2024-10-09
 
