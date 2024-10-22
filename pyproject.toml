@@ -27,12 +27,12 @@ repository = "https://github.com/databento/databento-python"
 "Bug Tracker" = "https://github.com/databento/databento-python/issues"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.13"
 aiohttp = [
     {version = "^3.8.3", python = "<3.12"},
     {version = "^3.9.0", python = "^3.12"}
 ]
-databento-dbn = "0.22.1"
+databento-dbn = "0.23.0"
 numpy = [
     {version = ">=1.23.5", python = "<3.12"},
     {version = ">=1.26.0", python = "^3.12"}
