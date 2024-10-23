@@ -44,7 +44,6 @@ from databento.common.publishers import Publisher
 from databento.common.publishers import Venue
 from databento.common.symbology import InstrumentMap
 from databento.common.types import DBNRecord
-from databento.common.validation import deprecated
 from databento.historical.client import Historical
 from databento.live.client import Live
 from databento.reference.client import Reference
@@ -110,7 +109,6 @@ warnings.simplefilter("always", DeprecationWarning)
 
 # Convenience imports
 enable_logging = bentologging.enable_logging
-from_dbn = deprecated("databento.from_dbn")(DBNStore.from_file)
 read_dbn = DBNStore.from_file
 map_symbols_csv = symbology.map_symbols_csv
 map_symbols_json = symbology.map_symbols_json
