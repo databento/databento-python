@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.44.1 - TBD
+
+#### Enhancements
+- Improved exception messages emitted by the `Live` client to always include contents of any `ErrorMsg` sent by the gateway
+
 ## 0.44.0 - 2024-10-22
 
 #### Enhancements
