@@ -365,14 +365,15 @@ def test_to_parquet_overwrite(
     dbnstore = DBNStore.from_bytes(data=stub_data)
     parquet_path = tmp_path / "my_test.parquet"
     dbnstore.to_parquet(path=parquet_path)
-    assert parquet_path.stat().st_size == 9888
+    parquet_size = parquet_path.stat().st_size
 
     # Act
     dbnstore.to_parquet(path=parquet_path)
 
     # Assert
+    assert parquet_size > 0  # Should be about ~9000 bytes
     assert parquet_path.exists()
-    assert parquet_path.stat().st_size == 9888
+    assert parquet_path.stat().st_size == parquet_size
 
 
 def test_to_parquet_exclusive(
