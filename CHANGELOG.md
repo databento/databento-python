@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.44.1 - 2024-10-29
+
+#### Enhancements
+- Improved exception messages emitted by the `Live` client to always include contents of any `ErrorMsg` sent by the gateway
+
+#### Bug fixes
+- Fixed an issue where calling `Live.stop` would not close the connection within a reasonable time
+
 ## 0.44.0 - 2024-10-22
 
 #### Enhancements

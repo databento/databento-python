@@ -440,8 +440,7 @@ class LiveSession:
                 return
             if self._transport.can_write_eof():
                 self._transport.write_eof()
-            else:
-                self._transport.close()
+            self._transport.close()
 
     def start(self) -> None:
         """
