@@ -297,4 +297,6 @@ async def fixture_live_client(
     with mock_live_server.test_context():
         yield test_client
 
-    test_client.stop()
+    if test_client.is_connected():
+        test_client.stop()
+        await test_client.wait_for_close()
