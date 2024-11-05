@@ -94,7 +94,12 @@ class Controller:
         """
         Log the number of active connections.
         """
-        count = self._server._active_count  # type: ignore [attr-defined]
+        # _active_count was removed in Python 3.13
+        if hasattr(self._server, "_active_count"):
+            count = self._server._active_count
+        else:
+            count = len(self._server._clients)  # type: ignore [attr-defined]
+
         logger.info("active connections: %d", count)
 
     def _command_add_key(self, key: str) -> None:
