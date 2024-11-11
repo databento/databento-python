@@ -7,6 +7,9 @@ This release adds support for Python v3.13.
 #### Enhancements
 - Added support for Python 3.13
 
+#### Deprecations
+- Deprecated `packaging` parameter for `Historical.batch.submit_job` which will be removed in a future release
+
 ## 0.44.1 - 2024-10-29
 
 #### Enhancements
