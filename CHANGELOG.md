@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.45.0 - TBD
+## 0.45.0 - 2024-11-12
 
 This release adds support for Python v3.13.
 
