@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.45.0 - 2024-11-12
+
+This release adds support for Python v3.13.
+
+#### Enhancements
+- Added support for Python 3.13
+- Added new IntelligentCross venues `ASPN`, `ASMT`, and `ASPI`
+- Upgraded `databento-dbn` to 0.23.1
+    - Fixed `pretty_activation` getter in `databento_dbn` returning `expiration` instead
+    - Fixed some `pretty_` getters in `databento_dbn` didn't correctly handle `UNDEF_PRICE`
+
+#### Deprecations
+- Deprecated `packaging` parameter for `Historical.batch.submit_job` which will be removed in a future release
+
 ## 0.44.1 - 2024-10-29
 
 #### Enhancements

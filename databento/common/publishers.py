@@ -102,6 +102,12 @@ class Venue(StringyMixin, str, Enum):
         Long-Term Stock Exchange, Inc..
     XOFF
         Off-Exchange Transactions - Listed Instruments.
+    ASPN
+        IntelligentCross ASPEN Intelligent Bid/Offer.
+    ASMT
+        IntelligentCross ASPEN Maker/Taker.
+    ASPI
+        IntelligentCross ASPEN Inverted.
 
     """
 
@@ -148,6 +154,9 @@ class Venue(StringyMixin, str, Enum):
     SPHR = "SPHR"
     LTSE = "LTSE"
     XOFF = "XOFF"
+    ASPN = "ASPN"
+    ASMT = "ASMT"
+    ASPI = "ASPI"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -240,6 +249,12 @@ class Venue(StringyMixin, str, Enum):
             return Venue.LTSE
         if value == 43:
             return Venue.XOFF
+        if value == 44:
+            return Venue.ASPN
+        if value == 45:
+            return Venue.ASMT
+        if value == 46:
+            return Venue.ASPI
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -332,6 +347,12 @@ class Venue(StringyMixin, str, Enum):
             return 42
         if self == Venue.XOFF:
             return 43
+        if self == Venue.ASPN:
+            return 44
+        if self == Venue.ASMT:
+            return 45
+        if self == Venue.ASPI:
+            return 46
         raise ValueError("Invalid Venue")
 
     @property
@@ -425,6 +446,12 @@ class Venue(StringyMixin, str, Enum):
             return "Long-Term Stock Exchange, Inc."
         if self == Venue.XOFF:
             return "Off-Exchange Transactions - Listed Instruments"
+        if self == Venue.ASPN:
+            return "IntelligentCross ASPEN Intelligent Bid/Offer"
+        if self == Venue.ASMT:
+            return "IntelligentCross ASPEN Maker/Taker"
+        if self == Venue.ASPI:
+            return "IntelligentCross ASPEN Inverted"
         raise ValueError("Unexpected Venue value")
 
 
