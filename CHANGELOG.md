@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.46.0 - TBD
+## 0.46.0 - 2024-12-10
 
 #### Enhancements
 - Removed deprecated `packaging` parameter from `Historical.batch.submit_job`. Job files can be downloaded individually or as zip files after the job completes
