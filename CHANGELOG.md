@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.46.0 - TBD
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.24.0
+    - Added handling for `UNDEF_TIMESTAMP` in `pretty_` timestamp getters for Python. They now return `None` in the case of `UNDEF_TIMESTAMP`
+
 ## 0.45.0 - 2024-11-12
 
 This release adds support for Python v3.13.
