@@ -27,9 +27,7 @@ from requests.auth import HTTPBasicAuth
 from databento.common import API_VERSION
 from databento.common.constants import HTTP_STREAMING_READ_SIZE
 from databento.common.enums import Delivery
-from databento.common.enums import Packaging
 from databento.common.enums import SplitDuration
-from databento.common.error import BentoDeprecationWarning
 from databento.common.error import BentoError
 from databento.common.error import BentoHttpError
 from databento.common.error import BentoWarning
@@ -40,7 +38,6 @@ from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_values_list_to_string
 from databento.common.parsing import symbols_list_to_list
 from databento.common.publishers import Dataset
-from databento.common.types import Default
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_path
 from databento.common.validation import validate_semantic_string
@@ -75,7 +72,6 @@ class BatchHttpAPI(BentoHttpAPI):
         split_symbols: bool = False,
         split_duration: SplitDuration | str = "day",
         split_size: int | None = None,
-        packaging: Packaging | str | None = Default(None),  # type: ignore [assignment]
         delivery: Delivery | str = "download",
         stype_in: SType | str = "raw_symbol",
         stype_out: SType | str = "instrument_id",
@@ -127,8 +123,6 @@ class BatchHttpAPI(BentoHttpAPI):
         split_size : int, optional
             The maximum size (bytes) of each batched data file before being split.
             Must be an integer between 1e9 and 10e9 inclusive (1GB - 10GB).
-        packaging : Packaging or str {'none', 'zip', 'tar'}, optional
-            The archive type to package all batched data files in.
         delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
             The delivery mechanism for the processed batched data files.
         stype_in : SType or str, default 'raw_symbol'
@@ -151,14 +145,6 @@ class BatchHttpAPI(BentoHttpAPI):
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = symbols_list_to_list(symbols, stype_in_valid)
 
-        if isinstance(packaging, Default):
-            packaging = packaging.value
-        else:
-            warnings.warn(
-                message="The `packaging` parameter is deprecated and will be removed in a future release.",
-                category=BentoDeprecationWarning,
-            )
-
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
             "start": datetime_to_string(start),
@@ -177,9 +163,6 @@ class BatchHttpAPI(BentoHttpAPI):
             "split_symbols": split_symbols,
             "split_duration": str(
                 validate_enum(split_duration, SplitDuration, "split_duration"),
-            ),
-            "packaging": (
-                str(validate_enum(packaging, Packaging, "packaging")) if packaging else None
             ),
             "delivery": str(validate_enum(delivery, Delivery, "delivery")),
         }

@@ -3,6 +3,7 @@
 ## 0.46.0 - TBD
 
 #### Enhancements
+- Removed deprecated `packaging` parameter from `Historical.batch.submit_job`. Job files can be downloaded individually or as zip files after the job completes
 - Upgraded `databento-dbn` to 0.24.0
     - Added handling for `UNDEF_TIMESTAMP` in `pretty_` timestamp getters for Python. They now return `None` in the case of `UNDEF_TIMESTAMP`
 
