@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 import databento as db
 import pytest
 import requests
-from databento.common.error import BentoDeprecationWarning
 from databento.historical.client import Historical
 
 
@@ -64,20 +63,18 @@ def test_batch_submit_job_sends_expected_request(
     monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Act
-    with pytest.warns(BentoDeprecationWarning):
-        historical_client.batch.submit_job(
-            dataset="GLBX.MDP3",
-            symbols="ESH1",
-            schema="trades",
-            start="2020-12-28T12:00",
-            end="2020-12-29",
-            encoding="csv",
-            split_duration="day",
-            split_size=10000000000,
-            packaging="none",
-            delivery="download",
-            compression="zstd",
-        )
+    historical_client.batch.submit_job(
+        dataset="GLBX.MDP3",
+        symbols="ESH1",
+        schema="trades",
+        start="2020-12-28T12:00",
+        end="2020-12-29",
+        encoding="csv",
+        split_duration="day",
+        split_size=10000000000,
+        delivery="download",
+        compression="zstd",
+    )
 
     # Assert
     call = mocked_post.call_args.kwargs
@@ -100,7 +97,6 @@ def test_batch_submit_job_sends_expected_request(
         "map_symbols": False,
         "split_symbols": False,
         "split_duration": "day",
-        "packaging": "none",
         "delivery": "download",
         "split_size": "10000000000",
     }
