@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.47.0 - TBD
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.25.0
+    - Added type aliases for `TBBOMsg`, `BBO1SMsg`, `BBO1MMsg`, `TCBBOMsg`, `CBBO1SMsg`,
+      `CBBO1MMsg` in Python
+- Removed exports for `CBBOMsg` and `BBOMsg` in the root `databento` package in favor of aliased versions from `databento-dbn`
+
 ## 0.46.0 - 2024-12-10
 
 #### Enhancements

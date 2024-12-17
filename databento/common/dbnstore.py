@@ -380,7 +380,7 @@ class DBNStore:
     def __iter__(self) -> Generator[DBNRecord, None, None]:
         reader = self.reader
         decoder = DBNDecoder(
-            upgrade_policy=VersionUpgradePolicy.UPGRADE,
+            upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V2,
         )
         while True:
             raw = reader.read(DBNStore.DBN_READ_SIZE)

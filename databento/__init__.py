@@ -1,8 +1,7 @@
 import logging
 import warnings
 
-from databento_dbn import BBOMsg
-from databento_dbn import CBBOMsg
+from databento_dbn import CMBP1Msg
 from databento_dbn import Compression
 from databento_dbn import Encoding
 from databento_dbn import ErrorMsg
@@ -21,6 +20,12 @@ from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 from databento_dbn import TradeMsg
+from databento_dbn.v2 import BBO1MMsg
+from databento_dbn.v2 import BBO1SMsg
+from databento_dbn.v2 import CBBO1MMsg
+from databento_dbn.v2 import CBBO1SMsg
+from databento_dbn.v2 import TBBOMsg
+from databento_dbn.v2 import TCBBOMsg
 
 from databento.common import API_VERSION
 from databento.common import bentologging
@@ -50,18 +55,17 @@ from databento.reference.client import Reference
 from databento.version import __version__  # noqa
 
 
-# Alias for convenience
-TBBOMsg = MBP1Msg
-
-
 __all__ = [
     "API_VERSION",
-    "BBOMsg",
+    "BBO1MMsg",
+    "BBO1SMsg",
     "BentoClientError",
     "BentoError",
     "BentoHttpError",
     "BentoServerError",
-    "CBBOMsg",
+    "CBBO1MMsg",
+    "CBBO1SMsg",
+    "CMBP1Msg",
     "Compression",
     "DBNRecord",
     "DBNStore",
@@ -96,6 +100,9 @@ __all__ = [
     "SymbolMappingMsg",
     "SymbologyResolution",
     "SystemMsg",
+    "TBBOMsg",
+    "TBBOMsg",
+    "TCBBOMsg",
     "TradeMsg",
     "Venue",
 ]
