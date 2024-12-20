@@ -15,11 +15,14 @@ from databento_dbn import OHLCVMsg
 from databento_dbn import Schema
 from databento_dbn import StatMsg
 from databento_dbn import StatType
+from databento_dbn import StatusAction
 from databento_dbn import StatusMsg
+from databento_dbn import StatusReason
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 from databento_dbn import TradeMsg
+from databento_dbn import TradingEvent
 from databento_dbn.v2 import BBO1MMsg
 from databento_dbn.v2 import BBO1SMsg
 from databento_dbn.v2 import CBBO1MMsg
@@ -96,7 +99,9 @@ __all__ = [
     "SplitDuration",
     "StatMsg",
     "StatType",
+    "StatusAction",
     "StatusMsg",
+    "StatusReason",
     "SymbolMappingMsg",
     "SymbologyResolution",
     "SystemMsg",
@@ -104,6 +109,7 @@ __all__ = [
     "TBBOMsg",
     "TCBBOMsg",
     "TradeMsg",
+    "TradingEvent",
     "Venue",
 ]
 

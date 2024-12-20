@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.47.1 - TBD
+
+#### Enhancements
+- Added export of `StatusAction` enum from `databento_dbn` to the root `databento` package
+- Added export of `StatusReason` enum from `databento_dbn` to the root `databento` package
+- Added export of `TradingEvent` enum from `databento_dbn` to the root `databento` package
+
 ## 0.47.0 - 2024-12-17
 
 #### Enhancements
