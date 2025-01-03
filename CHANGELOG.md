@@ -1,11 +1,12 @@
 # Changelog
 
-## 0.47.1 - TBD
+## 0.48.0 - TBD
 
 #### Enhancements
 - Added export of `StatusAction` enum from `databento_dbn` to the root `databento` package
 - Added export of `StatusReason` enum from `databento_dbn` to the root `databento` package
 - Added export of `TradingEvent` enum from `databento_dbn` to the root `databento` package
+- Removed upper bound for supported `python` versions; the constraint is now `^3.9`
 
 ## 0.47.0 - 2024-12-17
 

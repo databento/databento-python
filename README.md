@@ -1,7 +1,7 @@
 # databento-python
 
 [![test](https://github.com/databento/databento-python/actions/workflows/test.yml/badge.svg?branch=dev)](https://github.com/databento/databento-python/actions/workflows/test.yml)
-![python](https://img.shields.io/badge/python-3.9+-blue.svg)
+![python](https://img.shields.io/pypi/pyversions/databento.svg)
 [![pypi-version](https://img.shields.io/pypi/v/databento)](https://pypi.org/project/databento)
 [![license](https://img.shields.io/github/license/databento/databento-python?color=blue)](./LICENSE)
 [![code-style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
