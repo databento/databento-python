@@ -8,6 +8,9 @@
 - Added export of `TradingEvent` enum from `databento_dbn` to the root `databento` package
 - Removed upper bound for supported `python` versions; the constraint is now `^3.9`
 
+#### Bug fixes
+- Fixed an issue where sending a `KeyboardInterrupt` during iteration of the `Live` client could block execution waiting for the connection to close
+
 ## 0.47.0 - 2024-12-17
 
 #### Enhancements

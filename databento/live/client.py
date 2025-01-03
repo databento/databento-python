@@ -116,7 +116,7 @@ class Live:
 
     def __del__(self) -> None:
         try:
-            self.stop()
+            self.terminate()
         except (AttributeError, ValueError):
             pass
 
@@ -644,10 +644,11 @@ class LiveIterator:
         return self
 
     def __del__(self) -> None:
-        if self.client.is_connected():
-            self.client.stop()
-            self.client.block_for_close()
+        try:
+            self.client.terminate()
             logger.debug("iteration aborted")
+        except ValueError:
+            pass
 
     async def __anext__(self) -> DBNRecord:
         if not self._dbn_queue.is_enabled():
