@@ -538,6 +538,8 @@ class Dataset(StringyMixin, str, Enum):
         NYSE National Trades and BBO.
     XNYS_TRADESBBO
         NYSE Trades and BBO.
+    EQUS_MINI
+        Databento US Equities Mini.
 
     """
 
@@ -575,6 +577,7 @@ class Dataset(StringyMixin, str, Enum):
     EQUS_SUMMARY = "EQUS.SUMMARY"
     XCIS_TRADESBBO = "XCIS.TRADESBBO"
     XNYS_TRADESBBO = "XNYS.TRADESBBO"
+    EQUS_MINI = "EQUS.MINI"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -649,6 +652,8 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.XCIS_TRADESBBO
         if value == 34:
             return Dataset.XNYS_TRADESBBO
+        if value == 35:
+            return Dataset.EQUS_MINI
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -723,6 +728,8 @@ class Dataset(StringyMixin, str, Enum):
             return 33
         if self == Dataset.XNYS_TRADESBBO:
             return 34
+        if self == Dataset.EQUS_MINI:
+            return 35
         raise ValueError("Invalid Dataset")
 
     @property
@@ -798,6 +805,8 @@ class Dataset(StringyMixin, str, Enum):
             return "NYSE National Trades and BBO"
         if self == Dataset.XNYS_TRADESBBO:
             return "NYSE Trades and BBO"
+        if self == Dataset.EQUS_MINI:
+            return "Databento US Equities Mini"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -995,6 +1004,8 @@ class Publisher(StringyMixin, str, Enum):
         Nasdaq Basic - Consolidated.
     EQUS_ALL_EQUS
         Databento US Equities (All Feeds) - Consolidated.
+    EQUS_MINI_EQUS
+        Databento US Equities Mini.
 
     """
 
@@ -1092,6 +1103,7 @@ class Publisher(StringyMixin, str, Enum):
     XNYS_TRADESBBO_XNYS = "XNYS.TRADESBBO.XNYS"
     XNAS_BASIC_EQUS = "XNAS.BASIC.EQUS"
     EQUS_ALL_EQUS = "EQUS.ALL.EQUS"
+    EQUS_MINI_EQUS = "EQUS.MINI.EQUS"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1286,6 +1298,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XNAS_BASIC_EQUS
         if value == 94:
             return Publisher.EQUS_ALL_EQUS
+        if value == 95:
+            return Publisher.EQUS_MINI_EQUS
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1480,6 +1494,8 @@ class Publisher(StringyMixin, str, Enum):
             return 93
         if self == Publisher.EQUS_ALL_EQUS:
             return 94
+        if self == Publisher.EQUS_MINI_EQUS:
+            return 95
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1674,6 +1690,8 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNAS_BASIC_EQUS:
             return Venue.EQUS
         if self == Publisher.EQUS_ALL_EQUS:
+            return Venue.EQUS
+        if self == Publisher.EQUS_MINI_EQUS:
             return Venue.EQUS
         raise ValueError("Unexpected Publisher value")
 
@@ -1870,6 +1888,8 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XNAS_BASIC
         if self == Publisher.EQUS_ALL_EQUS:
             return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_MINI_EQUS:
+            return Dataset.EQUS_MINI
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2065,4 +2085,6 @@ class Publisher(StringyMixin, str, Enum):
             return "Nasdaq Basic - Consolidated"
         if self == Publisher.EQUS_ALL_EQUS:
             return "Databento US Equities (All Feeds) - Consolidated"
+        if self == Publisher.EQUS_MINI_EQUS:
+            return "Databento US Equities Mini"
         raise ValueError("Unexpected Publisher value")

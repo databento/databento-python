@@ -2,11 +2,15 @@
 
 ## 0.48.0 - TBD
 
+#### Breaking changes
+- Updated enumerations for unreleased datasets and publishers.
+
 #### Enhancements
 - Added export of `StatusAction` enum from `databento_dbn` to the root `databento` package
 - Added export of `StatusReason` enum from `databento_dbn` to the root `databento` package
 - Added export of `TradingEvent` enum from `databento_dbn` to the root `databento` package
 - Removed upper bound for supported `python` versions; the constraint is now `^3.9`
+- Added new dataset `EQUS.MINI` and new publisher `EQUS.MINI.EQUS`
 
 #### Bug fixes
 - Fixed an issue where sending a `KeyboardInterrupt` during iteration of the `Live` client could block execution waiting for the connection to close
