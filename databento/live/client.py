@@ -633,7 +633,7 @@ class LiveIterator:
     def __init__(self, client: Live):
         client.start()
         self._dbn_queue = client._session._dbn_queue
-        self._dbn_queue._enabled.set()
+        self._dbn_queue.enable()
         self._client = client
 
     @property
