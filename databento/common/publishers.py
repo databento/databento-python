@@ -1006,6 +1006,8 @@ class Publisher(StringyMixin, str, Enum):
         Databento US Equities (All Feeds) - Consolidated.
     EQUS_MINI_EQUS
         Databento US Equities Mini.
+    XNYS_TRADES_EQUS
+        NYSE Trades - Consolidated.
 
     """
 
@@ -1104,6 +1106,7 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_BASIC_EQUS = "XNAS.BASIC.EQUS"
     EQUS_ALL_EQUS = "EQUS.ALL.EQUS"
     EQUS_MINI_EQUS = "EQUS.MINI.EQUS"
+    XNYS_TRADES_EQUS = "XNYS.TRADES.EQUS"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1300,6 +1303,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.EQUS_ALL_EQUS
         if value == 95:
             return Publisher.EQUS_MINI_EQUS
+        if value == 96:
+            return Publisher.XNYS_TRADES_EQUS
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1496,6 +1501,8 @@ class Publisher(StringyMixin, str, Enum):
             return 94
         if self == Publisher.EQUS_MINI_EQUS:
             return 95
+        if self == Publisher.XNYS_TRADES_EQUS:
+            return 96
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1692,6 +1699,8 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.EQUS_ALL_EQUS:
             return Venue.EQUS
         if self == Publisher.EQUS_MINI_EQUS:
+            return Venue.EQUS
+        if self == Publisher.XNYS_TRADES_EQUS:
             return Venue.EQUS
         raise ValueError("Unexpected Publisher value")
 
@@ -1890,6 +1899,8 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.EQUS_ALL
         if self == Publisher.EQUS_MINI_EQUS:
             return Dataset.EQUS_MINI
+        if self == Publisher.XNYS_TRADES_EQUS:
+            return Dataset.XNYS_TRADES
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2087,4 +2098,6 @@ class Publisher(StringyMixin, str, Enum):
             return "Databento US Equities (All Feeds) - Consolidated"
         if self == Publisher.EQUS_MINI_EQUS:
             return "Databento US Equities Mini"
+        if self == Publisher.XNYS_TRADES_EQUS:
+            return "NYSE Trades - Consolidated"
         raise ValueError("Unexpected Publisher value")
