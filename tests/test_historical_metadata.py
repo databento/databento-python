@@ -191,7 +191,7 @@ def test_get_record_count_sends_expected_request(
     historical_client: Historical,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Act
     historical_client.metadata.get_record_count(
@@ -204,20 +204,20 @@ def test_get_record_count_sends_expected_request(
     )
 
     # Assert
-    call = mocked_get.call_args.kwargs
+    call = mocked_post.call_args.kwargs
     assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_record_count"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
-    assert call["params"] == [
-        ("dataset", "GLBX.MDP3"),
-        ("symbols", "ESH1"),
-        ("schema", "mbo"),
-        ("start", "2020-12-28T12:00"),
-        ("end", "2020-12-29"),
-        ("stype_in", "raw_symbol"),
-        ("limit", "1000000"),
-    ]
+    assert call["data"] == {
+        "dataset": "GLBX.MDP3",
+        "symbols": "ESH1",
+        "schema": "mbo",
+        "start": "2020-12-28T12:00",
+        "end": "2020-12-29",
+        "stype_in": "raw_symbol",
+        "limit": "1000000",
+    }
     assert call["timeout"] == (100, 100)
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -227,7 +227,7 @@ def test_get_billable_size_sends_expected_request(
     historical_client: Historical,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Act
     historical_client.metadata.get_billable_size(
@@ -240,23 +240,23 @@ def test_get_billable_size_sends_expected_request(
     )
 
     # Assert
-    call = mocked_get.call_args.kwargs
+    call = mocked_post.call_args.kwargs
     assert (
         call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_billable_size"
     )
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
-    assert call["params"] == [
-        ("dataset", "GLBX.MDP3"),
-        ("start", "2020-12-28T12:00"),
-        ("end", "2020-12-29"),
-        ("symbols", "ESH1"),
-        ("schema", "mbo"),
-        ("stype_in", "raw_symbol"),
-        ("stype_out", "instrument_id"),
-        ("limit", "1000000"),
-    ]
+    assert call["data"] == {
+        "dataset": "GLBX.MDP3",
+        "start": "2020-12-28T12:00",
+        "end": "2020-12-29",
+        "symbols": "ESH1",
+        "schema": "mbo",
+        "stype_in": "raw_symbol",
+        "stype_out": "instrument_id",
+        "limit": "1000000",
+    }
     assert call["timeout"] == (100, 100)
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
@@ -266,7 +266,7 @@ def test_get_cost_sends_expected_request(
     historical_client: Historical,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    monkeypatch.setattr(requests, "post", mocked_post := MagicMock())
 
     # Act
     historical_client.metadata.get_cost(
@@ -279,21 +279,21 @@ def test_get_cost_sends_expected_request(
     )
 
     # Assert
-    call = mocked_get.call_args.kwargs
+    call = mocked_post.call_args.kwargs
     assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.get_cost"
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
-    assert call["params"] == [
-        ("dataset", "GLBX.MDP3"),
-        ("start", "2020-12-28T12:00"),
-        ("end", "2020-12-29"),
-        ("symbols", "ESH1"),
-        ("schema", "mbo"),
-        ("stype_in", "raw_symbol"),
-        ("stype_out", "instrument_id"),
-        ("mode", "historical-streaming"),
-        ("limit", "1000000"),
-    ]
+    assert call["data"] == {
+        "dataset": "GLBX.MDP3",
+        "start": "2020-12-28T12:00",
+        "end": "2020-12-29",
+        "symbols": "ESH1",
+        "schema": "mbo",
+        "stype_in": "raw_symbol",
+        "stype_out": "instrument_id",
+        "mode": "historical-streaming",
+        "limit": "1000000",
+    }
     assert call["timeout"] == (100, 100)
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)

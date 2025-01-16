@@ -304,22 +304,22 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
-        params: list[tuple[str, str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("symbols", ",".join(symbols_list)),
-            ("schema", str(validate_enum(schema, Schema, "schema"))),
-            ("start", optional_datetime_to_string(start)),
-            ("end", optional_datetime_to_string(end)),
-            ("stype_in", str(stype_in_valid)),
-        ]
+        data: dict[str, str | None] = {
+            "dataset": validate_semantic_string(dataset, "dataset"),
+            "symbols": ",".join(symbols_list),
+            "schema": str(validate_enum(schema, Schema, "schema")),
+            "start": optional_datetime_to_string(start),
+            "end": optional_datetime_to_string(end),
+            "stype_in": str(stype_in_valid),
+        }
 
         # Optional Parameters
         if limit is not None:
-            params.append(("limit", str(limit)))
+            data["limit"] = str(limit)
 
-        response: Response = self._get(
+        response: Response = self._post(
             url=self._base_url + ".get_record_count",
-            params=params,
+            data=data,
             basic_auth=True,
         )
 
@@ -373,22 +373,22 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
-        params: list[tuple[str, str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start", datetime_to_string(start)),
-            ("end", optional_datetime_to_string(end)),
-            ("symbols", ",".join(symbols_list)),
-            ("schema", str(validate_enum(schema, Schema, "schema"))),
-            ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(SType.INSTRUMENT_ID)),
-        ]
+        data: dict[str, str | None] = {
+            "dataset": validate_semantic_string(dataset, "dataset"),
+            "start": datetime_to_string(start),
+            "end": optional_datetime_to_string(end),
+            "symbols": ",".join(symbols_list),
+            "schema": str(validate_enum(schema, Schema, "schema")),
+            "stype_in": str(stype_in_valid),
+            "stype_out": str(SType.INSTRUMENT_ID),
+        }
 
         if limit is not None:
-            params.append(("limit", str(limit)))
+            data["limit"] = str(limit)
 
-        response: Response = self._get(
+        response: Response = self._post(
             url=self._base_url + ".get_billable_size",
-            params=params,
+            data=data,
             basic_auth=True,
         )
 
@@ -445,23 +445,23 @@ class MetadataHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
-        params: list[tuple[str, str | None]] = [
-            ("dataset", validate_semantic_string(dataset, "dataset")),
-            ("start", datetime_to_string(start)),
-            ("end", optional_datetime_to_string(end)),
-            ("symbols", ",".join(symbols_list)),
-            ("schema", str(validate_enum(schema, Schema, "schema"))),
-            ("stype_in", str(stype_in_valid)),
-            ("stype_out", str(SType.INSTRUMENT_ID)),
-            ("mode", validate_enum(mode, FeedMode, "mode")),
-        ]
+        data: dict[str, str | None] = {
+            "dataset": validate_semantic_string(dataset, "dataset"),
+            "start": datetime_to_string(start),
+            "end": optional_datetime_to_string(end),
+            "symbols": ",".join(symbols_list),
+            "schema": str(validate_enum(schema, Schema, "schema")),
+            "stype_in": str(stype_in_valid),
+            "stype_out": str(SType.INSTRUMENT_ID),
+            "mode": validate_enum(mode, FeedMode, "mode"),
+        }
 
         if limit is not None:
-            params.append(("limit", str(limit)))
+            data["limit"] = str(limit)
 
-        response: Response = self._get(
+        response: Response = self._post(
             url=self._base_url + ".get_cost",
-            params=params,
+            data=data,
             basic_auth=True,
         )
 
