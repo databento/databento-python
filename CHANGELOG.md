@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.48.0 - TBD
+## 0.48.0 - 2025-01-21
 
 #### Breaking changes
 - Updated enumerations for unreleased datasets and publishers.
