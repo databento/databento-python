@@ -16,6 +16,7 @@
 
 #### Bug fixes
 - Fixed an issue where sending a `KeyboardInterrupt` during iteration of the `Live` client could block execution waiting for the connection to close
+- Fixed an issue with submitting historical metadata requests for a large number of symbols.
 
 ## 0.47.0 - 2024-12-17
 
