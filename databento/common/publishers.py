@@ -95,7 +95,7 @@ class Venue(StringyMixin, str, Enum):
     NDEX
         ICE Endex.
     DBEQ
-        Databento Equities - Consolidated.
+        Databento US Equities - Consolidated.
     SPHR
         MIAX Sapphire.
     LTSE
@@ -108,6 +108,8 @@ class Venue(StringyMixin, str, Enum):
         IntelligentCross ASPEN Maker/Taker.
     ASPI
         IntelligentCross ASPEN Inverted.
+    EQUS
+        Databento US Equities - Consolidated.
 
     """
 
@@ -157,6 +159,7 @@ class Venue(StringyMixin, str, Enum):
     ASPN = "ASPN"
     ASMT = "ASMT"
     ASPI = "ASPI"
+    EQUS = "EQUS"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -255,6 +258,8 @@ class Venue(StringyMixin, str, Enum):
             return Venue.ASMT
         if value == 46:
             return Venue.ASPI
+        if value == 47:
+            return Venue.EQUS
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -353,6 +358,8 @@ class Venue(StringyMixin, str, Enum):
             return 45
         if self == Venue.ASPI:
             return 46
+        if self == Venue.EQUS:
+            return 47
         raise ValueError("Invalid Venue")
 
     @property
@@ -439,7 +446,7 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.NDEX:
             return "ICE Endex"
         if self == Venue.DBEQ:
-            return "Databento Equities - Consolidated"
+            return "Databento US Equities - Consolidated"
         if self == Venue.SPHR:
             return "MIAX Sapphire"
         if self == Venue.LTSE:
@@ -452,6 +459,8 @@ class Venue(StringyMixin, str, Enum):
             return "IntelligentCross ASPEN Maker/Taker"
         if self == Venue.ASPI:
             return "IntelligentCross ASPEN Inverted"
+        if self == Venue.EQUS:
+            return "Databento US Equities - Consolidated"
         raise ValueError("Unexpected Venue value")
 
 
@@ -500,13 +509,13 @@ class Dataset(StringyMixin, str, Enum):
     OPRA_PILLAR
         OPRA Binary.
     DBEQ_BASIC
-        Databento Equities Basic.
+        Databento US Equities Basic.
     ARCX_PILLAR
         NYSE Arca Integrated.
     IEXG_TOPS
         IEX TOPS.
-    DBEQ_PLUS
-        Databento Equities Plus.
+    EQUS_PLUS
+        Databento US Equities Plus.
     XNYS_BBO
         NYSE BBO.
     XNYS_TRADES
@@ -519,16 +528,18 @@ class Dataset(StringyMixin, str, Enum):
         ICE Futures Europe (Commodities) iMpact.
     NDEX_IMPACT
         ICE Endex iMpact.
-    DBEQ_MAX
-        Databento Equities Max.
+    EQUS_ALL
+        Databento US Equities (All Feeds).
     XNAS_BASIC
         Nasdaq Basic (NLS and QBBO).
-    DBEQ_SUMMARY
-        Databento Equities Summary.
-    XCIS_BBOTRADES
-        NYSE National BBO and Trades.
-    XNYS_BBOTRADES
-        NYSE BBO and Trades.
+    EQUS_SUMMARY
+        Databento US Equities Summary.
+    XCIS_TRADESBBO
+        NYSE National Trades and BBO.
+    XNYS_TRADESBBO
+        NYSE Trades and BBO.
+    EQUS_MINI
+        Databento US Equities Mini.
 
     """
 
@@ -554,18 +565,19 @@ class Dataset(StringyMixin, str, Enum):
     DBEQ_BASIC = "DBEQ.BASIC"
     ARCX_PILLAR = "ARCX.PILLAR"
     IEXG_TOPS = "IEXG.TOPS"
-    DBEQ_PLUS = "DBEQ.PLUS"
+    EQUS_PLUS = "EQUS.PLUS"
     XNYS_BBO = "XNYS.BBO"
     XNYS_TRADES = "XNYS.TRADES"
     XNAS_QBBO = "XNAS.QBBO"
     XNAS_NLS = "XNAS.NLS"
     IFEU_IMPACT = "IFEU.IMPACT"
     NDEX_IMPACT = "NDEX.IMPACT"
-    DBEQ_MAX = "DBEQ.MAX"
+    EQUS_ALL = "EQUS.ALL"
     XNAS_BASIC = "XNAS.BASIC"
-    DBEQ_SUMMARY = "DBEQ.SUMMARY"
-    XCIS_BBOTRADES = "XCIS.BBOTRADES"
-    XNYS_BBOTRADES = "XNYS.BBOTRADES"
+    EQUS_SUMMARY = "EQUS.SUMMARY"
+    XCIS_TRADESBBO = "XCIS.TRADESBBO"
+    XNYS_TRADESBBO = "XNYS.TRADESBBO"
+    EQUS_MINI = "EQUS.MINI"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -617,7 +629,7 @@ class Dataset(StringyMixin, str, Enum):
         if value == 22:
             return Dataset.IEXG_TOPS
         if value == 23:
-            return Dataset.DBEQ_PLUS
+            return Dataset.EQUS_PLUS
         if value == 24:
             return Dataset.XNYS_BBO
         if value == 25:
@@ -631,15 +643,17 @@ class Dataset(StringyMixin, str, Enum):
         if value == 29:
             return Dataset.NDEX_IMPACT
         if value == 30:
-            return Dataset.DBEQ_MAX
+            return Dataset.EQUS_ALL
         if value == 31:
             return Dataset.XNAS_BASIC
         if value == 32:
-            return Dataset.DBEQ_SUMMARY
+            return Dataset.EQUS_SUMMARY
         if value == 33:
-            return Dataset.XCIS_BBOTRADES
+            return Dataset.XCIS_TRADESBBO
         if value == 34:
-            return Dataset.XNYS_BBOTRADES
+            return Dataset.XNYS_TRADESBBO
+        if value == 35:
+            return Dataset.EQUS_MINI
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -690,7 +704,7 @@ class Dataset(StringyMixin, str, Enum):
             return 21
         if self == Dataset.IEXG_TOPS:
             return 22
-        if self == Dataset.DBEQ_PLUS:
+        if self == Dataset.EQUS_PLUS:
             return 23
         if self == Dataset.XNYS_BBO:
             return 24
@@ -704,16 +718,18 @@ class Dataset(StringyMixin, str, Enum):
             return 28
         if self == Dataset.NDEX_IMPACT:
             return 29
-        if self == Dataset.DBEQ_MAX:
+        if self == Dataset.EQUS_ALL:
             return 30
         if self == Dataset.XNAS_BASIC:
             return 31
-        if self == Dataset.DBEQ_SUMMARY:
+        if self == Dataset.EQUS_SUMMARY:
             return 32
-        if self == Dataset.XCIS_BBOTRADES:
+        if self == Dataset.XCIS_TRADESBBO:
             return 33
-        if self == Dataset.XNYS_BBOTRADES:
+        if self == Dataset.XNYS_TRADESBBO:
             return 34
+        if self == Dataset.EQUS_MINI:
+            return 35
         raise ValueError("Invalid Dataset")
 
     @property
@@ -760,13 +776,13 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.OPRA_PILLAR:
             return "OPRA Binary"
         if self == Dataset.DBEQ_BASIC:
-            return "Databento Equities Basic"
+            return "Databento US Equities Basic"
         if self == Dataset.ARCX_PILLAR:
             return "NYSE Arca Integrated"
         if self == Dataset.IEXG_TOPS:
             return "IEX TOPS"
-        if self == Dataset.DBEQ_PLUS:
-            return "Databento Equities Plus"
+        if self == Dataset.EQUS_PLUS:
+            return "Databento US Equities Plus"
         if self == Dataset.XNYS_BBO:
             return "NYSE BBO"
         if self == Dataset.XNYS_TRADES:
@@ -779,16 +795,18 @@ class Dataset(StringyMixin, str, Enum):
             return "ICE Futures Europe (Commodities) iMpact"
         if self == Dataset.NDEX_IMPACT:
             return "ICE Endex iMpact"
-        if self == Dataset.DBEQ_MAX:
-            return "Databento Equities Max"
+        if self == Dataset.EQUS_ALL:
+            return "Databento US Equities (All Feeds)"
         if self == Dataset.XNAS_BASIC:
             return "Nasdaq Basic (NLS and QBBO)"
-        if self == Dataset.DBEQ_SUMMARY:
-            return "Databento Equities Summary"
-        if self == Dataset.XCIS_BBOTRADES:
-            return "NYSE National BBO and Trades"
-        if self == Dataset.XNYS_BBOTRADES:
-            return "NYSE BBO and Trades"
+        if self == Dataset.EQUS_SUMMARY:
+            return "Databento US Equities Summary"
+        if self == Dataset.XCIS_TRADESBBO:
+            return "NYSE National Trades and BBO"
+        if self == Dataset.XNYS_TRADESBBO:
+            return "NYSE Trades and BBO"
+        if self == Dataset.EQUS_MINI:
+            return "Databento US Equities Mini"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -892,72 +910,72 @@ class Publisher(StringyMixin, str, Enum):
         Nasdaq QBBO.
     XNAS_NLS_XNAS
         Nasdaq Trades.
-    DBEQ_PLUS_XCHI
-        DBEQ Plus - NYSE Chicago.
-    DBEQ_PLUS_XCIS
-        DBEQ Plus - NYSE National.
-    DBEQ_PLUS_IEXG
-        DBEQ Plus - IEX.
-    DBEQ_PLUS_EPRL
-        DBEQ Plus - MIAX Pearl.
-    DBEQ_PLUS_XNAS
-        DBEQ Plus - Nasdaq.
-    DBEQ_PLUS_XNYS
-        DBEQ Plus - NYSE.
-    DBEQ_PLUS_FINN
-        DBEQ Plus - FINRA/Nasdaq TRF Carteret.
-    DBEQ_PLUS_FINY
-        DBEQ Plus - FINRA/NYSE TRF.
-    DBEQ_PLUS_FINC
-        DBEQ Plus - FINRA/Nasdaq TRF Chicago.
+    EQUS_PLUS_XCHI
+        Databento US Equities Plus - NYSE Chicago.
+    EQUS_PLUS_XCIS
+        Databento US Equities Plus - NYSE National.
+    EQUS_PLUS_IEXG
+        Databento US Equities Plus - IEX.
+    EQUS_PLUS_EPRL
+        Databento US Equities Plus - MIAX Pearl.
+    EQUS_PLUS_XNAS
+        Databento US Equities Plus - Nasdaq.
+    EQUS_PLUS_XNYS
+        Databento US Equities Plus - NYSE.
+    EQUS_PLUS_FINN
+        Databento US Equities Plus - FINRA/Nasdaq TRF Carteret.
+    EQUS_PLUS_FINY
+        Databento US Equities Plus - FINRA/NYSE TRF.
+    EQUS_PLUS_FINC
+        Databento US Equities Plus - FINRA/Nasdaq TRF Chicago.
     IFEU_IMPACT_IFEU
         ICE Futures Europe (Commodities).
     NDEX_IMPACT_NDEX
         ICE Endex.
     DBEQ_BASIC_DBEQ
-        DBEQ Basic - Consolidated.
-    DBEQ_PLUS_DBEQ
-        DBEQ Plus - Consolidated.
+        Databento US Equities Basic - Consolidated.
+    EQUS_PLUS_EQUS
+        EQUS Plus - Consolidated.
     OPRA_PILLAR_SPHR
         OPRA - MIAX Sapphire.
-    DBEQ_MAX_XCHI
-        DBEQ Max - NYSE Chicago.
-    DBEQ_MAX_XCIS
-        DBEQ Max - NYSE National.
-    DBEQ_MAX_IEXG
-        DBEQ Max - IEX.
-    DBEQ_MAX_EPRL
-        DBEQ Max - MIAX Pearl.
-    DBEQ_MAX_XNAS
-        DBEQ Max - Nasdaq.
-    DBEQ_MAX_XNYS
-        DBEQ Max - NYSE.
-    DBEQ_MAX_FINN
-        DBEQ Max - FINRA/Nasdaq TRF Carteret.
-    DBEQ_MAX_FINY
-        DBEQ Max - FINRA/NYSE TRF.
-    DBEQ_MAX_FINC
-        DBEQ Max - FINRA/Nasdaq TRF Chicago.
-    DBEQ_MAX_BATS
-        DBEQ Max - CBOE BZX.
-    DBEQ_MAX_BATY
-        DBEQ Max - CBOE BYX.
-    DBEQ_MAX_EDGA
-        DBEQ Max - CBOE EDGA.
-    DBEQ_MAX_EDGX
-        DBEQ Max - CBOE EDGX.
-    DBEQ_MAX_XBOS
-        DBEQ Max - Nasdaq BX.
-    DBEQ_MAX_XPSX
-        DBEQ Max - Nasdaq PSX.
-    DBEQ_MAX_MEMX
-        DBEQ Max - MEMX.
-    DBEQ_MAX_XASE
-        DBEQ Max - NYSE American.
-    DBEQ_MAX_ARCX
-        DBEQ Max - NYSE Arca.
-    DBEQ_MAX_LTSE
-        DBEQ Max - Long-Term Stock Exchange.
+    EQUS_ALL_XCHI
+        Databento US Equities (All Feeds) - NYSE Chicago.
+    EQUS_ALL_XCIS
+        Databento US Equities (All Feeds) - NYSE National.
+    EQUS_ALL_IEXG
+        Databento US Equities (All Feeds) - IEX.
+    EQUS_ALL_EPRL
+        Databento US Equities (All Feeds) - MIAX Pearl.
+    EQUS_ALL_XNAS
+        Databento US Equities (All Feeds) - Nasdaq.
+    EQUS_ALL_XNYS
+        Databento US Equities (All Feeds) - NYSE.
+    EQUS_ALL_FINN
+        Databento US Equities (All Feeds) - FINRA/Nasdaq TRF Carteret.
+    EQUS_ALL_FINY
+        Databento US Equities (All Feeds) - FINRA/NYSE TRF.
+    EQUS_ALL_FINC
+        Databento US Equities (All Feeds) - FINRA/Nasdaq TRF Chicago.
+    EQUS_ALL_BATS
+        Databento US Equities (All Feeds) - CBOE BZX.
+    EQUS_ALL_BATY
+        Databento US Equities (All Feeds) - CBOE BYX.
+    EQUS_ALL_EDGA
+        Databento US Equities (All Feeds) - CBOE EDGA.
+    EQUS_ALL_EDGX
+        Databento US Equities (All Feeds) - CBOE EDGX.
+    EQUS_ALL_XBOS
+        Databento US Equities (All Feeds) - Nasdaq BX.
+    EQUS_ALL_XPSX
+        Databento US Equities (All Feeds) - Nasdaq PSX.
+    EQUS_ALL_MEMX
+        Databento US Equities (All Feeds) - MEMX.
+    EQUS_ALL_XASE
+        Databento US Equities (All Feeds) - NYSE American.
+    EQUS_ALL_ARCX
+        Databento US Equities (All Feeds) - NYSE Arca.
+    EQUS_ALL_LTSE
+        Databento US Equities (All Feeds) - Long-Term Stock Exchange.
     XNAS_BASIC_XNAS
         Nasdaq Basic - Nasdaq.
     XNAS_BASIC_FINN
@@ -976,16 +994,20 @@ class Publisher(StringyMixin, str, Enum):
         Nasdaq Basic - Nasdaq BX.
     XNAS_BASIC_XPSX
         Nasdaq Basic - Nasdaq PSX.
-    DBEQ_SUMMARY_DBEQ
+    EQUS_SUMMARY_EQUS
         Databento Equities Summary.
-    XCIS_BBOTRADES_XCIS
-        NYSE National BBO and Trades.
-    XNYS_BBOTRADES_XNYS
-        NYSE BBO and Trades.
-    XNAS_BASIC_DBEQ
+    XCIS_TRADESBBO_XCIS
+        NYSE National Trades and BBO.
+    XNYS_TRADESBBO_XNYS
+        NYSE Trades and BBO.
+    XNAS_BASIC_EQUS
         Nasdaq Basic - Consolidated.
-    DBEQ_MAX_DBEQ
-        DBEQ Max - Consolidated.
+    EQUS_ALL_EQUS
+        Databento US Equities (All Feeds) - Consolidated.
+    EQUS_MINI_EQUS
+        Databento US Equities Mini.
+    XNYS_TRADES_EQUS
+        NYSE Trades - Consolidated.
 
     """
 
@@ -1036,39 +1058,39 @@ class Publisher(StringyMixin, str, Enum):
     XNYS_TRADES_XNYS = "XNYS.TRADES.XNYS"
     XNAS_QBBO_XNAS = "XNAS.QBBO.XNAS"
     XNAS_NLS_XNAS = "XNAS.NLS.XNAS"
-    DBEQ_PLUS_XCHI = "DBEQ.PLUS.XCHI"
-    DBEQ_PLUS_XCIS = "DBEQ.PLUS.XCIS"
-    DBEQ_PLUS_IEXG = "DBEQ.PLUS.IEXG"
-    DBEQ_PLUS_EPRL = "DBEQ.PLUS.EPRL"
-    DBEQ_PLUS_XNAS = "DBEQ.PLUS.XNAS"
-    DBEQ_PLUS_XNYS = "DBEQ.PLUS.XNYS"
-    DBEQ_PLUS_FINN = "DBEQ.PLUS.FINN"
-    DBEQ_PLUS_FINY = "DBEQ.PLUS.FINY"
-    DBEQ_PLUS_FINC = "DBEQ.PLUS.FINC"
+    EQUS_PLUS_XCHI = "EQUS.PLUS.XCHI"
+    EQUS_PLUS_XCIS = "EQUS.PLUS.XCIS"
+    EQUS_PLUS_IEXG = "EQUS.PLUS.IEXG"
+    EQUS_PLUS_EPRL = "EQUS.PLUS.EPRL"
+    EQUS_PLUS_XNAS = "EQUS.PLUS.XNAS"
+    EQUS_PLUS_XNYS = "EQUS.PLUS.XNYS"
+    EQUS_PLUS_FINN = "EQUS.PLUS.FINN"
+    EQUS_PLUS_FINY = "EQUS.PLUS.FINY"
+    EQUS_PLUS_FINC = "EQUS.PLUS.FINC"
     IFEU_IMPACT_IFEU = "IFEU.IMPACT.IFEU"
     NDEX_IMPACT_NDEX = "NDEX.IMPACT.NDEX"
     DBEQ_BASIC_DBEQ = "DBEQ.BASIC.DBEQ"
-    DBEQ_PLUS_DBEQ = "DBEQ.PLUS.DBEQ"
+    EQUS_PLUS_EQUS = "EQUS.PLUS.EQUS"
     OPRA_PILLAR_SPHR = "OPRA.PILLAR.SPHR"
-    DBEQ_MAX_XCHI = "DBEQ.MAX.XCHI"
-    DBEQ_MAX_XCIS = "DBEQ.MAX.XCIS"
-    DBEQ_MAX_IEXG = "DBEQ.MAX.IEXG"
-    DBEQ_MAX_EPRL = "DBEQ.MAX.EPRL"
-    DBEQ_MAX_XNAS = "DBEQ.MAX.XNAS"
-    DBEQ_MAX_XNYS = "DBEQ.MAX.XNYS"
-    DBEQ_MAX_FINN = "DBEQ.MAX.FINN"
-    DBEQ_MAX_FINY = "DBEQ.MAX.FINY"
-    DBEQ_MAX_FINC = "DBEQ.MAX.FINC"
-    DBEQ_MAX_BATS = "DBEQ.MAX.BATS"
-    DBEQ_MAX_BATY = "DBEQ.MAX.BATY"
-    DBEQ_MAX_EDGA = "DBEQ.MAX.EDGA"
-    DBEQ_MAX_EDGX = "DBEQ.MAX.EDGX"
-    DBEQ_MAX_XBOS = "DBEQ.MAX.XBOS"
-    DBEQ_MAX_XPSX = "DBEQ.MAX.XPSX"
-    DBEQ_MAX_MEMX = "DBEQ.MAX.MEMX"
-    DBEQ_MAX_XASE = "DBEQ.MAX.XASE"
-    DBEQ_MAX_ARCX = "DBEQ.MAX.ARCX"
-    DBEQ_MAX_LTSE = "DBEQ.MAX.LTSE"
+    EQUS_ALL_XCHI = "EQUS.ALL.XCHI"
+    EQUS_ALL_XCIS = "EQUS.ALL.XCIS"
+    EQUS_ALL_IEXG = "EQUS.ALL.IEXG"
+    EQUS_ALL_EPRL = "EQUS.ALL.EPRL"
+    EQUS_ALL_XNAS = "EQUS.ALL.XNAS"
+    EQUS_ALL_XNYS = "EQUS.ALL.XNYS"
+    EQUS_ALL_FINN = "EQUS.ALL.FINN"
+    EQUS_ALL_FINY = "EQUS.ALL.FINY"
+    EQUS_ALL_FINC = "EQUS.ALL.FINC"
+    EQUS_ALL_BATS = "EQUS.ALL.BATS"
+    EQUS_ALL_BATY = "EQUS.ALL.BATY"
+    EQUS_ALL_EDGA = "EQUS.ALL.EDGA"
+    EQUS_ALL_EDGX = "EQUS.ALL.EDGX"
+    EQUS_ALL_XBOS = "EQUS.ALL.XBOS"
+    EQUS_ALL_XPSX = "EQUS.ALL.XPSX"
+    EQUS_ALL_MEMX = "EQUS.ALL.MEMX"
+    EQUS_ALL_XASE = "EQUS.ALL.XASE"
+    EQUS_ALL_ARCX = "EQUS.ALL.ARCX"
+    EQUS_ALL_LTSE = "EQUS.ALL.LTSE"
     XNAS_BASIC_XNAS = "XNAS.BASIC.XNAS"
     XNAS_BASIC_FINN = "XNAS.BASIC.FINN"
     XNAS_BASIC_FINC = "XNAS.BASIC.FINC"
@@ -1078,11 +1100,13 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_NLS_XPSX = "XNAS.NLS.XPSX"
     XNAS_BASIC_XBOS = "XNAS.BASIC.XBOS"
     XNAS_BASIC_XPSX = "XNAS.BASIC.XPSX"
-    DBEQ_SUMMARY_DBEQ = "DBEQ.SUMMARY.DBEQ"
-    XCIS_BBOTRADES_XCIS = "XCIS.BBOTRADES.XCIS"
-    XNYS_BBOTRADES_XNYS = "XNYS.BBOTRADES.XNYS"
-    XNAS_BASIC_DBEQ = "XNAS.BASIC.DBEQ"
-    DBEQ_MAX_DBEQ = "DBEQ.MAX.DBEQ"
+    EQUS_SUMMARY_EQUS = "EQUS.SUMMARY.EQUS"
+    XCIS_TRADESBBO_XCIS = "XCIS.TRADESBBO.XCIS"
+    XNYS_TRADESBBO_XNYS = "XNYS.TRADESBBO.XNYS"
+    XNAS_BASIC_EQUS = "XNAS.BASIC.EQUS"
+    EQUS_ALL_EQUS = "EQUS.ALL.EQUS"
+    EQUS_MINI_EQUS = "EQUS.MINI.EQUS"
+    XNYS_TRADES_EQUS = "XNYS.TRADES.EQUS"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1184,23 +1208,23 @@ class Publisher(StringyMixin, str, Enum):
         if value == 47:
             return Publisher.XNAS_NLS_XNAS
         if value == 48:
-            return Publisher.DBEQ_PLUS_XCHI
+            return Publisher.EQUS_PLUS_XCHI
         if value == 49:
-            return Publisher.DBEQ_PLUS_XCIS
+            return Publisher.EQUS_PLUS_XCIS
         if value == 50:
-            return Publisher.DBEQ_PLUS_IEXG
+            return Publisher.EQUS_PLUS_IEXG
         if value == 51:
-            return Publisher.DBEQ_PLUS_EPRL
+            return Publisher.EQUS_PLUS_EPRL
         if value == 52:
-            return Publisher.DBEQ_PLUS_XNAS
+            return Publisher.EQUS_PLUS_XNAS
         if value == 53:
-            return Publisher.DBEQ_PLUS_XNYS
+            return Publisher.EQUS_PLUS_XNYS
         if value == 54:
-            return Publisher.DBEQ_PLUS_FINN
+            return Publisher.EQUS_PLUS_FINN
         if value == 55:
-            return Publisher.DBEQ_PLUS_FINY
+            return Publisher.EQUS_PLUS_FINY
         if value == 56:
-            return Publisher.DBEQ_PLUS_FINC
+            return Publisher.EQUS_PLUS_FINC
         if value == 57:
             return Publisher.IFEU_IMPACT_IFEU
         if value == 58:
@@ -1208,47 +1232,47 @@ class Publisher(StringyMixin, str, Enum):
         if value == 59:
             return Publisher.DBEQ_BASIC_DBEQ
         if value == 60:
-            return Publisher.DBEQ_PLUS_DBEQ
+            return Publisher.EQUS_PLUS_EQUS
         if value == 61:
             return Publisher.OPRA_PILLAR_SPHR
         if value == 62:
-            return Publisher.DBEQ_MAX_XCHI
+            return Publisher.EQUS_ALL_XCHI
         if value == 63:
-            return Publisher.DBEQ_MAX_XCIS
+            return Publisher.EQUS_ALL_XCIS
         if value == 64:
-            return Publisher.DBEQ_MAX_IEXG
+            return Publisher.EQUS_ALL_IEXG
         if value == 65:
-            return Publisher.DBEQ_MAX_EPRL
+            return Publisher.EQUS_ALL_EPRL
         if value == 66:
-            return Publisher.DBEQ_MAX_XNAS
+            return Publisher.EQUS_ALL_XNAS
         if value == 67:
-            return Publisher.DBEQ_MAX_XNYS
+            return Publisher.EQUS_ALL_XNYS
         if value == 68:
-            return Publisher.DBEQ_MAX_FINN
+            return Publisher.EQUS_ALL_FINN
         if value == 69:
-            return Publisher.DBEQ_MAX_FINY
+            return Publisher.EQUS_ALL_FINY
         if value == 70:
-            return Publisher.DBEQ_MAX_FINC
+            return Publisher.EQUS_ALL_FINC
         if value == 71:
-            return Publisher.DBEQ_MAX_BATS
+            return Publisher.EQUS_ALL_BATS
         if value == 72:
-            return Publisher.DBEQ_MAX_BATY
+            return Publisher.EQUS_ALL_BATY
         if value == 73:
-            return Publisher.DBEQ_MAX_EDGA
+            return Publisher.EQUS_ALL_EDGA
         if value == 74:
-            return Publisher.DBEQ_MAX_EDGX
+            return Publisher.EQUS_ALL_EDGX
         if value == 75:
-            return Publisher.DBEQ_MAX_XBOS
+            return Publisher.EQUS_ALL_XBOS
         if value == 76:
-            return Publisher.DBEQ_MAX_XPSX
+            return Publisher.EQUS_ALL_XPSX
         if value == 77:
-            return Publisher.DBEQ_MAX_MEMX
+            return Publisher.EQUS_ALL_MEMX
         if value == 78:
-            return Publisher.DBEQ_MAX_XASE
+            return Publisher.EQUS_ALL_XASE
         if value == 79:
-            return Publisher.DBEQ_MAX_ARCX
+            return Publisher.EQUS_ALL_ARCX
         if value == 80:
-            return Publisher.DBEQ_MAX_LTSE
+            return Publisher.EQUS_ALL_LTSE
         if value == 81:
             return Publisher.XNAS_BASIC_XNAS
         if value == 82:
@@ -1268,15 +1292,19 @@ class Publisher(StringyMixin, str, Enum):
         if value == 89:
             return Publisher.XNAS_BASIC_XPSX
         if value == 90:
-            return Publisher.DBEQ_SUMMARY_DBEQ
+            return Publisher.EQUS_SUMMARY_EQUS
         if value == 91:
-            return Publisher.XCIS_BBOTRADES_XCIS
+            return Publisher.XCIS_TRADESBBO_XCIS
         if value == 92:
-            return Publisher.XNYS_BBOTRADES_XNYS
+            return Publisher.XNYS_TRADESBBO_XNYS
         if value == 93:
-            return Publisher.XNAS_BASIC_DBEQ
+            return Publisher.XNAS_BASIC_EQUS
         if value == 94:
-            return Publisher.DBEQ_MAX_DBEQ
+            return Publisher.EQUS_ALL_EQUS
+        if value == 95:
+            return Publisher.EQUS_MINI_EQUS
+        if value == 96:
+            return Publisher.XNYS_TRADES_EQUS
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1377,23 +1405,23 @@ class Publisher(StringyMixin, str, Enum):
             return 46
         if self == Publisher.XNAS_NLS_XNAS:
             return 47
-        if self == Publisher.DBEQ_PLUS_XCHI:
+        if self == Publisher.EQUS_PLUS_XCHI:
             return 48
-        if self == Publisher.DBEQ_PLUS_XCIS:
+        if self == Publisher.EQUS_PLUS_XCIS:
             return 49
-        if self == Publisher.DBEQ_PLUS_IEXG:
+        if self == Publisher.EQUS_PLUS_IEXG:
             return 50
-        if self == Publisher.DBEQ_PLUS_EPRL:
+        if self == Publisher.EQUS_PLUS_EPRL:
             return 51
-        if self == Publisher.DBEQ_PLUS_XNAS:
+        if self == Publisher.EQUS_PLUS_XNAS:
             return 52
-        if self == Publisher.DBEQ_PLUS_XNYS:
+        if self == Publisher.EQUS_PLUS_XNYS:
             return 53
-        if self == Publisher.DBEQ_PLUS_FINN:
+        if self == Publisher.EQUS_PLUS_FINN:
             return 54
-        if self == Publisher.DBEQ_PLUS_FINY:
+        if self == Publisher.EQUS_PLUS_FINY:
             return 55
-        if self == Publisher.DBEQ_PLUS_FINC:
+        if self == Publisher.EQUS_PLUS_FINC:
             return 56
         if self == Publisher.IFEU_IMPACT_IFEU:
             return 57
@@ -1401,47 +1429,47 @@ class Publisher(StringyMixin, str, Enum):
             return 58
         if self == Publisher.DBEQ_BASIC_DBEQ:
             return 59
-        if self == Publisher.DBEQ_PLUS_DBEQ:
+        if self == Publisher.EQUS_PLUS_EQUS:
             return 60
         if self == Publisher.OPRA_PILLAR_SPHR:
             return 61
-        if self == Publisher.DBEQ_MAX_XCHI:
+        if self == Publisher.EQUS_ALL_XCHI:
             return 62
-        if self == Publisher.DBEQ_MAX_XCIS:
+        if self == Publisher.EQUS_ALL_XCIS:
             return 63
-        if self == Publisher.DBEQ_MAX_IEXG:
+        if self == Publisher.EQUS_ALL_IEXG:
             return 64
-        if self == Publisher.DBEQ_MAX_EPRL:
+        if self == Publisher.EQUS_ALL_EPRL:
             return 65
-        if self == Publisher.DBEQ_MAX_XNAS:
+        if self == Publisher.EQUS_ALL_XNAS:
             return 66
-        if self == Publisher.DBEQ_MAX_XNYS:
+        if self == Publisher.EQUS_ALL_XNYS:
             return 67
-        if self == Publisher.DBEQ_MAX_FINN:
+        if self == Publisher.EQUS_ALL_FINN:
             return 68
-        if self == Publisher.DBEQ_MAX_FINY:
+        if self == Publisher.EQUS_ALL_FINY:
             return 69
-        if self == Publisher.DBEQ_MAX_FINC:
+        if self == Publisher.EQUS_ALL_FINC:
             return 70
-        if self == Publisher.DBEQ_MAX_BATS:
+        if self == Publisher.EQUS_ALL_BATS:
             return 71
-        if self == Publisher.DBEQ_MAX_BATY:
+        if self == Publisher.EQUS_ALL_BATY:
             return 72
-        if self == Publisher.DBEQ_MAX_EDGA:
+        if self == Publisher.EQUS_ALL_EDGA:
             return 73
-        if self == Publisher.DBEQ_MAX_EDGX:
+        if self == Publisher.EQUS_ALL_EDGX:
             return 74
-        if self == Publisher.DBEQ_MAX_XBOS:
+        if self == Publisher.EQUS_ALL_XBOS:
             return 75
-        if self == Publisher.DBEQ_MAX_XPSX:
+        if self == Publisher.EQUS_ALL_XPSX:
             return 76
-        if self == Publisher.DBEQ_MAX_MEMX:
+        if self == Publisher.EQUS_ALL_MEMX:
             return 77
-        if self == Publisher.DBEQ_MAX_XASE:
+        if self == Publisher.EQUS_ALL_XASE:
             return 78
-        if self == Publisher.DBEQ_MAX_ARCX:
+        if self == Publisher.EQUS_ALL_ARCX:
             return 79
-        if self == Publisher.DBEQ_MAX_LTSE:
+        if self == Publisher.EQUS_ALL_LTSE:
             return 80
         if self == Publisher.XNAS_BASIC_XNAS:
             return 81
@@ -1461,16 +1489,20 @@ class Publisher(StringyMixin, str, Enum):
             return 88
         if self == Publisher.XNAS_BASIC_XPSX:
             return 89
-        if self == Publisher.DBEQ_SUMMARY_DBEQ:
+        if self == Publisher.EQUS_SUMMARY_EQUS:
             return 90
-        if self == Publisher.XCIS_BBOTRADES_XCIS:
+        if self == Publisher.XCIS_TRADESBBO_XCIS:
             return 91
-        if self == Publisher.XNYS_BBOTRADES_XNYS:
+        if self == Publisher.XNYS_TRADESBBO_XNYS:
             return 92
-        if self == Publisher.XNAS_BASIC_DBEQ:
+        if self == Publisher.XNAS_BASIC_EQUS:
             return 93
-        if self == Publisher.DBEQ_MAX_DBEQ:
+        if self == Publisher.EQUS_ALL_EQUS:
             return 94
+        if self == Publisher.EQUS_MINI_EQUS:
+            return 95
+        if self == Publisher.XNYS_TRADES_EQUS:
+            return 96
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1572,23 +1604,23 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XNAS
         if self == Publisher.XNAS_NLS_XNAS:
             return Venue.XNAS
-        if self == Publisher.DBEQ_PLUS_XCHI:
+        if self == Publisher.EQUS_PLUS_XCHI:
             return Venue.XCHI
-        if self == Publisher.DBEQ_PLUS_XCIS:
+        if self == Publisher.EQUS_PLUS_XCIS:
             return Venue.XCIS
-        if self == Publisher.DBEQ_PLUS_IEXG:
+        if self == Publisher.EQUS_PLUS_IEXG:
             return Venue.IEXG
-        if self == Publisher.DBEQ_PLUS_EPRL:
+        if self == Publisher.EQUS_PLUS_EPRL:
             return Venue.EPRL
-        if self == Publisher.DBEQ_PLUS_XNAS:
+        if self == Publisher.EQUS_PLUS_XNAS:
             return Venue.XNAS
-        if self == Publisher.DBEQ_PLUS_XNYS:
+        if self == Publisher.EQUS_PLUS_XNYS:
             return Venue.XNYS
-        if self == Publisher.DBEQ_PLUS_FINN:
+        if self == Publisher.EQUS_PLUS_FINN:
             return Venue.FINN
-        if self == Publisher.DBEQ_PLUS_FINY:
+        if self == Publisher.EQUS_PLUS_FINY:
             return Venue.FINY
-        if self == Publisher.DBEQ_PLUS_FINC:
+        if self == Publisher.EQUS_PLUS_FINC:
             return Venue.FINC
         if self == Publisher.IFEU_IMPACT_IFEU:
             return Venue.IFEU
@@ -1596,47 +1628,47 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.NDEX
         if self == Publisher.DBEQ_BASIC_DBEQ:
             return Venue.DBEQ
-        if self == Publisher.DBEQ_PLUS_DBEQ:
-            return Venue.DBEQ
+        if self == Publisher.EQUS_PLUS_EQUS:
+            return Venue.EQUS
         if self == Publisher.OPRA_PILLAR_SPHR:
             return Venue.SPHR
-        if self == Publisher.DBEQ_MAX_XCHI:
+        if self == Publisher.EQUS_ALL_XCHI:
             return Venue.XCHI
-        if self == Publisher.DBEQ_MAX_XCIS:
+        if self == Publisher.EQUS_ALL_XCIS:
             return Venue.XCIS
-        if self == Publisher.DBEQ_MAX_IEXG:
+        if self == Publisher.EQUS_ALL_IEXG:
             return Venue.IEXG
-        if self == Publisher.DBEQ_MAX_EPRL:
+        if self == Publisher.EQUS_ALL_EPRL:
             return Venue.EPRL
-        if self == Publisher.DBEQ_MAX_XNAS:
+        if self == Publisher.EQUS_ALL_XNAS:
             return Venue.XNAS
-        if self == Publisher.DBEQ_MAX_XNYS:
+        if self == Publisher.EQUS_ALL_XNYS:
             return Venue.XNYS
-        if self == Publisher.DBEQ_MAX_FINN:
+        if self == Publisher.EQUS_ALL_FINN:
             return Venue.FINN
-        if self == Publisher.DBEQ_MAX_FINY:
+        if self == Publisher.EQUS_ALL_FINY:
             return Venue.FINY
-        if self == Publisher.DBEQ_MAX_FINC:
+        if self == Publisher.EQUS_ALL_FINC:
             return Venue.FINC
-        if self == Publisher.DBEQ_MAX_BATS:
+        if self == Publisher.EQUS_ALL_BATS:
             return Venue.BATS
-        if self == Publisher.DBEQ_MAX_BATY:
+        if self == Publisher.EQUS_ALL_BATY:
             return Venue.BATY
-        if self == Publisher.DBEQ_MAX_EDGA:
+        if self == Publisher.EQUS_ALL_EDGA:
             return Venue.EDGA
-        if self == Publisher.DBEQ_MAX_EDGX:
+        if self == Publisher.EQUS_ALL_EDGX:
             return Venue.EDGX
-        if self == Publisher.DBEQ_MAX_XBOS:
+        if self == Publisher.EQUS_ALL_XBOS:
             return Venue.XBOS
-        if self == Publisher.DBEQ_MAX_XPSX:
+        if self == Publisher.EQUS_ALL_XPSX:
             return Venue.XPSX
-        if self == Publisher.DBEQ_MAX_MEMX:
+        if self == Publisher.EQUS_ALL_MEMX:
             return Venue.MEMX
-        if self == Publisher.DBEQ_MAX_XASE:
+        if self == Publisher.EQUS_ALL_XASE:
             return Venue.XASE
-        if self == Publisher.DBEQ_MAX_ARCX:
+        if self == Publisher.EQUS_ALL_ARCX:
             return Venue.ARCX
-        if self == Publisher.DBEQ_MAX_LTSE:
+        if self == Publisher.EQUS_ALL_LTSE:
             return Venue.LTSE
         if self == Publisher.XNAS_BASIC_XNAS:
             return Venue.XNAS
@@ -1656,16 +1688,20 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XBOS
         if self == Publisher.XNAS_BASIC_XPSX:
             return Venue.XPSX
-        if self == Publisher.DBEQ_SUMMARY_DBEQ:
-            return Venue.DBEQ
-        if self == Publisher.XCIS_BBOTRADES_XCIS:
+        if self == Publisher.EQUS_SUMMARY_EQUS:
+            return Venue.EQUS
+        if self == Publisher.XCIS_TRADESBBO_XCIS:
             return Venue.XCIS
-        if self == Publisher.XNYS_BBOTRADES_XNYS:
+        if self == Publisher.XNYS_TRADESBBO_XNYS:
             return Venue.XNYS
-        if self == Publisher.XNAS_BASIC_DBEQ:
-            return Venue.DBEQ
-        if self == Publisher.DBEQ_MAX_DBEQ:
-            return Venue.DBEQ
+        if self == Publisher.XNAS_BASIC_EQUS:
+            return Venue.EQUS
+        if self == Publisher.EQUS_ALL_EQUS:
+            return Venue.EQUS
+        if self == Publisher.EQUS_MINI_EQUS:
+            return Venue.EQUS
+        if self == Publisher.XNYS_TRADES_EQUS:
+            return Venue.EQUS
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1767,72 +1803,72 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XNAS_QBBO
         if self == Publisher.XNAS_NLS_XNAS:
             return Dataset.XNAS_NLS
-        if self == Publisher.DBEQ_PLUS_XCHI:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_XCIS:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_IEXG:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_EPRL:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_XNAS:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_XNYS:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_FINN:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_FINY:
-            return Dataset.DBEQ_PLUS
-        if self == Publisher.DBEQ_PLUS_FINC:
-            return Dataset.DBEQ_PLUS
+        if self == Publisher.EQUS_PLUS_XCHI:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_XCIS:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_IEXG:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_EPRL:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_XNAS:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_XNYS:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_FINN:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_FINY:
+            return Dataset.EQUS_PLUS
+        if self == Publisher.EQUS_PLUS_FINC:
+            return Dataset.EQUS_PLUS
         if self == Publisher.IFEU_IMPACT_IFEU:
             return Dataset.IFEU_IMPACT
         if self == Publisher.NDEX_IMPACT_NDEX:
             return Dataset.NDEX_IMPACT
         if self == Publisher.DBEQ_BASIC_DBEQ:
             return Dataset.DBEQ_BASIC
-        if self == Publisher.DBEQ_PLUS_DBEQ:
-            return Dataset.DBEQ_PLUS
+        if self == Publisher.EQUS_PLUS_EQUS:
+            return Dataset.EQUS_PLUS
         if self == Publisher.OPRA_PILLAR_SPHR:
             return Dataset.OPRA_PILLAR
-        if self == Publisher.DBEQ_MAX_XCHI:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_XCIS:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_IEXG:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_EPRL:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_XNAS:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_XNYS:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_FINN:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_FINY:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_FINC:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_BATS:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_BATY:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_EDGA:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_EDGX:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_XBOS:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_XPSX:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_MEMX:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_XASE:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_ARCX:
-            return Dataset.DBEQ_MAX
-        if self == Publisher.DBEQ_MAX_LTSE:
-            return Dataset.DBEQ_MAX
+        if self == Publisher.EQUS_ALL_XCHI:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_XCIS:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_IEXG:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_EPRL:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_XNAS:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_XNYS:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_FINN:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_FINY:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_FINC:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_BATS:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_BATY:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_EDGA:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_EDGX:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_XBOS:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_XPSX:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_MEMX:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_XASE:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_ARCX:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_ALL_LTSE:
+            return Dataset.EQUS_ALL
         if self == Publisher.XNAS_BASIC_XNAS:
             return Dataset.XNAS_BASIC
         if self == Publisher.XNAS_BASIC_FINN:
@@ -1851,16 +1887,20 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XNAS_BASIC
         if self == Publisher.XNAS_BASIC_XPSX:
             return Dataset.XNAS_BASIC
-        if self == Publisher.DBEQ_SUMMARY_DBEQ:
-            return Dataset.DBEQ_SUMMARY
-        if self == Publisher.XCIS_BBOTRADES_XCIS:
-            return Dataset.XCIS_BBOTRADES
-        if self == Publisher.XNYS_BBOTRADES_XNYS:
-            return Dataset.XNYS_BBOTRADES
-        if self == Publisher.XNAS_BASIC_DBEQ:
+        if self == Publisher.EQUS_SUMMARY_EQUS:
+            return Dataset.EQUS_SUMMARY
+        if self == Publisher.XCIS_TRADESBBO_XCIS:
+            return Dataset.XCIS_TRADESBBO
+        if self == Publisher.XNYS_TRADESBBO_XNYS:
+            return Dataset.XNYS_TRADESBBO
+        if self == Publisher.XNAS_BASIC_EQUS:
             return Dataset.XNAS_BASIC
-        if self == Publisher.DBEQ_MAX_DBEQ:
-            return Dataset.DBEQ_MAX
+        if self == Publisher.EQUS_ALL_EQUS:
+            return Dataset.EQUS_ALL
+        if self == Publisher.EQUS_MINI_EQUS:
+            return Dataset.EQUS_MINI
+        if self == Publisher.XNYS_TRADES_EQUS:
+            return Dataset.XNYS_TRADES
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1962,72 +2002,72 @@ class Publisher(StringyMixin, str, Enum):
             return "Nasdaq QBBO"
         if self == Publisher.XNAS_NLS_XNAS:
             return "Nasdaq Trades"
-        if self == Publisher.DBEQ_PLUS_XCHI:
-            return "DBEQ Plus - NYSE Chicago"
-        if self == Publisher.DBEQ_PLUS_XCIS:
-            return "DBEQ Plus - NYSE National"
-        if self == Publisher.DBEQ_PLUS_IEXG:
-            return "DBEQ Plus - IEX"
-        if self == Publisher.DBEQ_PLUS_EPRL:
-            return "DBEQ Plus - MIAX Pearl"
-        if self == Publisher.DBEQ_PLUS_XNAS:
-            return "DBEQ Plus - Nasdaq"
-        if self == Publisher.DBEQ_PLUS_XNYS:
-            return "DBEQ Plus - NYSE"
-        if self == Publisher.DBEQ_PLUS_FINN:
-            return "DBEQ Plus - FINRA/Nasdaq TRF Carteret"
-        if self == Publisher.DBEQ_PLUS_FINY:
-            return "DBEQ Plus - FINRA/NYSE TRF"
-        if self == Publisher.DBEQ_PLUS_FINC:
-            return "DBEQ Plus - FINRA/Nasdaq TRF Chicago"
+        if self == Publisher.EQUS_PLUS_XCHI:
+            return "Databento US Equities Plus - NYSE Chicago"
+        if self == Publisher.EQUS_PLUS_XCIS:
+            return "Databento US Equities Plus - NYSE National"
+        if self == Publisher.EQUS_PLUS_IEXG:
+            return "Databento US Equities Plus - IEX"
+        if self == Publisher.EQUS_PLUS_EPRL:
+            return "Databento US Equities Plus - MIAX Pearl"
+        if self == Publisher.EQUS_PLUS_XNAS:
+            return "Databento US Equities Plus - Nasdaq"
+        if self == Publisher.EQUS_PLUS_XNYS:
+            return "Databento US Equities Plus - NYSE"
+        if self == Publisher.EQUS_PLUS_FINN:
+            return "Databento US Equities Plus - FINRA/Nasdaq TRF Carteret"
+        if self == Publisher.EQUS_PLUS_FINY:
+            return "Databento US Equities Plus - FINRA/NYSE TRF"
+        if self == Publisher.EQUS_PLUS_FINC:
+            return "Databento US Equities Plus - FINRA/Nasdaq TRF Chicago"
         if self == Publisher.IFEU_IMPACT_IFEU:
             return "ICE Futures Europe (Commodities)"
         if self == Publisher.NDEX_IMPACT_NDEX:
             return "ICE Endex"
         if self == Publisher.DBEQ_BASIC_DBEQ:
-            return "DBEQ Basic - Consolidated"
-        if self == Publisher.DBEQ_PLUS_DBEQ:
-            return "DBEQ Plus - Consolidated"
+            return "Databento US Equities Basic - Consolidated"
+        if self == Publisher.EQUS_PLUS_EQUS:
+            return "EQUS Plus - Consolidated"
         if self == Publisher.OPRA_PILLAR_SPHR:
             return "OPRA - MIAX Sapphire"
-        if self == Publisher.DBEQ_MAX_XCHI:
-            return "DBEQ Max - NYSE Chicago"
-        if self == Publisher.DBEQ_MAX_XCIS:
-            return "DBEQ Max - NYSE National"
-        if self == Publisher.DBEQ_MAX_IEXG:
-            return "DBEQ Max - IEX"
-        if self == Publisher.DBEQ_MAX_EPRL:
-            return "DBEQ Max - MIAX Pearl"
-        if self == Publisher.DBEQ_MAX_XNAS:
-            return "DBEQ Max - Nasdaq"
-        if self == Publisher.DBEQ_MAX_XNYS:
-            return "DBEQ Max - NYSE"
-        if self == Publisher.DBEQ_MAX_FINN:
-            return "DBEQ Max - FINRA/Nasdaq TRF Carteret"
-        if self == Publisher.DBEQ_MAX_FINY:
-            return "DBEQ Max - FINRA/NYSE TRF"
-        if self == Publisher.DBEQ_MAX_FINC:
-            return "DBEQ Max - FINRA/Nasdaq TRF Chicago"
-        if self == Publisher.DBEQ_MAX_BATS:
-            return "DBEQ Max - CBOE BZX"
-        if self == Publisher.DBEQ_MAX_BATY:
-            return "DBEQ Max - CBOE BYX"
-        if self == Publisher.DBEQ_MAX_EDGA:
-            return "DBEQ Max - CBOE EDGA"
-        if self == Publisher.DBEQ_MAX_EDGX:
-            return "DBEQ Max - CBOE EDGX"
-        if self == Publisher.DBEQ_MAX_XBOS:
-            return "DBEQ Max - Nasdaq BX"
-        if self == Publisher.DBEQ_MAX_XPSX:
-            return "DBEQ Max - Nasdaq PSX"
-        if self == Publisher.DBEQ_MAX_MEMX:
-            return "DBEQ Max - MEMX"
-        if self == Publisher.DBEQ_MAX_XASE:
-            return "DBEQ Max - NYSE American"
-        if self == Publisher.DBEQ_MAX_ARCX:
-            return "DBEQ Max - NYSE Arca"
-        if self == Publisher.DBEQ_MAX_LTSE:
-            return "DBEQ Max - Long-Term Stock Exchange"
+        if self == Publisher.EQUS_ALL_XCHI:
+            return "Databento US Equities (All Feeds) - NYSE Chicago"
+        if self == Publisher.EQUS_ALL_XCIS:
+            return "Databento US Equities (All Feeds) - NYSE National"
+        if self == Publisher.EQUS_ALL_IEXG:
+            return "Databento US Equities (All Feeds) - IEX"
+        if self == Publisher.EQUS_ALL_EPRL:
+            return "Databento US Equities (All Feeds) - MIAX Pearl"
+        if self == Publisher.EQUS_ALL_XNAS:
+            return "Databento US Equities (All Feeds) - Nasdaq"
+        if self == Publisher.EQUS_ALL_XNYS:
+            return "Databento US Equities (All Feeds) - NYSE"
+        if self == Publisher.EQUS_ALL_FINN:
+            return "Databento US Equities (All Feeds) - FINRA/Nasdaq TRF Carteret"
+        if self == Publisher.EQUS_ALL_FINY:
+            return "Databento US Equities (All Feeds) - FINRA/NYSE TRF"
+        if self == Publisher.EQUS_ALL_FINC:
+            return "Databento US Equities (All Feeds) - FINRA/Nasdaq TRF Chicago"
+        if self == Publisher.EQUS_ALL_BATS:
+            return "Databento US Equities (All Feeds) - CBOE BZX"
+        if self == Publisher.EQUS_ALL_BATY:
+            return "Databento US Equities (All Feeds) - CBOE BYX"
+        if self == Publisher.EQUS_ALL_EDGA:
+            return "Databento US Equities (All Feeds) - CBOE EDGA"
+        if self == Publisher.EQUS_ALL_EDGX:
+            return "Databento US Equities (All Feeds) - CBOE EDGX"
+        if self == Publisher.EQUS_ALL_XBOS:
+            return "Databento US Equities (All Feeds) - Nasdaq BX"
+        if self == Publisher.EQUS_ALL_XPSX:
+            return "Databento US Equities (All Feeds) - Nasdaq PSX"
+        if self == Publisher.EQUS_ALL_MEMX:
+            return "Databento US Equities (All Feeds) - MEMX"
+        if self == Publisher.EQUS_ALL_XASE:
+            return "Databento US Equities (All Feeds) - NYSE American"
+        if self == Publisher.EQUS_ALL_ARCX:
+            return "Databento US Equities (All Feeds) - NYSE Arca"
+        if self == Publisher.EQUS_ALL_LTSE:
+            return "Databento US Equities (All Feeds) - Long-Term Stock Exchange"
         if self == Publisher.XNAS_BASIC_XNAS:
             return "Nasdaq Basic - Nasdaq"
         if self == Publisher.XNAS_BASIC_FINN:
@@ -2046,14 +2086,18 @@ class Publisher(StringyMixin, str, Enum):
             return "Nasdaq Basic - Nasdaq BX"
         if self == Publisher.XNAS_BASIC_XPSX:
             return "Nasdaq Basic - Nasdaq PSX"
-        if self == Publisher.DBEQ_SUMMARY_DBEQ:
+        if self == Publisher.EQUS_SUMMARY_EQUS:
             return "Databento Equities Summary"
-        if self == Publisher.XCIS_BBOTRADES_XCIS:
-            return "NYSE National BBO and Trades"
-        if self == Publisher.XNYS_BBOTRADES_XNYS:
-            return "NYSE BBO and Trades"
-        if self == Publisher.XNAS_BASIC_DBEQ:
+        if self == Publisher.XCIS_TRADESBBO_XCIS:
+            return "NYSE National Trades and BBO"
+        if self == Publisher.XNYS_TRADESBBO_XNYS:
+            return "NYSE Trades and BBO"
+        if self == Publisher.XNAS_BASIC_EQUS:
             return "Nasdaq Basic - Consolidated"
-        if self == Publisher.DBEQ_MAX_DBEQ:
-            return "DBEQ Max - Consolidated"
+        if self == Publisher.EQUS_ALL_EQUS:
+            return "Databento US Equities (All Feeds) - Consolidated"
+        if self == Publisher.EQUS_MINI_EQUS:
+            return "Databento US Equities Mini"
+        if self == Publisher.XNYS_TRADES_EQUS:
+            return "NYSE Trades - Consolidated"
         raise ValueError("Unexpected Publisher value")

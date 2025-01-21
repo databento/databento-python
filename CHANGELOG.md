@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.48.0 - 2025-01-21
+
+#### Breaking changes
+- Updated enumerations for unreleased datasets and publishers.
+
+#### Enhancements
+- Added export of `StatusAction` enum from `databento_dbn` to the root `databento` package
+- Added export of `StatusReason` enum from `databento_dbn` to the root `databento` package
+- Added export of `TradingEvent` enum from `databento_dbn` to the root `databento` package
+- Added new dataset `EQUS.MINI` and new publishers `EQUS.MINI.EQUS`, `XNYS.TRADES.EQUS`
+- Removed upper bound for supported `python` versions; the constraint is now `^3.9`
+- Upgraded `databento-dbn` to 0.27.0
+    - Fixed export of `InstrumentDefMsgV3` to Python
+
+#### Bug fixes
+- Fixed an issue where sending a `KeyboardInterrupt` during iteration of the `Live` client could block execution waiting for the connection to close
+- Fixed an issue with submitting historical metadata requests for a large number of symbols.
+
 ## 0.47.0 - 2024-12-17
 
 #### Enhancements

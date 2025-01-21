@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import warnings
 from collections.abc import Iterable
+from collections.abc import Mapping
 from io import BytesIO
 from json.decoder import JSONDecodeError
 from os import PathLike
@@ -94,7 +95,7 @@ class BentoHttpAPI:
     def _post(
         self,
         url: str,
-        data: dict[str, object | None] | None = None,
+        data: Mapping[str, object | None] | None = None,
         params: Iterable[tuple[str, str | None]] | None = None,
         basic_auth: bool = False,
     ) -> Response:
