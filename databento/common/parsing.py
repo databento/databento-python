@@ -424,14 +424,14 @@ def convert_datetime_columns(df: pd.DataFrame, columns: list[str]) -> None:
         df[column] = df[column].apply(convert_to_datetime)
 
 
-def convert_ndjson_to_df(data: bytes, compressed: bool) -> pd.DataFrame:
+def convert_jsonl_to_df(data: bytes, compressed: bool) -> pd.DataFrame:
     """
-    Convert the given NDJSON bytes `data` to a pandas DataFrame.
+    Convert the given JSON lines bytes `data` to a pandas DataFrame.
 
     Parameters
     ----------
     data : bytes
-        The NDJSON data as bytes to be converted.
+        The JSON lines data as bytes to be converted.
     compressed : bool
         If the content is zstd compressed.
 

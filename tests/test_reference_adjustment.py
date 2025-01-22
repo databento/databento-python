@@ -128,7 +128,7 @@ def test_adjustment_factors_get_range_response(
 ) -> None:
     # Arrange
     mock_response = MagicMock()
-    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.adjustment-factors.ndjson"
+    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.adjustment-factors.jsonl"
     mock_response.content = zstandard.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response
     mock_response.__exit__ = MagicMock()
