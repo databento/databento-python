@@ -880,6 +880,10 @@ class DBNStore:
         """
         Return the data as a `pd.DataFrame`.
 
+        Notes
+        -----
+        The DataFrame index will be set to `ts_recv` if it exists in the schema, otherwise it will be set to `ts_event`.
+
         Parameters
         ----------
         price_type : PriceType or str, default "float"
