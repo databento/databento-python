@@ -310,10 +310,10 @@ class BatchHttpAPI(BentoHttpAPI):
         extracted_files = []
         for file_path in downloaded_files:
             if file_path.suffix == ".zip":
-                zip_file = zipfile.ZipFile(file_path)
-                for e in zip_file.namelist():
-                    extracted_files.append(file_path.parent / e)
-                zip_file.extractall(path=file_path.parent)
+                with zipfile.ZipFile(file_path) as zip_file:
+                    for e in zip_file.namelist():
+                        extracted_files.append(file_path.parent / e)
+                    zip_file.extractall(path=file_path.parent)
                 file_path.unlink()  # remove the zip archive
             else:
                 extracted_files.append(file_path)
@@ -387,10 +387,10 @@ class BatchHttpAPI(BentoHttpAPI):
         extracted_files = []
         for file_path in downloaded_files:
             if file_path.suffix == ".zip":
-                zip_file = zipfile.ZipFile(file_path)
-                for e in zip_file.namelist():
-                    extracted_files.append(file_path.parent / e)
-                zip_file.extractall(path=file_path.parent)
+                with zipfile.ZipFile(file_path) as zip_file:
+                    for e in zip_file.namelist():
+                        extracted_files.append(file_path.parent / e)
+                    zip_file.extractall(path=file_path.parent)
                 file_path.unlink()  # remove the zip archive
             else:
                 extracted_files.append(file_path)
