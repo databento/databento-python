@@ -510,10 +510,13 @@ class LiveSession:
             )
 
     def terminate(self) -> None:
-        if self._transport is None:
-            return
-        self._transport.abort()
-        self._cleanup()
+        with self._lock:
+            if self._transport is None:
+                return
+            if self._transport.can_write_eof():
+                self._transport.write_eof()
+            self._transport.abort()
+            self._cleanup()
 
     async def wait_for_close(self) -> None:
         """
