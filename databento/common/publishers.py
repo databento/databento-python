@@ -110,6 +110,10 @@ class Venue(StringyMixin, str, Enum):
         IntelligentCross ASPEN Inverted.
     EQUS
         Databento US Equities - Consolidated.
+    IFUS
+        ICE Futures US.
+    IFLL
+        ICE Futures Europe (Financials).
 
     """
 
@@ -160,6 +164,8 @@ class Venue(StringyMixin, str, Enum):
     ASMT = "ASMT"
     ASPI = "ASPI"
     EQUS = "EQUS"
+    IFUS = "IFUS"
+    IFLL = "IFLL"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -260,6 +266,10 @@ class Venue(StringyMixin, str, Enum):
             return Venue.ASPI
         if value == 47:
             return Venue.EQUS
+        if value == 48:
+            return Venue.IFUS
+        if value == 49:
+            return Venue.IFLL
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -360,6 +370,10 @@ class Venue(StringyMixin, str, Enum):
             return 46
         if self == Venue.EQUS:
             return 47
+        if self == Venue.IFUS:
+            return 48
+        if self == Venue.IFLL:
+            return 49
         raise ValueError("Invalid Venue")
 
     @property
@@ -461,6 +475,10 @@ class Venue(StringyMixin, str, Enum):
             return "IntelligentCross ASPEN Inverted"
         if self == Venue.EQUS:
             return "Databento US Equities - Consolidated"
+        if self == Venue.IFUS:
+            return "ICE Futures US"
+        if self == Venue.IFLL:
+            return "ICE Futures Europe (Financials)"
         raise ValueError("Unexpected Venue value")
 
 
@@ -540,6 +558,10 @@ class Dataset(StringyMixin, str, Enum):
         NYSE Trades and BBO.
     EQUS_MINI
         Databento US Equities Mini.
+    IFUS_IMPACT
+        ICE Futures US iMpact.
+    IFLL_IMPACT
+        ICE Futures Europe (Financials) iMpact.
 
     """
 
@@ -578,6 +600,8 @@ class Dataset(StringyMixin, str, Enum):
     XCIS_TRADESBBO = "XCIS.TRADESBBO"
     XNYS_TRADESBBO = "XNYS.TRADESBBO"
     EQUS_MINI = "EQUS.MINI"
+    IFUS_IMPACT = "IFUS.IMPACT"
+    IFLL_IMPACT = "IFLL.IMPACT"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -654,6 +678,10 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.XNYS_TRADESBBO
         if value == 35:
             return Dataset.EQUS_MINI
+        if value == 36:
+            return Dataset.IFUS_IMPACT
+        if value == 37:
+            return Dataset.IFLL_IMPACT
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -730,6 +758,10 @@ class Dataset(StringyMixin, str, Enum):
             return 34
         if self == Dataset.EQUS_MINI:
             return 35
+        if self == Dataset.IFUS_IMPACT:
+            return 36
+        if self == Dataset.IFLL_IMPACT:
+            return 37
         raise ValueError("Invalid Dataset")
 
     @property
@@ -807,6 +839,10 @@ class Dataset(StringyMixin, str, Enum):
             return "NYSE Trades and BBO"
         if self == Dataset.EQUS_MINI:
             return "Databento US Equities Mini"
+        if self == Dataset.IFUS_IMPACT:
+            return "ICE Futures US iMpact"
+        if self == Dataset.IFLL_IMPACT:
+            return "ICE Futures Europe (Financials) iMpact"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -1008,6 +1044,14 @@ class Publisher(StringyMixin, str, Enum):
         Databento US Equities Mini.
     XNYS_TRADES_EQUS
         NYSE Trades - Consolidated.
+    IFUS_IMPACT_IFUS
+        ICE Futures US.
+    IFUS_IMPACT_XOFF
+        ICE Futures US - Off-Market Trades.
+    IFLL_IMPACT_IFLL
+        ICE Futures Europe (Financials).
+    IFLL_IMPACT_XOFF
+        ICE Futures Europe (Financials) - Off-Market Trades.
 
     """
 
@@ -1107,6 +1151,10 @@ class Publisher(StringyMixin, str, Enum):
     EQUS_ALL_EQUS = "EQUS.ALL.EQUS"
     EQUS_MINI_EQUS = "EQUS.MINI.EQUS"
     XNYS_TRADES_EQUS = "XNYS.TRADES.EQUS"
+    IFUS_IMPACT_IFUS = "IFUS.IMPACT.IFUS"
+    IFUS_IMPACT_XOFF = "IFUS.IMPACT.XOFF"
+    IFLL_IMPACT_IFLL = "IFLL.IMPACT.IFLL"
+    IFLL_IMPACT_XOFF = "IFLL.IMPACT.XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1305,6 +1353,14 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.EQUS_MINI_EQUS
         if value == 96:
             return Publisher.XNYS_TRADES_EQUS
+        if value == 97:
+            return Publisher.IFUS_IMPACT_IFUS
+        if value == 98:
+            return Publisher.IFUS_IMPACT_XOFF
+        if value == 99:
+            return Publisher.IFLL_IMPACT_IFLL
+        if value == 100:
+            return Publisher.IFLL_IMPACT_XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1503,6 +1559,14 @@ class Publisher(StringyMixin, str, Enum):
             return 95
         if self == Publisher.XNYS_TRADES_EQUS:
             return 96
+        if self == Publisher.IFUS_IMPACT_IFUS:
+            return 97
+        if self == Publisher.IFUS_IMPACT_XOFF:
+            return 98
+        if self == Publisher.IFLL_IMPACT_IFLL:
+            return 99
+        if self == Publisher.IFLL_IMPACT_XOFF:
+            return 100
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1702,6 +1766,14 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.EQUS
         if self == Publisher.XNYS_TRADES_EQUS:
             return Venue.EQUS
+        if self == Publisher.IFUS_IMPACT_IFUS:
+            return Venue.IFUS
+        if self == Publisher.IFUS_IMPACT_XOFF:
+            return Venue.XOFF
+        if self == Publisher.IFLL_IMPACT_IFLL:
+            return Venue.IFLL
+        if self == Publisher.IFLL_IMPACT_XOFF:
+            return Venue.XOFF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -1901,6 +1973,14 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.EQUS_MINI
         if self == Publisher.XNYS_TRADES_EQUS:
             return Dataset.XNYS_TRADES
+        if self == Publisher.IFUS_IMPACT_IFUS:
+            return Dataset.IFUS_IMPACT
+        if self == Publisher.IFUS_IMPACT_XOFF:
+            return Dataset.IFUS_IMPACT
+        if self == Publisher.IFLL_IMPACT_IFLL:
+            return Dataset.IFLL_IMPACT
+        if self == Publisher.IFLL_IMPACT_XOFF:
+            return Dataset.IFLL_IMPACT
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2100,4 +2180,12 @@ class Publisher(StringyMixin, str, Enum):
             return "Databento US Equities Mini"
         if self == Publisher.XNYS_TRADES_EQUS:
             return "NYSE Trades - Consolidated"
+        if self == Publisher.IFUS_IMPACT_IFUS:
+            return "ICE Futures US"
+        if self == Publisher.IFUS_IMPACT_XOFF:
+            return "ICE Futures US - Off-Market Trades"
+        if self == Publisher.IFLL_IMPACT_IFLL:
+            return "ICE Futures Europe (Financials)"
+        if self == Publisher.IFLL_IMPACT_XOFF:
+            return "ICE Futures Europe (Financials) - Off-Market Trades"
         raise ValueError("Unexpected Publisher value")
