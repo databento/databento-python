@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.49.0 - TBD
+## 0.49.0 - 2025-03-04
 
 #### Enhancements
 - Added new venues, datasets, and publishers for ICE Futures US and for ICE Futures
