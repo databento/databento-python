@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.50.0 - TBD
+
+#### Enhancements
+- Added new venues, datasets, and publishers for Eurex and European Energy Exchange
+  (EEX)
+
 ## 0.49.0 - 2025-03-04
 
 #### Enhancements
