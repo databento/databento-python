@@ -145,7 +145,7 @@ def test_corporate_actions_get_range_response_parsing_as_pit(
     reference_client: Reference,
 ) -> None:
     # Arrange
-    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions.ndjson"
+    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions.jsonl"
     mock_response = MagicMock()
     mock_response.content = zstandard.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response
@@ -176,7 +176,7 @@ def test_corporate_actions_get_range_response(
     reference_client: Reference,
 ) -> None:
     # Arrange
-    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions-pit.ndjson"
+    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions-pit.jsonl"
     mock_response = MagicMock()
     mock_response.content = zstandard.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response
@@ -202,7 +202,7 @@ def test_corporate_actions_get_range_with_ts_record_index(
     reference_client: Reference,
 ) -> None:
     # Arrange
-    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions.ndjson"
+    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions.jsonl"
     mock_response = MagicMock()
     mock_response.content = zstandard.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response
@@ -236,7 +236,7 @@ def test_corporate_actions_get_range_without_flattening(
     reference_client: Reference,
 ) -> None:
     # Arrange
-    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions.ndjson"
+    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.corporate-actions.jsonl"
     mock_response = MagicMock()
     mock_response.content = zstandard.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response

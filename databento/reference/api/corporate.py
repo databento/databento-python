@@ -13,7 +13,7 @@ from databento.common.constants import CORPORATE_ACTIONS_DATETIME_COLUMNS
 from databento.common.http import BentoHttpAPI
 from databento.common.parsing import convert_date_columns
 from databento.common.parsing import convert_datetime_columns
-from databento.common.parsing import convert_ndjson_to_df
+from databento.common.parsing import convert_jsonl_to_df
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_string_to_list
@@ -126,7 +126,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             basic_auth=True,
         )
 
-        df = convert_ndjson_to_df(response.content, compressed=True)
+        df = convert_jsonl_to_df(response.content, compressed=True)
         if df.empty:
             return df
 

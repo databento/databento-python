@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import logging
 import warnings
+import zipfile
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
@@ -247,6 +248,7 @@ class BatchHttpAPI(BentoHttpAPI):
         job_id: str,
         output_dir: PathLike[str] | str | None = None,
         filename_to_download: str | None = None,
+        keep_zip: bool = False,
     ) -> list[Path]:
         """
         Download a batch job or a specific file to `{output_dir}/{job_id}/`.
@@ -266,6 +268,9 @@ class BatchHttpAPI(BentoHttpAPI):
         filename_to_download : str, optional
             The specific file to download.
             If `None` then will download all files for the batch job.
+        keep_zip: bool, default False
+            If `True`, and `filename_to_download` is `None`, files
+            will be saved as a .zip archive in the `output_dir`.
 
         Returns
         -------
@@ -278,27 +283,49 @@ class BatchHttpAPI(BentoHttpAPI):
             If no files were found for the batch job.
         ValueError
             If a file fails to download.
+            If `keep_zip` is True and `filename_to_download` is not `None`
 
         """
+        if keep_zip and filename_to_download:
+            raise ValueError("Cannot specify an individual file to download when `keep_zip=True`")
+
+        batch_download = _BatchJob(
+            self,
+            job_id=job_id,
+            output_dir=output_dir,
+        )
+
         if filename_to_download is None:
             filenames_to_download = None
         else:
             filenames_to_download = [filename_to_download]
 
-        batch_download = _BatchDownload(
-            self,
-            job_id=job_id,
-            output_dir=output_dir,
+        downloaded_files = batch_download.download(
             filenames_to_download=filenames_to_download,
         )
 
-        return batch_download.download()
+        if keep_zip:
+            return downloaded_files
+
+        extracted_files = []
+        for file_path in downloaded_files:
+            if file_path.suffix == ".zip":
+                with zipfile.ZipFile(file_path) as zip_file:
+                    for e in zip_file.namelist():
+                        extracted_files.append(file_path.parent / e)
+                    zip_file.extractall(path=file_path.parent)
+                file_path.unlink()  # remove the zip archive
+            else:
+                extracted_files.append(file_path)
+
+        return extracted_files
 
     async def download_async(
         self,
         output_dir: PathLike[str] | str,
         job_id: str,
         filename_to_download: str | None = None,
+        keep_zip: bool = False,
     ) -> list[Path]:
         """
         Asynchronously download a batch job or a specific file to
@@ -318,6 +345,9 @@ class BatchHttpAPI(BentoHttpAPI):
         filename_to_download : str, optional
             The specific file to download.
             If `None` then will download all files for the batch job.
+        keep_zip: bool, default False
+            If `True`, and `filename_to_download` is `None`, files
+            will be saved as a .zip archive in the `output_dir`.
 
         Returns
         -------
@@ -330,25 +360,46 @@ class BatchHttpAPI(BentoHttpAPI):
             If no files were found for the batch job.
         ValueError
             If a file fails to download.
+            If `keep_zip` is True and `filename_to_download` is not `None`
 
         """
+        if keep_zip and filename_to_download:
+            raise ValueError("Cannot specify an individual file to download when `keep_zip=True`")
+
+        batch_download = _BatchJob(
+            self,
+            job_id=job_id,
+            output_dir=output_dir,
+        )
+
         if filename_to_download is None:
             filenames_to_download = None
         else:
             filenames_to_download = [filename_to_download]
 
-        batch_download = _BatchDownload(
-            self,
-            job_id=job_id,
-            output_dir=output_dir,
+        downloaded_files = await batch_download.download_async(
             filenames_to_download=filenames_to_download,
         )
 
-        return await batch_download.download_async()
+        if keep_zip:
+            return downloaded_files
+
+        extracted_files = []
+        for file_path in downloaded_files:
+            if file_path.suffix == ".zip":
+                with zipfile.ZipFile(file_path) as zip_file:
+                    for e in zip_file.namelist():
+                        extracted_files.append(file_path.parent / e)
+                    zip_file.extractall(path=file_path.parent)
+                file_path.unlink()  # remove the zip archive
+            else:
+                extracted_files.append(file_path)
+
+        return extracted_files
 
     def _download_batch_file(
         self,
-        batch_download_file: _BatchDownloadFile,
+        batch_download_file: _BatchJob._BatchJobFile,
         output_path: Path,
     ) -> Path:
         """
@@ -443,18 +494,73 @@ class BatchHttpAPI(BentoHttpAPI):
 
         return output_path
 
+    def _download_batch_zip(
+        self,
+        batch_download_url: str,
+        output_path: Path,
+    ) -> Path:
+        """
+        Download all batch files as a .zip archive.
 
-@dataclass
-class _BatchDownloadFile:
-    filename: str
-    hash_str: str
-    https_url: str
-    size: int
+        Parameters
+        ----------
+        batch_download_url : _BatchDownloadFile
+            The batch download URL for the zipfile, should contain the job ID appended with .zip.
+        output_path : Path
+            The output path of the file.
+
+        Returns
+        -------
+        Path
+
+        Raises
+        ------
+        BentoError
+            If the file fails to download.
+
+        """
+        attempts = 0
+        logger.info(
+            "Downloading batch job zip to %s",
+            output_path,
+        )
+        while True:
+            headers: dict[str, str] = self._headers.copy()
+
+            try:
+                with requests.get(
+                    url=batch_download_url,
+                    headers=headers,
+                    auth=HTTPBasicAuth(username=self._key, password=""),
+                    allow_redirects=True,
+                    stream=True,
+                ) as response:
+                    check_http_error(response)
+                    with open(output_path, mode="wb") as f:
+                        for chunk in response.iter_content(chunk_size=HTTP_STREAMING_READ_SIZE):
+                            f.write(chunk)
+            except BentoHttpError as exc:
+                if exc.http_status == 429:
+                    wait_time = int(exc.headers.get("Retry-After", 1))
+                    sleep(wait_time)
+                    continue  # try again
+                raise
+            except Exception as exc:
+                if attempts < BATCH_DOWNLOAD_MAX_RETRIES:
+                    logger.error(
+                        f"Retrying download of {output_path.name} due to error: {exc}",
+                    )
+                    attempts += 1
+                    continue  # try again
+                raise BentoError(f"Error downloading file: {exc}") from None
+            else:
+                logger.debug("Download of %s completed", output_path.name)
+                return output_path
 
 
-class _BatchDownload:
+class _BatchJob:
     """
-    Helper class for downloading multiple batch files.
+    Helper class for downloading multiple batch files from a job.
 
     Supports sync and async downloads using a shared `ThreadPoolExecutor`.
 
@@ -464,12 +570,18 @@ class _BatchDownload:
         thread_name_prefix="databento_batch",
     )
 
+    @dataclass
+    class _BatchJobFile:
+        filename: str
+        hash_str: str
+        https_url: str
+        size: int
+
     def __init__(
         self,
         batch_http_api: BatchHttpAPI,
         job_id: str,
         output_dir: PathLike[str] | str | None = None,
-        filenames_to_download: Iterable[str] | None = None,
     ):
         if output_dir is None:
             output_dir = Path.cwd()
@@ -480,10 +592,10 @@ class _BatchDownload:
             logger.error(error_message)
             raise RuntimeError(error_message)
 
-        filenames_to_download = (
-            set(filenames_to_download) if filenames_to_download is not None else None
-        )
-        target_files = []
+        zip_filename = f"{job_id}.zip"
+        zip_url = None
+
+        batch_files = []
         for file_detail in job_details:
             try:
                 filename = str(file_detail["filename"])
@@ -504,55 +616,112 @@ class _BatchDownload:
                     "'download' delivery is not available for this job.",
                 ) from None
 
-            if filenames_to_download is None or filename in filenames_to_download:
-                target_files.append(
-                    _BatchDownloadFile(
-                        filename=filename,
-                        hash_str=hash_digest,
-                        https_url=https_url,
-                        size=size,
-                    ),
-                )
+            if zip_url is None:
+                zip_url = urls["https"].replace(filename, zip_filename)
 
-        self._batch_http_api = batch_http_api
-        self._output_dir = validate_path(output_dir, "output_dir") / job_id
-        self._target_files = target_files
-
-    def download(self) -> list[Path]:
-        self._output_dir.mkdir(exist_ok=True)
-
-        tasks = []
-        for target in self._target_files:
-            tasks.append(
-                self._executor.submit(
-                    self._batch_http_api._download_batch_file,
-                    target,
-                    self._output_dir / target.filename,
+            batch_files.append(
+                _BatchJob._BatchJobFile(
+                    filename=filename,
+                    hash_str=hash_digest,
+                    https_url=https_url,
+                    size=size,
                 ),
             )
 
+        if not batch_files or not zip_url:
+            raise ValueError(f"No job files for {job_id}.")
+
+        self._zip_filename = zip_filename
+        self._zip_url = zip_url
+        self._batch_http_api = batch_http_api
+        self._output_dir = validate_path(output_dir, "output_dir") / job_id
+        self._batch_files = batch_files
+
+    def download(
+        self,
+        filenames_to_download: Iterable[str] | None,
+    ) -> list[Path]:
+        self._output_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+
         file_paths = []
+        tasks = []
+
+        if filenames_to_download is None:
+            tasks.append(
+                self._executor.submit(
+                    self._batch_http_api._download_batch_zip,
+                    self._zip_url,
+                    self._output_dir / self._zip_filename,
+                ),
+            )
+        else:
+            filenames_to_download = set(filenames_to_download)
+            for batch_file in self._batch_files:
+                if not filenames_to_download:
+                    break
+
+                if batch_file.filename not in filenames_to_download:
+                    continue
+
+                tasks.append(
+                    self._executor.submit(
+                        self._batch_http_api._download_batch_file,
+                        batch_file,
+                        self._output_dir / batch_file.filename,
+                    ),
+                )
+                filenames_to_download.remove(batch_file.filename)
+
         for completed in as_completed(tasks):
             path = completed.result()
             file_paths.append(path)
 
         return file_paths
 
-    async def download_async(self) -> list[Path]:
-        self._output_dir.mkdir(exist_ok=True)
+    async def download_async(
+        self,
+        filenames_to_download: Iterable[str] | None,
+    ) -> list[Path]:
+        self._output_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
 
+        file_paths: list[Path] = []
         tasks = []
-        for target in self._target_files:
+
+        if filenames_to_download is None:
             tasks.append(
                 asyncio.get_running_loop().run_in_executor(
                     self._executor,
-                    self._batch_http_api._download_batch_file,
-                    target,
-                    self._output_dir / target.filename,
+                    self._batch_http_api._download_batch_zip,
+                    self._zip_url,
+                    self._output_dir / self._zip_filename,
                 ),
             )
+        else:
+            filenames_to_download = set(filenames_to_download)
 
-        file_paths = []
+            tasks = []
+            for batch_file in self._batch_files:
+                if not filenames_to_download:
+                    break
+
+                if batch_file.filename not in filenames_to_download:
+                    continue
+
+                tasks.append(
+                    asyncio.get_running_loop().run_in_executor(
+                        self._executor,
+                        self._batch_http_api._download_batch_file,
+                        batch_file,
+                        self._output_dir / batch_file.filename,
+                    ),
+                )
+
         for completed in asyncio.as_completed(tasks):
             try:
                 path = await completed

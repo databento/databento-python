@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.49.0 - 2025-03-04
+
+#### Enhancements
+- Added new venues, datasets, and publishers for ICE Futures US and for ICE Futures
+  Europe (Financial products)
+- Added a `keep_zip` parameter to `Historical.batch.download()`. When `True`, and downloading all files, the jobs contents will be saved as a ZIP file
+- Calling `Live.terminate()` will now attempt to write EOF before aborting the connection to help close the remote end
+
 ## 0.48.0 - 2025-01-21
 
 #### Breaking changes

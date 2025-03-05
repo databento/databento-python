@@ -225,7 +225,7 @@ def test_security_master_get_last_response(
     reference_client: Reference,
 ) -> None:
     # Arrange
-    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.security-master.ndjson"
+    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.security-master.jsonl"
     mock_response = MagicMock()
     mock_response.content = zstandard.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response
@@ -255,7 +255,7 @@ def test_security_master_get_range_response(
     index: str,
 ) -> None:
     # Arrange
-    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.security-master.ndjson"
+    data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.security-master.jsonl"
     mock_response = MagicMock()
     mock_response.content = zstandard.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response

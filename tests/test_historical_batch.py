@@ -1,11 +1,15 @@
 import hashlib
+from collections.abc import Callable
 from pathlib import Path
 from unittest.mock import MagicMock
+from zipfile import ZipFile
 
 import databento as db
 import pytest
 import requests
+from databento.common.publishers import Dataset
 from databento.historical.client import Historical
+from databento_dbn import Schema
 
 
 def test_batch_submit_job_given_invalid_schema_raises_error(
@@ -418,3 +422,180 @@ def test_batch_download_file_larger_than_expected(
             output_dir=tmp_path,
             filename_to_download=filename,
         )
+
+
+@pytest.mark.parametrize(
+    "keep_zip",
+    [
+        True,
+        False,
+    ],
+)
+def test_batch_download_all_files(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+    keep_zip: bool,
+) -> None:
+    """
+    Test batch download for all files requests the on-demand ZIP which is then
+    decompressed client side if keep_zip is True.
+    """
+    # Arrange
+    testfile_data = test_data(Dataset.GLBX_MDP3, Schema.TRADES)
+    stub_zip_path = tmp_path / "stub.zip"
+    with ZipFile(tmp_path / "stub.zip", mode="w") as stub:
+        stub.writestr("testfile.dbn", testfile_data)
+
+    job_id = "GLBX-20220610-5DEFXVTMSM"
+    file_content = stub_zip_path.read_bytes()
+    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
+    file_size = len(file_content)
+
+    # Mock the call to list files so it returns a test manifest
+    monkeypatch.setattr(
+        historical_client.batch,
+        "list_files",
+        mocked_batch_list_files := MagicMock(
+            return_value=[
+                {
+                    "filename": "testfile.dbn",
+                    "hash": file_hash,
+                    "size": file_size,
+                    "urls": {
+                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/testfile.dbn",
+                        "ftp": "",
+                    },
+                },
+            ],
+        ),
+    )
+
+    # Mock the call for get, so we can simulate a ZIP response
+    zip_response = MagicMock()
+    zip_response.status_code = 200
+    zip_response.__enter__.return_value = MagicMock(
+        status_code=200,
+        iter_content=MagicMock(return_value=iter([stub_zip_path.read_bytes()])),
+    )
+
+    monkeypatch.setattr(
+        requests,
+        "get",
+        mocked_get := MagicMock(
+            side_effect=[zip_response],
+        ),
+    )
+
+    # Act
+    historical_client.batch.download(
+        job_id=job_id,
+        output_dir=tmp_path,
+        keep_zip=keep_zip,
+    )
+
+    # Assert
+    assert mocked_batch_list_files.call_args.args == (job_id,)
+
+    call = mocked_get.call_args.kwargs
+    assert call["allow_redirects"]
+    assert call["headers"]["accept"] == "application/json"
+    assert call["stream"]
+    assert call["url"] == f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{job_id}.zip"
+
+    if keep_zip:
+        assert (tmp_path / job_id / f"{job_id}.zip").exists()
+        assert (tmp_path / job_id / f"{job_id}.zip").read_bytes() == stub_zip_path.read_bytes()
+    else:
+        assert (tmp_path / job_id / "testfile.dbn").exists()
+        assert (tmp_path / job_id / "testfile.dbn").read_bytes() == testfile_data
+
+
+@pytest.mark.parametrize(
+    "keep_zip",
+    [
+        True,
+        False,
+    ],
+)
+@pytest.mark.asyncio
+async def test_batch_download_all_files_async(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+    test_data: Callable[[Dataset, Schema], bytes],
+    tmp_path: Path,
+    keep_zip: bool,
+) -> None:
+    """
+    Test batch download for all files requests the on-demand ZIP which is then
+    decompressed client side if keep_zip is True.
+    """
+    # Arrange
+    testfile_data = test_data(Dataset.GLBX_MDP3, Schema.TRADES)
+    stub_zip_path = tmp_path / "stub.zip"
+    with ZipFile(tmp_path / "stub.zip", mode="w") as stub:
+        stub.writestr("testfile.dbn", testfile_data)
+
+    job_id = "GLBX-20220610-5DEFXVTMSM"
+    file_content = stub_zip_path.read_bytes()
+    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
+    file_size = len(file_content)
+
+    # Mock the call to list files so it returns a test manifest
+    monkeypatch.setattr(
+        historical_client.batch,
+        "list_files",
+        mocked_batch_list_files := MagicMock(
+            return_value=[
+                {
+                    "filename": "testfile.dbn",
+                    "hash": file_hash,
+                    "size": file_size,
+                    "urls": {
+                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/testfile.dbn",
+                        "ftp": "",
+                    },
+                },
+            ],
+        ),
+    )
+
+    # Mock the call for get, so we can simulate a ZIP response
+    zip_response = MagicMock()
+    zip_response.status_code = 200
+    zip_response.__enter__.return_value = MagicMock(
+        status_code=200,
+        iter_content=MagicMock(return_value=iter([stub_zip_path.read_bytes()])),
+    )
+
+    monkeypatch.setattr(
+        requests,
+        "get",
+        mocked_get := MagicMock(
+            side_effect=[zip_response],
+        ),
+    )
+
+    # Act
+    await historical_client.batch.download_async(
+        job_id=job_id,
+        output_dir=tmp_path,
+        keep_zip=keep_zip,
+    )
+
+    # Assert
+    assert mocked_batch_list_files.call_args.args == (job_id,)
+
+    call = mocked_get.call_args.kwargs
+    assert call["allow_redirects"]
+    assert call["headers"]["accept"] == "application/json"
+    assert call["stream"]
+    assert call["url"] == f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{job_id}.zip"
+
+    if keep_zip:
+        assert (tmp_path / job_id / f"{job_id}.zip").exists()
+        assert (tmp_path / job_id / f"{job_id}.zip").read_bytes() == stub_zip_path.read_bytes()
+    else:
+        assert (tmp_path / job_id / "testfile.dbn").exists()
+        assert (tmp_path / job_id / "testfile.dbn").read_bytes() == testfile_data
