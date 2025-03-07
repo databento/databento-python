@@ -230,7 +230,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
     ) -> dict[str, str]:
         """
-        Request the available range for the dataset from Databento.
+        Request the available range for the dataset given the user's
+        entitlements.
 
         Makes a GET `/metadata.get_dataset_range` HTTP request.
 
