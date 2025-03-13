@@ -5,6 +5,25 @@
 #### Enhancements
 - Added new venues, datasets, and publishers for Eurex and European Energy Exchange
   (EEX)
+- Added export of the following enums from `databento_dbn` to the root `databento` package:
+  - `Action`
+  - `InstrumentClass`
+  - `MatchAlgorithm`
+  - `RType`
+  - `SecurityUpdateAction`
+  - `Side`
+  - `StatUpdateAction`
+  - `TriState`
+  - `UserDefinedInstrument`
+  - `VersionUpgradePolicy`
+- Added export of the following constants from `databento_dbn` to the root `databento` package:
+  - `DBN_VERSION`
+  - `FIXED_PRICE_SCALE`
+  - `UNDEF_ORDER_SIZE`
+  - `UNDEF_PRICE`
+  - `UNDEF_STAT_QUANTITY`
+  - `UNDEF_TIMESTAMP`
+- Added export of `BidAskPair` and `ConsolidatedBidAskPair` from `databento_dbn` to the root `databento` package
 
 ## 0.49.0 - 2025-03-04
 
