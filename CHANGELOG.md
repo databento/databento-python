@@ -3,8 +3,7 @@
 ## 0.50.0 - TBD
 
 #### Enhancements
-- Added new venues, datasets, and publishers for Eurex and European Energy Exchange
-  (EEX)
+- Added new venues, datasets, and publishers for ICE Futures US, ICE Futures Europe (Financial products), Eurex, and European Energy Exchange (EEX)
 - Added export of the following enums from `databento_dbn` to the root `databento` package:
   - `Action`
   - `InstrumentClass`
@@ -24,6 +23,8 @@
   - `UNDEF_STAT_QUANTITY`
   - `UNDEF_TIMESTAMP`
 - Added export of `BidAskPair` and `ConsolidatedBidAskPair` from `databento_dbn` to the root `databento` package
+- Upgraded `databento-dbn` to 0.29.0
+  - Added `COMMODITY_SPOT` `InstrumentClass` variant
 
 ## 0.49.0 - 2025-03-04
 
