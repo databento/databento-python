@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.50.0 - TBD
+## 0.50.0 - 2025-03-18
 
 #### Enhancements
 - Added new venues, datasets, and publishers for ICE Futures US, ICE Futures Europe (Financial products), Eurex, and European Energy Exchange (EEX)
