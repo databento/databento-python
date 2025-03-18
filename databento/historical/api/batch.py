@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 from dataclasses import dataclass
 from datetime import date
+from datetime import datetime
 from os import PathLike
 from pathlib import Path
 from time import sleep
@@ -63,8 +64,8 @@ class BatchHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         symbols: Iterable[str | int] | str | int,
         schema: Schema | str,
-        start: pd.Timestamp | date | str | int,
-        end: pd.Timestamp | date | str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int,
+        end: pd.Timestamp | datetime | date | str | int | None = None,
         encoding: Encoding | str = "dbn",
         compression: Compression | str = "zstd",
         pretty_px: bool = False,
@@ -93,11 +94,11 @@ class BatchHttpAPI(BentoHttpAPI):
             If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
-        start : pd.Timestamp or date or str or int
+        start : pd.Timestamp, datetime, date, str, or int
             The start datetime of the request time range (inclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
+        end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
@@ -183,7 +184,7 @@ class BatchHttpAPI(BentoHttpAPI):
     def list_jobs(
         self,
         states: list[str] | str = "received,queued,processing,done",
-        since: pd.Timestamp | date | str | int | None = None,
+        since: pd.Timestamp | datetime | date | str | int | None = None,
     ) -> list[dict[str, Any]]:
         """
         Request all batch job details for the user account.
@@ -196,7 +197,7 @@ class BatchHttpAPI(BentoHttpAPI):
         ----------
         states : list[str] or str, optional {'received', 'queued', 'processing', 'done', 'expired'}  # noqa
             The filter for jobs states as a list of comma separated values.
-        since : pd.Timestamp or date or str or int, optional
+        since : pd.Timestamp, datetime, date, str, or int, optional
             The filter for timestamp submitted (will not include jobs prior to this).
 
         Returns

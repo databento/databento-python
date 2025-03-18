@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -261,12 +262,20 @@ def test_maybe_date_to_string_give_valid_values_returns_expected_results(
         [None, None],
         [1604782791000000000, "1604782791000000000"],
         ["2020-11-07T20:59:51", "2020-11-07T20:59:51"],
-        [dt.date(2020, 12, 28), "2020-12-28T00:00:00"],
+        [dt.date(2020, 12, 28), "2020-12-28"],
+        [dt.datetime(2020, 12, 28), "2020-12-28T00:00:00"],
+        [dt.datetime(2020, 12, 28, 23, 12, 1), "2020-12-28T23:12:01"],
+        [
+            dt.datetime(2020, 12, 28, 23, 12, 1, tzinfo=ZoneInfo("America/New_York")),
+            "2020-12-28T23:12:01-05:00",
+        ],
+        [dt.datetime(2020, 12, 28, 23, 12, 1, 123000), "2020-12-28T23:12:01.123000"],
         [pd.to_datetime("2020-12-28T23:12:01.123"), "2020-12-28T23:12:01.123000"],
+        [pd.to_datetime("2020-12-28T23:12:01.123456789"), "2020-12-28T23:12:01.123456789"],
     ],
 )
 def test_maybe_datetime_to_string_give_valid_values_returns_expected_results(
-    value: pd.Timestamp | dt.date | str | int,
+    value: pd.Timestamp | dt.datetime | dt.date | str | int,
     expected: str,
 ) -> None:
     # Arrange, Act

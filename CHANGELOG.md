@@ -25,6 +25,7 @@
 - Added export of `BidAskPair` and `ConsolidatedBidAskPair` from `databento_dbn` to the root `databento` package
 - Upgraded `databento-dbn` to 0.29.0
   - Added `COMMODITY_SPOT` `InstrumentClass` variant
+- Improved handling of `datetime` and `date` objects in `start` and `end` parameters
 
 ## 0.49.0 - 2025-03-04
 

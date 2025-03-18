@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import date
+from datetime import datetime
 from functools import partial
 from functools import singledispatch
 from io import BytesIO
@@ -222,13 +223,13 @@ def optional_date_to_string(value: date | str | None) -> str | None:
     return datetime_to_date_string(value)
 
 
-def datetime_to_string(value: pd.Timestamp | date | str | int) -> str:
+def datetime_to_string(value: pd.Timestamp | datetime | date | str | int) -> str:
     """
     Return a valid datetime string from the given value.
 
     Parameters
     ----------
-    value : pd.Timestamp or date or str
+    value : pd.Timestamp, datetime, date, str, or int
         The value to parse.
 
     Returns
@@ -240,6 +241,10 @@ def datetime_to_string(value: pd.Timestamp | date | str | int) -> str:
         return value
     elif isinstance(value, int):
         return str(value)
+    elif isinstance(value, date):
+        return value.isoformat()
+    elif isinstance(value, datetime):
+        return value.isoformat()
     else:
         return pd.to_datetime(value).isoformat()
 
@@ -250,7 +255,7 @@ def datetime_to_date_string(value: pd.Timestamp | date | str | int) -> str:
 
     Parameters
     ----------
-    value : pd.Timestamp or date or str
+    value : pd.Timestamp, date, str, or int
         The value to parse.
 
     Returns
@@ -262,19 +267,21 @@ def datetime_to_date_string(value: pd.Timestamp | date | str | int) -> str:
         return value
     elif isinstance(value, int):
         return str(value)
+    elif isinstance(value, date):
+        return value.isoformat()
     else:
         return pd.to_datetime(value).date().isoformat()
 
 
 def optional_datetime_to_string(
-    value: pd.Timestamp | date | str | int | None,
+    value: pd.Timestamp | datetime | date | str | int | None,
 ) -> str | None:
     """
     Return a valid datetime string from the given value (if not None).
 
     Parameters
     ----------
-    value : pd.Timestamp or date or str, optional
+    value : pd.Timestamp, datetime, date, str, or int, optional
         The value to parse.
 
     Returns
@@ -296,7 +303,7 @@ def datetime_to_unix_nanoseconds(
 
     Parameters
     ----------
-    value : pd.Timestamp or date or str or int
+    value : pd.Timestamp, date, str, or int
         The value to parse.
 
     Returns
@@ -306,22 +313,20 @@ def datetime_to_unix_nanoseconds(
     """
     if isinstance(value, int):
         return value  # no checking on integer values
-
-    if isinstance(value, date):
+    elif isinstance(value, date):
         return pd.to_datetime(value, utc=True).value
-
-    if isinstance(value, pd.Timestamp):
+    elif isinstance(value, pd.Timestamp):
         return value.value
+    else:
+        try:
+            nanoseconds = pd.to_datetime(value, utc=True).value
+        except Exception:  # different versions of pandas raise different exceptions
+            nanoseconds = pd.to_datetime(
+                int(value),
+                utc=True,
+            ).value
 
-    try:
-        nanoseconds = pd.to_datetime(value, utc=True).value
-    except Exception:  # different versions of pandas raise different exceptions
-        nanoseconds = pd.to_datetime(
-            int(value),
-            utc=True,
-        ).value
-
-    return nanoseconds
+        return nanoseconds
 
 
 def optional_datetime_to_unix_nanoseconds(
@@ -333,7 +338,7 @@ def optional_datetime_to_unix_nanoseconds(
 
     Parameters
     ----------
-    value : pd.Timestamp or date or str or int
+    value : pd.Timestamp, date, str, or int
         The value to parse.
 
     Returns
