@@ -1,20 +1,35 @@
 import logging
 import warnings
 
+from databento_dbn import DBN_VERSION
+from databento_dbn import FIXED_PRICE_SCALE
+from databento_dbn import UNDEF_ORDER_SIZE
+from databento_dbn import UNDEF_PRICE
+from databento_dbn import UNDEF_STAT_QUANTITY
+from databento_dbn import UNDEF_TIMESTAMP
+from databento_dbn import Action
+from databento_dbn import BidAskPair
 from databento_dbn import CMBP1Msg
 from databento_dbn import Compression
+from databento_dbn import ConsolidatedBidAskPair
 from databento_dbn import Encoding
 from databento_dbn import ErrorMsg
 from databento_dbn import ImbalanceMsg
+from databento_dbn import InstrumentClass
 from databento_dbn import InstrumentDefMsg
+from databento_dbn import MatchAlgorithm
 from databento_dbn import MBOMsg
 from databento_dbn import MBP1Msg
 from databento_dbn import MBP10Msg
 from databento_dbn import Metadata
 from databento_dbn import OHLCVMsg
+from databento_dbn import RType
 from databento_dbn import Schema
+from databento_dbn import SecurityUpdateAction
+from databento_dbn import Side
 from databento_dbn import StatMsg
 from databento_dbn import StatType
+from databento_dbn import StatUpdateAction
 from databento_dbn import StatusAction
 from databento_dbn import StatusMsg
 from databento_dbn import StatusReason
@@ -23,6 +38,9 @@ from databento_dbn import SymbolMappingMsg
 from databento_dbn import SystemMsg
 from databento_dbn import TradeMsg
 from databento_dbn import TradingEvent
+from databento_dbn import TriState
+from databento_dbn import UserDefinedInstrument
+from databento_dbn import VersionUpgradePolicy
 from databento_dbn.v2 import BBO1MMsg
 from databento_dbn.v2 import BBO1SMsg
 from databento_dbn.v2 import CBBO1MMsg
@@ -60,16 +78,25 @@ from databento.version import __version__  # noqa
 
 __all__ = [
     "API_VERSION",
+    "DBN_VERSION",
+    "FIXED_PRICE_SCALE",
+    "UNDEF_ORDER_SIZE",
+    "UNDEF_PRICE",
+    "UNDEF_STAT_QUANTITY",
+    "UNDEF_TIMESTAMP",
+    "Action",
     "BBO1MMsg",
     "BBO1SMsg",
     "BentoClientError",
     "BentoError",
     "BentoHttpError",
     "BentoServerError",
+    "BidAskPair",
     "CBBO1MMsg",
     "CBBO1SMsg",
     "CMBP1Msg",
     "Compression",
+    "ConsolidatedBidAskPair",
     "DBNRecord",
     "DBNStore",
     "Dataset",
@@ -80,25 +107,31 @@ __all__ = [
     "Historical",
     "HistoricalGateway",
     "ImbalanceMsg",
+    "InstrumentClass",
     "InstrumentDefMsg",
     "InstrumentMap",
     "Live",
     "MBOMsg",
     "MBP1Msg",
     "MBP10Msg",
+    "MatchAlgorithm",
     "Metadata",
     "OHLCVMsg",
     "Packaging",
     "Publisher",
+    "RType",
     "ReconnectPolicy",
     "RecordFlags",
     "Reference",
     "RollRule",
     "SType",
     "Schema",
+    "SecurityUpdateAction",
+    "Side",
     "SplitDuration",
     "StatMsg",
     "StatType",
+    "StatUpdateAction",
     "StatusAction",
     "StatusMsg",
     "StatusReason",
@@ -110,7 +143,10 @@ __all__ = [
     "TCBBOMsg",
     "TradeMsg",
     "TradingEvent",
+    "TriState",
+    "UserDefinedInstrument",
     "Venue",
+    "VersionUpgradePolicy",
 ]
 
 # Setup logging

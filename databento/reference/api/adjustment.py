@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import date
+from datetime import datetime
 
 import pandas as pd
 from databento_dbn import Compression
@@ -31,8 +32,8 @@ class AdjustmentFactorsHttpAPI(BentoHttpAPI):
 
     def get_range(
         self,
-        start: pd.Timestamp | date | str | int,
-        end: pd.Timestamp | date | str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int,
+        end: pd.Timestamp | datetime | date | str | int | None = None,
         symbols: Iterable[str] | str | None = None,
         stype_in: SType | str = "raw_symbol",
         countries: Iterable[str] | str | None = None,
@@ -48,11 +49,11 @@ class AdjustmentFactorsHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        start : pd.Timestamp or date or str or int
+        start : pd.Timestamp, datetime, date, str, or int
             The start datetime of the request time range (inclusive) based on `ex_date`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
+        end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime of the request time range (exclusive) based on `ex_date`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.

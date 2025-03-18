@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.50.0 - 2025-03-18
+
+#### Enhancements
+- Added new venues, datasets, and publishers for ICE Futures US, ICE Futures Europe (Financial products), Eurex, and European Energy Exchange (EEX)
+- Added export of the following enums from `databento_dbn` to the root `databento` package:
+  - `Action`
+  - `InstrumentClass`
+  - `MatchAlgorithm`
+  - `RType`
+  - `SecurityUpdateAction`
+  - `Side`
+  - `StatUpdateAction`
+  - `TriState`
+  - `UserDefinedInstrument`
+  - `VersionUpgradePolicy`
+- Added export of the following constants from `databento_dbn` to the root `databento` package:
+  - `DBN_VERSION`
+  - `FIXED_PRICE_SCALE`
+  - `UNDEF_ORDER_SIZE`
+  - `UNDEF_PRICE`
+  - `UNDEF_STAT_QUANTITY`
+  - `UNDEF_TIMESTAMP`
+- Added export of `BidAskPair` and `ConsolidatedBidAskPair` from `databento_dbn` to the root `databento` package
+- Upgraded `databento-dbn` to 0.29.0
+  - Added `COMMODITY_SPOT` `InstrumentClass` variant
+- Improved handling of `datetime` and `date` objects in `start` and `end` parameters
+
 ## 0.49.0 - 2025-03-04
 
 #### Enhancements

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import date
+from datetime import datetime
 from typing import Any
 
 import pandas as pd
@@ -230,7 +231,8 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
     ) -> dict[str, str]:
         """
-        Request the available range for the dataset from Databento.
+        Request the available range for the dataset given the user's
+        entitlements.
 
         Makes a GET `/metadata.get_dataset_range` HTTP request.
 
@@ -260,8 +262,8 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_record_count(
         self,
         dataset: Dataset | str,
-        start: pd.Timestamp | date | str | int,
-        end: pd.Timestamp | date | str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int,
+        end: pd.Timestamp | datetime | date | str | int | None = None,
         symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
@@ -276,11 +278,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
-        start : pd.Timestamp or date or str or int
+        start : pd.Timestamp, datetime, date, str, or int
             The start datetime for the request range (inclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
+        end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime for the request range (exclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
@@ -328,8 +330,8 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_billable_size(
         self,
         dataset: Dataset | str,
-        start: pd.Timestamp | date | str | int,
-        end: pd.Timestamp | date | str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int,
+        end: pd.Timestamp | datetime | date | str | int | None = None,
         symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
@@ -345,17 +347,17 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
-        start : pd.Timestamp or date or str or int
+        start : pd.Timestamp, datetime, date, str, or int
             The start datetime for the request range (inclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
+        end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime for the request range (exclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Values are forward filled based on the resolution provided.
             Defaults to the same value as `start`.
-        symbols : Iterable[str | int] or str or int, optional
+        symbols : Iterable[str | int] or str, or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
@@ -397,8 +399,8 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_cost(
         self,
         dataset: Dataset | str,
-        start: pd.Timestamp | date | str | int,
-        end: pd.Timestamp | date | str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int,
+        end: pd.Timestamp | datetime | date | str | int | None = None,
         mode: FeedMode | str = "historical-streaming",
         symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
@@ -415,11 +417,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code for the request.
-        start : pd.Timestamp or date or str or int
+        start : pd.Timestamp, datetime, date, str, or int
             The start datetime for the request range (inclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
+        end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime for the request range (exclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.

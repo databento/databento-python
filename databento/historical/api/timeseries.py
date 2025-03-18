@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import date
+from datetime import datetime
 from os import PathLike
 
 import pandas as pd
@@ -34,8 +35,8 @@ class TimeseriesHttpAPI(BentoHttpAPI):
     def get_range(
         self,
         dataset: Dataset | str,
-        start: pd.Timestamp | date | str | int,
-        end: pd.Timestamp | date | str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int,
+        end: pd.Timestamp | datetime | date | str | int | None = None,
         symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
@@ -51,18 +52,18 @@ class TimeseriesHttpAPI(BentoHttpAPI):
         Primary method for getting historical intraday market data, daily data,
         instrument definitions and market status data directly into your application.
 
-        This method only returns after all of the data has been downloaded,
+        This method only returns after all the data has been downloaded,
         which can take a long time. For large requests, consider using a batch download.
 
         Parameters
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        start : pd.Timestamp or date or str or int
+        start : pd.Timestamp, datetime, date, str, or int
             The start datetime of the request time range (inclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
+        end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
@@ -130,8 +131,8 @@ class TimeseriesHttpAPI(BentoHttpAPI):
     async def get_range_async(
         self,
         dataset: Dataset | str,
-        start: pd.Timestamp | date | str | int,
-        end: pd.Timestamp | date | str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int,
+        end: pd.Timestamp | datetime | date | str | int | None = None,
         symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
@@ -148,18 +149,18 @@ class TimeseriesHttpAPI(BentoHttpAPI):
         Primary method for getting historical intraday market data, daily data,
         instrument definitions and market status data directly into your application.
 
-        This coroutine will complete once all of the data has been downloaded,
+        This coroutine will complete once all the data has been downloaded,
         which can take a long time. For large requests, consider using a batch download.
 
         Parameters
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        start : pd.Timestamp or date or str or int
+        start : pd.Timestamp, datetime, date, str, or int
             The start datetime of the request time range (inclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-        end : pd.Timestamp or date or str or int, optional
+        end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
