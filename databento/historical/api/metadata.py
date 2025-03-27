@@ -286,8 +286,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The end datetime for the request range (exclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Values are forward filled based on the resolution provided.
-            Defaults to the same value as `start`.
+            Defaults to the forward filled value of `start` based on the resolution provided.
         symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
@@ -355,8 +354,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The end datetime for the request range (exclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Values are forward filled based on the resolution provided.
-            Defaults to the same value as `start`.
+            Defaults to the forward filled value of `start` based on the resolution provided.
         symbols : Iterable[str | int] or str, or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
@@ -425,8 +423,7 @@ class MetadataHttpAPI(BentoHttpAPI):
             The end datetime for the request range (exclusive).
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Values are forward filled based on the resolution provided.
-            Defaults to the same value as `start`.
+            Defaults to the forward filled value of `start` based on the resolution provided.
         mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
             The data feed mode for the request.
         symbols : Iterable[str | int] or str or int, optional

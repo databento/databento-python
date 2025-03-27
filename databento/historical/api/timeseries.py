@@ -67,8 +67,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Values are forward filled based on the resolution provided.
-            Defaults to the same value as `start`.
+            Defaults to the forward filled value of `start` based on the resolution provided.
         symbols : Iterable[str | int], or str, or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
@@ -164,8 +163,7 @@ class TimeseriesHttpAPI(BentoHttpAPI):
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Values are forward filled based on the resolution provided.
-            Defaults to the same value as `start`.
+            Defaults to the forward filled value of `start` based on the resolution provided.
         symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.

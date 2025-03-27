@@ -102,8 +102,7 @@ class BatchHttpAPI(BentoHttpAPI):
             The end datetime of the request time range (exclusive).
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Values are forward filled based on the resolution provided.
-            Defaults to the same value as `start`.
+            Defaults to the forward filled value of `start` based on the resolution provided.
         encoding : Encoding or str {'dbn', 'csv', 'json'}, default 'dbn'
             The data encoding.
         compression : Compression or str {'none', 'zstd'}, default 'zstd'
