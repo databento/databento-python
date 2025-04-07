@@ -284,6 +284,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
         snapshot: bool = False,
+        subscription_id: int | None = None,
     ) -> list[SubscriptionRequest]:
         """
         Send a SubscriptionRequest to the gateway. Returns a list of all
@@ -302,6 +303,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             within 24 hours.
         snapshot: bool, default to 'False'
             Request subscription with snapshot. The `start` parameter must be `None`.
+        subscription_id : int, optional
+            A numerical identifier to associate with this subscription.
 
         Returns
         -------
@@ -329,6 +332,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 symbols=batch_str,
                 start=optional_datetime_to_unix_nanoseconds(start),
                 snapshot=int(snapshot),
+                id=subscription_id,
             )
             subscriptions.append(message)
 

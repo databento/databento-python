@@ -132,6 +132,7 @@ class SubscriptionRequest(GatewayControl):
     symbols: str
     start: int | None = None
     snapshot: int = 0
+    id: int | None = None
 
 
 @dataclasses.dataclass

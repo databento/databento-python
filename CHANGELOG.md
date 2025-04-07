@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.52.0 - TBD
+
+#### Enhancements
+- Added new optional `id` field to `SubcriptionRequest` class which will be used for improved error messages
+
 ## 0.51.0 - 2025-04-08
 
 #### Enhancements

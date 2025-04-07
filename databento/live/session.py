@@ -332,6 +332,7 @@ class LiveSession:
         self._transport: asyncio.Transport | None = None
         self._session_id: str | None = None
 
+        self._subscription_counter = 0
         self._subscriptions: list[SubscriptionRequest] = []
         self._reconnect_policy = ReconnectPolicy(reconnect_policy)
         self._reconnect_task: asyncio.Task[None] | None = None
@@ -499,6 +500,7 @@ class LiveSession:
             if self._protocol is None:
                 self._connect(dataset=dataset)
 
+            self._subscription_counter += 1
             self._subscriptions.extend(
                 self._protocol.subscribe(
                     schema=schema,
@@ -506,6 +508,7 @@ class LiveSession:
                     stype_in=stype_in,
                     start=start,
                     snapshot=snapshot,
+                    subscription_id=self._subscription_counter,
                 ),
             )
 
@@ -672,6 +675,7 @@ class LiveSession:
                             stype_in=sub.stype_in,
                             snapshot=bool(sub.snapshot),
                             start=None,
+                            subscription_id=sub.id,
                         )
 
                     if should_restart:
