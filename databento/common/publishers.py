@@ -515,13 +515,13 @@ class Dataset(StringyMixin, str, Enum):
     XPSX_ITCH
         Nasdaq PSX TotalView-ITCH.
     BATS_PITCH
-        Cboe BZX Depth Pitch.
+        Cboe BZX Depth.
     BATY_PITCH
-        Cboe BYX Depth Pitch.
+        Cboe BYX Depth.
     EDGA_PITCH
-        Cboe EDGA Depth Pitch.
+        Cboe EDGA Depth.
     EDGX_PITCH
-        Cboe EDGX Depth Pitch.
+        Cboe EDGX Depth.
     XNYS_PILLAR
         NYSE Integrated.
     XCIS_PILLAR
@@ -810,13 +810,13 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.XPSX_ITCH:
             return "Nasdaq PSX TotalView-ITCH"
         if self == Dataset.BATS_PITCH:
-            return "Cboe BZX Depth Pitch"
+            return "Cboe BZX Depth"
         if self == Dataset.BATY_PITCH:
-            return "Cboe BYX Depth Pitch"
+            return "Cboe BYX Depth"
         if self == Dataset.EDGA_PITCH:
-            return "Cboe EDGA Depth Pitch"
+            return "Cboe EDGA Depth"
         if self == Dataset.EDGX_PITCH:
-            return "Cboe EDGX Depth Pitch"
+            return "Cboe EDGX Depth"
         if self == Dataset.XNYS_PILLAR:
             return "NYSE Integrated"
         if self == Dataset.XCIS_PILLAR:
@@ -897,13 +897,13 @@ class Publisher(StringyMixin, str, Enum):
     XPSX_ITCH_XPSX
         Nasdaq PSX TotalView-ITCH.
     BATS_PITCH_BATS
-        Cboe BZX Depth Pitch.
+        Cboe BZX Depth.
     BATY_PITCH_BATY
-        Cboe BYX Depth Pitch.
+        Cboe BYX Depth.
     EDGA_PITCH_EDGA
-        Cboe EDGA Depth Pitch.
+        Cboe EDGA Depth.
     EDGX_PITCH_EDGX
-        Cboe EDGX Depth Pitch.
+        Cboe EDGX Depth.
     XNYS_PILLAR_XNYS
         NYSE Integrated.
     XCIS_PILLAR_XCIS
@@ -2055,13 +2055,13 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XPSX_ITCH_XPSX:
             return "Nasdaq PSX TotalView-ITCH"
         if self == Publisher.BATS_PITCH_BATS:
-            return "Cboe BZX Depth Pitch"
+            return "Cboe BZX Depth"
         if self == Publisher.BATY_PITCH_BATY:
-            return "Cboe BYX Depth Pitch"
+            return "Cboe BYX Depth"
         if self == Publisher.EDGA_PITCH_EDGA:
-            return "Cboe EDGA Depth Pitch"
+            return "Cboe EDGA Depth"
         if self == Publisher.EDGX_PITCH_EDGX:
-            return "Cboe EDGX Depth Pitch"
+            return "Cboe EDGX Depth"
         if self == Publisher.XNYS_PILLAR_XNYS:
             return "NYSE Integrated"
         if self == Publisher.XCIS_PILLAR_XCIS:

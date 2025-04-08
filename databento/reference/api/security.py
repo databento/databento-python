@@ -58,6 +58,7 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
             The end datetime of the request time range (exclusive) based on `index`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
+            Defaults to the forward filled value of `start` based on the resolution provided.
         index : str, default 'ts_effective'
             The index column used for filtering the `start` and `end` time range
             and for record ordering.

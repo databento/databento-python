@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.51.0 - 2025-04-08
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.31.0
+  - Fixed Python type annotation for `SystemMsg.is_heartbeat()` method that was previously annotated as a property
+
 ## 0.50.0 - 2025-03-18
 
 #### Enhancements
