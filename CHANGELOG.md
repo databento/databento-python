@@ -26,6 +26,8 @@
 - Upgraded `databento-dbn` to 0.29.0
   - Added `COMMODITY_SPOT` `InstrumentClass` variant
 - Improved handling of `datetime` and `date` objects in `start` and `end` parameters
+- Upgraded `databento-dbn` to 0.31.0
+  - Fixed Python type annotation for `SystemMsg.is_heartbeat()` method that was previously annotated as a property
 
 ## 0.49.0 - 2025-03-04
 
