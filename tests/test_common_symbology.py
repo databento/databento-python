@@ -854,7 +854,7 @@ def test_instrument_map_ignore_duplicate(
         Dataset.GLBX_MDP3,
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
-        Dataset.DBEQ_BASIC,
+        Dataset.EQUS_MINI,
         Dataset.IFEU_IMPACT,
         Dataset.NDEX_IMPACT,
     ],
@@ -914,7 +914,7 @@ def test_instrument_map_symbols_csv(
         Dataset.GLBX_MDP3,
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
-        Dataset.DBEQ_BASIC,
+        Dataset.EQUS_MINI,
     ],
 )
 @pytest.mark.parametrize(

@@ -665,7 +665,7 @@ def test_to_df_with_price_type_invalid(
         Dataset.GLBX_MDP3,
         Dataset.XNAS_ITCH,
         Dataset.OPRA_PILLAR,
-        Dataset.DBEQ_BASIC,
+        Dataset.EQUS_MINI,
         Dataset.IFEU_IMPACT,
         Dataset.NDEX_IMPACT,
     ],
