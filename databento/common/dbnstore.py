@@ -1335,7 +1335,7 @@ class NDArrayStreamIterator(NDArrayIterator):
         count: int | None = None,
     ) -> None:
         self._reader = reader
-        self._dtype: np.typing.DTypeLike = np.dtype(dtype)
+        self._dtype: np.dtype[Any] = np.dtype(dtype)
         self._offset = offset
         self._count = count
         self._close_on_next = False

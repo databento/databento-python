@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.52.0 - 2025-04-15
+
+#### Enhancements
+- Added new optional `id` field to `SubcriptionRequest` class which will be used for improved error messages
+- Upgraded `databento-dbn` to 0.32.0
+  - Fixed `RType` variant names in Python to match `Schema`
+  - Added missing Python type declarations for `RType` variants
+  - Fixed issue with Python `_hidden_fields` definition that caused `KeyError: _reserved1_00`
+    with `CMBP1Msg` and other records with `ConsolidatedBidAskPair`
+
 ## 0.51.0 - 2025-04-08
 
 #### Enhancements

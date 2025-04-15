@@ -299,15 +299,15 @@ def test_serialize_session_start(
     "line, expected",
     [
         pytest.param(
-            "schema=trades|" "stype_in=instrument_id|" "symbols=1,2,3\n",
-            ("trades", "instrument_id", "1,2,3", None),
+            "schema=trades|" "stype_in=instrument_id|" "symbols=1,2,3|" "id=23\n",
+            ("trades", "instrument_id", "1,2,3", None, "23"),
         ),
         pytest.param(
             "schema=trades|"
             "stype_in=instrument_id|"
             "symbols=1,2,3|"
             "start=1671717080706865759\n",
-            ("trades", "instrument_id", "1,2,3", "1671717080706865759"),
+            ("trades", "instrument_id", "1,2,3", "1671717080706865759", None),
         ),
         pytest.param(
             "schema=trades|" "stype_in=instrument_id|" "symbols=1,2,3",
@@ -336,6 +336,7 @@ def test_parse_subscription_request(
             msg.stype_in,
             msg.symbols,
             msg.start,
+            msg.id,
         ) == expected
     else:
         with pytest.raises(expected):
@@ -374,8 +375,13 @@ def test_parse_subscription_request(
                 symbols="1234,5678,90",
                 start=None,
                 snapshot=1,
+                id=5,
             ),
-            b"schema=mbo|" b"stype_in=instrument_id|" b"symbols=1234,5678,90|" b"snapshot=1\n",
+            b"schema=mbo|"
+            b"stype_in=instrument_id|"
+            b"symbols=1234,5678,90|"
+            b"snapshot=1|"
+            b"id=5\n",
         ),
     ],
 )
