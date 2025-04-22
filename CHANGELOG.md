@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.52.1 - TBD
+
+#### Bug fixes
+- Fixed issue where all `SystemMsg` records were logged as gateway heartbeats
+
 ## 0.52.0 - 2025-04-15
 
 #### Enhancements
