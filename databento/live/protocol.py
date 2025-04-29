@@ -374,7 +374,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                     )
                     self._error_msgs.append(record.err)
                 elif isinstance(record, databento_dbn.SystemMsg):
-                    if record.is_heartbeat:
+                    if record.is_heartbeat():
                         logger.debug("gateway heartbeat")
                     else:
                         logger.info(

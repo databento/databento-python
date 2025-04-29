@@ -61,10 +61,12 @@ class TimeseriesHttpAPI(BentoHttpAPI):
             The dataset code (string identifier) for the request.
         start : pd.Timestamp, datetime, date, str, or int
             The start datetime of the request time range (inclusive).
+            Filters on `ts_recv` if it exists in the schema, otherwise `ts_event`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
             The end datetime of the request time range (exclusive).
+            Filters on `ts_recv` if it exists in the schema, otherwise `ts_event`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Defaults to the forward filled value of `start` based on the resolution provided.
@@ -156,11 +158,13 @@ class TimeseriesHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
         start : pd.Timestamp, datetime, date, str, or int
-            The start datetime of the request time range (inclusive).
+            The start of the request time range (inclusive).
+            Filters on `ts_recv` if it exists in the schema, otherwise `ts_event`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
-            The end datetime of the request time range (exclusive).
+            The end of the request time range (exclusive).
+            Filters on `ts_recv` if it exists in the schema, otherwise `ts_event`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Defaults to the forward filled value of `start` based on the resolution provided.
