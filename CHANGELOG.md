@@ -2,6 +2,11 @@
 
 ## 0.52.1 - TBD
 
+#### Enhancements
+- Upgraded `databento-dbn` to 0.33.1
+  - Added `SystemCode` and `ErrorCode` enums to indicate types of system and error messages
+  - Added `code()` methods to SystemMsg and ErrorMsg to retrieve the enum value if one exists and equivalent properties in Python
+
 #### Bug fixes
 - Fixed issue where all `SystemMsg` records were logged as gateway heartbeats
 
