@@ -325,7 +325,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         subscriptions: list[SubscriptionRequest] = []
         chunked_symbols = list(chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE))
-        for batch in chunked_symbols:
+        last_chunk_idx = len(chunked_symbols) - 1
+        for i, batch in enumerate(chunked_symbols):
             batch_str = ",".join(batch)
             message = SubscriptionRequest(
                 schema=validate_enum(schema, Schema, "schema"),
@@ -334,6 +335,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 start=optional_datetime_to_unix_nanoseconds(start),
                 snapshot=int(snapshot),
                 id=subscription_id,
+                is_last=int(i == last_chunk_idx),
             )
             subscriptions.append(message)
 

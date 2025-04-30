@@ -581,10 +581,11 @@ async def test_live_subscribe_large_symbol_list(
     )
 
     reconstructed: list[str] = []
-    for _ in range(8):
+    for i in range(8):
         message = await mock_live_server.wait_for_message_of_type(
             message_type=gateway.SubscriptionRequest,
         )
+        assert int(message.is_last) == int(i == 7)
         reconstructed.extend(message.symbols.split(","))
 
     # Assert
