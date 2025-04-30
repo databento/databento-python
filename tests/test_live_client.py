@@ -569,7 +569,7 @@ async def test_live_subscribe_large_symbol_list(
     """
     # Arrange
     large_symbol_list = list(
-        random.choices(string.ascii_uppercase, k=256),  # noqa: S311
+        random.choices(string.ascii_uppercase, k=3950),  # noqa: S311
     )
 
     # Act

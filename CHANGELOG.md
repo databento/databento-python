@@ -4,6 +4,7 @@
 
 #### Enhancements
 - Added new off-market publishers for Eurex, and European Energy Exchange (EEX)
+- Increased live subscription symbol chunking size
 
 ## 0.53.0 - 2025-04-29
 

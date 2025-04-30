@@ -59,7 +59,7 @@ class GatewayControl(SupportsBytes):
             return cls(**data_dict)
         except TypeError:
             raise ValueError(
-                f"'{line!r}'is not a parsible {cls.__name__}",
+                f"'{line!r}'is not a parseable {cls.__name__}",
             ) from None
 
     def __str__(self) -> str:
@@ -156,7 +156,7 @@ def parse_gateway_message(line: str) -> GatewayControl:
     Raises
     ------
     ValueError
-        If `line` is not a parsible GatewayControl message.
+        If `line` is not a parseable GatewayControl message.
 
     """
     for message_cls in GatewayControl.__subclasses__():
@@ -164,7 +164,7 @@ def parse_gateway_message(line: str) -> GatewayControl:
             return message_cls.parse(line)
         except ValueError:
             continue
-    raise ValueError(f"'{line.strip()}' is not a parsible gateway message")
+    raise ValueError(f"'{line.strip()}' is not a parseable gateway message")
 
 
 class GatewayDecoder:
