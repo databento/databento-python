@@ -41,7 +41,7 @@ class Venue(StringyMixin, str, Enum):
     ARCX
         NYSE Arca.
     XCHI
-        NYSE Chicago, Inc..
+        NYSE Texas, Inc..
     IEXG
         Investors Exchange.
     FINN
@@ -420,7 +420,7 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.ARCX:
             return "NYSE Arca"
         if self == Venue.XCHI:
-            return "NYSE Chicago, Inc."
+            return "NYSE Texas, Inc."
         if self == Venue.IEXG:
             return "Investors Exchange"
         if self == Venue.FINN:
@@ -529,7 +529,7 @@ class Dataset(StringyMixin, str, Enum):
     XASE_PILLAR
         NYSE American Integrated.
     XCHI_PILLAR
-        NYSE Chicago Integrated.
+        NYSE Texas Integrated.
     XCIS_BBO
         NYSE National BBO.
     XCIS_TRADES
@@ -824,7 +824,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.XASE_PILLAR:
             return "NYSE American Integrated"
         if self == Dataset.XCHI_PILLAR:
-            return "NYSE Chicago Integrated"
+            return "NYSE Texas Integrated"
         if self == Dataset.XCIS_BBO:
             return "NYSE National BBO"
         if self == Dataset.XCIS_TRADES:
@@ -911,7 +911,7 @@ class Publisher(StringyMixin, str, Enum):
     XASE_PILLAR_XASE
         NYSE American Integrated.
     XCHI_PILLAR_XCHI
-        NYSE Chicago Integrated.
+        NYSE Texas Integrated.
     XCIS_BBO_XCIS
         NYSE National BBO.
     XCIS_TRADES_XCIS
@@ -965,7 +965,7 @@ class Publisher(StringyMixin, str, Enum):
     IEXG_TOPS_IEXG
         IEX TOPS.
     DBEQ_BASIC_XCHI
-        DBEQ Basic - NYSE Chicago.
+        DBEQ Basic - NYSE Texas.
     DBEQ_BASIC_XCIS
         DBEQ Basic - NYSE National.
     DBEQ_BASIC_IEXG
@@ -983,7 +983,7 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_NLS_XNAS
         Nasdaq Trades.
     EQUS_PLUS_XCHI
-        Databento US Equities Plus - NYSE Chicago.
+        Databento US Equities Plus - NYSE Texas.
     EQUS_PLUS_XCIS
         Databento US Equities Plus - NYSE National.
     EQUS_PLUS_IEXG
@@ -1011,7 +1011,7 @@ class Publisher(StringyMixin, str, Enum):
     OPRA_PILLAR_SPHR
         OPRA - MIAX Sapphire.
     EQUS_ALL_XCHI
-        Databento US Equities (All Feeds) - NYSE Chicago.
+        Databento US Equities (All Feeds) - NYSE Texas.
     EQUS_ALL_XCIS
         Databento US Equities (All Feeds) - NYSE National.
     EQUS_ALL_IEXG
@@ -2069,7 +2069,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XASE_PILLAR_XASE:
             return "NYSE American Integrated"
         if self == Publisher.XCHI_PILLAR_XCHI:
-            return "NYSE Chicago Integrated"
+            return "NYSE Texas Integrated"
         if self == Publisher.XCIS_BBO_XCIS:
             return "NYSE National BBO"
         if self == Publisher.XCIS_TRADES_XCIS:
@@ -2123,7 +2123,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.IEXG_TOPS_IEXG:
             return "IEX TOPS"
         if self == Publisher.DBEQ_BASIC_XCHI:
-            return "DBEQ Basic - NYSE Chicago"
+            return "DBEQ Basic - NYSE Texas"
         if self == Publisher.DBEQ_BASIC_XCIS:
             return "DBEQ Basic - NYSE National"
         if self == Publisher.DBEQ_BASIC_IEXG:
@@ -2141,7 +2141,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNAS_NLS_XNAS:
             return "Nasdaq Trades"
         if self == Publisher.EQUS_PLUS_XCHI:
-            return "Databento US Equities Plus - NYSE Chicago"
+            return "Databento US Equities Plus - NYSE Texas"
         if self == Publisher.EQUS_PLUS_XCIS:
             return "Databento US Equities Plus - NYSE National"
         if self == Publisher.EQUS_PLUS_IEXG:
@@ -2169,7 +2169,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.OPRA_PILLAR_SPHR:
             return "OPRA - MIAX Sapphire"
         if self == Publisher.EQUS_ALL_XCHI:
-            return "Databento US Equities (All Feeds) - NYSE Chicago"
+            return "Databento US Equities (All Feeds) - NYSE Texas"
         if self == Publisher.EQUS_ALL_XCIS:
             return "Databento US Equities (All Feeds) - NYSE National"
         if self == Publisher.EQUS_ALL_IEXG:
