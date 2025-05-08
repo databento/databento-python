@@ -57,21 +57,21 @@ class Venue(StringyMixin, str, Enum):
     AMXO
         NYSE American Options.
     XBOX
-        BOX Options Exchange.
+        BOX Options.
     XCBO
-        Cboe Options Exchange.
+        Cboe Options.
     EMLD
         MIAX Emerald.
     EDGO
-        Cboe EDGX Options Exchange.
+        Cboe EDGX Options.
     GMNI
-        ISE Gemini Exchange.
+        Nasdaq GEMX.
     XISX
-        International Securities Exchange, LLC.
+        Nasdaq ISE.
     MCRY
-        ISE Mercury, LLC.
+        Nasdaq MRX.
     XMIO
-        Miami International Securities Exchange.
+        MIAX Options.
     ARCO
         NYSE Arca Options.
     OPRA
@@ -79,17 +79,17 @@ class Venue(StringyMixin, str, Enum):
     MPRL
         MIAX Pearl.
     XNDQ
-        Nasdaq Options Market.
+        Nasdaq Options.
     XBXO
-        Nasdaq OMX BX Options.
+        Nasdaq BX Options.
     C2OX
-        Cboe C2 Options Exchange.
+        Cboe C2 Options.
     XPHL
-        Nasdaq OMX PHLX.
+        Nasdaq PHLX.
     BATO
-        Cboe BZX Options Exchange.
+        Cboe BZX Options.
     MXOP
-        MEMX LLC Options.
+        MEMX Options.
     IFEU
         ICE Futures Europe (Commodities).
     NDEX
@@ -436,21 +436,21 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.AMXO:
             return "NYSE American Options"
         if self == Venue.XBOX:
-            return "BOX Options Exchange"
+            return "BOX Options"
         if self == Venue.XCBO:
-            return "Cboe Options Exchange"
+            return "Cboe Options"
         if self == Venue.EMLD:
             return "MIAX Emerald"
         if self == Venue.EDGO:
-            return "Cboe EDGX Options Exchange"
+            return "Cboe EDGX Options"
         if self == Venue.GMNI:
-            return "ISE Gemini Exchange"
+            return "Nasdaq GEMX"
         if self == Venue.XISX:
-            return "International Securities Exchange, LLC"
+            return "Nasdaq ISE"
         if self == Venue.MCRY:
-            return "ISE Mercury, LLC"
+            return "Nasdaq MRX"
         if self == Venue.XMIO:
-            return "Miami International Securities Exchange"
+            return "MIAX Options"
         if self == Venue.ARCO:
             return "NYSE Arca Options"
         if self == Venue.OPRA:
@@ -458,17 +458,17 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.MPRL:
             return "MIAX Pearl"
         if self == Venue.XNDQ:
-            return "Nasdaq Options Market"
+            return "Nasdaq Options"
         if self == Venue.XBXO:
-            return "Nasdaq OMX BX Options"
+            return "Nasdaq BX Options"
         if self == Venue.C2OX:
-            return "Cboe C2 Options Exchange"
+            return "Cboe C2 Options"
         if self == Venue.XPHL:
-            return "Nasdaq OMX PHLX"
+            return "Nasdaq PHLX"
         if self == Venue.BATO:
-            return "Cboe BZX Options Exchange"
+            return "Cboe BZX Options"
         if self == Venue.MXOP:
-            return "MEMX LLC Options"
+            return "MEMX Options"
         if self == Venue.IFEU:
             return "ICE Futures Europe (Commodities)"
         if self == Venue.NDEX:
@@ -927,15 +927,15 @@ class Publisher(StringyMixin, str, Enum):
     XNYS_TRADES_FINY
         FINRA/NYSE TRF.
     OPRA_PILLAR_AMXO
-        OPRA - NYSE American.
+        OPRA - NYSE American Options.
     OPRA_PILLAR_XBOX
-        OPRA - Boston Options Exchange.
+        OPRA - BOX Options.
     OPRA_PILLAR_XCBO
-        OPRA - Cboe Options Exchange.
+        OPRA - Cboe Options.
     OPRA_PILLAR_EMLD
         OPRA - MIAX Emerald.
     OPRA_PILLAR_EDGO
-        OPRA - Cboe EDGX Options Exchange.
+        OPRA - Cboe EDGX Options.
     OPRA_PILLAR_GMNI
         OPRA - Nasdaq GEMX.
     OPRA_PILLAR_XISX
@@ -943,25 +943,25 @@ class Publisher(StringyMixin, str, Enum):
     OPRA_PILLAR_MCRY
         OPRA - Nasdaq MRX.
     OPRA_PILLAR_XMIO
-        OPRA - Miami International Securities.
+        OPRA - MIAX Options.
     OPRA_PILLAR_ARCO
-        OPRA - NYSE Arca.
+        OPRA - NYSE Arca Options.
     OPRA_PILLAR_OPRA
         OPRA - Options Price Reporting Authority.
     OPRA_PILLAR_MPRL
         OPRA - MIAX Pearl.
     OPRA_PILLAR_XNDQ
-        OPRA - Nasdaq Options Market.
+        OPRA - Nasdaq Options.
     OPRA_PILLAR_XBXO
         OPRA - Nasdaq BX Options.
     OPRA_PILLAR_C2OX
-        OPRA - Cboe C2 Options Exchange.
+        OPRA - Cboe C2 Options.
     OPRA_PILLAR_XPHL
         OPRA - Nasdaq PHLX.
     OPRA_PILLAR_BATO
         OPRA - Cboe BZX Options.
     OPRA_PILLAR_MXOP
-        OPRA - MEMX Options Exchange.
+        OPRA - MEMX Options.
     IEXG_TOPS_IEXG
         IEX TOPS.
     DBEQ_BASIC_XCHI
@@ -2085,15 +2085,15 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNYS_TRADES_FINY:
             return "FINRA/NYSE TRF"
         if self == Publisher.OPRA_PILLAR_AMXO:
-            return "OPRA - NYSE American"
+            return "OPRA - NYSE American Options"
         if self == Publisher.OPRA_PILLAR_XBOX:
-            return "OPRA - Boston Options Exchange"
+            return "OPRA - BOX Options"
         if self == Publisher.OPRA_PILLAR_XCBO:
-            return "OPRA - Cboe Options Exchange"
+            return "OPRA - Cboe Options"
         if self == Publisher.OPRA_PILLAR_EMLD:
             return "OPRA - MIAX Emerald"
         if self == Publisher.OPRA_PILLAR_EDGO:
-            return "OPRA - Cboe EDGX Options Exchange"
+            return "OPRA - Cboe EDGX Options"
         if self == Publisher.OPRA_PILLAR_GMNI:
             return "OPRA - Nasdaq GEMX"
         if self == Publisher.OPRA_PILLAR_XISX:
@@ -2101,25 +2101,25 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.OPRA_PILLAR_MCRY:
             return "OPRA - Nasdaq MRX"
         if self == Publisher.OPRA_PILLAR_XMIO:
-            return "OPRA - Miami International Securities"
+            return "OPRA - MIAX Options"
         if self == Publisher.OPRA_PILLAR_ARCO:
-            return "OPRA - NYSE Arca"
+            return "OPRA - NYSE Arca Options"
         if self == Publisher.OPRA_PILLAR_OPRA:
             return "OPRA - Options Price Reporting Authority"
         if self == Publisher.OPRA_PILLAR_MPRL:
             return "OPRA - MIAX Pearl"
         if self == Publisher.OPRA_PILLAR_XNDQ:
-            return "OPRA - Nasdaq Options Market"
+            return "OPRA - Nasdaq Options"
         if self == Publisher.OPRA_PILLAR_XBXO:
             return "OPRA - Nasdaq BX Options"
         if self == Publisher.OPRA_PILLAR_C2OX:
-            return "OPRA - Cboe C2 Options Exchange"
+            return "OPRA - Cboe C2 Options"
         if self == Publisher.OPRA_PILLAR_XPHL:
             return "OPRA - Nasdaq PHLX"
         if self == Publisher.OPRA_PILLAR_BATO:
             return "OPRA - Cboe BZX Options"
         if self == Publisher.OPRA_PILLAR_MXOP:
-            return "OPRA - MEMX Options Exchange"
+            return "OPRA - MEMX Options"
         if self == Publisher.IEXG_TOPS_IEXG:
             return "IEX TOPS"
         if self == Publisher.DBEQ_BASIC_XCHI:
