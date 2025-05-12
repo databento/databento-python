@@ -32,7 +32,7 @@ aiohttp = [
     {version = "^3.8.3", python = "<3.12"},
     {version = "^3.9.0", python = "^3.12"}
 ]
-databento-dbn = "0.33.1"
+databento-dbn = "0.34.0"
 numpy = [
     {version = ">=1.23.5", python = "<3.12"},
     {version = ">=1.26.0", python = "^3.12"}

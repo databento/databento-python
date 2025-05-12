@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.53.1 - TBD
+## 0.54.0 - TBD
 
 #### Enhancements
 - Added new off-market publishers for Eurex, and European Energy Exchange (EEX)
 - Increased live subscription symbol chunking size
+- Upgraded `databento-dbn` to 0.34.0
 
 ## 0.53.0 - 2025-04-29
 
