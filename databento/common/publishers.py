@@ -1092,6 +1092,10 @@ class Publisher(StringyMixin, str, Enum):
         Eurex EOBI.
     XEER_EOBI_XEER
         European Energy Exchange EOBI.
+    XEUR_EOBI_XOFF
+        Eurex EOBI - Off-Market Trades.
+    XEER_EOBI_XOFF
+        European Energy Exchange EOBI - Off-Market Trades.
 
     """
 
@@ -1197,6 +1201,8 @@ class Publisher(StringyMixin, str, Enum):
     IFLL_IMPACT_XOFF = "IFLL.IMPACT.XOFF"
     XEUR_EOBI_XEUR = "XEUR.EOBI.XEUR"
     XEER_EOBI_XEER = "XEER.EOBI.XEER"
+    XEUR_EOBI_XOFF = "XEUR.EOBI.XOFF"
+    XEER_EOBI_XOFF = "XEER.EOBI.XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1407,6 +1413,10 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XEUR_EOBI_XEUR
         if value == 102:
             return Publisher.XEER_EOBI_XEER
+        if value == 103:
+            return Publisher.XEUR_EOBI_XOFF
+        if value == 104:
+            return Publisher.XEER_EOBI_XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1617,6 +1627,10 @@ class Publisher(StringyMixin, str, Enum):
             return 101
         if self == Publisher.XEER_EOBI_XEER:
             return 102
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return 103
+        if self == Publisher.XEER_EOBI_XOFF:
+            return 104
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1828,6 +1842,10 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XEUR
         if self == Publisher.XEER_EOBI_XEER:
             return Venue.XEER
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return Venue.XOFF
+        if self == Publisher.XEER_EOBI_XOFF:
+            return Venue.XOFF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2038,6 +2056,10 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XEUR_EOBI_XEUR:
             return Dataset.XEUR_EOBI
         if self == Publisher.XEER_EOBI_XEER:
+            return Dataset.XEER_EOBI
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return Dataset.XEUR_EOBI
+        if self == Publisher.XEER_EOBI_XOFF:
             return Dataset.XEER_EOBI
         raise ValueError("Unexpected Publisher value")
 
@@ -2250,4 +2272,8 @@ class Publisher(StringyMixin, str, Enum):
             return "Eurex EOBI"
         if self == Publisher.XEER_EOBI_XEER:
             return "European Energy Exchange EOBI"
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return "Eurex EOBI - Off-Market Trades"
+        if self == Publisher.XEER_EOBI_XOFF:
+            return "European Energy Exchange EOBI - Off-Market Trades"
         raise ValueError("Unexpected Publisher value")

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.53.1 - TBD
+
+#### Enhancements
+- Added new off-market publishers for Eurex, and European Energy Exchange (EEX)
+
 ## 0.53.0 - 2025-04-29
 
 #### Enhancements
