@@ -33,7 +33,7 @@ from databento.live.gateway import SubscriptionRequest
 
 
 RECV_BUFFER_SIZE: Final = 64 * 2**10  # 64kb
-SYMBOL_LIST_BATCH_SIZE: Final = 32
+SYMBOL_LIST_BATCH_SIZE: Final = 500
 
 logger = logging.getLogger(__name__)
 
@@ -324,7 +324,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         symbols_list = symbols_list_to_list(symbols, stype_in_valid)
 
         subscriptions: list[SubscriptionRequest] = []
-        for batch in chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE):
+        chunked_symbols = list(chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE))
+        for batch in chunked_symbols:
             batch_str = ",".join(batch)
             message = SubscriptionRequest(
                 schema=validate_enum(schema, Schema, "schema"),

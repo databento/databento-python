@@ -41,7 +41,7 @@ class Venue(StringyMixin, str, Enum):
     ARCX
         NYSE Arca.
     XCHI
-        NYSE Chicago, Inc..
+        NYSE Texas, Inc..
     IEXG
         Investors Exchange.
     FINN
@@ -57,21 +57,21 @@ class Venue(StringyMixin, str, Enum):
     AMXO
         NYSE American Options.
     XBOX
-        BOX Options Exchange.
+        BOX Options.
     XCBO
-        Cboe Options Exchange.
+        Cboe Options.
     EMLD
         MIAX Emerald.
     EDGO
-        Cboe EDGX Options Exchange.
+        Cboe EDGX Options.
     GMNI
-        ISE Gemini Exchange.
+        Nasdaq GEMX.
     XISX
-        International Securities Exchange, LLC.
+        Nasdaq ISE.
     MCRY
-        ISE Mercury, LLC.
+        Nasdaq MRX.
     XMIO
-        Miami International Securities Exchange.
+        MIAX Options.
     ARCO
         NYSE Arca Options.
     OPRA
@@ -79,17 +79,17 @@ class Venue(StringyMixin, str, Enum):
     MPRL
         MIAX Pearl.
     XNDQ
-        Nasdaq Options Market.
+        Nasdaq Options.
     XBXO
-        Nasdaq OMX BX Options.
+        Nasdaq BX Options.
     C2OX
-        Cboe C2 Options Exchange.
+        Cboe C2 Options.
     XPHL
-        Nasdaq OMX PHLX.
+        Nasdaq PHLX.
     BATO
-        Cboe BZX Options Exchange.
+        Cboe BZX Options.
     MXOP
-        MEMX LLC Options.
+        MEMX Options.
     IFEU
         ICE Futures Europe (Commodities).
     NDEX
@@ -420,7 +420,7 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.ARCX:
             return "NYSE Arca"
         if self == Venue.XCHI:
-            return "NYSE Chicago, Inc."
+            return "NYSE Texas, Inc."
         if self == Venue.IEXG:
             return "Investors Exchange"
         if self == Venue.FINN:
@@ -436,21 +436,21 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.AMXO:
             return "NYSE American Options"
         if self == Venue.XBOX:
-            return "BOX Options Exchange"
+            return "BOX Options"
         if self == Venue.XCBO:
-            return "Cboe Options Exchange"
+            return "Cboe Options"
         if self == Venue.EMLD:
             return "MIAX Emerald"
         if self == Venue.EDGO:
-            return "Cboe EDGX Options Exchange"
+            return "Cboe EDGX Options"
         if self == Venue.GMNI:
-            return "ISE Gemini Exchange"
+            return "Nasdaq GEMX"
         if self == Venue.XISX:
-            return "International Securities Exchange, LLC"
+            return "Nasdaq ISE"
         if self == Venue.MCRY:
-            return "ISE Mercury, LLC"
+            return "Nasdaq MRX"
         if self == Venue.XMIO:
-            return "Miami International Securities Exchange"
+            return "MIAX Options"
         if self == Venue.ARCO:
             return "NYSE Arca Options"
         if self == Venue.OPRA:
@@ -458,17 +458,17 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.MPRL:
             return "MIAX Pearl"
         if self == Venue.XNDQ:
-            return "Nasdaq Options Market"
+            return "Nasdaq Options"
         if self == Venue.XBXO:
-            return "Nasdaq OMX BX Options"
+            return "Nasdaq BX Options"
         if self == Venue.C2OX:
-            return "Cboe C2 Options Exchange"
+            return "Cboe C2 Options"
         if self == Venue.XPHL:
-            return "Nasdaq OMX PHLX"
+            return "Nasdaq PHLX"
         if self == Venue.BATO:
-            return "Cboe BZX Options Exchange"
+            return "Cboe BZX Options"
         if self == Venue.MXOP:
-            return "MEMX LLC Options"
+            return "MEMX Options"
         if self == Venue.IFEU:
             return "ICE Futures Europe (Commodities)"
         if self == Venue.NDEX:
@@ -529,7 +529,7 @@ class Dataset(StringyMixin, str, Enum):
     XASE_PILLAR
         NYSE American Integrated.
     XCHI_PILLAR
-        NYSE Chicago Integrated.
+        NYSE Texas Integrated.
     XCIS_BBO
         NYSE National BBO.
     XCIS_TRADES
@@ -824,7 +824,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.XASE_PILLAR:
             return "NYSE American Integrated"
         if self == Dataset.XCHI_PILLAR:
-            return "NYSE Chicago Integrated"
+            return "NYSE Texas Integrated"
         if self == Dataset.XCIS_BBO:
             return "NYSE National BBO"
         if self == Dataset.XCIS_TRADES:
@@ -911,7 +911,7 @@ class Publisher(StringyMixin, str, Enum):
     XASE_PILLAR_XASE
         NYSE American Integrated.
     XCHI_PILLAR_XCHI
-        NYSE Chicago Integrated.
+        NYSE Texas Integrated.
     XCIS_BBO_XCIS
         NYSE National BBO.
     XCIS_TRADES_XCIS
@@ -927,15 +927,15 @@ class Publisher(StringyMixin, str, Enum):
     XNYS_TRADES_FINY
         FINRA/NYSE TRF.
     OPRA_PILLAR_AMXO
-        OPRA - NYSE American.
+        OPRA - NYSE American Options.
     OPRA_PILLAR_XBOX
-        OPRA - Boston Options Exchange.
+        OPRA - BOX Options.
     OPRA_PILLAR_XCBO
-        OPRA - Cboe Options Exchange.
+        OPRA - Cboe Options.
     OPRA_PILLAR_EMLD
         OPRA - MIAX Emerald.
     OPRA_PILLAR_EDGO
-        OPRA - Cboe EDGX Options Exchange.
+        OPRA - Cboe EDGX Options.
     OPRA_PILLAR_GMNI
         OPRA - Nasdaq GEMX.
     OPRA_PILLAR_XISX
@@ -943,29 +943,29 @@ class Publisher(StringyMixin, str, Enum):
     OPRA_PILLAR_MCRY
         OPRA - Nasdaq MRX.
     OPRA_PILLAR_XMIO
-        OPRA - Miami International Securities.
+        OPRA - MIAX Options.
     OPRA_PILLAR_ARCO
-        OPRA - NYSE Arca.
+        OPRA - NYSE Arca Options.
     OPRA_PILLAR_OPRA
         OPRA - Options Price Reporting Authority.
     OPRA_PILLAR_MPRL
         OPRA - MIAX Pearl.
     OPRA_PILLAR_XNDQ
-        OPRA - Nasdaq Options Market.
+        OPRA - Nasdaq Options.
     OPRA_PILLAR_XBXO
         OPRA - Nasdaq BX Options.
     OPRA_PILLAR_C2OX
-        OPRA - Cboe C2 Options Exchange.
+        OPRA - Cboe C2 Options.
     OPRA_PILLAR_XPHL
         OPRA - Nasdaq PHLX.
     OPRA_PILLAR_BATO
         OPRA - Cboe BZX Options.
     OPRA_PILLAR_MXOP
-        OPRA - MEMX Options Exchange.
+        OPRA - MEMX Options.
     IEXG_TOPS_IEXG
         IEX TOPS.
     DBEQ_BASIC_XCHI
-        DBEQ Basic - NYSE Chicago.
+        DBEQ Basic - NYSE Texas.
     DBEQ_BASIC_XCIS
         DBEQ Basic - NYSE National.
     DBEQ_BASIC_IEXG
@@ -983,7 +983,7 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_NLS_XNAS
         Nasdaq Trades.
     EQUS_PLUS_XCHI
-        Databento US Equities Plus - NYSE Chicago.
+        Databento US Equities Plus - NYSE Texas.
     EQUS_PLUS_XCIS
         Databento US Equities Plus - NYSE National.
     EQUS_PLUS_IEXG
@@ -1011,7 +1011,7 @@ class Publisher(StringyMixin, str, Enum):
     OPRA_PILLAR_SPHR
         OPRA - MIAX Sapphire.
     EQUS_ALL_XCHI
-        Databento US Equities (All Feeds) - NYSE Chicago.
+        Databento US Equities (All Feeds) - NYSE Texas.
     EQUS_ALL_XCIS
         Databento US Equities (All Feeds) - NYSE National.
     EQUS_ALL_IEXG
@@ -1092,6 +1092,10 @@ class Publisher(StringyMixin, str, Enum):
         Eurex EOBI.
     XEER_EOBI_XEER
         European Energy Exchange EOBI.
+    XEUR_EOBI_XOFF
+        Eurex EOBI - Off-Market Trades.
+    XEER_EOBI_XOFF
+        European Energy Exchange EOBI - Off-Market Trades.
 
     """
 
@@ -1197,6 +1201,8 @@ class Publisher(StringyMixin, str, Enum):
     IFLL_IMPACT_XOFF = "IFLL.IMPACT.XOFF"
     XEUR_EOBI_XEUR = "XEUR.EOBI.XEUR"
     XEER_EOBI_XEER = "XEER.EOBI.XEER"
+    XEUR_EOBI_XOFF = "XEUR.EOBI.XOFF"
+    XEER_EOBI_XOFF = "XEER.EOBI.XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1407,6 +1413,10 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XEUR_EOBI_XEUR
         if value == 102:
             return Publisher.XEER_EOBI_XEER
+        if value == 103:
+            return Publisher.XEUR_EOBI_XOFF
+        if value == 104:
+            return Publisher.XEER_EOBI_XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1617,6 +1627,10 @@ class Publisher(StringyMixin, str, Enum):
             return 101
         if self == Publisher.XEER_EOBI_XEER:
             return 102
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return 103
+        if self == Publisher.XEER_EOBI_XOFF:
+            return 104
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1828,6 +1842,10 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XEUR
         if self == Publisher.XEER_EOBI_XEER:
             return Venue.XEER
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return Venue.XOFF
+        if self == Publisher.XEER_EOBI_XOFF:
+            return Venue.XOFF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2039,6 +2057,10 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XEUR_EOBI
         if self == Publisher.XEER_EOBI_XEER:
             return Dataset.XEER_EOBI
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return Dataset.XEUR_EOBI
+        if self == Publisher.XEER_EOBI_XOFF:
+            return Dataset.XEER_EOBI
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2069,7 +2091,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XASE_PILLAR_XASE:
             return "NYSE American Integrated"
         if self == Publisher.XCHI_PILLAR_XCHI:
-            return "NYSE Chicago Integrated"
+            return "NYSE Texas Integrated"
         if self == Publisher.XCIS_BBO_XCIS:
             return "NYSE National BBO"
         if self == Publisher.XCIS_TRADES_XCIS:
@@ -2085,15 +2107,15 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNYS_TRADES_FINY:
             return "FINRA/NYSE TRF"
         if self == Publisher.OPRA_PILLAR_AMXO:
-            return "OPRA - NYSE American"
+            return "OPRA - NYSE American Options"
         if self == Publisher.OPRA_PILLAR_XBOX:
-            return "OPRA - Boston Options Exchange"
+            return "OPRA - BOX Options"
         if self == Publisher.OPRA_PILLAR_XCBO:
-            return "OPRA - Cboe Options Exchange"
+            return "OPRA - Cboe Options"
         if self == Publisher.OPRA_PILLAR_EMLD:
             return "OPRA - MIAX Emerald"
         if self == Publisher.OPRA_PILLAR_EDGO:
-            return "OPRA - Cboe EDGX Options Exchange"
+            return "OPRA - Cboe EDGX Options"
         if self == Publisher.OPRA_PILLAR_GMNI:
             return "OPRA - Nasdaq GEMX"
         if self == Publisher.OPRA_PILLAR_XISX:
@@ -2101,29 +2123,29 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.OPRA_PILLAR_MCRY:
             return "OPRA - Nasdaq MRX"
         if self == Publisher.OPRA_PILLAR_XMIO:
-            return "OPRA - Miami International Securities"
+            return "OPRA - MIAX Options"
         if self == Publisher.OPRA_PILLAR_ARCO:
-            return "OPRA - NYSE Arca"
+            return "OPRA - NYSE Arca Options"
         if self == Publisher.OPRA_PILLAR_OPRA:
             return "OPRA - Options Price Reporting Authority"
         if self == Publisher.OPRA_PILLAR_MPRL:
             return "OPRA - MIAX Pearl"
         if self == Publisher.OPRA_PILLAR_XNDQ:
-            return "OPRA - Nasdaq Options Market"
+            return "OPRA - Nasdaq Options"
         if self == Publisher.OPRA_PILLAR_XBXO:
             return "OPRA - Nasdaq BX Options"
         if self == Publisher.OPRA_PILLAR_C2OX:
-            return "OPRA - Cboe C2 Options Exchange"
+            return "OPRA - Cboe C2 Options"
         if self == Publisher.OPRA_PILLAR_XPHL:
             return "OPRA - Nasdaq PHLX"
         if self == Publisher.OPRA_PILLAR_BATO:
             return "OPRA - Cboe BZX Options"
         if self == Publisher.OPRA_PILLAR_MXOP:
-            return "OPRA - MEMX Options Exchange"
+            return "OPRA - MEMX Options"
         if self == Publisher.IEXG_TOPS_IEXG:
             return "IEX TOPS"
         if self == Publisher.DBEQ_BASIC_XCHI:
-            return "DBEQ Basic - NYSE Chicago"
+            return "DBEQ Basic - NYSE Texas"
         if self == Publisher.DBEQ_BASIC_XCIS:
             return "DBEQ Basic - NYSE National"
         if self == Publisher.DBEQ_BASIC_IEXG:
@@ -2141,7 +2163,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNAS_NLS_XNAS:
             return "Nasdaq Trades"
         if self == Publisher.EQUS_PLUS_XCHI:
-            return "Databento US Equities Plus - NYSE Chicago"
+            return "Databento US Equities Plus - NYSE Texas"
         if self == Publisher.EQUS_PLUS_XCIS:
             return "Databento US Equities Plus - NYSE National"
         if self == Publisher.EQUS_PLUS_IEXG:
@@ -2169,7 +2191,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.OPRA_PILLAR_SPHR:
             return "OPRA - MIAX Sapphire"
         if self == Publisher.EQUS_ALL_XCHI:
-            return "Databento US Equities (All Feeds) - NYSE Chicago"
+            return "Databento US Equities (All Feeds) - NYSE Texas"
         if self == Publisher.EQUS_ALL_XCIS:
             return "Databento US Equities (All Feeds) - NYSE National"
         if self == Publisher.EQUS_ALL_IEXG:
@@ -2250,4 +2272,8 @@ class Publisher(StringyMixin, str, Enum):
             return "Eurex EOBI"
         if self == Publisher.XEER_EOBI_XEER:
             return "European Energy Exchange EOBI"
+        if self == Publisher.XEUR_EOBI_XOFF:
+            return "Eurex EOBI - Off-Market Trades"
+        if self == Publisher.XEER_EOBI_XOFF:
+            return "European Energy Exchange EOBI - Off-Market Trades"
         raise ValueError("Unexpected Publisher value")

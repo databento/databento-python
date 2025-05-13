@@ -29,7 +29,7 @@ from .source import ReplayProtocol
 
 
 SERVER_VERSION: Final = "0.4.2"
-READ_BUFFER_SIZE: Final = 2**10
+READ_BUFFER_SIZE: Final = 32 * 2**10
 
 logger = logging.getLogger(__name__)
 
