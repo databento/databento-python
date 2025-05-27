@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.55.0 - TBD
+## TBD
 
 #### Enhancements
+- Added `exchanges` parameter to `Reference.corporate_actions.get_range(...)`
 - Added `is_last` field to live subscription requests which will be used to improve
   the handling of split subscription requests
 

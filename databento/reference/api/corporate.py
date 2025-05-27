@@ -39,6 +39,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         stype_in: SType | str = "raw_symbol",
         events: Iterable[str] | str | None = None,
         countries: Iterable[str] | str | None = None,
+        exchanges: Iterable[str] | str | None = None,
         security_types: Iterable[str] | str | None = None,
         flatten: bool = True,
         pit: bool = False,
@@ -84,6 +85,11 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             Takes any number of two letter ISO 3166-1 alpha-2 country codes per request.
             If not specified then will select **all** listing countries by default.
             See [CNTRY](https://databento.com/docs/standards-and-conventions/reference-data-enums#cntry) enum.
+        exchanges : Iterable[str] or str, optional
+            The (listing) exchanges to filter for.
+            Takes any number of exchanges per request.
+            If not specified then will select **all** exchanges by default.
+            See [EXCHANGE](https://databento.com/docs/standards-and-conventions/reference-data-enums#exchange) enum.
         security_types : Iterable[str] or str, optional
             The security types to filter for.
             Takes any number of security types per request.
@@ -108,6 +114,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         symbols_list = optional_symbols_list_to_list(symbols, SType.RAW_SYMBOL)
         events = optional_string_to_list(events)
         countries = optional_string_to_list(countries)
+        exchanges = optional_string_to_list(exchanges)
         security_types = optional_string_to_list(security_types)
 
         data: dict[str, object | None] = {
@@ -121,6 +128,10 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             "security_types": ",".join(security_types) if security_types else None,
             "compression": str(Compression.ZSTD),  # Always request zstd
         }
+
+        # Only add the `exchanges` param if it is supplied, for compatibility
+        if exchanges:
+            data["exchanges"] = ",".join(exchanges)
 
         response = self._post(
             url=self._base_url + ".get_range",
