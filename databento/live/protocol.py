@@ -82,7 +82,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         self._heartbeat_interval_s = heartbeat_interval_s
 
         self._dbn_decoder = databento_dbn.DBNDecoder(
-            upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V2,
+            upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V3,
         )
         self._gateway_decoder = GatewayDecoder()
 
