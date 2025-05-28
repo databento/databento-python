@@ -175,7 +175,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.connection_made
+        asyncio.BufferedProtocol.connection_made
 
         """
         logger.debug("established connection to gateway")
@@ -190,7 +190,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.connection_lost
+        asyncio.BufferedProtocol.connection_lost
 
         """
         super().connection_lost(exc)
@@ -216,7 +216,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.eof_received
+        asyncio.BufferedProtocol.eof_received
 
         """
         logger.info("received EOF from remote")
@@ -228,7 +228,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.get_buffer
+        asyncio.BufferedProtocol.get_buffer
 
         """
         if len(self.__buffer) < sizehint:
@@ -241,7 +241,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.buffer_updated
+        asyncio.BufferedProtocol.buffer_updated
 
         """
         logger.debug("read %d bytes from remote gateway", nbytes)
