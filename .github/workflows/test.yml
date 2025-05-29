@@ -30,13 +30,13 @@ jobs:
         shell: bash
 
       - name: Test (release)
-        timeout-minutes: 3
+        timeout-minutes: 5
         if: ${{ github.ref == 'refs/heads/main' }}
         run: scripts/test.sh -vvv --release
         shell: bash
 
       - name: Test
-        timeout-minutes: 3
+        timeout-minutes: 5
         if: ${{ github.ref != 'refs/heads/main' }}
         run: scripts/test.sh -vvv
         shell: bash

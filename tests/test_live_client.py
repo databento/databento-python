@@ -358,8 +358,9 @@ async def test_live_start(
     assert message.start_session
 
 
-def test_live_start_twice(
+async def test_live_start_twice(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that calling start() twice raises a ValueError.
@@ -372,6 +373,10 @@ def test_live_start_twice(
 
     # Act
     live_client.start()
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SessionStart,
+    )
 
     # Assert
     with pytest.raises(ValueError):
@@ -389,8 +394,9 @@ def test_live_start_before_subscribe(
         live_client.start()
 
 
-def test_live_iteration_after_start(
+async def test_live_iteration_after_start(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that iterating the Live client after it is started raises a
@@ -405,13 +411,18 @@ def test_live_iteration_after_start(
     # Act
     live_client.start()
 
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SessionStart,
+    )
+
     # Assert
     with pytest.raises(ValueError):
         iter(live_client)
 
 
-def test_live_async_iteration_after_start(
+async def test_live_async_iteration_after_start(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that async-iterating the Live client after it is started raises a
@@ -425,6 +436,10 @@ def test_live_async_iteration_after_start(
 
     # Act
     live_client.start()
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SessionStart,
+    )
 
     # Assert
     with pytest.raises(ValueError):
@@ -581,10 +596,11 @@ async def test_live_subscribe_large_symbol_list(
     )
 
     reconstructed: list[str] = []
-    for _ in range(8):
+    for i in range(8):
         message = await mock_live_server.wait_for_message_of_type(
             message_type=gateway.SubscriptionRequest,
         )
+        assert int(message.is_last) == int(i == 7)
         reconstructed.extend(message.symbols.split(","))
 
     # Assert
@@ -758,9 +774,10 @@ def test_live_block_for_close(
     assert not live_client.is_connected()
 
 
-def test_live_block_for_close_timeout(
+async def test_live_block_for_close_timeout(
     live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that block_for_close terminates the session when the timeout is
@@ -777,15 +794,20 @@ def test_live_block_for_close_timeout(
     )
 
     # Act, Assert
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
     live_client.block_for_close(timeout=0)
     live_client.terminate.assert_called_once()  # type: ignore
 
 
 @pytest.mark.usefixtures("mock_live_server")
-def test_live_block_for_close_timeout_stream(
+async def test_live_block_for_close_timeout_stream(
     live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: pathlib.Path,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that block_for_close flushes user streams on timeout.
@@ -804,6 +826,10 @@ def test_live_block_for_close_timeout_stream(
     live_client.add_stream(stream)
 
     # Act, Assert
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
     live_client.block_for_close(timeout=0)
     stream.flush.assert_called()  # type: ignore [attr-defined]
 
@@ -836,6 +862,7 @@ async def test_live_wait_for_close(
 async def test_live_wait_for_close_timeout(
     live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that wait_for_close terminates the session when the timeout is
@@ -852,6 +879,11 @@ async def test_live_wait_for_close_timeout(
         symbols="ALL_SYMBOLS",
         start=None,
     )
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
     await live_client.wait_for_close(timeout=0)
 
     # Assert
@@ -863,6 +895,7 @@ async def test_live_wait_for_close_timeout_stream(
     live_client: client.Live,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: pathlib.Path,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that wait_for_close flushes user streams on timeout.
@@ -882,6 +915,10 @@ async def test_live_wait_for_close_timeout_stream(
     live_client.add_stream(stream)
 
     # Act
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
     await live_client.wait_for_close(timeout=0)
 
     # Assert

@@ -82,7 +82,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         self._heartbeat_interval_s = heartbeat_interval_s
 
         self._dbn_decoder = databento_dbn.DBNDecoder(
-            upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V2,
+            upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V3,
         )
         self._gateway_decoder = GatewayDecoder()
 
@@ -175,7 +175,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.connection_made
+        asyncio.BufferedProtocol.connection_made
 
         """
         logger.debug("established connection to gateway")
@@ -190,7 +190,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.connection_lost
+        asyncio.BufferedProtocol.connection_lost
 
         """
         super().connection_lost(exc)
@@ -216,7 +216,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.eof_received
+        asyncio.BufferedProtocol.eof_received
 
         """
         logger.info("received EOF from remote")
@@ -228,7 +228,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.get_buffer
+        asyncio.BufferedProtocol.get_buffer
 
         """
         if len(self.__buffer) < sizehint:
@@ -241,7 +241,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         See Also
         --------
-        asycnio.BufferedProtocol.buffer_updated
+        asyncio.BufferedProtocol.buffer_updated
 
         """
         logger.debug("read %d bytes from remote gateway", nbytes)
@@ -325,7 +325,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         subscriptions: list[SubscriptionRequest] = []
         chunked_symbols = list(chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE))
-        for batch in chunked_symbols:
+        last_chunk_idx = len(chunked_symbols) - 1
+        for i, batch in enumerate(chunked_symbols):
             batch_str = ",".join(batch)
             message = SubscriptionRequest(
                 schema=validate_enum(schema, Schema, "schema"),
@@ -334,6 +335,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 start=optional_datetime_to_unix_nanoseconds(start),
                 snapshot=int(snapshot),
                 id=subscription_id,
+                is_last=int(i == last_chunk_idx),
             )
             subscriptions.append(message)
 

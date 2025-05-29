@@ -352,7 +352,11 @@ def test_parse_subscription_request(
                 stype_in=SType.INSTRUMENT_ID,
                 symbols="1234,5678,90",
             ),
-            b"schema=mbo|" b"stype_in=instrument_id|" b"symbols=1234,5678,90|" b"snapshot=0\n",
+            b"schema=mbo|"
+            b"stype_in=instrument_id|"
+            b"symbols=1234,5678,90|"
+            b"snapshot=0|"
+            b"is_last=1\n",
         ),
         pytest.param(
             SubscriptionRequest(
@@ -361,12 +365,14 @@ def test_parse_subscription_request(
                 symbols="UNI,TTE,ST",
                 start=1671717080706865759,
                 snapshot=0,
+                is_last=0,
             ),
             b"schema=mbo|"
             b"stype_in=raw_symbol|"
             b"symbols=UNI,TTE,ST|"
             b"start=1671717080706865759|"
-            b"snapshot=0\n",
+            b"snapshot=0|"
+            b"is_last=0\n",
         ),
         pytest.param(
             SubscriptionRequest(
@@ -381,7 +387,8 @@ def test_parse_subscription_request(
             b"stype_in=instrument_id|"
             b"symbols=1234,5678,90|"
             b"snapshot=1|"
-            b"id=5\n",
+            b"id=5|"
+            b"is_last=1\n",
         ),
     ],
 )

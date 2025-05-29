@@ -133,6 +133,7 @@ class SubscriptionRequest(GatewayControl):
     start: int | None = None
     snapshot: int = 0
     id: int | None = None
+    is_last: int = 1
 
 
 @dataclasses.dataclass

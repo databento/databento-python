@@ -90,7 +90,7 @@ def test_sources_metadata_returns_expected_json_as_dict(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.metadata.version == 2
+    assert dbnstore.metadata.version == 3
     assert dbnstore.metadata.dataset == "GLBX.MDP3"
     assert dbnstore.metadata.schema == Schema.MBO
     assert dbnstore.metadata.stype_in == SType.RAW_SYMBOL
@@ -123,7 +123,7 @@ def test_dbnstore_given_initial_nbytes_returns_expected_metadata(
     dbnstore = DBNStore.from_bytes(data=stub_data)
 
     # Assert
-    assert dbnstore.nbytes == 189
+    assert dbnstore.nbytes == 191
     assert dbnstore.dataset == "GLBX.MDP3"
     assert dbnstore.schema == Schema.MBO
     assert dbnstore.symbols == ["ESH1"]
@@ -171,14 +171,14 @@ def test_file_dbnstore_given_valid_path_initialized_expected_data(
 
     # Assert
     assert dbnstore.dataset == "GLBX.MDP3"
-    assert dbnstore.nbytes == 189
+    assert dbnstore.nbytes == 191
 
 
 @pytest.mark.parametrize(
     "schema,expected_size",
     [
-        (Schema.MBO, 189),
-        (Schema.DEFINITION, 290),
+        (Schema.MBO, 191),
+        (Schema.DEFINITION, 288),
     ],
 )
 def test_to_file_persists_to_disk(
@@ -215,14 +215,14 @@ def test_to_file_overwrite(
     dbnstore = DBNStore.from_bytes(data=stub_data)
     dbn_path = tmp_path / "my_test.dbn"
     dbnstore.to_file(path=dbn_path)
-    assert dbn_path.stat().st_size == 189
+    assert dbn_path.stat().st_size == 191
 
     # Act
     dbnstore.to_file(path=dbn_path)
 
     # Assert
     assert dbn_path.exists()
-    assert dbn_path.stat().st_size == 189
+    assert dbn_path.stat().st_size == 191
 
 
 def test_to_file_exclusive(

@@ -380,7 +380,7 @@ class DBNStore:
     def __iter__(self) -> Generator[DBNRecord, None, None]:
         reader = self.reader
         decoder = DBNDecoder(
-            upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V2,
+            upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V3,
         )
         while True:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
@@ -394,6 +394,9 @@ class DBNStore:
                         self._instrument_map.insert_symbol_mapping_msg(record)
                     yield record
             else:
+                # This call to decode is required to seek past the decoded records
+                # This behavior will be fixed in the next version of databento_dbn
+                _ = decoder.decode()
                 if len(decoder.buffer()) > 0:
                     warnings.warn(
                         BentoWarning("DBN file is truncated or contains an incomplete record"),

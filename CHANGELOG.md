@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.55.0 - 2025-05-29
+
+#### Enhancements
+- Added `exchanges` parameter to `Reference.corporate_actions.get_range(...)`
+- Added `is_last` field to live subscription requests which will be used to improve
+  the handling of split subscription requests
+- Upgraded `databento-dbn` to 0.35.0
+  - This version delivers DBN version 3 (DBNv3), which is the new default
+  - Improved the performance of the Python `DBNDecoder`
+
+#### Bug fixes
+- Fixed an issue where `JSONDecodeError` would not be caught when using `simplejson` with `requests` (credit: @xuanqing94)
+
 ## 0.54.0 - 2025-05-13
 
 #### Enhancements
