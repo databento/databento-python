@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.55.0 - TBD
+## 0.55.0 - 2025-05-29
 
 #### Enhancements
 - Added `exchanges` parameter to `Reference.corporate_actions.get_range(...)`
