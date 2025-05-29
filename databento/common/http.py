@@ -5,7 +5,6 @@ import warnings
 from collections.abc import Iterable
 from collections.abc import Mapping
 from io import BytesIO
-from json.decoder import JSONDecodeError
 from os import PathLike
 from typing import IO
 from typing import Any
@@ -15,6 +14,7 @@ import aiohttp
 import requests
 from aiohttp import ClientResponse
 from aiohttp import ContentTypeError
+from requests import JSONDecodeError
 from requests import Response
 from requests.auth import HTTPBasicAuth
 

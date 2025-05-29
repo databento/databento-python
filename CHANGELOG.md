@@ -7,6 +7,9 @@
 - Added `is_last` field to live subscription requests which will be used to improve
   the handling of split subscription requests
 
+#### Bug fixes
+- Fixed an issue where `JSONDecodeError` would not be caught when using `simplejson` with `requests` (credit: @xuanqing94)
+
 ## 0.54.0 - 2025-05-13
 
 #### Enhancements
