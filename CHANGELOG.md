@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.57.0 - TBD
+
+#### Deprecations
+- Deprecated `int` and `pd.Timestamp` types for `start_date` and `end_date` parameters which will be removed in v0.59.0
+
 ## 0.56.0 - 2025-06-03
 
 #### Breaking changes

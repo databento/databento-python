@@ -9,7 +9,7 @@ from requests import Response
 
 from databento.common import API_VERSION
 from databento.common.http import BentoHttpAPI
-from databento.common.parsing import datetime_to_date_string
+from databento.common.parsing import date_to_string
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.publishers import Dataset
@@ -69,7 +69,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
             "symbols": ",".join(symbols_list),
             "stype_in": str(stype_in_valid),
             "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
-            "start_date": datetime_to_date_string(start_date),
+            "start_date": date_to_string(start_date),
             "end_date": optional_date_to_string(end_date),
         }
 
