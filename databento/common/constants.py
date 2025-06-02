@@ -6,7 +6,6 @@ from databento_dbn import CBBOMsg
 from databento_dbn import CMBP1Msg
 from databento_dbn import ImbalanceMsg
 from databento_dbn import InstrumentDefMsg
-from databento_dbn import InstrumentDefMsgV1
 from databento_dbn import MBOMsg
 from databento_dbn import MBP1Msg
 from databento_dbn import MBP10Msg
@@ -15,6 +14,8 @@ from databento_dbn import Schema
 from databento_dbn import StatMsg
 from databento_dbn import StatusMsg
 from databento_dbn import TradeMsg
+from databento_dbn import v1
+from databento_dbn import v2
 
 from databento.common.types import DBNRecord
 
@@ -51,26 +52,48 @@ SCHEMA_STRUCT_MAP: Final[dict[Schema, type[DBNRecord]]] = {
     Schema.BBO_1M: BBOMsg,
 }
 
+SCHEMA_STRUCT_MAP_V2: Final[dict[Schema, type[DBNRecord]]] = {
+    Schema.DEFINITION: v2.InstrumentDefMsg,
+    Schema.IMBALANCE: v2.ImbalanceMsg,
+    Schema.MBO: v2.MBOMsg,
+    Schema.MBP_1: v2.MBP1Msg,
+    Schema.MBP_10: v2.MBP10Msg,
+    Schema.OHLCV_1S: v2.OHLCVMsg,
+    Schema.OHLCV_1M: v2.OHLCVMsg,
+    Schema.OHLCV_1H: v2.OHLCVMsg,
+    Schema.OHLCV_1D: v2.OHLCVMsg,
+    Schema.STATISTICS: v2.StatMsg,
+    Schema.STATUS: v2.StatusMsg,
+    Schema.TBBO: v2.MBP1Msg,
+    Schema.TRADES: v2.TradeMsg,
+    Schema.CMBP_1: v2.CMBP1Msg,
+    Schema.CBBO_1S: v2.CBBOMsg,
+    Schema.CBBO_1M: v2.CBBOMsg,
+    Schema.TCBBO: v2.CBBOMsg,
+    Schema.BBO_1S: v2.BBOMsg,
+    Schema.BBO_1M: v2.BBOMsg,
+}
+
 SCHEMA_STRUCT_MAP_V1: Final[dict[Schema, type[DBNRecord]]] = {
-    Schema.DEFINITION: InstrumentDefMsgV1,
-    Schema.IMBALANCE: ImbalanceMsg,
-    Schema.MBO: MBOMsg,
-    Schema.MBP_1: MBP1Msg,
-    Schema.MBP_10: MBP10Msg,
-    Schema.OHLCV_1S: OHLCVMsg,
-    Schema.OHLCV_1M: OHLCVMsg,
-    Schema.OHLCV_1H: OHLCVMsg,
-    Schema.OHLCV_1D: OHLCVMsg,
-    Schema.STATISTICS: StatMsg,
-    Schema.STATUS: StatusMsg,
-    Schema.TBBO: MBP1Msg,
-    Schema.TRADES: TradeMsg,
-    Schema.CMBP_1: CMBP1Msg,
-    Schema.CBBO_1S: CBBOMsg,
-    Schema.CBBO_1M: CBBOMsg,
-    Schema.TCBBO: CBBOMsg,
-    Schema.BBO_1S: BBOMsg,
-    Schema.BBO_1M: BBOMsg,
+    Schema.DEFINITION: v1.InstrumentDefMsg,
+    Schema.IMBALANCE: v1.ImbalanceMsg,
+    Schema.MBO: v1.MBOMsg,
+    Schema.MBP_1: v1.MBP1Msg,
+    Schema.MBP_10: v1.MBP10Msg,
+    Schema.OHLCV_1S: v1.OHLCVMsg,
+    Schema.OHLCV_1M: v1.OHLCVMsg,
+    Schema.OHLCV_1H: v1.OHLCVMsg,
+    Schema.OHLCV_1D: v1.OHLCVMsg,
+    Schema.STATISTICS: v1.StatMsg,
+    Schema.STATUS: v1.StatusMsg,
+    Schema.TBBO: v1.MBP1Msg,
+    Schema.TRADES: v1.TradeMsg,
+    Schema.CMBP_1: v1.CMBP1Msg,
+    Schema.CBBO_1S: v1.CBBOMsg,
+    Schema.CBBO_1M: v1.CBBOMsg,
+    Schema.TCBBO: v1.CBBOMsg,
+    Schema.BBO_1S: v1.BBOMsg,
+    Schema.BBO_1M: v1.BBOMsg,
 }
 
 
