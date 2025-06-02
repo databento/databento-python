@@ -1,6 +1,56 @@
 # Changelog
 
-## 0.56.0 - TBD
+## 0.56.0 - 2025-06-03
+
+#### Breaking changes
+- Updated the names of several subfields in the `Reference.corporate_actions.get_range(...)` response,
+  under the `date_info`, `event_info`, and `rate_info` fields. The following subfields were renamed:
+  - `decl_currency` renamed to `declared_currency`
+  - `decl_gross_amount` renamed to `declared_gross_amount`
+  - `f_x_rate` renamed to `fx_rate`
+  - `iss_new_name` renamed to `issuer_new_name`
+  - `iss_old_name` renamed to `issuer_old_name`
+  - `new_bbg_company_id` renamed to `new_bbg_comp_id`
+  - `new_bbg_company_tk` renamed to `new_bbg_comp_ticker`
+  - `new_bbg_exh_id` renamed to `new_figi`
+  - `new_bbg_exh_tk` renamed to `new_figi_ticker`
+  - `new_min_tra_qty` renamed to `new_min_trading_qty`
+  - `new_mktsg_id` renamed to `new_market_segment_id`
+  - `new_reg_s144_a` renamed to `new_reg_s144a`
+  - `new_unit_sec_id` renamed to `new_unit_security_id`
+  - `offeree_iss_id` renamed to `offeree_issuer_id`
+  - `offeror_iss_id` renamed to `offeror_issuer_id`
+  - `old_bbg_company_id` renamed to `old_bbg_comp_id`
+  - `old_bbg_company_tk` renamed to `old_bbg_comp_ticker`
+  - `old_bbg_exh_id` renamed to `old_figi`
+  - `old_bbg_exh_tk` renamed to `old_figi_ticker`
+  - `old_min_tra_qty` renamed to `old_min_trading_qty`
+  - `old_mktsg_id` renamed to `old_market_segment_id`
+  - `old_reg_s144_a` renamed to `old_reg_s144a`
+  - `old_unit_sec_id` renamed to `old_unit_security_id`
+  - `pp_sec_id` renamed to `pp_security_id`
+  - `poolfactor` renamed to `pool_factor`
+  - `pre_offer_q_ty` renamed to `pre_offer_qty`
+  - `qual_st_cap_gains` renamed to `qual_short_term_cap_gains`
+  - `redem_percentage` renamed to `redemption_percentage`
+  - `st_cap_gains` renamed to `short_term_cap_gains`
+  - `sec_new_name` renamed to `security_new_name`
+  - `sec_old_name` renamed to `security_old_name`
+  - `section199_a_foreign_tax_paid` renamed to `section199a_foreign_tax_paid`
+  - `section199_a_inc_div` renamed to `section199a_inc_div`
+  - `section199_a_st_cap_gain` renamed to `section199a_short_term_cap_gain`
+  - `tra_isin` renamed to `trading_isin`
+  - `tra_sec_id` renamed to `trading_security_id`
+  - `us_deposit_receiptateto_currency` renamed to `usd_rate_to_currency`
+  - `cashbak` renamed to `cash_back`
+  - `companyulsory_acq_date` renamed to `compulsory_acq_date`
+  - `frankdiv` renamed to `franked_div`
+  - `lead_plntiff_deadline_date` renamed to `lead_plaintiff_deadline_date`
+  - `maxprice` renamed to `max_price`
+  - `minprice` renamed to `min_price`
+  - `redem_premium` renamed to `redemption_premium`
+  - `redem_price` renamed to `redemption_price`
+  - `unit_frankdiv` renamed to `unfranked_div`
 
 #### Enhancements
 - Upgraded `databento-dbn` to 0.35.1
