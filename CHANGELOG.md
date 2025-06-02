@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.55.1 - TBD
+
+#### Bug fixes
+- Fixed decoding of DBN versions 1 and 2 statistics in `DBNStore.to_df()`
+
 ## 0.55.0 - 2025-05-29
 
 #### Enhancements

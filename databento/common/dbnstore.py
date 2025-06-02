@@ -37,6 +37,7 @@ from databento_dbn import DBNDecoder
 from databento_dbn import Encoding
 from databento_dbn import InstrumentDefMsg
 from databento_dbn import InstrumentDefMsgV1
+from databento_dbn import InstrumentDefMsgV2
 from databento_dbn import Metadata
 from databento_dbn import RType
 from databento_dbn import Schema
@@ -47,6 +48,7 @@ from databento_dbn import VersionUpgradePolicy
 from databento.common.constants import DEFINITION_TYPE_MAX_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP_V1
+from databento.common.constants import SCHEMA_STRUCT_MAP_V2
 from databento.common.enums import PriceType
 from databento.common.error import BentoError
 from databento.common.error import BentoWarning
@@ -1314,6 +1316,8 @@ class DBNStore:
         """
         if self.metadata.version == 1:
             return SCHEMA_STRUCT_MAP_V1
+        if self.metadata.version == 2:
+            return SCHEMA_STRUCT_MAP_V2
         return SCHEMA_STRUCT_MAP
 
 
@@ -1456,7 +1460,7 @@ class DataFrameIterator:
             columns=self._struct_type._ordered_fields,
         )
 
-        if self._struct_type in (InstrumentDefMsg, InstrumentDefMsgV1):
+        if self._struct_type in (InstrumentDefMsg, InstrumentDefMsgV1, InstrumentDefMsgV2):
             self._format_definition_fields(df)
 
         self._format_hidden_fields(df)
