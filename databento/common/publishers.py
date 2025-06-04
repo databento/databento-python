@@ -1029,13 +1029,13 @@ class Publisher(StringyMixin, str, Enum):
     EQUS_ALL_FINC
         Databento US Equities (All Feeds) - FINRA/Nasdaq TRF Chicago.
     EQUS_ALL_BATS
-        Databento US Equities (All Feeds) - CBOE BZX.
+        Databento US Equities (All Feeds) - Cboe BZX.
     EQUS_ALL_BATY
-        Databento US Equities (All Feeds) - CBOE BYX.
+        Databento US Equities (All Feeds) - Cboe BYX.
     EQUS_ALL_EDGA
-        Databento US Equities (All Feeds) - CBOE EDGA.
+        Databento US Equities (All Feeds) - Cboe EDGA.
     EQUS_ALL_EDGX
-        Databento US Equities (All Feeds) - CBOE EDGX.
+        Databento US Equities (All Feeds) - Cboe EDGX.
     EQUS_ALL_XBOS
         Databento US Equities (All Feeds) - Nasdaq BX.
     EQUS_ALL_XPSX
@@ -2209,13 +2209,13 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.EQUS_ALL_FINC:
             return "Databento US Equities (All Feeds) - FINRA/Nasdaq TRF Chicago"
         if self == Publisher.EQUS_ALL_BATS:
-            return "Databento US Equities (All Feeds) - CBOE BZX"
+            return "Databento US Equities (All Feeds) - Cboe BZX"
         if self == Publisher.EQUS_ALL_BATY:
-            return "Databento US Equities (All Feeds) - CBOE BYX"
+            return "Databento US Equities (All Feeds) - Cboe BYX"
         if self == Publisher.EQUS_ALL_EDGA:
-            return "Databento US Equities (All Feeds) - CBOE EDGA"
+            return "Databento US Equities (All Feeds) - Cboe EDGA"
         if self == Publisher.EQUS_ALL_EDGX:
-            return "Databento US Equities (All Feeds) - CBOE EDGX"
+            return "Databento US Equities (All Feeds) - Cboe EDGX"
         if self == Publisher.EQUS_ALL_XBOS:
             return "Databento US Equities (All Feeds) - Nasdaq BX"
         if self == Publisher.EQUS_ALL_XPSX:
