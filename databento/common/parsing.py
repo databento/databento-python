@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
@@ -220,7 +221,7 @@ def optional_date_to_string(value: date | str | None) -> str | None:
     if value is None:
         return None
 
-    return datetime_to_date_string(value)
+    return date_to_string(value)
 
 
 def datetime_to_string(value: pd.Timestamp | datetime | date | str | int) -> str:
@@ -249,7 +250,7 @@ def datetime_to_string(value: pd.Timestamp | datetime | date | str | int) -> str
         return pd.to_datetime(value).isoformat()
 
 
-def datetime_to_date_string(value: pd.Timestamp | date | str | int) -> str:
+def date_to_string(value: pd.Timestamp | date | str | int) -> str:
     """
     Return a valid date string from the given value.
 
@@ -265,11 +266,31 @@ def datetime_to_date_string(value: pd.Timestamp | date | str | int) -> str:
     """
     if isinstance(value, str):
         return value
-    elif isinstance(value, int):
-        return str(value)
     elif isinstance(value, date):
         return value.isoformat()
+    elif isinstance(value, int):
+        warnings.warn(
+            "Passing an int to `start_date` or `end_date` is deprecated and will be removed in v0.59.0."
+            "Use a date or str instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return str(value)
+    elif isinstance(value, pd.Timestamp):
+        warnings.warn(
+            "Passing a pandas Timestamp to `start_date` or `end_date` is deprecated and will be removed in v0.59.0."
+            "Use a date or str instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return pd.to_datetime(value).date().isoformat()
     else:
+        warnings.warn(
+            f"Passing a {type(value)} to `start_date` or `end_date` is deprecated and will be removed in v0.59.0."
+            "Use a date or str instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return pd.to_datetime(value).date().isoformat()
 
 

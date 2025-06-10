@@ -535,6 +535,7 @@ class DBNStore:
         if self.compression == Compression.ZSTD:
             return zstandard.ZstdDecompressor().stream_reader(
                 self._data_source.reader,
+                read_across_frames=True,
             )
         return self._data_source.reader
 

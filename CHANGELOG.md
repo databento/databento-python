@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.57.0 - 2025-06-10
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.36.0
+  - Added missing Python type stubs for several leg properties of `InstrumentDefMsg`
+
+#### Bug fixes
+- Fixed an issue where the zstandard frame size could limit the size of `DataFrame` objects returned by `DBNStore.to_df()` when a `count` was specified
+
+#### Deprecations
+- Deprecated `int` and `pd.Timestamp` types for `start_date` and `end_date` parameters which will be removed in a future release
+
 ## 0.56.0 - 2025-06-03
 
 #### Breaking changes
