@@ -121,7 +121,7 @@
 ## 0.50.0 - 2025-03-18
 
 #### Enhancements
-- Added new venues, datasets, and publishers for ICE Futures US, ICE Futures Europe (Financial products), Eurex, and European Energy Exchange (EEX)
+- Added new venues, datasets, and publishers for ICE US, ICE Europe Financials products, Eurex, and European Energy Exchange (EEX)
 - Added export of the following enums from `databento_dbn` to the root `databento` package:
   - `Action`
   - `InstrumentClass`
@@ -148,8 +148,7 @@
 ## 0.49.0 - 2025-03-04
 
 #### Enhancements
-- Added new venues, datasets, and publishers for ICE Futures US and for ICE Futures
-  Europe (Financial products)
+- Added new venues, datasets, and publishers for ICE US and for ICE Europe Financials products
 - Added a `keep_zip` parameter to `Historical.batch.download()`. When `True`, and downloading all files, the jobs contents will be saved as a ZIP file
 - Calling `Live.terminate()` will now attempt to write EOF before aborting the connection to help close the remote end
 
