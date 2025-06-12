@@ -32,7 +32,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         super().__init__(key=key, gateway=gateway)
         self._base_url = gateway + f"/v{API_VERSION}/metadata"
 
-    def list_publishers(self) -> list[dict[str, Any]]:
+    def list_publishers(self) -> list[dict[str, int | str]]:
         """
         Request all publishers from Databento.
 
@@ -42,7 +42,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        list[dict[str, Any]]
+        list[dict[str, int | str]]
 
         """
         response: Response = self._get(
@@ -121,7 +121,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         schema: Schema | str,
         encoding: Encoding | str,
-    ) -> list[dict[str, Any]]:
+    ) -> list[dict[str, str]]:
         """
         List all fields for a particular schema and encoding from Databento.
 
@@ -136,7 +136,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        list[dict[str, Any]]
+        list[dict[str, str]]
             A list of field details.
 
         """
@@ -189,7 +189,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         start_date: date | str | None = None,
         end_date: date | str | None = None,
-    ) -> list[dict[str, str]]:
+    ) -> list[dict[str, str | None]]:
         """
         Get the per date dataset conditions from Databento.
 
@@ -210,7 +210,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        list[dict[str, str]]
+        list[dict[str, str | None]]
 
         """
         params: list[tuple[str, str | None]] = [

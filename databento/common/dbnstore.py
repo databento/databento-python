@@ -328,6 +328,8 @@ class DBNStore:
         Write the data to a file in JSON format.
     to_ndarray : np.ndarray
         The data as a numpy `ndarray`.
+    to_parquet
+        Write the data to a parquet file.
 
     Raises
     ------
@@ -662,7 +664,7 @@ class DBNStore:
 
         Parameters
         ----------
-        data : BytesIO or bytes
+        data : BytesIO or bytes or IO[bytes]
             The bytes to read from.
 
         Returns
@@ -698,7 +700,7 @@ class DBNStore:
             self._instrument_map.clear()
         self._instrument_map.insert_json(json_data)
 
-    def replay(self, callback: Callable[[Any], None]) -> None:
+    def replay(self, callback: Callable[[DBNRecord], None]) -> None:
         """
         Replay data by passing records sequentially to the given callback.
 
@@ -983,6 +985,8 @@ class DBNStore:
 
         Parameters
         ----------
+        path: PathLike[str] or str
+            The file path to write the data to.
         price_type : str, default "float"
             The price type to use for price fields.
             If "fixed", prices will have a type of `int` in fixed decimal format; each unit representing 1e-9 or 0.000000001.
