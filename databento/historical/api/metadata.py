@@ -67,10 +67,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         start_date : date or str, optional
-            The start date (UTC) for the request range.
+            The inclusive UTC start date of the request range.
             If `None` then first date available.
         end_date : date or str, optional
-            The end date (UTC) for the request range.
+            The exclusive UTC end date of the request range.
             If `None` then last date available.
 
         Returns
@@ -202,10 +202,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
         start_date : date or str, optional
-            The start date (UTC) for the request range.
+            The inclusive UTC start date of the request range.
             If `None` then first date available.
         end_date : date or str, optional
-            The end date (UTC) for the request range.
+            The inclusive UTC end date of the request range.
             If `None` then last date available.
 
         Returns
@@ -279,11 +279,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code for the request.
         start : pd.Timestamp, datetime, date, str, or int
-            The start datetime for the request range (inclusive).
+            The inclusive start of the request range.
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
-            The end datetime for the request range (exclusive).
+            The exclusive end of the request range.
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Defaults to the forward filled value of `start` based on the resolution provided.
@@ -347,11 +347,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code for the request.
         start : pd.Timestamp, datetime, date, str, or int
-            The start datetime for the request range (inclusive).
+            The inclusive start of the request range.
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
-            The end datetime for the request range (exclusive).
+            The exclusive end of the request range.
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Defaults to the forward filled value of `start` based on the resolution provided.
@@ -417,11 +417,11 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset : Dataset or str
             The dataset code for the request.
         start : pd.Timestamp, datetime, date, str, or int
-            The start datetime for the request range (inclusive).
+            The inclusive start of the request range.
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
-            The end datetime for the request range (exclusive).
+            The exclusive end of the request range.
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Defaults to the forward filled value of `start` based on the resolution provided.
