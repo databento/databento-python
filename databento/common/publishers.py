@@ -111,7 +111,7 @@ class Venue(StringyMixin, str, Enum):
     EQUS
         Databento US Equities - Consolidated.
     IFUS
-        ICE US.
+        ICE Futures US.
     IFLL
         ICE Europe Financials.
     XEUR
@@ -490,7 +490,7 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.EQUS:
             return "Databento US Equities - Consolidated"
         if self == Venue.IFUS:
-            return "ICE US"
+            return "ICE Futures US"
         if self == Venue.IFLL:
             return "ICE Europe Financials"
         if self == Venue.XEUR:
@@ -577,7 +577,7 @@ class Dataset(StringyMixin, str, Enum):
     EQUS_MINI
         Databento US Equities Mini.
     IFUS_IMPACT
-        ICE US iMpact.
+        ICE Futures US iMpact.
     IFLL_IMPACT
         ICE Europe Financials iMpact.
     XEUR_EOBI
@@ -872,7 +872,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.EQUS_MINI:
             return "Databento US Equities Mini"
         if self == Dataset.IFUS_IMPACT:
-            return "ICE US iMpact"
+            return "ICE Futures US iMpact"
         if self == Dataset.IFLL_IMPACT:
             return "ICE Europe Financials iMpact"
         if self == Dataset.XEUR_EOBI:
@@ -1081,9 +1081,9 @@ class Publisher(StringyMixin, str, Enum):
     XNYS_TRADES_EQUS
         NYSE Trades - Consolidated.
     IFUS_IMPACT_IFUS
-        ICE US.
+        ICE Futures US.
     IFUS_IMPACT_XOFF
-        ICE US - Off-Market Trades.
+        ICE Futures US - Off-Market Trades.
     IFLL_IMPACT_IFLL
         ICE Europe Financials.
     IFLL_IMPACT_XOFF
@@ -2261,9 +2261,9 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNYS_TRADES_EQUS:
             return "NYSE Trades - Consolidated"
         if self == Publisher.IFUS_IMPACT_IFUS:
-            return "ICE US"
+            return "ICE Futures US"
         if self == Publisher.IFUS_IMPACT_XOFF:
-            return "ICE US - Off-Market Trades"
+            return "ICE Futures US - Off-Market Trades"
         if self == Publisher.IFLL_IMPACT_IFLL:
             return "ICE Europe (Financials)"
         if self == Publisher.IFLL_IMPACT_XOFF:
