@@ -2265,9 +2265,9 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.IFUS_IMPACT_XOFF:
             return "ICE Futures US - Off-Market Trades"
         if self == Publisher.IFLL_IMPACT_IFLL:
-            return "ICE Europe (Financials)"
+            return "ICE Europe Financials"
         if self == Publisher.IFLL_IMPACT_XOFF:
-            return "ICE Europe (Financials) - Off-Market Trades"
+            return "ICE Europe Financials - Off-Market Trades"
         if self == Publisher.XEUR_EOBI_XEUR:
             return "Eurex EOBI"
         if self == Publisher.XEER_EOBI_XEER:
