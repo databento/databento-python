@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.57.1 - TBD
+
+#### Enhancements
+- Changed the following Venue, Publisher, and Dataset descriptions:
+  - "ICE Futures US" renamed to "ICE Futures US"
+  - "ICE Futures Europe (Financials)" renamed to "ICE Europe Financials"
+  - "ICE Futures Europe (Commodities)" renamed to "ICE Europe Commodities"
+- Upgraded `databento-dbn` to 0.36.1
+  - Fixed setting of ts_out property of DbnFsm based on decoded metadata. This
+was preventing ts_out from being correctly decoded in the Python DBNDecoder
+  - Fixed decoding of `ts_out` with first records in DBNDecoder
+
+#### Bug fixes
+- Fixed an issue where DBN records from the Live client where not having their `ts_out` populated
+
 ## 0.57.0 - 2025-06-10
 
 #### Enhancements
