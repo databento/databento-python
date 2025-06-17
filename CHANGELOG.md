@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.57.1 - TBD
+## 0.57.1 - 2025-06-17
 
 #### Enhancements
 - Changed the following Venue, Publisher, and Dataset descriptions:
