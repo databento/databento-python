@@ -4,7 +4,6 @@
 
 #### Enhancements
 - Changed the following Venue, Publisher, and Dataset descriptions:
-  - "ICE Futures US" renamed to "ICE Futures US"
   - "ICE Futures Europe (Financials)" renamed to "ICE Europe Financials"
   - "ICE Futures Europe (Commodities)" renamed to "ICE Europe Commodities"
 - Upgraded `databento-dbn` to 0.36.1
