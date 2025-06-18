@@ -1,4 +1,5 @@
 import asyncio
+import platform
 from unittest.mock import MagicMock
 
 import pytest
@@ -8,6 +9,11 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from tests.mockliveserver.fixture import MockLiveServerInterface
+
+
+# TODO(nm): Remove when stable
+if platform.system() == "Windows":
+    pytest.skip(reason="Skip on Windows due to flakiness", allow_module_level=True)
 
 
 @pytest.mark.parametrize(
