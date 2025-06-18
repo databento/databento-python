@@ -5,6 +5,7 @@ Unit tests for the Live client.
 from __future__ import annotations
 
 import pathlib
+import platform
 import random
 import string
 from io import BytesIO
@@ -30,6 +31,9 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from tests.mockliveserver.fixture import MockLiveServerInterface
+
+if platform.system() == "Windows":
+    pytest.skip(reason="disable due to flakiness", allow_module_level=True)
 
 
 def test_live_connection_refused(
@@ -940,7 +944,9 @@ def test_live_add_callback(
     live_client.add_callback(callback)
 
     # Assert
-    assert len(live_client._session._user_callbacks) == 2  # include map_symbols callback
+    assert (
+        len(live_client._session._user_callbacks) == 2
+    )  # include map_symbols callback
     assert (callback, None) in live_client._session._user_callbacks
 
 

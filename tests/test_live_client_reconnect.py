@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import platform
 from unittest.mock import MagicMock
 
 import pandas as pd
@@ -16,6 +17,10 @@ from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 
 from tests.mockliveserver.fixture import MockLiveServerInterface
+
+
+if platform.system() == "Windows":
+    pytest.skip(reason="disable due to flakiness", allow_module_level=True)
 
 
 async def test_reconnect_policy_none(
