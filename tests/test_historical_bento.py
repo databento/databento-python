@@ -435,13 +435,14 @@ def test_replay_with_stub_data_record_passes_to_callback(
     stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
     data = DBNStore.from_bytes(data=stub_data)
 
-    handler: list[MBOMsg] = []
+    handler: list[DBNRecord] = []
 
     # Act
     data.replay(callback=handler.append)
-    record: MBOMsg = handler[0]
+    record: DBNRecord = handler[0]
 
     # Assert
+    assert isinstance(record, MBOMsg)
     assert record.hd.length == 14
     assert record.hd.rtype == 160
     assert record.hd.rtype == 160

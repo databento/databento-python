@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.57.1 - 2025-06-17
+
+#### Enhancements
+- Changed the following Venue, Publisher, and Dataset descriptions:
+  - "ICE Futures Europe (Financials)" renamed to "ICE Europe Financials"
+  - "ICE Futures Europe (Commodities)" renamed to "ICE Europe Commodities"
+- Upgraded `databento-dbn` to 0.36.1
+  - Fixed setting of ts_out property of DbnFsm based on decoded metadata. This
+was preventing ts_out from being correctly decoded in the Python DBNDecoder
+  - Fixed decoding of `ts_out` with first records in DBNDecoder
+
+#### Bug fixes
+- Fixed an issue where DBN records from the Live client where not having their `ts_out` populated
+
 ## 0.57.0 - 2025-06-10
 
 #### Enhancements
@@ -121,7 +135,7 @@
 ## 0.50.0 - 2025-03-18
 
 #### Enhancements
-- Added new venues, datasets, and publishers for ICE Futures US, ICE Futures Europe (Financial products), Eurex, and European Energy Exchange (EEX)
+- Added new venues, datasets, and publishers for ICE Futures US, ICE Europe Financials products, Eurex, and European Energy Exchange (EEX)
 - Added export of the following enums from `databento_dbn` to the root `databento` package:
   - `Action`
   - `InstrumentClass`
@@ -148,8 +162,7 @@
 ## 0.49.0 - 2025-03-04
 
 #### Enhancements
-- Added new venues, datasets, and publishers for ICE Futures US and for ICE Futures
-  Europe (Financial products)
+- Added new venues, datasets, and publishers for ICE Futures US and for ICE Europe Financials products
 - Added a `keep_zip` parameter to `Historical.batch.download()`. When `True`, and downloading all files, the jobs contents will be saved as a ZIP file
 - Calling `Live.terminate()` will now attempt to write EOF before aborting the connection to help close the remote end
 

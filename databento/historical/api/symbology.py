@@ -44,7 +44,7 @@ class SymbologyHttpAPI(BentoHttpAPI):
         ----------
         dataset : Dataset or str
             The dataset code (string identifier) for the request.
-        symbols : Iterable[str | int] or str or int, optional
+        symbols : Iterable[str | int] or str or int
             The symbols to resolve. Takes up to 2,000 symbols per request.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.

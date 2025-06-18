@@ -91,7 +91,7 @@ class Venue(StringyMixin, str, Enum):
     MXOP
         MEMX Options.
     IFEU
-        ICE Futures Europe (Commodities).
+        ICE Europe Commodities.
     NDEX
         ICE Endex.
     DBEQ
@@ -113,7 +113,7 @@ class Venue(StringyMixin, str, Enum):
     IFUS
         ICE Futures US.
     IFLL
-        ICE Futures Europe (Financials).
+        ICE Europe Financials.
     XEUR
         Eurex Exchange.
     XEER
@@ -470,7 +470,7 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.MXOP:
             return "MEMX Options"
         if self == Venue.IFEU:
-            return "ICE Futures Europe (Commodities)"
+            return "ICE Europe Commodities"
         if self == Venue.NDEX:
             return "ICE Endex"
         if self == Venue.DBEQ:
@@ -492,7 +492,7 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.IFUS:
             return "ICE Futures US"
         if self == Venue.IFLL:
-            return "ICE Futures Europe (Financials)"
+            return "ICE Europe Financials"
         if self == Venue.XEUR:
             return "Eurex Exchange"
         if self == Venue.XEER:
@@ -561,7 +561,7 @@ class Dataset(StringyMixin, str, Enum):
     XNAS_NLS
         Nasdaq NLS.
     IFEU_IMPACT
-        ICE Futures Europe (Commodities) iMpact.
+        ICE Europe Commodities iMpact.
     NDEX_IMPACT
         ICE Endex iMpact.
     EQUS_ALL
@@ -579,7 +579,7 @@ class Dataset(StringyMixin, str, Enum):
     IFUS_IMPACT
         ICE Futures US iMpact.
     IFLL_IMPACT
-        ICE Futures Europe (Financials) iMpact.
+        ICE Europe Financials iMpact.
     XEUR_EOBI
         Eurex EOBI.
     XEER_EOBI
@@ -856,7 +856,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.XNAS_NLS:
             return "Nasdaq NLS"
         if self == Dataset.IFEU_IMPACT:
-            return "ICE Futures Europe (Commodities) iMpact"
+            return "ICE Europe Commodities iMpact"
         if self == Dataset.NDEX_IMPACT:
             return "ICE Endex iMpact"
         if self == Dataset.EQUS_ALL:
@@ -874,7 +874,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.IFUS_IMPACT:
             return "ICE Futures US iMpact"
         if self == Dataset.IFLL_IMPACT:
-            return "ICE Futures Europe (Financials) iMpact"
+            return "ICE Europe Financials iMpact"
         if self == Dataset.XEUR_EOBI:
             return "Eurex EOBI"
         if self == Dataset.XEER_EOBI:
@@ -1001,7 +1001,7 @@ class Publisher(StringyMixin, str, Enum):
     EQUS_PLUS_FINC
         Databento US Equities Plus - FINRA/Nasdaq TRF Chicago.
     IFEU_IMPACT_IFEU
-        ICE Futures Europe (Commodities).
+        ICE Europe Commodities.
     NDEX_IMPACT_NDEX
         ICE Endex.
     DBEQ_BASIC_DBEQ
@@ -1055,7 +1055,7 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_BASIC_FINC
         Nasdaq Basic - FINRA/Nasdaq TRF Chicago.
     IFEU_IMPACT_XOFF
-        ICE Futures Europe - Off-Market Trades.
+        ICE Europe - Off-Market Trades.
     NDEX_IMPACT_XOFF
         ICE Endex - Off-Market Trades.
     XNAS_NLS_XBOS
@@ -1085,9 +1085,9 @@ class Publisher(StringyMixin, str, Enum):
     IFUS_IMPACT_XOFF
         ICE Futures US - Off-Market Trades.
     IFLL_IMPACT_IFLL
-        ICE Futures Europe (Financials).
+        ICE Europe Financials.
     IFLL_IMPACT_XOFF
-        ICE Futures Europe (Financials) - Off-Market Trades.
+        ICE Europe Financials - Off-Market Trades.
     XEUR_EOBI_XEUR
         Eurex EOBI.
     XEER_EOBI_XEER
@@ -2181,7 +2181,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.EQUS_PLUS_FINC:
             return "Databento US Equities Plus - FINRA/Nasdaq TRF Chicago"
         if self == Publisher.IFEU_IMPACT_IFEU:
-            return "ICE Futures Europe (Commodities)"
+            return "ICE Europe Commodities"
         if self == Publisher.NDEX_IMPACT_NDEX:
             return "ICE Endex"
         if self == Publisher.DBEQ_BASIC_DBEQ:
@@ -2235,7 +2235,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNAS_BASIC_FINC:
             return "Nasdaq Basic - FINRA/Nasdaq TRF Chicago"
         if self == Publisher.IFEU_IMPACT_XOFF:
-            return "ICE Futures Europe - Off-Market Trades"
+            return "ICE Europe - Off-Market Trades"
         if self == Publisher.NDEX_IMPACT_XOFF:
             return "ICE Endex - Off-Market Trades"
         if self == Publisher.XNAS_NLS_XBOS:
@@ -2265,9 +2265,9 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.IFUS_IMPACT_XOFF:
             return "ICE Futures US - Off-Market Trades"
         if self == Publisher.IFLL_IMPACT_IFLL:
-            return "ICE Futures Europe (Financials)"
+            return "ICE Europe Financials"
         if self == Publisher.IFLL_IMPACT_XOFF:
-            return "ICE Futures Europe (Financials) - Off-Market Trades"
+            return "ICE Europe Financials - Off-Market Trades"
         if self == Publisher.XEUR_EOBI_XEUR:
             return "Eurex EOBI"
         if self == Publisher.XEER_EOBI_XEER:

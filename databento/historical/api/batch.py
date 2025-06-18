@@ -184,7 +184,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def list_jobs(
         self,
-        states: list[str] | str = "received,queued,processing,done",
+        states: Iterable[str] | str = "received,queued,processing,done",
         since: pd.Timestamp | datetime | date | str | int | None = None,
     ) -> list[dict[str, Any]]:
         """
@@ -196,8 +196,8 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        states : list[str] or str, optional {'received', 'queued', 'processing', 'done', 'expired'}  # noqa
-            The filter for jobs states as a list of comma separated values.
+        states : Iterable[str] or str, optional {'received', 'queued', 'processing', 'done', 'expired'}  # noqa
+            The filter for jobs states as an iterable of comma separated values.
         since : pd.Timestamp, datetime, date, str, or int, optional
             The filter for timestamp submitted (will not include jobs prior to this).
 

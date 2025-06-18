@@ -351,7 +351,7 @@ def datetime_to_unix_nanoseconds(
 
 
 def optional_datetime_to_unix_nanoseconds(
-    value: pd.Timestamp | str | int | None,
+    value: pd.Timestamp | date | str | int | None,
 ) -> int | None:
     """
     Return a valid UNIX nanosecond timestamp from the given value (if not

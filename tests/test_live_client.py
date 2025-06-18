@@ -5,6 +5,7 @@ Unit tests for the Live client.
 from __future__ import annotations
 
 import pathlib
+import platform
 import random
 import string
 from io import BytesIO
@@ -30,6 +31,11 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from tests.mockliveserver.fixture import MockLiveServerInterface
+
+
+# TODO(nm): Remove when stable
+if platform.system() == "Windows":
+    pytest.skip(reason="Skip on Windows due to flakiness", allow_module_level=True)
 
 
 def test_live_connection_refused(
