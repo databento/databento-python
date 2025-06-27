@@ -36,7 +36,6 @@ jobs:
         shell: bash
 
       - name: Test
-        timeout-minutes: 5
         if: ${{ github.ref != 'refs/heads/main' }}
         run: scripts/test.sh -vvv
         shell: bash

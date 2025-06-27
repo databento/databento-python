@@ -33,11 +33,6 @@ from databento_dbn import SType
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
 
-# TODO(nm): Remove when stable
-if platform.system() == "Windows":
-    pytest.skip(reason="Skip on Windows due to flakiness", allow_module_level=True)
-
-
 def test_live_connection_refused(
     test_api_key: str,
 ) -> None:
@@ -946,7 +941,9 @@ def test_live_add_callback(
     live_client.add_callback(callback)
 
     # Assert
-    assert len(live_client._session._user_callbacks) == 2  # include map_symbols callback
+    assert (
+        len(live_client._session._user_callbacks) == 2
+    )  # include map_symbols callback
     assert (callback, None) in live_client._session._user_callbacks
 
 
