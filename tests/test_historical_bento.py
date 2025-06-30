@@ -1,6 +1,7 @@
 import collections
 import datetime as dt
 import decimal
+import zoneinfo
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -1567,11 +1568,51 @@ def test_dbnstore_to_df_with_timezone(
     df.reset_index(inplace=True)
 
     # Assert
-    expected_timezone = pytz.timezone(timezone)._utcoffset
+    expected_timezone = zoneinfo.ZoneInfo(timezone).utcoffset(None)
     failures = []
     struct = SCHEMA_STRUCT_MAP[schema]
     for field in struct._timestamp_fields:
-        if df[field].dt.tz._utcoffset != expected_timezone:
+        if df[field].dt.tz.utcoffset(None) != expected_timezone:
+            failures.append(field)
+
+    assert not failures
+
+
+@pytest.mark.parametrize(
+    "timezone",
+    [
+        pytz.timezone("US/Central"),
+        pytz.timezone("US/Eastern"),
+        pytz.timezone("Europe/Vienna"),
+        pytz.timezone("Asia/Dubai"),
+        pytz.timezone("UTC"),
+    ],
+)
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+def test_dbnstore_to_df_with_pytz_timezone(
+    test_data_path: Callable[[Dataset, Schema], Path],
+    schema: Schema,
+    timezone: pytz.BaseTzInfo,
+) -> None:
+    """
+    Test that setting the `tz` parameter in `DBNStore.to_df` accepts `pytz`
+    timezone objects.
+    """
+    # Arrange
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, schema))
+
+    # Act
+    df = dbnstore.to_df(tz=timezone)
+    df.reset_index(inplace=True)
+
+    # Assert
+    failures = []
+    struct = SCHEMA_STRUCT_MAP[schema]
+    for field in struct._timestamp_fields:
+        if df[field].dt.tz != timezone:
             failures.append(field)
 
     assert not failures
@@ -1591,7 +1632,7 @@ def test_dbnstore_to_df_with_timezone_pretty_ts_error(
     with pytest.raises(ValueError):
         dbnstore.to_df(
             pretty_ts=False,
-            tz=pytz.UTC,
+            tz=zoneinfo.ZoneInfo("UTC"),
         )
 
 
