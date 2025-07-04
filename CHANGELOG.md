@@ -1,9 +1,10 @@
 # Changelog
 
-## 0.57.2 - TBD
+## 0.58.0 - TBD
 
 #### Enhancements
 - Changed the `tz` parameter in `DBNStore.to_df()` to accept `datetime.tzinfo` instead of `pytz.BaseTzInfo` explicitly
+- Modified the dependency specification for `databento_dbn` to allow for compatible patch versions
 
 ## 0.57.1 - 2025-06-17
 
