@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import abc
+import datetime
 import decimal
 import itertools
 import logging
 import warnings
+import zoneinfo
 from collections.abc import Generator
 from collections.abc import Iterator
 from collections.abc import Mapping
@@ -28,7 +30,6 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-import pytz
 import zstandard
 from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import UNDEF_PRICE
@@ -859,7 +860,7 @@ class DBNStore:
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
-        tz: pytz.BaseTzInfo | str = ...,
+        tz: datetime.tzinfo | str = ...,
         count: None = ...,
     ) -> pd.DataFrame: ...
 
@@ -870,7 +871,7 @@ class DBNStore:
         pretty_ts: bool = ...,
         map_symbols: bool = ...,
         schema: Schema | str | None = ...,
-        tz: pytz.BaseTzInfo | str = ...,
+        tz: datetime.tzinfo | str = ...,
         count: int = ...,
     ) -> DataFrameIterator: ...
 
@@ -880,8 +881,8 @@ class DBNStore:
         pretty_ts: bool = True,
         map_symbols: bool = True,
         schema: Schema | str | None = None,
-        tz: pytz.BaseTzInfo | str | Default[pytz.BaseTzInfo] = Default[pytz.BaseTzInfo](
-            pytz.UTC,
+        tz: datetime.tzinfo | str | Default[datetime.tzinfo] = Default[datetime.tzinfo](
+            datetime.timezone.utc,
         ),
         count: int | None = None,
     ) -> pd.DataFrame | DataFrameIterator:
@@ -909,7 +910,7 @@ class DBNStore:
         schema : Schema or str, optional
             The DBN schema for the dataframe.
             This is only required when reading a DBN stream with mixed record types.
-        tz : pytz.BaseTzInfo or str, default UTC
+        tz : datetime.tzinfo or str, default UTC
             If `pretty_ts` is `True`, all timestamps will be converted to the specified timezone.
         count : int, optional
             If set, instead of returning a single `DataFrame` a `DataFrameIterator`
@@ -939,8 +940,13 @@ class DBNStore:
                 "A timezone was specified when `pretty_ts` is `False`. Did you mean to set `pretty_ts=True`?",
             )
 
-        if not isinstance(tz, pytz.BaseTzInfo):
-            tz = pytz.timezone(tz)
+        if isinstance(tz, str):
+            tz = zoneinfo.ZoneInfo(tz)
+        elif not isinstance(tz, datetime.tzinfo):
+            raise ValueError(
+                f"The value {tz!r} is not a valid datetime.tzinfo",
+            )
+
         if schema is None:
             if self.schema is None:
                 raise ValueError("a schema must be specified for mixed DBN data")
@@ -1442,7 +1448,7 @@ class DataFrameIterator:
         count: int | None,
         struct_type: type[DBNRecord],
         instrument_map: InstrumentMap,
-        tz: pytz.BaseTzInfo,
+        tz: datetime.tzinfo,
         price_type: PriceType = PriceType.FLOAT,
         pretty_ts: bool = True,
         map_symbols: bool = True,

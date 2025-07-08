@@ -243,7 +243,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        dict[str, str]
+        dict[str, str | dict[str, str]]
             The available range for the dataset.
 
         """
