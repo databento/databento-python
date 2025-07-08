@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.58.0 - TBD
+## 0.58.0 - 2025-07-08
 
 #### Enhancements
 - Changed the `tz` parameter in `DBNStore.to_df()` to accept `datetime.tzinfo` instead of `pytz.BaseTzInfo` explicitly
