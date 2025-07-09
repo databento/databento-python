@@ -47,7 +47,7 @@ from databento.common.validation import validate_semantic_string
 
 logger = logging.getLogger(__name__)
 
-BATCH_DOWNLOAD_MAX_RETRIES: Final = 3
+BATCH_DOWNLOAD_MAX_RETRIES: Final = 5
 
 
 class BatchHttpAPI(BentoHttpAPI):
@@ -457,6 +457,11 @@ class BatchHttpAPI(BentoHttpAPI):
                     with open(output_path, mode=mode) as f:
                         for chunk in response.iter_content(chunk_size=HTTP_STREAMING_READ_SIZE):
                             f.write(chunk)
+
+                            # Successfully wrote some data, reset attempts counter
+                            if attempts > 0:
+                                attempts = 0
+                                logger.info(f"Resumed download of {output_path.name}.")
             except BentoHttpError as exc:
                 if exc.http_status == 429:
                     wait_time = int(exc.headers.get("Retry-After", 1))
@@ -465,10 +470,11 @@ class BatchHttpAPI(BentoHttpAPI):
                 raise
             except Exception as exc:
                 if attempts < BATCH_DOWNLOAD_MAX_RETRIES:
-                    logger.error(
-                        f"Retrying download of {output_path.name} due to error: {exc}",
-                    )
                     attempts += 1
+                    logger.error(
+                        f"Retrying download of {output_path.name} due to error, "
+                        f"{attempts}/{BATCH_DOWNLOAD_MAX_RETRIES}: {exc}",
+                    )
                     continue  # try again
                 raise BentoError(f"Error downloading file: {exc}") from None
             else:
