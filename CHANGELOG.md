@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.59.0 - TBD
+
+#### Breaking changes
+- Renamed the following Venue, Dataset, and Publishers:
+    - `XEER` to `XEEE`
+    - `XEER.EOBI` to `XEEE.EOBI`
+    - `XEER.EOBI.XEER` to `XEEE.EOBI.XEEE`
+    - `XEER.EOBI.XOFF` to `XEEE.EOBI.XOFF`
+
 ## 0.58.0 - 2025-07-08
 
 #### Enhancements
