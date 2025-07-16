@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.59.0 - 2025-07-15
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.37.1
+  - Fix buffer growth in `DbnFsm::write_all()`, which is used by `DBNDecoder.write()`
+
+#### Breaking changes
+- Renamed the following Venue, Dataset, and Publishers:
+    - `XEER` to `XEEE`
+    - `XEER.EOBI` to `XEEE.EOBI`
+    - `XEER.EOBI.XEER` to `XEEE.EOBI.XEEE`
+    - `XEER.EOBI.XOFF` to `XEEE.EOBI.XOFF`
+
 ## 0.58.0 - 2025-07-08
 
 #### Enhancements

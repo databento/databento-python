@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "databento"
-version = "0.58.0"
+version = "0.59.0"
 description = "Official Python client library for Databento"
 authors = [
     "Databento <support@databento.com>",
@@ -32,7 +32,7 @@ aiohttp = [
     {version = "^3.8.3", python = "<3.12"},
     {version = "^3.9.0", python = "^3.12"}
 ]
-databento-dbn = "~=0.36.2"
+databento-dbn = "~=0.37.1"
 numpy = [
     {version = ">=1.23.5", python = "<3.12"},
     {version = ">=1.26.0", python = "^3.12"}

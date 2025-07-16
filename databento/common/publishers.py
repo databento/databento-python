@@ -116,7 +116,7 @@ class Venue(StringyMixin, str, Enum):
         ICE Europe Financials.
     XEUR
         Eurex Exchange.
-    XEER
+    XEEE
         European Energy Exchange.
 
     """
@@ -171,7 +171,7 @@ class Venue(StringyMixin, str, Enum):
     IFUS = "IFUS"
     IFLL = "IFLL"
     XEUR = "XEUR"
-    XEER = "XEER"
+    XEEE = "XEEE"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -279,7 +279,7 @@ class Venue(StringyMixin, str, Enum):
         if value == 50:
             return Venue.XEUR
         if value == 51:
-            return Venue.XEER
+            return Venue.XEEE
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -386,7 +386,7 @@ class Venue(StringyMixin, str, Enum):
             return 49
         if self == Venue.XEUR:
             return 50
-        if self == Venue.XEER:
+        if self == Venue.XEEE:
             return 51
         raise ValueError("Invalid Venue")
 
@@ -495,7 +495,7 @@ class Venue(StringyMixin, str, Enum):
             return "ICE Europe Financials"
         if self == Venue.XEUR:
             return "Eurex Exchange"
-        if self == Venue.XEER:
+        if self == Venue.XEEE:
             return "European Energy Exchange"
         raise ValueError("Unexpected Venue value")
 
@@ -582,7 +582,7 @@ class Dataset(StringyMixin, str, Enum):
         ICE Europe Financials iMpact.
     XEUR_EOBI
         Eurex EOBI.
-    XEER_EOBI
+    XEEE_EOBI
         European Energy Exchange EOBI.
 
     """
@@ -625,7 +625,7 @@ class Dataset(StringyMixin, str, Enum):
     IFUS_IMPACT = "IFUS.IMPACT"
     IFLL_IMPACT = "IFLL.IMPACT"
     XEUR_EOBI = "XEUR.EOBI"
-    XEER_EOBI = "XEER.EOBI"
+    XEEE_EOBI = "XEEE.EOBI"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -709,7 +709,7 @@ class Dataset(StringyMixin, str, Enum):
         if value == 38:
             return Dataset.XEUR_EOBI
         if value == 39:
-            return Dataset.XEER_EOBI
+            return Dataset.XEEE_EOBI
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -792,7 +792,7 @@ class Dataset(StringyMixin, str, Enum):
             return 37
         if self == Dataset.XEUR_EOBI:
             return 38
-        if self == Dataset.XEER_EOBI:
+        if self == Dataset.XEEE_EOBI:
             return 39
         raise ValueError("Invalid Dataset")
 
@@ -877,7 +877,7 @@ class Dataset(StringyMixin, str, Enum):
             return "ICE Europe Financials iMpact"
         if self == Dataset.XEUR_EOBI:
             return "Eurex EOBI"
-        if self == Dataset.XEER_EOBI:
+        if self == Dataset.XEEE_EOBI:
             return "European Energy Exchange EOBI"
         raise ValueError("Unexpected Dataset value")
 
@@ -1090,11 +1090,11 @@ class Publisher(StringyMixin, str, Enum):
         ICE Europe Financials - Off-Market Trades.
     XEUR_EOBI_XEUR
         Eurex EOBI.
-    XEER_EOBI_XEER
+    XEEE_EOBI_XEEE
         European Energy Exchange EOBI.
     XEUR_EOBI_XOFF
         Eurex EOBI - Off-Market Trades.
-    XEER_EOBI_XOFF
+    XEEE_EOBI_XOFF
         European Energy Exchange EOBI - Off-Market Trades.
 
     """
@@ -1200,9 +1200,9 @@ class Publisher(StringyMixin, str, Enum):
     IFLL_IMPACT_IFLL = "IFLL.IMPACT.IFLL"
     IFLL_IMPACT_XOFF = "IFLL.IMPACT.XOFF"
     XEUR_EOBI_XEUR = "XEUR.EOBI.XEUR"
-    XEER_EOBI_XEER = "XEER.EOBI.XEER"
+    XEEE_EOBI_XEEE = "XEEE.EOBI.XEEE"
     XEUR_EOBI_XOFF = "XEUR.EOBI.XOFF"
-    XEER_EOBI_XOFF = "XEER.EOBI.XOFF"
+    XEEE_EOBI_XOFF = "XEEE.EOBI.XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1412,11 +1412,11 @@ class Publisher(StringyMixin, str, Enum):
         if value == 101:
             return Publisher.XEUR_EOBI_XEUR
         if value == 102:
-            return Publisher.XEER_EOBI_XEER
+            return Publisher.XEEE_EOBI_XEEE
         if value == 103:
             return Publisher.XEUR_EOBI_XOFF
         if value == 104:
-            return Publisher.XEER_EOBI_XOFF
+            return Publisher.XEEE_EOBI_XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1625,11 +1625,11 @@ class Publisher(StringyMixin, str, Enum):
             return 100
         if self == Publisher.XEUR_EOBI_XEUR:
             return 101
-        if self == Publisher.XEER_EOBI_XEER:
+        if self == Publisher.XEEE_EOBI_XEEE:
             return 102
         if self == Publisher.XEUR_EOBI_XOFF:
             return 103
-        if self == Publisher.XEER_EOBI_XOFF:
+        if self == Publisher.XEEE_EOBI_XOFF:
             return 104
         raise ValueError("Invalid Publisher")
 
@@ -1840,11 +1840,11 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XOFF
         if self == Publisher.XEUR_EOBI_XEUR:
             return Venue.XEUR
-        if self == Publisher.XEER_EOBI_XEER:
-            return Venue.XEER
+        if self == Publisher.XEEE_EOBI_XEEE:
+            return Venue.XEEE
         if self == Publisher.XEUR_EOBI_XOFF:
             return Venue.XOFF
-        if self == Publisher.XEER_EOBI_XOFF:
+        if self == Publisher.XEEE_EOBI_XOFF:
             return Venue.XOFF
         raise ValueError("Unexpected Publisher value")
 
@@ -2055,12 +2055,12 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.IFLL_IMPACT
         if self == Publisher.XEUR_EOBI_XEUR:
             return Dataset.XEUR_EOBI
-        if self == Publisher.XEER_EOBI_XEER:
-            return Dataset.XEER_EOBI
+        if self == Publisher.XEEE_EOBI_XEEE:
+            return Dataset.XEEE_EOBI
         if self == Publisher.XEUR_EOBI_XOFF:
             return Dataset.XEUR_EOBI
-        if self == Publisher.XEER_EOBI_XOFF:
-            return Dataset.XEER_EOBI
+        if self == Publisher.XEEE_EOBI_XOFF:
+            return Dataset.XEEE_EOBI
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2270,10 +2270,10 @@ class Publisher(StringyMixin, str, Enum):
             return "ICE Europe Financials - Off-Market Trades"
         if self == Publisher.XEUR_EOBI_XEUR:
             return "Eurex EOBI"
-        if self == Publisher.XEER_EOBI_XEER:
+        if self == Publisher.XEEE_EOBI_XEEE:
             return "European Energy Exchange EOBI"
         if self == Publisher.XEUR_EOBI_XOFF:
             return "Eurex EOBI - Off-Market Trades"
-        if self == Publisher.XEER_EOBI_XOFF:
+        if self == Publisher.XEEE_EOBI_XOFF:
             return "European Energy Exchange EOBI - Off-Market Trades"
         raise ValueError("Unexpected Publisher value")
