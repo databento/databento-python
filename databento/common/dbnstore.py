@@ -984,6 +984,7 @@ class DBNStore:
         map_symbols: bool = True,
         schema: Schema | str | None = None,
         mode: Literal["w", "x"] = "w",
+        parquet_schema: pa.Schema | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -1010,6 +1011,9 @@ class DBNStore:
             This is only required when reading a DBN stream with mixed record types.
         mode : str, default "w"
             The file write mode to use, either "x" or "w".
+        parquet_schema : pyarrow.Schema, optional
+            The pyarrow parquet schema to use to write the parquet file.
+            This defaults to a detected schema based on the DataFrame representation.
         **kwargs : Any
             Keyword arguments to pass to the `pyarrow.parquet.ParquetWriter`.
             These can be used to override the default behavior of the writer.
@@ -1046,10 +1050,11 @@ class DBNStore:
             for frame in dataframe_iter:
                 if writer is None:
                     # Initialize the writer using the first DataFrame
-                    parquet_schema = pa.Schema.from_pandas(frame)
+                    if parquet_schema is None:
+                        parquet_schema = pa.Schema.from_pandas(frame)
                     writer = pq.ParquetWriter(
                         where=kwargs.pop("where", file_path),
-                        schema=kwargs.pop("schema", parquet_schema),
+                        schema=parquet_schema,
                         **kwargs,
                     )
                 writer.write_table(
