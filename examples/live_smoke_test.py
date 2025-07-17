@@ -80,9 +80,7 @@ def run_client_with_snapshot(args: argparse.Namespace) -> None:
     print("Starting client...")
 
     for record in client:
-        if isinstance(record, SymbolMappingMsg):
-            continue
-        elif isinstance(record, MBOMsg):
+        if isinstance(record, MBOMsg):
             if record.flags & RecordFlags.F_SNAPSHOT:
                 received_snapshot_record = True
             else:
@@ -90,8 +88,6 @@ def run_client_with_snapshot(args: argparse.Namespace) -> None:
                 break
         elif isinstance(record, ErrorMsg):
             raise ValueError(f"Received error {record.err}")
-        else:
-            raise ValueError(f"Received unexpected record {record}")
 
     print("Finished client")
 
