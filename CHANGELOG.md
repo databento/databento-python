@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.62.0 - TBD
+
+#### Breaking changes
+- Removed `bill_id` from the response of `batch.list_jobs()` and `batch.submit_job()`
+
 ## 0.61.0 - 2025-08-12
 
 #### Breaking changes
