@@ -5,6 +5,9 @@
 #### Enhancements
 - Added `parquet_schema` option to `DBNStore.to_parquet()` for overriding the pyarrow schema.
 
+#### Bug fixes
+- Removed unused `S3` and `Disk` variants from `Delivery` enum
+
 ## 0.59.0 - 2025-07-15
 
 #### Enhancements

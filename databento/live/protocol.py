@@ -55,7 +55,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     dataset : Dataset or str
         The dataset for authentication.
     ts_out : bool, default False
-        Flag for requesting `ts_out` to be appending to all records in the session.
+        Flag for requesting `ts_out` to be appended to all records in the session.
     heartbeat_interval_s: int, optional
         The interval in seconds at which the gateway will send heartbeat records if no
         other data records are sent.

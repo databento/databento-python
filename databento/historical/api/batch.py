@@ -126,8 +126,9 @@ class BatchHttpAPI(BentoHttpAPI):
         split_size : int, optional
             The maximum size (bytes) of each batched data file before being split.
             Must be an integer between 1e9 and 10e9 inclusive (1GB - 10GB).
-        delivery : Delivery or str {'download', 's3', 'disk'}, default 'download'
+        delivery : Delivery or str {'download'}, default 'download'
             The delivery mechanism for the processed batched data files.
+            Only 'download' is supported at this time.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
         stype_out : SType or str, default 'instrument_id'

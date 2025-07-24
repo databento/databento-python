@@ -157,8 +157,6 @@ class Delivery(StringyMixin, str, Enum):
     """
 
     DOWNLOAD = "download"
-    S3 = "s3"
-    DISK = "disk"
 
 
 @unique
