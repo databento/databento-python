@@ -362,7 +362,7 @@ def test_instrument_map_insert_symbol_mapping_message_v1(
         end_ts=end_date,
     )
     sym_msg_v1 = SymbolMappingMsgV1(
-        publisher_id=sym_msg.publisher_id,  # type: ignore [call-arg]
+        publisher_id=sym_msg.publisher_id,
         instrument_id=sym_msg.instrument_id,
         ts_event=sym_msg.ts_event,
         stype_in_symbol=sym_msg.stype_in_symbol,
