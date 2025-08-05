@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.60.0 - TBD
+## 0.60.0 - 2025-08-05
 
 #### Enhancements
 - Added `parquet_schema` option to `DBNStore.to_parquet()` for overriding the pyarrow schema.
