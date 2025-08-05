@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.60.0 - 2025-08-05
+
+#### Enhancements
+- Added `parquet_schema` option to `DBNStore.to_parquet()` for overriding the pyarrow schema.
+- Upgraded `databento-dbn` to 0.39.0
+  - Added `side()` and `unpaired_side()` methods to `ImbalanceMsg` that convert the fields
+of the same name to the `Side` enum
+  - Added `pretty_auction_time` property in Python for `ImbalanceMsg`
+  - Added `action` and `ts_in_delta` getters to `BboMsg`
+  - Added `ts_recv` getter to `StatusMsg`
+  - Added missing floating-point price getters to `InstrumentDefMsg` record types from all
+DBN versions
+  - Added more floating-point price getters to `ImbalanceMsg`
+  - Added floating-point price getter to `StatMsg`
+  - Standardize Python `__init__` type signatures
+  - Changed `auction_time` field in `ImbalanceMsg` to be formatted as a timestamp
+  - Fixed a regression where some enum constructors no longer raised a `DBNError` in
+Python
+
+#### Bug fixes
+- Removed unused `S3` and `Disk` variants from `Delivery` enum
+
 ## 0.59.0 - 2025-07-15
 
 #### Enhancements
