@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.60.1 - TBD
+## 0.61.0 - TBD
+
+#### Breaking changes
+- Modified the `states` parameter in `batch.list_jobs()`
 
 #### Enhancements
+- Added `JobState` enum
 - Added export of `SystemCode` and `ErrorCode` from `databento_dbn` to the root `databento` package
 
 #### Bug fixes
@@ -58,8 +62,8 @@ Python
   - "ICE Futures Europe (Financials)" renamed to "ICE Europe Financials"
   - "ICE Futures Europe (Commodities)" renamed to "ICE Europe Commodities"
 - Upgraded `databento-dbn` to 0.36.1
-  - Fixed setting of ts_out property of DbnFsm based on decoded metadata. This
-was preventing ts_out from being correctly decoded in the Python DBNDecoder
+  - Fixed setting of `ts_out` property of DbnFsm based on decoded metadata. This
+was preventing `ts_out` from being correctly decoded in the Python DBNDecoder
   - Fixed decoding of `ts_out` with first records in DBNDecoder
 
 #### Bug fixes

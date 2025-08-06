@@ -28,7 +28,7 @@ def coercible(enum_type: type[M]) -> type[M]:
     Parameters
     ----------
     enum_type : EnumMeta
-        The deocrated Enum type.
+        The decorated Enum type.
 
     Returns
     -------
@@ -167,7 +167,7 @@ class RollRule(StringyMixin, str, Enum):
     """
 
     VOLUME = "volume"
-    OPEN_INTEREST = "open_interst"
+    OPEN_INTEREST = "open_interest"
     CALENDAR = "calendar"
 
 
@@ -241,3 +241,16 @@ class PriceType(StringyMixin, str, Enum):
     FIXED = "fixed"
     FLOAT = "float"
     DECIMAL = "decimal"
+
+
+@unique
+@coercible
+class JobState(StringyMixin, str, Enum):
+    """
+    Represents the different states for batch jobs.
+    """
+
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    DONE = "done"
+    EXPIRED = "expired"

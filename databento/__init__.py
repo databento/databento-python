@@ -57,6 +57,7 @@ from databento.common.dbnstore import DBNStore
 from databento.common.enums import Delivery
 from databento.common.enums import FeedMode
 from databento.common.enums import HistoricalGateway
+from databento.common.enums import JobState
 from databento.common.enums import Packaging
 from databento.common.enums import ReconnectPolicy
 from databento.common.enums import RecordFlags
@@ -113,6 +114,7 @@ __all__ = [
     "InstrumentClass",
     "InstrumentDefMsg",
     "InstrumentMap",
+    "JobState",
     "Live",
     "MBOMsg",
     "MBP1Msg",
