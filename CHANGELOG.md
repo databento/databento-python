@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.60.1 - TBD
+
+#### Enhancements
+- Added export of `SystemCode` and `ErrorCode` from `databento_dbn` to the root `databento` package
+
 ## 0.60.0 - 2025-08-05
 
 #### Enhancements

@@ -13,6 +13,7 @@ from databento_dbn import CMBP1Msg
 from databento_dbn import Compression
 from databento_dbn import ConsolidatedBidAskPair
 from databento_dbn import Encoding
+from databento_dbn import ErrorCode
 from databento_dbn import ErrorMsg
 from databento_dbn import ImbalanceMsg
 from databento_dbn import InstrumentClass
@@ -35,6 +36,7 @@ from databento_dbn import StatusMsg
 from databento_dbn import StatusReason
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
+from databento_dbn import SystemCode
 from databento_dbn import SystemMsg
 from databento_dbn import TradeMsg
 from databento_dbn import TradingEvent
@@ -102,6 +104,7 @@ __all__ = [
     "Dataset",
     "Delivery",
     "Encoding",
+    "ErrorCode",
     "ErrorMsg",
     "FeedMode",
     "Historical",
@@ -137,6 +140,7 @@ __all__ = [
     "StatusReason",
     "SymbolMappingMsg",
     "SymbologyResolution",
+    "SystemCode",
     "SystemMsg",
     "TBBOMsg",
     "TBBOMsg",
