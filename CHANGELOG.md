@@ -5,6 +5,9 @@
 #### Enhancements
 - Added export of `SystemCode` and `ErrorCode` from `databento_dbn` to the root `databento` package
 
+#### Bug fixes
+- Bumped the minimum version requirement for `requests` to 0.27.0
+
 ## 0.60.0 - 2025-08-05
 
 #### Enhancements

@@ -40,7 +40,7 @@ numpy = [
 pandas = ">=1.5.3"
 pip-system-certs = {version=">=4.0", markers="platform_system == 'Windows'"}
 pyarrow = ">=13.0.0"
-requests = ">=2.25.1"
+requests = ">=2.27.0"
 zstandard = ">=0.21.0"
 
 [tool.poetry.group.dev.dependencies]
