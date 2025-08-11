@@ -207,6 +207,8 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
         The `ts_recv` value is inaccurate (clock issues or reordering).
     F_MAYBE_BAD_BOOK
         Indicates an unrecoverable gap was detected in the channel.
+    F_PUBLISHER_SPECIFIC
+        Indicates a publisher-specific event.
 
     Other bits are reserved and have no current meaning.
 
@@ -218,6 +220,7 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
     F_MBP = 16
     F_BAD_TS_RECV = 8
     F_MAYBE_BAD_BOOK = 4
+    F_PUBLISHER_SPECIFIC = 2
 
 
 @unique

@@ -8,6 +8,7 @@
 #### Enhancements
 - Added `JobState` enum
 - Added export of `SystemCode` and `ErrorCode` from `databento_dbn` to the root `databento` package
+- Added `F_PUBLISHER_SPECIFIC` flag to `RecordFlags` enum
 
 #### Bug fixes
 - Bumped the minimum version requirement for `requests` to 0.27.0
