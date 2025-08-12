@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.61.0 - TBD
+## 0.61.0 - 2025-08-12
 
 #### Breaking changes
 - Modified the `states` parameter in `batch.list_jobs()`
