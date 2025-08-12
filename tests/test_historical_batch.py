@@ -125,7 +125,7 @@ def test_batch_list_jobs_sends_expected_request(
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
     assert call["params"] == [
-        ("states", "received,queued,processing,done"),
+        ("states", "queued,processing,done"),
         ("since", "2022-01-01"),
     ]
     assert call["timeout"] == (100, 100)

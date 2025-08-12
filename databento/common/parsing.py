@@ -17,6 +17,8 @@ import zstandard
 from databento_dbn import SType
 
 from databento.common.constants import ALL_SYMBOLS
+from databento.common.enums import JobState
+from databento.common.validation import validate_enum
 from databento.common.validation import validate_smart_symbol
 
 
@@ -62,6 +64,31 @@ def optional_values_list_to_string(
     if values is None:
         return None
     return values_list_to_string(values)
+
+
+def optional_states_list_to_string(
+    states: Iterable[JobState | str] | JobState | str | None,
+) -> str | None:
+    """
+    Concatenate a states string or iterable of string states (if not None).
+
+    Parameters
+    ----------
+    states : Iterable[JobState | str] | JobState | str | None
+        The states to concatenate.
+
+    Returns
+    -------
+    str or `None`
+
+    """
+    if states is None:
+        return None
+    elif isinstance(states, (JobState, str)):
+        return str(states)
+    else:
+        states_list = [validate_enum(state, JobState, "state").value for state in states]
+        return ",".join(states_list)
 
 
 def optional_string_to_list(
