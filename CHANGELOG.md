@@ -2,6 +2,9 @@
 
 ## 0.62.0 - TBD
 
+#### Enhancements
+- Added `END_OF_INTERVAL` variant to `SystemCode` enum
+
 #### Breaking changes
 - Removed `bill_id` from the response of `batch.list_jobs()` and `batch.submit_job()`
 
@@ -24,7 +27,7 @@
 - Added `parquet_schema` option to `DBNStore.to_parquet()` for overriding the pyarrow schema.
 - Upgraded `databento-dbn` to 0.39.0
   - Added `side()` and `unpaired_side()` methods to `ImbalanceMsg` that convert the fields
-of the same name to the `Side` enum
+    of the same name to the `Side` enum
   - Added `pretty_auction_time` property in Python for `ImbalanceMsg`
   - Added `action` and `ts_in_delta` getters to `BboMsg`
   - Added `ts_recv` getter to `StatusMsg`
