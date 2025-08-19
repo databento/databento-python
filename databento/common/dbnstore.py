@@ -584,10 +584,7 @@ class DBNStore:
         SType or None
 
         """
-        stype = self._metadata.stype_in
-        if stype:
-            return SType(self._metadata.stype_in)
-        return None
+        return self._metadata.stype_in
 
     @property
     def stype_out(self) -> SType:
@@ -599,7 +596,7 @@ class DBNStore:
         SType
 
         """
-        return SType(self._metadata.stype_out)
+        return self._metadata.stype_out
 
     @property
     def symbology(self) -> dict[str, Any]:
