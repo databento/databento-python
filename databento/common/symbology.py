@@ -245,9 +245,6 @@ class InstrumentMap:
             # Nothing to do
             return
 
-        stype_in = SType(metadata.stype_in) if metadata.stype_in is not None else None
-        stype_out = SType(metadata.stype_out) if metadata.stype_out is not None else None
-
         for symbol_in, entries in metadata.mappings.items():
             for entry in entries:
                 if not entry["symbol"]:
@@ -263,9 +260,9 @@ class InstrumentMap:
 
                 symbol, instrument_id = _resolve_mapping_tuple(
                     symbol_in=symbol_in,
-                    stype_in=stype_in,
+                    stype_in=metadata.stype_in,
                     symbol_out=entry["symbol"],
-                    stype_out=stype_out,
+                    stype_out=metadata.stype_out,
                 )
 
                 self._insert_interval(
@@ -313,7 +310,7 @@ class InstrumentMap:
             symbol = msg.stype_out_symbol
 
         self._insert_interval(
-            msg.hd.instrument_id,
+            msg.instrument_id,
             MappingInterval(
                 start_date=start_ts.date(),
                 end_date=end_ts.date(),

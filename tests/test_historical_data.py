@@ -11,7 +11,6 @@ def test_mbo_fields() -> None:
     struct = SCHEMA_STRUCT_MAP[databento.Schema.MBO]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
-    fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
 
@@ -41,7 +40,6 @@ def test_mbp_fields(
     struct = SCHEMA_STRUCT_MAP[schema]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
-    fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
 
@@ -74,7 +72,6 @@ def test_ohlcv_fields(
     struct = SCHEMA_STRUCT_MAP[schema]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
-    fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
 
@@ -93,7 +90,6 @@ def test_trades_struct() -> None:
     struct = SCHEMA_STRUCT_MAP[databento.Schema.TRADES]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
-    fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
 
@@ -112,7 +108,6 @@ def test_definition_struct() -> None:
     struct = SCHEMA_STRUCT_MAP[databento.Schema.DEFINITION]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
-    fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
 
@@ -131,7 +126,6 @@ def test_imbalance_struct() -> None:
     struct = SCHEMA_STRUCT_MAP[databento.Schema.IMBALANCE]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
-    fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
 
@@ -150,7 +144,6 @@ def test_statistics_struct() -> None:
     struct = SCHEMA_STRUCT_MAP[databento.Schema.STATISTICS]
 
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
-    fields.remove("hd")
     fields.remove("record_size")
     fields.remove("size_hint")
 

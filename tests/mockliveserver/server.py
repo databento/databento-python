@@ -297,7 +297,11 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
 
     async def _file_replay_task(self) -> None:
         for subscription in self._subscriptions:
-            schema = Schema(subscription.schema)
+            schema = (
+                Schema.from_str(subscription.schema)
+                if isinstance(subscription.schema, str)
+                else subscription.schema
+            )
             replay = self._file_replay_table[(self.dataset, schema)]
             logger.info("starting replay %s for %s", replay.name, self.peer)
             for chunk in replay:

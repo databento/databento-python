@@ -444,12 +444,11 @@ def test_replay_with_stub_data_record_passes_to_callback(
 
     # Assert
     assert isinstance(record, MBOMsg)
-    assert record.hd.length == 14
-    assert record.hd.rtype == 160
-    assert record.hd.rtype == 160
-    assert record.hd.publisher_id == 1
-    assert record.hd.instrument_id == 5482
-    assert record.hd.ts_event == 1609099225061045683
+    assert record.rtype == 160
+    assert record.rtype == 160
+    assert record.publisher_id == 1
+    assert record.instrument_id == 5482
+    assert record.ts_event == 1609099225061045683
     assert record.order_id == 647784248135
     assert record.price == 3675750000000
     assert record.size == 2
@@ -1036,12 +1035,11 @@ def test_dbnstore_iterable(
     second: MBOMsg = record_list[1]  # type: ignore [assignment]
 
     # Assert
-    assert first.hd.length == 14
-    assert first.hd.rtype == 160
-    assert first.hd.rtype == 160
-    assert first.hd.publisher_id == 1
-    assert first.hd.instrument_id == 5482
-    assert first.hd.ts_event == 1609099225061045683
+    assert first.rtype == 160
+    assert first.rtype == 160
+    assert first.publisher_id == 1
+    assert first.instrument_id == 5482
+    assert first.ts_event == 1609099225061045683
     assert first.order_id == 647784248135
     assert first.price == 3675750000000
     assert first.size == 2
@@ -1053,12 +1051,11 @@ def test_dbnstore_iterable(
     assert first.ts_in_delta == 0
     assert first.sequence == 1180
 
-    assert second.hd.length == 14
-    assert second.hd.rtype == 160
-    assert second.hd.rtype == 160
-    assert second.hd.publisher_id == 1
-    assert second.hd.instrument_id == 5482
-    assert second.hd.ts_event == 1609099225061045683
+    assert second.rtype == 160
+    assert second.rtype == 160
+    assert second.publisher_id == 1
+    assert second.instrument_id == 5482
+    assert second.ts_event == 1609099225061045683
     assert second.order_id == 647782686353
     assert second.price == 3675500000000
     assert second.size == 1
