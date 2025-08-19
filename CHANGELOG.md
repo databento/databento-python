@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.62.0 - TBD
+## 0.62.0 - 2025-08-19
 
 This release delivers a number of breaking changes to the Python interface for DBN records to provide a cleaner and more consistent API.
 
