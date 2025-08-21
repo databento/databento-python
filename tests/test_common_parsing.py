@@ -292,6 +292,11 @@ def test_maybe_datetime_to_string_give_valid_values_returns_expected_results(
         pytest.param("1680736543000000000", 1680736543000000000, id="str-int"),
         pytest.param(dt.date(2023, 4, 5), 1680652800000000000, id="date"),
         pytest.param(
+            dt.datetime(2023, 4, 5, 23, 15, 43, tzinfo=dt.timezone.utc),
+            1680736543000000000,
+            id="datetime",
+        ),
+        pytest.param(
             pd.to_datetime("2023-04-05T00:00:00"),
             1680652800000000000,
             id="timestamp",
@@ -304,7 +309,7 @@ def test_maybe_datetime_to_string_give_valid_values_returns_expected_results(
     ],
 )
 def test_datetime_to_unix_nanoseconds(
-    value: pd.Timestamp | str | int,
+    value: pd.Timestamp | dt.datetime | dt.date | str | int,
     expected: int,
 ) -> None:
     """

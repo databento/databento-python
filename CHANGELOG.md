@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.63.1 - TBD
+
+#### Bug fixes
+- Fixed type hint for `start` parameter in `Live.subscribe()`
+
 ## 0.63.0 - 2025-09-02
 
 #### Enhancements
@@ -18,7 +23,7 @@ This release delivers a number of breaking changes to the Python interface for D
   - Removed `hd` property from records in Python. Header fields are accessible
     directly from the record
   - Removed ability to directly instantiate most enums from an `int` in Python and coercion
-    from `int` in `__eq__`. They can still be instantitated with the `from_int` class method.
+    from `int` in `__eq__`. They can still be instantiated with the `from_int` class method.
     Write `Side.from_int(66)` instead of `Side(66)` and `Side.BID == Side.from_int(66)`
     instead of `Side.BID == 66`. Affected enums:
     - `Side`
