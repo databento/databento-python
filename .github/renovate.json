@@ -5,9 +5,5 @@
     ],
     "enabledManagers": [
         "github-actions"
-    ],
-    "timezone": "Asia/Dubai",
-    "schedule": [
-        "before 10am on tuesday"
     ]
 }
