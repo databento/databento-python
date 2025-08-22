@@ -1,14 +1,9 @@
 {
     "extends": [
         "config:recommended",
-        ":enablePreCommit",
-        ":automergeMinor",
-        ":dependencyDashboard",
-        ":semanticCommits",
-        ":pinDevDependencies"
+        ":dependencyDashboard"
     ],
     "enabledManagers": [
-        "pre-commit",
         "github-actions"
     ],
     "timezone": "Asia/Dubai",
