@@ -4,7 +4,6 @@
         ":enablePreCommit",
         ":automergeMinor",
         ":dependencyDashboard",
-        ":maintainLockFilesWeekly",
         ":semanticCommits",
         ":pinDevDependencies"
     ],
