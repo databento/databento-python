@@ -439,9 +439,9 @@ class LiveSession:
         with self._lock:
             if self._transport is None:
                 return
-            if self._transport.can_write_eof():
-                self._transport.write_eof()
-            self._transport.close()
+            if self._protocol is not None:
+                self._protocol.disconnected.add_done_callback(lambda _: self._cleanup())
+            self._loop.call_soon_threadsafe(self._transport.close)
 
     def start(self) -> None:
         """
@@ -516,8 +516,6 @@ class LiveSession:
         with self._lock:
             if self._transport is None:
                 return
-            if self._transport.can_write_eof():
-                self._transport.write_eof()
             self._transport.abort()
             self._cleanup()
 

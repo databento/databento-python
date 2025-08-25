@@ -4,6 +4,7 @@ Unit tests for the Live client.
 
 from __future__ import annotations
 
+import asyncio
 import pathlib
 import platform
 import random
@@ -253,6 +254,42 @@ async def test_live_connect_auth(
     assert message.auth.endswith(live_client.key[-BUCKET_ID_LENGTH:])
     assert message.dataset == live_client.dataset
     assert message.encoding == Encoding.DBN
+
+
+async def test_live_client_reuse(
+    mock_live_server: MockLiveServerInterface,
+    live_client: client.Live,
+) -> None:
+    """
+    Test that calling stop will *eventually* close a the connection and trigger
+    a cleanup of the client state.
+    """
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
+    )
+
+    live_client.start()
+    live_client.stop()
+
+    await asyncio.sleep(1)
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBP_1,
+    )
+
+    await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
+    )
+
+    live_client.start()
+    live_client.stop()
+    await live_client.wait_for_close()
 
 
 async def test_live_connect_auth_with_heartbeat_interval(

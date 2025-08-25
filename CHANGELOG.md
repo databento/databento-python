@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.62.1 - TBD
+
+#### Bug fixes
+- Fixed an issue where calling `Live.stop()` would not clean up the client state once the socket is closed
+
 ## 0.62.0 - 2025-08-19
 
 This release delivers a number of breaking changes to the Python interface for DBN records to provide a cleaner and more consistent API.
