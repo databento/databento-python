@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.62.1 - TBD
+## 0.63.0 - TBD
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.41.0
 
 #### Bug fixes
 - Fixed an issue where calling `Live.stop()` would not clean up the client state once the socket is closed
