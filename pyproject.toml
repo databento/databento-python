@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "databento"
-version = "0.62.0"
+version = "0.63.0"
 description = "Official Python client library for Databento"
 authors = [
     "Databento <support@databento.com>",
