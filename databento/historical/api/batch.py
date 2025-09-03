@@ -96,12 +96,12 @@ class BatchHttpAPI(BentoHttpAPI):
         schema : Schema or str {'mbo', 'mbp-1', 'mbp-10', 'trades', 'tbbo', 'ohlcv-1s', 'ohlcv-1m', 'ohlcv-1h', 'ohlcv-1d', 'definition', 'statistics', 'status'}, default 'trades'  # noqa
             The data record schema for the request.
         start : pd.Timestamp, datetime, date, str, or int
-            The start of the request time range (inclusive).
+            The inclusive start of the request range.
             Filters on `ts_recv` if it exists in the schema, otherwise `ts_event`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
-            The end of the request time range (exclusive).
+            The exclusive end of the request range.
             Filters on `ts_recv` if it exists in the schema, otherwise `ts_event`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.

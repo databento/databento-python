@@ -51,9 +51,10 @@ class SymbologyHttpAPI(BentoHttpAPI):
         stype_out : SType or str, default 'instrument_id'
             The output symbology type to resolve to.
         start_date : date or str
-            The start date (UTC) of the request time range (inclusive).
+            The inclusive UTC start date of the request range.
         end_date : date or str, optional
-            The end date (UTC) of the request time range (exclusive).
+            The exclusive UTC end date of the request range.
+            Defaults to the forward filled value of `start` based on the resolution provided.
 
         Returns
         -------
