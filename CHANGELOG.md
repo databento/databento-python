@@ -215,7 +215,7 @@ was preventing `ts_out` from being correctly decoded in the Python DBNDecoder
 ## 0.52.0 - 2025-04-15
 
 #### Enhancements
-- Added new optional `id` field to `SubcriptionRequest` class which will be used for improved error messages
+- Added new optional `id` field to `SubscriptionRequest` class which will be used for improved error messages
 - Upgraded `databento-dbn` to 0.32.0
   - Fixed `RType` variant names in Python to match `Schema`
   - Added missing Python type declarations for `RType` variants
@@ -892,7 +892,7 @@ This release includes updates to the fields in text encodings (CSV and JSON), yo
 - Removed `record_size` property from `DBNStore`
 - Removed `bad` condition variant from `batch.get_dataset_condition`
 - Removed unused `LiveGateway` enum
-- Removed `STATSTICS` from `Schema` enum
+- Removed `STATISTICS` from `Schema` enum
 - Removed `STATUS` from `Schema` enum
 - Removed `GATEWAY_ERROR` from `Schema` enum
 - Removed `SYMBOL_MAPPING` from `Schema` enum
