@@ -145,7 +145,6 @@ __all__ = [
     "SystemCode",
     "SystemMsg",
     "TBBOMsg",
-    "TBBOMsg",
     "TCBBOMsg",
     "TradeMsg",
     "TradingEvent",
