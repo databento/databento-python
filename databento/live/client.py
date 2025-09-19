@@ -467,6 +467,7 @@ class Live:
             See `Intraday Replay` https://databento.com/docs/api-reference-live/basics/intraday-replay.
         snapshot: bool, default to 'False'
             Request subscription with snapshot. The `start` parameter must be `None`.
+            Only supported with `mbo` schema.
 
         Raises
         ------
