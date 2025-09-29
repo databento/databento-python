@@ -50,14 +50,14 @@ class AdjustmentFactorsHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         start : pd.Timestamp, datetime, date, str, or int
-            The start datetime of the request time range (inclusive) based on `ex_date`.
+            The inclusive start of the request time range based on `ex_date`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
-            The end datetime of the request time range (exclusive) based on `ex_date`.
+            The exclusive end of the request time range based on `ex_date`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Defaults to the forward filled value of `start` based on the resolution provided.
+            If `None`, then will return **all** data available after `start`.
         symbols : Iterable[str] or str, optional
             The symbols to filter for. Takes up to 2,000 symbols per request.
             If more than 1 symbol is specified, the data is merged and sorted by time.
