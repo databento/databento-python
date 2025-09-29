@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.65.0 - TBD
+
+#### Enhancements
+- Added export of `CBBOMsg` and `BBOMsg` from `databento_dbn` to the root `databento` package
+
 ## 0.64.0 - 2025-09-30
 
 #### Enhancements
