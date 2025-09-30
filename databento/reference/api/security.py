@@ -51,14 +51,14 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
         Parameters
         ----------
         start : pd.Timestamp, datetime, date, str, or int
-            The start datetime of the request time range (inclusive) based on `index`.
+            The inclusive start datetime of the request range based on `index`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
         end : pd.Timestamp, datetime, date, str, or int, optional
-            The end datetime of the request time range (exclusive) based on `index`.
+            The exclusive end of the request range based on `index`.
             Assumes UTC as timezone unless passed a tz-aware object.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
-            Defaults to the forward filled value of `start` based on the resolution provided.
+            If `None`, then will return **all** data available after `start`.
         index : str, default 'ts_effective'
             The index column used for filtering the `start` and `end` time range
             and for record ordering.

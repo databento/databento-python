@@ -344,14 +344,14 @@ def optional_datetime_to_string(
 
 
 def datetime_to_unix_nanoseconds(
-    value: pd.Timestamp | date | str | int,
+    value: pd.Timestamp | datetime | date | str | int,
 ) -> int:
     """
     Return a valid UNIX nanosecond timestamp from the given value.
 
     Parameters
     ----------
-    value : pd.Timestamp, date, str, or int
+    value : pd.Timestamp, datetime, date, str, or int
         The value to parse.
 
     Returns
@@ -378,7 +378,7 @@ def datetime_to_unix_nanoseconds(
 
 
 def optional_datetime_to_unix_nanoseconds(
-    value: pd.Timestamp | date | str | int | None,
+    value: pd.Timestamp | datetime | date | str | int | None,
 ) -> int | None:
     """
     Return a valid UNIX nanosecond timestamp from the given value (if not
@@ -386,7 +386,7 @@ def optional_datetime_to_unix_nanoseconds(
 
     Parameters
     ----------
-    value : pd.Timestamp, date, str, or int
+    value : pd.Timestamp, datetime, date, str, or int
         The value to parse.
 
     Returns

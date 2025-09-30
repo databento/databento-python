@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.64.0 - 2025-09-30
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.42.0
+  - Added `ts_index` and `pretty_ts_index` properties for records in Python which provides the timestamp that is most appropriate for indexing
+  - Fixed type stub for `channel_id` to allow None
+
+#### Bug fixes
+- Fixed type hint for `start` parameter in `Live.subscribe()`
+
 ## 0.63.0 - 2025-09-02
 
 #### Enhancements
@@ -18,7 +28,7 @@ This release delivers a number of breaking changes to the Python interface for D
   - Removed `hd` property from records in Python. Header fields are accessible
     directly from the record
   - Removed ability to directly instantiate most enums from an `int` in Python and coercion
-    from `int` in `__eq__`. They can still be instantitated with the `from_int` class method.
+    from `int` in `__eq__`. They can still be instantiated with the `from_int` class method.
     Write `Side.from_int(66)` instead of `Side(66)` and `Side.BID == Side.from_int(66)`
     instead of `Side.BID == 66`. Affected enums:
     - `Side`
@@ -215,7 +225,7 @@ was preventing `ts_out` from being correctly decoded in the Python DBNDecoder
 ## 0.52.0 - 2025-04-15
 
 #### Enhancements
-- Added new optional `id` field to `SubcriptionRequest` class which will be used for improved error messages
+- Added new optional `id` field to `SubscriptionRequest` class which will be used for improved error messages
 - Upgraded `databento-dbn` to 0.32.0
   - Fixed `RType` variant names in Python to match `Schema`
   - Added missing Python type declarations for `RType` variants
@@ -892,7 +902,7 @@ This release includes updates to the fields in text encodings (CSV and JSON), yo
 - Removed `record_size` property from `DBNStore`
 - Removed `bad` condition variant from `batch.get_dataset_condition`
 - Removed unused `LiveGateway` enum
-- Removed `STATSTICS` from `Schema` enum
+- Removed `STATISTICS` from `Schema` enum
 - Removed `STATUS` from `Schema` enum
 - Removed `GATEWAY_ERROR` from `Schema` enum
 - Removed `SYMBOL_MAPPING` from `Schema` enum

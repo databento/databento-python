@@ -13,6 +13,7 @@ def test_mbo_fields() -> None:
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("record_size")
     fields.remove("size_hint")
+    fields.remove("ts_index")
 
     # Act
     difference = fields.symmetric_difference(struct._ordered_fields)
@@ -42,6 +43,7 @@ def test_mbp_fields(
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("record_size")
     fields.remove("size_hint")
+    fields.remove("ts_index")
 
     # Act
     difference = fields.symmetric_difference(struct._ordered_fields)
@@ -74,6 +76,7 @@ def test_ohlcv_fields(
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("record_size")
     fields.remove("size_hint")
+    fields.remove("ts_index")
 
     # Act
     difference = fields.symmetric_difference(struct._ordered_fields)
@@ -92,6 +95,7 @@ def test_trades_struct() -> None:
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("record_size")
     fields.remove("size_hint")
+    fields.remove("ts_index")
 
     # Act
     difference = fields.symmetric_difference(struct._ordered_fields)
@@ -110,6 +114,7 @@ def test_definition_struct() -> None:
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("record_size")
     fields.remove("size_hint")
+    fields.remove("ts_index")
 
     # Act
     difference = fields.symmetric_difference(struct._ordered_fields)
@@ -128,6 +133,7 @@ def test_imbalance_struct() -> None:
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("record_size")
     fields.remove("size_hint")
+    fields.remove("ts_index")
 
     # Act
     difference = fields.symmetric_difference(struct._ordered_fields)
@@ -146,6 +152,7 @@ def test_statistics_struct() -> None:
     fields = set(f for f in dir(struct) if not f.startswith(("_", "pretty_")))
     fields.remove("record_size")
     fields.remove("size_hint")
+    fields.remove("ts_index")
 
     # Act
     difference = fields.symmetric_difference(struct._ordered_fields)

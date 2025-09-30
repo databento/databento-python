@@ -8,10 +8,13 @@ import queue
 import threading
 from collections.abc import Iterable
 from concurrent import futures
+from datetime import date
+from datetime import datetime
 from os import PathLike
 from typing import IO
 
 import databento_dbn
+import pandas as pd
 from databento_dbn import Schema
 from databento_dbn import SType
 
@@ -368,20 +371,22 @@ class Live:
         self,
     ) -> None:
         """
-        Start the live client session.
+        Start the session.
 
-        It is not necessary to call `Live.start` before iterating a `Live` client and doing so will result in an error.
+        It is not necessary to call this method before iterating a `Live` client and doing so
+        will result in an error.
 
         Raises
         ------
         ValueError
-            If `Live.start` is called before a subscription has been made.
-            If `Live.start` is called after streaming has already started.
-            If `Live.start` is called after the live session has closed.
+            If called before a subscription has been made.
+            If called after the session has already started.
+            If called after the session has closed.
 
         See Also
         --------
         Live.stop
+        Live.terminate
 
         """
         logger.info("starting live client")
@@ -396,17 +401,25 @@ class Live:
 
     def stop(self) -> None:
         """
-        Stop the live client session as soon as possible. Once stopped, a
-        client cannot be restarted.
+        Stop the session and finish processing received records.
+
+        A client can only be stopped after a successful connection is made with `Live.start`.
+
+        This method does not block waiting for the connection to close.
+
+        The connection will eventually close after calling this method. Once the connection
+        is closed, the client can be reused, but the session state is not preserved.
 
         Raises
         ------
         ValueError
-            If `Live.stop` is called before a connection has been made.
+            If called before a connection has started.
 
         See Also
         --------
-        Live.start
+        Live.terminate
+        Live.block_for_close
+        Live.wait_for_close
 
         """
         logger.info("stopping live client")
@@ -424,17 +437,18 @@ class Live:
         schema: Schema | str,
         symbols: Iterable[str | int] | str | int = ALL_SYMBOLS,
         stype_in: SType | str = SType.RAW_SYMBOL,
-        start: str | int | None = None,
+        start: pd.Timestamp | datetime | date | str | int | None = None,
         snapshot: bool = False,
     ) -> None:
         """
-        Subscribe to a data stream. Multiple subscription requests can be made
-        for a streaming session. Once one subscription has been made, future
-        subscriptions must all belong to the same dataset.
+        Add a new subscription to the session.
 
-        When creating the first subscription this method will also create
-        the TCP connection to the remote gateway. All subscriptions must
-        have the same dataset.
+        All subscriptions must be for the same `dataset`.
+
+        Multiple subscriptions for different schemas can be made.
+
+        When creating the first subscription, this method will also create
+        the TCP connection to the remote gateway.
 
         Parameters
         ----------
@@ -446,12 +460,14 @@ class Live:
             The symbols to subscribe to.
         stype_in : SType or str, default 'raw_symbol'
             The input symbology type to resolve from.
-        start : str or int, optional
-            UNIX nanosecond epoch timestamp to start streaming from (inclusive), based on `ts_event`. Must be within 24 hours except when requesting the mbo or definition schemas.
+        start : pd.Timestamp, datetime, date, str or int, optional
+            The inclusive start of subscription replay.
+            Pass `0` to request all available data.
+            Cannot be specified after the session is started.
+            See `Intraday Replay` https://databento.com/docs/api-reference-live/basics/intraday-replay.
         snapshot: bool, default to 'False'
             Request subscription with snapshot. The `start` parameter must be `None`.
-
-
+            Only supported with `mbo` schema.
 
         Raises
         ------
@@ -497,17 +513,23 @@ class Live:
 
     def terminate(self) -> None:
         """
-        Terminate the live client session and stop processing records as soon
-        as possible.
+        Terminate the session and stop processing records immediately.
+
+        A client can only be terminated after a connection is started with `Live.start`.
+
+        Once terminated, the client can be reused, but the session state
+        is not preserved.
 
         Raises
         ------
         ValueError
-            If the client is not connected.
+            If called before a connection has started.
 
         See Also
         --------
         Live.stop
+        Live.block_for_close
+        Live.wait_for_close
 
         """
         logger.info("terminating live client")
@@ -521,10 +543,13 @@ class Live:
     ) -> None:
         """
         Block until the session closes or a timeout is reached. A session will
-        close after `Live.stop` is called or the remote gateway disconnects.
+        close after the remote gateway disconnects, or after `Live.stop` or
+        `Live.terminate` are called.
 
-        If a `timeout` is specified, `Live.stop` will be called when the
+        If a `timeout` is specified, `Live.terminate` will be called when the
         timeout is reached.
+
+        When this method unblocks, the session is guaranteed to be closed.
 
         Parameters
         ----------
@@ -541,7 +566,7 @@ class Live:
 
         See Also
         --------
-        wait_for_close
+        Live.wait_for_close
 
         """
         try:
@@ -565,11 +590,13 @@ class Live:
     ) -> None:
         """
         Coroutine to wait until the session closes or a timeout is reached. A
-        session will close after `Live.stop` is called or the remote gateway
-        disconnects.
+        session will close when the remote gateway disconnects, or after
+        `Live.stop` or `Live.terminate` are called.
 
-        If a `timeout` is specified, `Live.stop` will be called when the
+        If a `timeout` is specified, `Live.terminate` will be called when the
         timeout is reached.
+
+        When this method unblocks, the session is guaranteed to be closed.
 
         Parameters
         ----------
@@ -586,7 +613,7 @@ class Live:
 
         See Also
         --------
-        block_for_close
+        Live.block_for_close
 
         """
         waiter = asyncio.wrap_future(

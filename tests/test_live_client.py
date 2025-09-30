@@ -380,7 +380,7 @@ async def test_live_start(
     mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
-    Test the live sends a SesssionStart message upon calling start().
+    Test the live sends a SessionStart message upon calling start().
     """
     # Arrange
     live_client.subscribe(
