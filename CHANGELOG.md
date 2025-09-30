@@ -2,6 +2,11 @@
 
 ## 0.63.1 - TBD
 
+#### Enhancements
+- Upgraded `databento-dbn` to 0.42.0
+  - Added `ts_index` and `pretty_ts_index` properties for records in Python which provides the timestamp that is most appropriate for indexing
+  - Fixed type stub for `channel_id` to allow None
+
 #### Bug fixes
 - Fixed type hint for `start` parameter in `Live.subscribe()`
 
