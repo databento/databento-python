@@ -2,6 +2,9 @@
 
 ## 0.65.0 - TBD
 
+#### Deprecations
+- Deprecated `mode` parameter in `metadata.get_cost`, which will be removed in a future release
+
 #### Enhancements
 - Added export of `CBBOMsg` and `BBOMsg` from `databento_dbn` to the root `databento` package
 

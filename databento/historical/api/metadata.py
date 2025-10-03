@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
@@ -19,6 +20,7 @@ from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.publishers import Dataset
+from databento.common.types import Default
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 
@@ -399,7 +401,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         dataset: Dataset | str,
         start: pd.Timestamp | datetime | date | str | int,
         end: pd.Timestamp | datetime | date | str | int | None = None,
-        mode: FeedMode | str = "historical-streaming",
+        mode: FeedMode | str | Default[None] = Default[None](None),
         symbols: Iterable[str | int] | str | int | None = None,
         schema: Schema | str = "trades",
         stype_in: SType | str = "raw_symbol",
@@ -425,8 +427,8 @@ class MetadataHttpAPI(BentoHttpAPI):
             Assumes UTC as timezone unless otherwise specified.
             If an integer is passed, then this represents nanoseconds since the UNIX epoch.
             Defaults to the forward filled value of `start` based on the resolution provided.
-        mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default 'historical-streaming'
-            The data feed mode for the request.
+        mode : FeedMode or str {'live', 'historical-streaming', 'historical'}, default `None`
+            The data feed mode for the request. This parameter has been deprecated.
         symbols : Iterable[str | int] or str or int, optional
             The instrument symbols to filter for. Takes up to 2,000 symbols per request.
             If 'ALL_SYMBOLS' or `None` then will select **all** symbols.
@@ -443,6 +445,13 @@ class MetadataHttpAPI(BentoHttpAPI):
             The cost in US dollars.
 
         """
+        if not isinstance(mode, Default):
+            warnings.warn(
+                "The `mode` parameter is deprecated and will be removed in a future release.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = optional_symbols_list_to_list(symbols, stype_in_valid)
         data: dict[str, str | None] = {
@@ -453,7 +462,6 @@ class MetadataHttpAPI(BentoHttpAPI):
             "schema": str(validate_enum(schema, Schema, "schema")),
             "stype_in": str(stype_in_valid),
             "stype_out": str(SType.INSTRUMENT_ID),
-            "mode": validate_enum(mode, FeedMode, "mode"),
         }
 
         if limit is not None:

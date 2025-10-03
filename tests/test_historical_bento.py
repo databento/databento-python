@@ -561,7 +561,7 @@ def test_to_df_with_pretty_ts_converts_timestamps_as_expected(
 
     # Assert
     index0 = df.index[0]
-    event0 = df["ts_event"][0]
+    event0 = df["ts_event"].iloc[0]
     assert isinstance(index0, pd.Timestamp)
     assert isinstance(event0, pd.Timestamp)
     assert index0 == pd.Timestamp("2020-12-28 00:00:00.000000000+0000", tz="UTC")

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
@@ -277,13 +276,13 @@ def datetime_to_string(value: pd.Timestamp | datetime | date | str | int) -> str
         return pd.to_datetime(value).isoformat()
 
 
-def date_to_string(value: pd.Timestamp | date | str | int) -> str:
+def date_to_string(value: date | str) -> str:
     """
     Return a valid date string from the given value.
 
     Parameters
     ----------
-    value : pd.Timestamp, date, str, or int
+    value : date or str
         The value to parse.
 
     Returns
@@ -293,32 +292,10 @@ def date_to_string(value: pd.Timestamp | date | str | int) -> str:
     """
     if isinstance(value, str):
         return value
-    elif isinstance(value, date):
+    elif type(value) is date:
         return value.isoformat()
-    elif isinstance(value, int):
-        warnings.warn(
-            "Passing an int to `start_date` or `end_date` is deprecated and will be removed in v0.59.0."
-            "Use a date or str instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return str(value)
-    elif isinstance(value, pd.Timestamp):
-        warnings.warn(
-            "Passing a pandas Timestamp to `start_date` or `end_date` is deprecated and will be removed in v0.59.0."
-            "Use a date or str instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return pd.to_datetime(value).date().isoformat()
     else:
-        warnings.warn(
-            f"Passing a {type(value)} to `start_date` or `end_date` is deprecated and will be removed in v0.59.0."
-            "Use a date or str instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return pd.to_datetime(value).date().isoformat()
+        raise TypeError(f"`{type(value)} is not supported. Only `date` and `str` are supported.")
 
 
 def optional_datetime_to_string(
