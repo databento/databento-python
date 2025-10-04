@@ -7,9 +7,11 @@ from functools import singledispatchmethod
 from typing import Final
 
 import databento_dbn
+from databento_dbn import DBNError
 from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
+from databento_dbn import SystemCode
 from databento_dbn import VersionUpgradePolicy
 
 from databento.common import cram
@@ -380,10 +382,19 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                     if record.is_heartbeat():
                         logger.debug("gateway heartbeat")
                     else:
-                        logger.info(
-                            "gateway message: %s",
-                            record.msg,
-                        )
+                        try:
+                            msg_code = record.code
+                        except DBNError:
+                            msg_code = None
+                        if msg_code == SystemCode.SLOW_READER_WARNING:
+                            logger.warning(
+                                record.msg,
+                            )
+                        else:
+                            logger.debug(
+                                "gateway message: %s",
+                                record.msg,
+                            )
                 self.received_record(record)
 
     def _process_gateway(self, data: bytes) -> None:

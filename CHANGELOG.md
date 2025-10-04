@@ -12,6 +12,10 @@
   - Added `ts_index` and `pretty_ts_index` properties for records in Python which provides the timestamp that is most appropriate for indexing
   - Fixed type stub for `channel_id` to allow None
 
+#### Enhancements
+- Reduced the log level of `SystemMsg` records in the `Live` client to debug
+- Increased the log level of `SystemMsg` records with the code `SystemCode.SLOW_READER_WARNING` to warning
+
 #### Bug fixes
 - Fixed type hint for `start` parameter in `Live.subscribe()`
 
