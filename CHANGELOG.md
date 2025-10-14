@@ -8,6 +8,9 @@
 #### Enhancements
 - Added export of `CBBOMsg` and `BBOMsg` from `databento_dbn` to the root `databento` package
 
+#### Breaking changes
+- Removed support for Python 3.9 due to end of life
+
 ## 0.64.0 - 2025-09-30
 
 #### Enhancements
