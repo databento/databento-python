@@ -8,9 +8,9 @@ import pathlib
 import random
 import string
 from collections.abc import AsyncGenerator
+from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
-from typing import Callable
 
 import databento.live.session
 import pytest

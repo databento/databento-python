@@ -78,3 +78,6 @@ plugins = ["numpy.typing.mypy_plugin"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py310"

@@ -7,6 +7,7 @@ import itertools
 import logging
 import warnings
 import zoneinfo
+from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterator
 from collections.abc import Mapping
@@ -18,7 +19,6 @@ from typing import IO
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import BinaryIO
-from typing import Callable
 from typing import Final
 from typing import Literal
 from typing import Protocol

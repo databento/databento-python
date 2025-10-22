@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pathlib
-from typing import Callable
+from collections.abc import Callable
 from unittest.mock import MagicMock
 
 import databento as db

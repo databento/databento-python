@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import Enum
 from enum import Flag
 from enum import IntFlag
 from enum import unique
-from typing import Callable
 from typing import TypeVar
 
 

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import pathlib
+from collections.abc import Callable
 from collections.abc import Iterable
 from collections.abc import Sequence
-from typing import Callable
 from typing import NamedTuple
 
 import databento_dbn

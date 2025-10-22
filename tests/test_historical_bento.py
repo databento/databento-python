@@ -2,10 +2,10 @@ import collections
 import datetime as dt
 import decimal
 import zoneinfo
+from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
 from typing import Any
-from typing import Callable
 from typing import Literal
 from unittest.mock import MagicMock
 

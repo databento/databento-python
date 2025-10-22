@@ -5,8 +5,8 @@ import pathlib
 import sys
 from asyncio.subprocess import Process
 from collections.abc import AsyncGenerator
+from collections.abc import Callable
 from collections.abc import Generator
-from typing import Callable
 from typing import TypeVar
 
 import pytest
