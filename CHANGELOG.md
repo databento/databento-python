@@ -7,6 +7,10 @@
 
 #### Enhancements
 - Added export of `CBBOMsg` and `BBOMsg` from `databento_dbn` to the root `databento` package
+- Upgraded `databento-dbn` to 0.43.0
+    - Added export of `F_PUBLISHER_SPECIFIC` constant to Python
+    - Added explicit `Unset` variant for `SystemCode` and `ErrorCode`
+    - Changed Python getters for enum fields to return the underlying type when no known variant can be found. As a result, these getters no longer raise an exception
 
 #### Breaking changes
 - Removed support for Python 3.9 due to end of life
