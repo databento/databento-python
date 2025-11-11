@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.65.0 - TBD
+## 0.65.0 - 2025-11-11
 
 #### Deprecations
 - Deprecated `mode` parameter in `metadata.get_cost`, which will be removed in a future release

@@ -44,7 +44,7 @@ def fixture_pyproject_version() -> str:
     # Arrange, Act, Assert
     with open(PROJECT_ROOT / "pyproject.toml", "rb") as pyproject:
         data = tomli.load(pyproject)
-    return data["tool"]["poetry"]["version"]
+    return data["project"]["version"]
 
 
 @pytest.mark.release
