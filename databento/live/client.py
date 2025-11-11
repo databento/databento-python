@@ -392,7 +392,7 @@ class Live:
         logger.info("starting live client")
         if not self.is_connected():
             if self.dataset == "":
-                raise ValueError("cannot start a live client without a subscription")
+                raise ValueError("must call subscribe() before starting live client")
             raise ValueError("cannot start a live client after it is closed")
         if self._session.is_streaming():
             raise ValueError("client is already started")

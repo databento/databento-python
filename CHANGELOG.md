@@ -1,11 +1,30 @@
 # Changelog
 
+## 0.65.0 - 2025-11-11
+
+#### Deprecations
+- Deprecated `mode` parameter in `metadata.get_cost`, which will be removed in a future release
+
+#### Enhancements
+- Added export of `CBBOMsg` and `BBOMsg` from `databento_dbn` to the root `databento` package
+- Upgraded `databento-dbn` to 0.43.0
+    - Added export of `F_PUBLISHER_SPECIFIC` constant to Python
+    - Added explicit `Unset` variant for `SystemCode` and `ErrorCode`
+    - Changed Python getters for enum fields to return the underlying type when no known variant can be found. As a result, these getters no longer raise an exception
+
+#### Breaking changes
+- Removed support for Python 3.9 due to end of life
+
 ## 0.64.0 - 2025-09-30
 
 #### Enhancements
 - Upgraded `databento-dbn` to 0.42.0
   - Added `ts_index` and `pretty_ts_index` properties for records in Python which provides the timestamp that is most appropriate for indexing
   - Fixed type stub for `channel_id` to allow None
+
+#### Enhancements
+- Reduced the log level of `SystemMsg` records in the `Live` client to debug
+- Increased the log level of `SystemMsg` records with the code `SystemCode.SLOW_READER_WARNING` to warning
 
 #### Bug fixes
 - Fixed type hint for `start` parameter in `Live.subscribe()`

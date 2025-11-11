@@ -28,11 +28,11 @@ You can find our full client API reference on the [Historical Reference](https:/
 [Examples](https://databento.com/docs/examples?historical=python&live=python) section for various tutorials and code samples.
 
 ## Requirements
-The library is fully compatible with the latest distribution of Anaconda 3.9 and above.
+The library is fully compatible with distributions of Anaconda 2023.x and above.
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
-- python = "^3.9"
+- python = "^3.10"
 - aiohttp = "^3.8.3"
-- databento-dbn = "~0.42.0"
+- databento-dbn = "~0.43.0"
 - numpy = ">=1.23.5"
 - pandas = ">=1.5.3"
 - pip-system-certs = ">=4.0" (Windows only)

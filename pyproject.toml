@@ -1,15 +1,11 @@
-[tool.poetry]
+[project]
 name = "databento"
-version = "0.64.0"
+version = "0.65.0"
 description = "Official Python client library for Databento"
-authors = [
-    "Databento <support@databento.com>",
-]
-license = "Apache License 2.0"
-packages = [
-    {include = "databento"},
-    {include = "databento/py.typed"},
-]
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "Databento", email = "support@databento.com" }]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
@@ -18,30 +14,34 @@ classifiers = [
     "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Investment",
 ]
-readme = "README.md"
-documentation = "https://databento.com/docs"
-homepage = "https://databento.com"
-repository = "https://github.com/databento/databento-python"
+dependencies = [
+    "aiohttp>=3.8.3,<4.0.0; python_version < '3.12'",
+    "aiohttp>=3.9.0,<4.0.0; python_version >= '3.12'",
+    "databento-dbn~=0.43.0",
+    "numpy>=1.23.5; python_version < '3.12'",
+    "numpy>=1.26.0; python_version >= '3.12'",
+    "pandas>=1.5.3",
+    "pip-system-certs>=4.0; platform_system == 'Windows'",
+    "pyarrow>=13.0.0",
+    "requests>=2.27.0",
+    "zstandard>=0.21.0",
+]
 
-[tool.poetry.urls]
+[project.urls]
+Homepage = "https://databento.com"
+Documentation = "https://databento.com/docs"
+Repository = "https://github.com/databento/databento-python"
 "Bug Tracker" = "https://github.com/databento/databento-python/issues"
 
+[tool.poetry]
+requires-poetry = ">=2.0"
+packages = [
+    { include = "databento" },
+    { include = "databento/py.typed" },
+]
+
 [tool.poetry.dependencies]
-python = "^3.9"
-aiohttp = [
-    {version = "^3.8.3", python = "<3.12"},
-    {version = "^3.9.0", python = "^3.12"}
-]
-databento-dbn = "~=0.42.0"
-numpy = [
-    {version = ">=1.23.5", python = "<3.12"},
-    {version = ">=1.26.0", python = "^3.12"}
-]
-pandas = ">=1.5.3"
-pip-system-certs = {version=">=4.0", markers="platform_system == 'Windows'"}
-pyarrow = ">=13.0.0"
-requests = ">=2.27.0"
-zstandard = ">=0.21.0"
+python = ">=3.10,<3.14"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.9.1"
@@ -63,7 +63,7 @@ build-backend = "poetry.core.masonry.api"
 line_length = 100
 
 [tool.mypy]
-python_version = 3.9
+python_version = "3.10"
 disallow_untyped_defs = true
 disallow_any_generics = true
 disallow_subclassing_any = true
@@ -78,3 +78,6 @@ plugins = ["numpy.typing.mypy_plugin"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py310"

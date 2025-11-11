@@ -8,7 +8,9 @@ from databento_dbn import UNDEF_PRICE
 from databento_dbn import UNDEF_STAT_QUANTITY
 from databento_dbn import UNDEF_TIMESTAMP
 from databento_dbn import Action
+from databento_dbn import BBOMsg
 from databento_dbn import BidAskPair
+from databento_dbn import CBBOMsg
 from databento_dbn import CMBP1Msg
 from databento_dbn import Compression
 from databento_dbn import ConsolidatedBidAskPair
@@ -90,6 +92,7 @@ __all__ = [
     "Action",
     "BBO1MMsg",
     "BBO1SMsg",
+    "BBOMsg",
     "BentoClientError",
     "BentoError",
     "BentoHttpError",
@@ -97,6 +100,7 @@ __all__ = [
     "BidAskPair",
     "CBBO1MMsg",
     "CBBO1SMsg",
+    "CBBOMsg",
     "CMBP1Msg",
     "Compression",
     "ConsolidatedBidAskPair",

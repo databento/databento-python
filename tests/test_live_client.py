@@ -9,8 +9,8 @@ import pathlib
 import platform
 import random
 import string
+from collections.abc import Callable
 from io import BytesIO
-from typing import Callable
 from unittest.mock import MagicMock
 
 import databento_dbn

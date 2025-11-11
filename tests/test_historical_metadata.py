@@ -292,7 +292,6 @@ def test_get_cost_sends_expected_request(
         "schema": "mbo",
         "stype_in": "raw_symbol",
         "stype_out": "instrument_id",
-        "mode": "historical-streaming",
         "limit": "1000000",
     }
     assert call["timeout"] == (100, 100)
