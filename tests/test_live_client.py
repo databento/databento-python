@@ -983,15 +983,15 @@ def test_live_add_callback(
     """
 
     # Arrange
-    def callback(_: object) -> None:
+    def test_callback(_: object) -> None:
         pass
 
     # Act
-    live_client.add_callback(callback)
+    live_client.add_callback(test_callback)
 
     # Assert
     assert len(live_client._session._user_callbacks) == 2  # include map_symbols callback
-    assert (callback, None) in live_client._session._user_callbacks
+    assert live_client._session._user_callbacks[-1].callback_name == "test_callback"
 
 
 def test_live_add_stream(

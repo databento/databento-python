@@ -19,10 +19,11 @@ from databento.common.constants import ALL_SYMBOLS
 from databento.common.enums import ReconnectPolicy
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
-from databento.common.types import ClientStream, DBNRecord
+from databento.common.types import ClientRecordCallback
+from databento.common.types import ClientStream
+from databento.common.types import DBNRecord
 from databento.common.types import ExceptionCallback
 from databento.common.types import ReconnectCallback
-from databento.common.types import RecordCallback
 from databento.live.gateway import SubscriptionRequest
 from databento.live.protocol import DatabentoLiveProtocol
 
@@ -195,8 +196,8 @@ class _SessionProtocol(DatabentoLiveProtocol):
         api_key: str,
         dataset: Dataset | str,
         dbn_queue: DBNQueue,
-        user_callbacks: list[tuple[RecordCallback, ExceptionCallback | None]],
         user_streams: list[ClientStream],
+        user_callbacks: list[ClientRecordCallback],
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
@@ -237,18 +238,16 @@ class _SessionProtocol(DatabentoLiveProtocol):
         return super().received_record(record)
 
     def _dispatch_callbacks(self, record: DBNRecord) -> None:
-        for callback, exc_callback in self._user_callbacks:
+        for callback in self._user_callbacks:
             try:
-                callback(record)
+                callback.call(record)
             except Exception as exc:
                 logger.error(
                     "error dispatching %s to `%s` callback",
                     type(record).__name__,
-                    getattr(callback, "__name__", str(callback)),
+                    callback.callback_name,
                     exc_info=exc,
                 )
-                if exc_callback is not None:
-                    exc_callback(exc)
 
     def _dispatch_writes(self, record: DBNRecord) -> None:
         record_bytes = bytes(record)
@@ -315,8 +314,8 @@ class LiveSession:
         self._loop = loop
         self._metadata = SessionMetadata()
         self._user_gateway: str | None = user_gateway
-        self._user_callbacks: list[tuple[RecordCallback, ExceptionCallback | None]] = []
         self._user_streams: list[ClientStream] = []
+        self._user_callbacks: list[ClientRecordCallback] = []
         self._user_reconnect_callbacks: list[tuple[ReconnectCallback, ExceptionCallback | None]] = (
             []
         )
@@ -527,19 +526,20 @@ class LiveSession:
             return
 
         try:
-            await self._protocol.authenticated
-        except Exception as exc:
-            raise BentoError(exc) from None
+            try:
+                await self._protocol.authenticated
+            except Exception as exc:
+                raise BentoError(exc) from None
 
-        try:
-            if self._reconnect_task is not None:
-                await self._reconnect_task
-            else:
-                await self._protocol.disconnected
-        except Exception as exc:
-            raise BentoError(exc) from None
-
-        self._cleanup()
+            try:
+                if self._reconnect_task is not None:
+                    await self._reconnect_task
+                else:
+                    await self._protocol.disconnected
+            except Exception as exc:
+                raise BentoError(exc) from None
+        finally:
+            self._cleanup()
 
     def _cleanup(self) -> None:
         logger.debug("cleaning up session_id=%s", self.session_id)

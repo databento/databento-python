@@ -1,12 +1,13 @@
 import datetime as dt
 import logging
-import warnings
 from collections.abc import Callable
 from os import PathLike
 import pathlib
-from typing import IO, Generic
+from typing import Generic
+from typing import IO
 from typing import TypedDict
 from typing import TypeVar
+import warnings
 
 import databento_dbn
 import pandas as pd
@@ -38,10 +39,6 @@ DBNRecord = (
     | databento_dbn.ErrorMsg
     | databento_dbn.ErrorMsgV1
 )
-
-RecordCallback = Callable[[DBNRecord], None]
-ExceptionCallback = Callable[[Exception], None]
-ReconnectCallback = Callable[[pd.Timestamp, pd.Timestamp], None]
 
 _T = TypeVar("_T")
 
@@ -95,6 +92,11 @@ class MappingIntervalDict(TypedDict):
     start_date: dt.date
     end_date: dt.date
     symbol: str
+
+
+RecordCallback = Callable[[DBNRecord], None]
+ExceptionCallback = Callable[[Exception], None]
+ReconnectCallback = Callable[[pd.Timestamp, pd.Timestamp], None]
 
 
 class ClientStream:
@@ -210,6 +212,76 @@ class ClientStream:
             if self._warning_count == self._max_warnings:
                 warnings.warn(
                     f"suppressing further warnings for '{self.stream_name}'",
+                    BentoWarning,
+                    stacklevel=3,
+                )
+
+
+class ClientRecordCallback:
+    def __init__(
+        self,
+        fn: RecordCallback,
+        exc_fn: ExceptionCallback | None = None,
+        max_warnings: int = 10,
+    ) -> None:
+        if not callable(fn):
+            raise ValueError(f"{fn} is not callable")
+        if exc_fn is not None and not callable(exc_fn):
+            raise ValueError(f"{exc_fn} is not callable")
+
+        self._fn = fn
+        self._exc_fn = exc_fn
+        self._max_warnings = max(0, max_warnings)
+        self._warning_count = 0
+
+    @property
+    def callback_name(self) -> str:
+        return getattr(self._fn, "__name__", str(self._fn))
+
+    @property
+    def exc_callback_name(self) -> str:
+        return getattr(self._exc_fn, "__name__", str(self._exc_fn))
+
+    def call(self, record: DBNRecord) -> None:
+        """
+        Execute the callback function, passing `record` in as the first
+        argument. Any exceptions encountered will be dispatched to the
+        exception callback, if defined.
+
+        Parameters
+        ----------
+        record : DBNRecord
+
+        """
+        try:
+            self._fn(record)
+        except Exception as exc:
+            if self._exc_fn is None:
+                self._warn(
+                    f"callback '{self.callback_name}' encountered an exception without an exception callback: {repr(exc)}",
+                )
+            else:
+                try:
+                    self._exc_fn(exc)
+                except Exception as inner_exc:
+                    self._warn(
+                        f"exception callback '{self.exc_callback_name}' encountered an exception: {repr(inner_exc)}",
+                    )
+                    raise inner_exc from exc
+            raise exc
+
+    def _warn(self, msg: str) -> None:
+        logger.warning(msg)
+        if self._warning_count < self._max_warnings:
+            self._warning_count += 1
+            warnings.warn(
+                msg,
+                BentoWarning,
+                stacklevel=3,
+            )
+            if self._warning_count == self._max_warnings:
+                warnings.warn(
+                    f"suppressing further warnings for '{self.callback_name}'",
                     BentoWarning,
                     stacklevel=3,
                 )

@@ -23,7 +23,9 @@ from databento.common.enums import ReconnectPolicy
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
-from databento.common.types import ClientStream, DBNRecord
+from databento.common.types import ClientRecordCallback
+from databento.common.types import ClientStream
+from databento.common.types import DBNRecord
 from databento.common.types import ExceptionCallback
 from databento.common.types import ReconnectCallback
 from databento.common.types import RecordCallback
@@ -110,7 +112,7 @@ class Live:
             reconnect_policy=reconnect_policy,
         )
 
-        self._session._user_callbacks.append((self._map_symbol, None))
+        self._session._user_callbacks.append(ClientRecordCallback(self._map_symbol))
 
         with Live._lock:
             if not Live._thread.is_alive():
@@ -269,7 +271,9 @@ class Live:
             A callback to register for handling live records as they arrive.
         exception_callback : Callable[[Exception], None], optional
             An error handling callback to process exceptions that are raised
-            in `record_callback`.
+            in `record_callback`. If no exception callback is provided,
+            any exceptions encountered will be logged and raised as warnings
+            for visibility.
 
         Raises
         ------
@@ -282,15 +286,13 @@ class Live:
         Live.add_stream
 
         """
-        if not callable(record_callback):
-            raise ValueError(f"{record_callback} is not callable")
+        client_callback = ClientRecordCallback(
+            fn=record_callback,
+            exc_fn=exception_callback,
+        )
 
-        if exception_callback is not None and not callable(exception_callback):
-            raise ValueError(f"{exception_callback} is not callable")
-
-        callback_name = getattr(record_callback, "__name__", str(record_callback))
-        logger.info("adding user callback %s", callback_name)
-        self._session._user_callbacks.append((record_callback, exception_callback))
+        logger.info("adding user callback %s", client_callback.callback_name)
+        self._session._user_callbacks.append(client_callback)
 
     def add_stream(
         self,
