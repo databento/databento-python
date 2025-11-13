@@ -72,7 +72,12 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
         """
         self._enabled.clear()
 
-    def put(self, item: DBNRecord, block: bool = True, timeout: float | None = None) -> None:
+    def put(
+        self,
+        item: DBNRecord,
+        block: bool = True,
+        timeout: float | None = None,
+    ) -> None:
         """
         Put an item on the queue if the queue is enabled.
 
@@ -498,6 +503,7 @@ class LiveSession:
 
         with self._lock:
             if self._protocol is None:
+                self._session_id = None
                 self._connect(dataset=dataset)
 
             self._subscription_counter += 1
@@ -654,7 +660,10 @@ class LiveSession:
 
                     should_restart = self.is_streaming()
                     if self._protocol._last_ts_event is not None:
-                        gap_start = pd.Timestamp(self._protocol._last_ts_event, tz="UTC")
+                        gap_start = pd.Timestamp(
+                            self._protocol._last_ts_event,
+                            tz="UTC",
+                        )
                     elif self._metadata.data is not None:
                         gap_start = pd.Timestamp(self._metadata.data.start, tz="UTC")
                     else:

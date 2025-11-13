@@ -215,6 +215,19 @@ class Live:
         return self._port
 
     @property
+    def session_id(self) -> str | None:
+        """
+        Return the session ID for the current session. If `None`, the client is
+        not connected.
+
+        Returns
+        -------
+        str | None
+
+        """
+        return self._session.session_id
+
+    @property
     def symbology_map(self) -> dict[int, str | int]:
         """
         Return the symbology map for this client session. A symbol mapping is
@@ -365,7 +378,9 @@ class Live:
 
         callback_name = getattr(reconnect_callback, "__name__", str(reconnect_callback))
         logger.info("adding user reconnect callback %s", callback_name)
-        self._session._user_reconnect_callbacks.append((reconnect_callback, exception_callback))
+        self._session._user_reconnect_callbacks.append(
+            (reconnect_callback, exception_callback),
+        )
 
     def start(
         self,

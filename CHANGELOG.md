@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.66.0 - TBD
+
+#### Enhancements
+- Added a property `Live.session_id` which returns the streaming session ID when the client is connected
+
 ## 0.65.0 - 2025-11-11
 
 #### Deprecations
