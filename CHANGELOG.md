@@ -4,8 +4,12 @@
 
 #### Enhancements
 - Added a property `Live.session_id` which returns the streaming session ID when the client is connected
+- Streams added with `Live.add_stream()` which do not define an exception handler will now emit a warning if an exception is raised while executing the callback
 - Upgraded `databento-dbn` to 0.44.0
   - Added logic to set `code` when upgrading version 1 `SystemMsg` to newer versions
+
+#### Bug fixes
+- Streams opened by `Live.add_stream()` will now close properly when the streaming session is closed
 
 ## 0.65.0 - 2025-11-11
 

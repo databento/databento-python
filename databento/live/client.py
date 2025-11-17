@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import pathlib
 import queue
 import threading
 from collections.abc import Iterable
@@ -24,7 +23,7 @@ from databento.common.enums import ReconnectPolicy
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
-from databento.common.types import DBNRecord
+from databento.common.types import ClientStream, DBNRecord
 from databento.common.types import ExceptionCallback
 from databento.common.types import ReconnectCallback
 from databento.common.types import RecordCallback
@@ -307,7 +306,9 @@ class Live:
             The IO stream to write to when handling live records as they arrive.
         exception_callback : Callable[[Exception], None], optional
             An error handling callback to process exceptions that are raised
-            when writing to the stream.
+            when writing to the stream. If no exception callback is provided,
+            any exceptions encountered will be logged and raised as warnings
+            for visibility.
 
         Raises
         ------
@@ -322,23 +323,12 @@ class Live:
         Live.add_callback
 
         """
-        if isinstance(stream, (str, PathLike)):
-            stream = pathlib.Path(stream).open("xb")
+        client_stream = ClientStream(stream=stream, exc_fn=exception_callback)
 
-        if not hasattr(stream, "write"):
-            raise ValueError(f"{type(stream).__name__} does not support write()")
-
-        if not hasattr(stream, "writable") or not stream.writable():
-            raise ValueError(f"{type(stream).__name__} is not a writable stream")
-
-        if exception_callback is not None and not callable(exception_callback):
-            raise ValueError(f"{exception_callback} is not callable")
-
-        stream_name = getattr(stream, "name", str(stream))
-        logger.info("adding user stream %s", stream_name)
+        logger.info("adding user stream %s", client_stream.stream_name)
         if self.metadata is not None:
-            stream.write(bytes(self.metadata))
-        self._session._user_streams.append((stream, exception_callback))
+            client_stream.write(self.metadata.encode())
+        self._session._user_streams.append(client_stream)
 
     def add_reconnect_callback(
         self,

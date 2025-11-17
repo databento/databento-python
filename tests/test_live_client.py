@@ -1008,7 +1008,7 @@ def test_live_add_stream(
 
     # Assert
     assert len(live_client._session._user_streams) == 1
-    assert (stream, None) in live_client._session._user_streams
+    assert stream == live_client._session._user_streams[0]._stream
 
 
 def test_live_add_stream_invalid(
