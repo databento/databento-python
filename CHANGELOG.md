@@ -4,6 +4,8 @@
 
 #### Enhancements
 - Added a property `Live.session_id` which returns the streaming session ID when the client is connected
+- Upgraded `databento-dbn` to 0.44.0
+  - Added logic to set `code` when upgrading version 1 `SystemMsg` to newer versions
 
 ## 0.65.0 - 2025-11-11
 
