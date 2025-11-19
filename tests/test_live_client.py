@@ -163,7 +163,7 @@ def test_live_connection_cram_failure(
         )
 
     # Ensure this was an authentication error
-    exc.match(r"User authentication failed:")
+    exc.match(r"Authentication failed.")
 
 
 @pytest.mark.parametrize(
@@ -554,6 +554,8 @@ async def test_live_subscribe(
     assert message.symbols == symbols
     assert message.start == start
     assert message.snapshot == "0"
+    assert len(live_client.subscription_requests[0]) == 1
+    assert live_client.subscription_requests[0][0].id == int(message.id)
 
 
 @pytest.mark.parametrize(
@@ -645,6 +647,7 @@ async def test_live_subscribe_large_symbol_list(
         symbols=large_symbol_list,
     )
 
+    batched = []
     reconstructed: list[str] = []
     for i in range(8):
         message = await mock_live_server.wait_for_message_of_type(
@@ -652,9 +655,11 @@ async def test_live_subscribe_large_symbol_list(
         )
         assert int(message.is_last) == int(i == 7)
         reconstructed.extend(message.symbols.split(","))
+        batched.append(message)
 
     # Assert
     assert reconstructed == large_symbol_list
+    assert len(live_client.subscription_requests[0]) == len(batched)
 
 
 async def test_live_subscribe_from_callback(
@@ -1663,7 +1668,7 @@ async def test_live_connection_reuse_cram_failure(
         )
 
     # Ensure this was an authentication error
-    exc.match(r"User authentication failed:")
+    exc.match(r"Authentication failed.")
 
     async with mock_live_server.api_key_context(test_api_key):
         live_client.subscribe(

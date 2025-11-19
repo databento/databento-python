@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.67.0 - TBD
+
+#### Enhancements
+- Added a property `Live.subscription_requests` which returns a list of tuples containing every `SubscriptionRequest` for the live session
+- Changed the return value of `Live.subscribe()` to `int`, the value of the subscription ID, which can be used to index into the `Live.subscription_requests` property
+
+#### Breaking changes
+- Several log messages have been reformatted to improve clarity and reduce redundancy, especially at debug levels
+
 ## 0.66.0 - 2025-11-18
 
 #### Enhancements

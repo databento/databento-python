@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import itertools
 import logging
 import queue
 import struct
@@ -329,8 +330,7 @@ class LiveSession:
         self._transport: asyncio.Transport | None = None
         self._session_id: str | None = None
 
-        self._subscription_counter = 0
-        self._subscriptions: list[SubscriptionRequest] = []
+        self._subscriptions: list[tuple[SubscriptionRequest, ...]] = []
         self._reconnect_policy = ReconnectPolicy(reconnect_policy)
         self._reconnect_task: asyncio.Task[None] | None = None
 
@@ -463,7 +463,7 @@ class LiveSession:
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
         snapshot: bool = False,
-    ) -> None:
+    ) -> int:
         """
         Send a subscription request on the current connection. This will create
         a new connection if there is no active connection to the gateway.
@@ -498,17 +498,20 @@ class LiveSession:
                 self._session_id = None
                 self._connect(dataset=dataset)
 
-            self._subscription_counter += 1
-            self._subscriptions.extend(
-                self._protocol.subscribe(
-                    schema=schema,
-                    symbols=symbols,
-                    stype_in=stype_in,
-                    start=start,
-                    snapshot=snapshot,
-                    subscription_id=self._subscription_counter,
+            subscription_id = len(self._subscriptions)
+            self._subscriptions.append(
+                tuple(
+                    self._protocol.subscribe(
+                        schema=schema,
+                        symbols=symbols,
+                        stype_in=stype_in,
+                        start=start,
+                        snapshot=snapshot,
+                        subscription_id=subscription_id,
+                    ),
                 ),
             )
+        return subscription_id
 
     def terminate(self) -> None:
         with self._lock:
@@ -542,7 +545,7 @@ class LiveSession:
             self._cleanup()
 
     def _cleanup(self) -> None:
-        logger.debug("cleaning up session_id=%s", self.session_id)
+        logger.debug("cleaning up session_id='%s'", self.session_id)
         self._user_callbacks.clear()
         for stream in self._user_streams:
             if not stream.is_closed:
@@ -596,7 +599,7 @@ class LiveSession:
             logger.debug("using default gateway for dataset %s", dataset)
         else:
             gateway = self._user_gateway
-            logger.debug("using user specified gateway: %s", gateway)
+            logger.debug("user gateway override gateway='%s'", gateway)
 
         logger.info("connecting to remote gateway")
         try:
@@ -638,7 +641,7 @@ class LiveSession:
 
         self._session_id = session_id
         logger.info(
-            "authenticated session %s",
+            "authenticated session_id='%s'",
             self.session_id,
         )
 
@@ -669,7 +672,7 @@ class LiveSession:
                         dataset=self._protocol._dataset,
                     )
 
-                    for sub in self._subscriptions:
+                    for sub in itertools.chain(*self._subscriptions):
                         self._protocol.subscribe(
                             schema=sub.schema,
                             symbols=sub.symbols,

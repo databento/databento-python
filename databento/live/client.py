@@ -31,6 +31,7 @@ from databento.common.types import ReconnectCallback
 from databento.common.types import RecordCallback
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
+from databento.live.gateway import SubscriptionRequest
 from databento.live.session import DEFAULT_REMOTE_PORT
 from databento.live.session import LiveSession
 from databento.live.session import SessionMetadata
@@ -227,6 +228,38 @@ class Live:
 
         """
         return self._session.session_id
+
+    @property
+    def subscription_requests(
+        self,
+    ) -> list[tuple[SubscriptionRequest, ...]]:
+        """
+        Return a list of tuples containing every `SubscriptionRequest` message
+        sent for the session. The list is in order of the subscriptions made
+        and can be indexed using the value returned by each call to
+        `Live.subscribe()`.
+
+        Subscriptions which contain a large
+        list of symbols are batched. Because of this, a single `subscription_id` may have
+        more than one associated `SubscriptionRequest`.
+
+        Returns
+        -------
+        list[tuple[SubscriptionRequest, ...]]
+            A list of tuples containing every subscription request.
+            Each entry in the list corresponds to a single subscription.
+
+        Raises
+        ------
+        IndexError
+            If the subscription ID is invalid.
+
+        See Also
+        --------
+        Live.subscribe()
+
+        """
+        return self._session._subscriptions
 
     @property
     def symbology_map(self) -> dict[int, str | int]:
@@ -446,7 +479,7 @@ class Live:
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: pd.Timestamp | datetime | date | str | int | None = None,
         snapshot: bool = False,
-    ) -> None:
+    ) -> int:
         """
         Add a new subscription to the session.
 
@@ -476,6 +509,11 @@ class Live:
             Request subscription with snapshot. The `start` parameter must be `None`.
             Only supported with `mbo` schema.
 
+        Returns
+        -------
+        int
+            The numeric identifier for this subscription request.
+
         Raises
         ------
         ValueError
@@ -494,7 +532,7 @@ class Live:
 
         """
         logger.info(
-            "subscribing to %s:%s %s start=%s snapshot=%s",
+            "subscribing to schema=%s stype_in=%s symbols='%s' start=%s snapshot=%s",
             schema,
             stype_in,
             symbols,
@@ -509,7 +547,7 @@ class Live:
         if snapshot and start is not None:
             raise ValueError("Subscription with snapshot expects start=None")
 
-        self._session.subscribe(
+        return self._session.subscribe(
             dataset=dataset,
             schema=schema,
             stype_in=stype_in,
