@@ -254,6 +254,7 @@ async def test_live_connect_auth(
     assert message.auth.endswith(live_client.key[-BUCKET_ID_LENGTH:])
     assert message.dataset == live_client.dataset
     assert message.encoding == Encoding.DBN
+    assert live_client.session_id is not None
 
 
 async def test_live_client_reuse(
@@ -273,8 +274,10 @@ async def test_live_client_reuse(
         message_type=gateway.AuthenticationRequest,
     )
 
+    first_session_id = live_client.session_id
     live_client.start()
     live_client.stop()
+    assert live_client.session_id == first_session_id
 
     await asyncio.sleep(1)
 
@@ -287,9 +290,13 @@ async def test_live_client_reuse(
         message_type=gateway.AuthenticationRequest,
     )
 
+    second_session_id = live_client.session_id
     live_client.start()
     live_client.stop()
     await live_client.wait_for_close()
+
+    assert live_client.session_id == second_session_id
+    assert first_session_id != second_session_id
 
 
 async def test_live_connect_auth_with_heartbeat_interval(
@@ -976,15 +983,15 @@ def test_live_add_callback(
     """
 
     # Arrange
-    def callback(_: object) -> None:
+    def test_callback(_: object) -> None:
         pass
 
     # Act
-    live_client.add_callback(callback)
+    live_client.add_callback(test_callback)
 
     # Assert
     assert len(live_client._session._user_callbacks) == 2  # include map_symbols callback
-    assert (callback, None) in live_client._session._user_callbacks
+    assert live_client._session._user_callbacks[-1].callback_name == "test_callback"
 
 
 def test_live_add_stream(
@@ -1001,7 +1008,7 @@ def test_live_add_stream(
 
     # Assert
     assert len(live_client._session._user_streams) == 1
-    assert (stream, None) in live_client._session._user_streams
+    assert stream == live_client._session._user_streams[0]._stream
 
 
 def test_live_add_stream_invalid(

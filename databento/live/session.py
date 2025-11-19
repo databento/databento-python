@@ -8,7 +8,6 @@ import struct
 import threading
 from collections.abc import Iterable
 from functools import partial
-from typing import IO
 from typing import Final
 
 import databento_dbn
@@ -20,10 +19,11 @@ from databento.common.constants import ALL_SYMBOLS
 from databento.common.enums import ReconnectPolicy
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
+from databento.common.types import ClientRecordCallback
+from databento.common.types import ClientStream
 from databento.common.types import DBNRecord
 from databento.common.types import ExceptionCallback
 from databento.common.types import ReconnectCallback
-from databento.common.types import RecordCallback
 from databento.live.gateway import SubscriptionRequest
 from databento.live.protocol import DatabentoLiveProtocol
 
@@ -72,7 +72,12 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
         """
         self._enabled.clear()
 
-    def put(self, item: DBNRecord, block: bool = True, timeout: float | None = None) -> None:
+    def put(
+        self,
+        item: DBNRecord,
+        block: bool = True,
+        timeout: float | None = None,
+    ) -> None:
         """
         Put an item on the queue if the queue is enabled.
 
@@ -143,6 +148,12 @@ class SessionMetadata:
     def __bool__(self) -> bool:
         return self.data is not None
 
+    @property
+    def has_ts_out(self) -> bool:
+        if self.data is None:
+            return False
+        return self.data.ts_out
+
     def check(self, other: databento_dbn.Metadata) -> None:
         """
         Verify the Metadata is compatible with another Metadata message. This
@@ -185,8 +196,8 @@ class _SessionProtocol(DatabentoLiveProtocol):
         api_key: str,
         dataset: Dataset | str,
         dbn_queue: DBNQueue,
-        user_callbacks: list[tuple[RecordCallback, ExceptionCallback | None]],
-        user_streams: list[tuple[IO[bytes], ExceptionCallback | None]],
+        user_streams: list[ClientStream],
+        user_callbacks: list[ClientRecordCallback],
         loop: asyncio.AbstractEventLoop,
         metadata: SessionMetadata,
         ts_out: bool = False,
@@ -205,21 +216,15 @@ class _SessionProtocol(DatabentoLiveProtocol):
         if self._metadata:
             self._metadata.check(metadata)
         else:
-            metadata_bytes = metadata.encode()
-            for stream, exc_callback in self._user_streams:
+            for stream in self._user_streams:
                 try:
-                    stream.write(metadata_bytes)
+                    stream.write(metadata.encode())
                 except Exception as exc:
-                    stream_name = getattr(stream, "name", str(stream))
                     logger.error(
-                        "error writing %d bytes to `%s` stream",
-                        len(metadata_bytes),
-                        stream_name,
+                        "error writing metadata to `%s` stream",
+                        stream.stream_name,
                         exc_info=exc,
                     )
-                    if exc_callback is not None:
-                        exc_callback(exc)
-
             self._metadata.data = metadata
         return super().received_metadata(metadata)
 
@@ -233,40 +238,32 @@ class _SessionProtocol(DatabentoLiveProtocol):
         return super().received_record(record)
 
     def _dispatch_callbacks(self, record: DBNRecord) -> None:
-        for callback, exc_callback in self._user_callbacks:
+        for callback in self._user_callbacks:
             try:
-                callback(record)
+                callback.call(record)
             except Exception as exc:
                 logger.error(
                     "error dispatching %s to `%s` callback",
                     type(record).__name__,
-                    getattr(callback, "__name__", str(callback)),
+                    callback.callback_name,
                     exc_info=exc,
                 )
-                if exc_callback is not None:
-                    exc_callback(exc)
 
     def _dispatch_writes(self, record: DBNRecord) -> None:
-        if hasattr(record, "ts_out"):
-            ts_out_bytes = struct.pack("Q", record.ts_out)
-        else:
-            ts_out_bytes = b""
-
-        record_bytes = bytes(record) + ts_out_bytes
-
-        for stream, exc_callback in self._user_streams:
+        record_bytes = bytes(record)
+        ts_out_bytes = struct.pack("Q", record.ts_out) if self._metadata.has_ts_out else b""
+        for stream in self._user_streams:
             try:
                 stream.write(record_bytes)
+                stream.write(ts_out_bytes)
             except Exception as exc:
-                stream_name = getattr(stream, "name", str(stream))
                 logger.error(
-                    "error writing %d bytes to `%s` stream",
-                    len(record_bytes),
-                    stream_name,
+                    "error writing %s record (%d bytes) to `%s` stream",
+                    type(record).__name__,
+                    len(record_bytes) + len(ts_out_bytes),
+                    stream.stream_name,
                     exc_info=exc,
                 )
-                if exc_callback is not None:
-                    exc_callback(exc)
 
     def _queue_for_iteration(self, record: DBNRecord) -> None:
         self._dbn_queue.put(record)
@@ -317,8 +314,8 @@ class LiveSession:
         self._loop = loop
         self._metadata = SessionMetadata()
         self._user_gateway: str | None = user_gateway
-        self._user_callbacks: list[tuple[RecordCallback, ExceptionCallback | None]] = []
-        self._user_streams: list[tuple[IO[bytes], ExceptionCallback | None]] = []
+        self._user_streams: list[ClientStream] = []
+        self._user_callbacks: list[ClientRecordCallback] = []
         self._user_reconnect_callbacks: list[tuple[ReconnectCallback, ExceptionCallback | None]] = (
             []
         )
@@ -498,6 +495,7 @@ class LiveSession:
 
         with self._lock:
             if self._protocol is None:
+                self._session_id = None
                 self._connect(dataset=dataset)
 
             self._subscription_counter += 1
@@ -528,27 +526,29 @@ class LiveSession:
             return
 
         try:
-            await self._protocol.authenticated
-        except Exception as exc:
-            raise BentoError(exc) from None
+            try:
+                await self._protocol.authenticated
+            except Exception as exc:
+                raise BentoError(exc) from None
 
-        try:
-            if self._reconnect_task is not None:
-                await self._reconnect_task
-            else:
-                await self._protocol.disconnected
-        except Exception as exc:
-            raise BentoError(exc) from None
-
-        self._cleanup()
+            try:
+                if self._reconnect_task is not None:
+                    await self._reconnect_task
+                else:
+                    await self._protocol.disconnected
+            except Exception as exc:
+                raise BentoError(exc) from None
+        finally:
+            self._cleanup()
 
     def _cleanup(self) -> None:
         logger.debug("cleaning up session_id=%s", self.session_id)
         self._user_callbacks.clear()
-        for item in self._user_streams:
-            stream, _ = item
-            if not stream.closed:
+        for stream in self._user_streams:
+            if not stream.is_closed:
                 stream.flush()
+            if stream.is_managed:
+                stream.close()
 
         self._user_callbacks.clear()
         self._user_streams.clear()
@@ -654,7 +654,10 @@ class LiveSession:
 
                     should_restart = self.is_streaming()
                     if self._protocol._last_ts_event is not None:
-                        gap_start = pd.Timestamp(self._protocol._last_ts_event, tz="UTC")
+                        gap_start = pd.Timestamp(
+                            self._protocol._last_ts_event,
+                            tz="UTC",
+                        )
                     elif self._metadata.data is not None:
                         gap_start = pd.Timestamp(self._metadata.data.start, tz="UTC")
                     else:

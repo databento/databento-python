@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import pathlib
 import queue
 import threading
 from collections.abc import Iterable
@@ -24,6 +23,8 @@ from databento.common.enums import ReconnectPolicy
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
+from databento.common.types import ClientRecordCallback
+from databento.common.types import ClientStream
 from databento.common.types import DBNRecord
 from databento.common.types import ExceptionCallback
 from databento.common.types import ReconnectCallback
@@ -111,7 +112,7 @@ class Live:
             reconnect_policy=reconnect_policy,
         )
 
-        self._session._user_callbacks.append((self._map_symbol, None))
+        self._session._user_callbacks.append(ClientRecordCallback(self._map_symbol))
 
         with Live._lock:
             if not Live._thread.is_alive():
@@ -215,6 +216,19 @@ class Live:
         return self._port
 
     @property
+    def session_id(self) -> str | None:
+        """
+        Return the session ID for the current session. If `None`, the client is
+        not connected.
+
+        Returns
+        -------
+        str | None
+
+        """
+        return self._session.session_id
+
+    @property
     def symbology_map(self) -> dict[int, str | int]:
         """
         Return the symbology map for this client session. A symbol mapping is
@@ -257,7 +271,9 @@ class Live:
             A callback to register for handling live records as they arrive.
         exception_callback : Callable[[Exception], None], optional
             An error handling callback to process exceptions that are raised
-            in `record_callback`.
+            in `record_callback`. If no exception callback is provided,
+            any exceptions encountered will be logged and raised as warnings
+            for visibility.
 
         Raises
         ------
@@ -270,15 +286,13 @@ class Live:
         Live.add_stream
 
         """
-        if not callable(record_callback):
-            raise ValueError(f"{record_callback} is not callable")
+        client_callback = ClientRecordCallback(
+            fn=record_callback,
+            exc_fn=exception_callback,
+        )
 
-        if exception_callback is not None and not callable(exception_callback):
-            raise ValueError(f"{exception_callback} is not callable")
-
-        callback_name = getattr(record_callback, "__name__", str(record_callback))
-        logger.info("adding user callback %s", callback_name)
-        self._session._user_callbacks.append((record_callback, exception_callback))
+        logger.info("adding user callback %s", client_callback.callback_name)
+        self._session._user_callbacks.append(client_callback)
 
     def add_stream(
         self,
@@ -294,7 +308,9 @@ class Live:
             The IO stream to write to when handling live records as they arrive.
         exception_callback : Callable[[Exception], None], optional
             An error handling callback to process exceptions that are raised
-            when writing to the stream.
+            when writing to the stream. If no exception callback is provided,
+            any exceptions encountered will be logged and raised as warnings
+            for visibility.
 
         Raises
         ------
@@ -309,23 +325,12 @@ class Live:
         Live.add_callback
 
         """
-        if isinstance(stream, (str, PathLike)):
-            stream = pathlib.Path(stream).open("xb")
+        client_stream = ClientStream(stream=stream, exc_fn=exception_callback)
 
-        if not hasattr(stream, "write"):
-            raise ValueError(f"{type(stream).__name__} does not support write()")
-
-        if not hasattr(stream, "writable") or not stream.writable():
-            raise ValueError(f"{type(stream).__name__} is not a writable stream")
-
-        if exception_callback is not None and not callable(exception_callback):
-            raise ValueError(f"{exception_callback} is not callable")
-
-        stream_name = getattr(stream, "name", str(stream))
-        logger.info("adding user stream %s", stream_name)
+        logger.info("adding user stream %s", client_stream.stream_name)
         if self.metadata is not None:
-            stream.write(bytes(self.metadata))
-        self._session._user_streams.append((stream, exception_callback))
+            client_stream.write(self.metadata.encode())
+        self._session._user_streams.append(client_stream)
 
     def add_reconnect_callback(
         self,
@@ -365,7 +370,9 @@ class Live:
 
         callback_name = getattr(reconnect_callback, "__name__", str(reconnect_callback))
         logger.info("adding user reconnect callback %s", callback_name)
-        self._session._user_reconnect_callbacks.append((reconnect_callback, exception_callback))
+        self._session._user_reconnect_callbacks.append(
+            (reconnect_callback, exception_callback),
+        )
 
     def start(
         self,

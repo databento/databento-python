@@ -1,23 +1,16 @@
 [project]
 name = "databento"
-version = "0.65.0"
+version = "0.66.0"
 description = "Official Python client library for Databento"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 authors = [{ name = "Databento", email = "support@databento.com" }]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Operating System :: OS Independent",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Office/Business :: Financial",
-    "Topic :: Office/Business :: Financial :: Investment",
-]
+dynamic = [ "classifiers" ]
 dependencies = [
     "aiohttp>=3.8.3,<4.0.0; python_version < '3.12'",
     "aiohttp>=3.9.0,<4.0.0; python_version >= '3.12'",
-    "databento-dbn~=0.43.0",
+    "databento-dbn~=0.44.0",
     "numpy>=1.23.5; python_version < '3.12'",
     "numpy>=1.26.0; python_version >= '3.12'",
     "pandas>=1.5.3",
@@ -38,6 +31,14 @@ requires-poetry = ">=2.0"
 packages = [
     { include = "databento" },
     { include = "databento/py.typed" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Office/Business :: Financial :: Investment",
 ]
 
 [tool.poetry.dependencies]
