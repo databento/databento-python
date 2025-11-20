@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pandas as pd
 import pytest
+
 from databento import Dataset
 from databento import Schema
 from databento import SType
@@ -15,7 +16,6 @@ from databento.live import client
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
-
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
 

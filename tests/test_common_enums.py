@@ -8,6 +8,12 @@ from itertools import combinations
 from typing import Final
 
 import pytest
+from databento_dbn import Compression
+from databento_dbn import DBNError
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
+
 from databento.common.enums import Delivery
 from databento.common.enums import FeedMode
 from databento.common.enums import HistoricalGateway
@@ -18,11 +24,6 @@ from databento.common.enums import SplitDuration
 from databento.common.enums import StringyMixin
 from databento.common.enums import SymbologyResolution
 from databento.common.publishers import Dataset
-from databento_dbn import Compression
-from databento_dbn import DBNError
-from databento_dbn import Encoding
-from databento_dbn import Schema
-from databento_dbn import SType
 
 
 NATIVE_ENUMS: Final = (

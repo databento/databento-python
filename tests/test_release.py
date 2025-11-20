@@ -6,10 +6,10 @@ import operator
 import re
 from datetime import date
 
-import databento
 import pytest
 import tomli
 
+import databento
 from tests import PROJECT_ROOT
 
 

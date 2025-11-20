@@ -2,10 +2,11 @@ import pathlib
 from collections.abc import Callable
 
 import pytest
+from databento_dbn import Schema
+
 from databento.common.dbnstore import FileDataSource
 from databento.common.dbnstore import MemoryDataSource
 from databento.common.publishers import Dataset
-from databento_dbn import Schema
 
 
 @pytest.mark.parametrize(

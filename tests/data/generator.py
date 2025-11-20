@@ -11,10 +11,10 @@ import sys
 import warnings
 from typing import Final
 
-import databento as db
-from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
+import databento as db
+from databento.common.publishers import Dataset
 from tests import TESTS_ROOT
 
 

@@ -1,18 +1,19 @@
 import datetime as dt
 import logging
+import pathlib
+import warnings
 from collections.abc import Callable
 from os import PathLike
-import pathlib
-from typing import Generic
 from typing import IO
+from typing import Generic
 from typing import TypedDict
 from typing import TypeVar
-import warnings
 
 import databento_dbn
 import pandas as pd
 
 from databento.common.error import BentoWarning
+
 
 logger = logging.getLogger(__name__)
 
@@ -188,14 +189,14 @@ class ClientStream:
         except Exception as exc:
             if self._exc_fn is None:
                 self._warn(
-                    f"stream '{self.stream_name}' encountered an exception without an exception handler: {repr(exc)}",
+                    f"stream '{self.stream_name}' encountered an exception without an exception handler: {exc!r}",
                 )
             else:
                 try:
                     self._exc_fn(exc)
                 except Exception as inner_exc:
                     self._warn(
-                        f"exception callback '{self.exc_callback_name}' encountered an exception: {repr(inner_exc)}",
+                        f"exception callback '{self.exc_callback_name}' encountered an exception: {inner_exc!r}",
                     )
                     raise inner_exc from exc
             raise exc
@@ -258,14 +259,14 @@ class ClientRecordCallback:
         except Exception as exc:
             if self._exc_fn is None:
                 self._warn(
-                    f"callback '{self.callback_name}' encountered an exception without an exception callback: {repr(exc)}",
+                    f"callback '{self.callback_name}' encountered an exception without an exception callback: {exc!r}",
                 )
             else:
                 try:
                     self._exc_fn(exc)
                 except Exception as inner_exc:
                     self._warn(
-                        f"exception callback '{self.exc_callback_name}' encountered an exception: {repr(inner_exc)}",
+                        f"exception callback '{self.exc_callback_name}' encountered an exception: {inner_exc!r}",
                     )
                     raise inner_exc from exc
             raise exc

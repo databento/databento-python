@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
 import pytest
+
 from databento.common import iterator
 
 

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-import databento as db
 import pytest
 import requests
+
+import databento as db
 from databento.common.publishers import Dataset
 from databento.historical.client import Historical
 

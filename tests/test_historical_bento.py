@@ -9,23 +9,24 @@ from typing import Any
 from typing import Literal
 from unittest.mock import MagicMock
 
-import databento
-import databento.common.dbnstore
 import numpy as np
 import pandas as pd
 import pytest
 import pytz
 import zstandard
+from databento_dbn import Compression
+from databento_dbn import MBOMsg
+from databento_dbn import Schema
+from databento_dbn import SType
+
+import databento
+import databento.common.dbnstore
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
 from databento.common.error import BentoWarning
 from databento.common.publishers import Dataset
 from databento.common.types import DBNRecord
-from databento_dbn import Compression
-from databento_dbn import MBOMsg
-from databento_dbn import Schema
-from databento_dbn import SType
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:

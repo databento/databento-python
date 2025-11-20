@@ -6,8 +6,9 @@ from typing import Final
 from typing import Protocol
 
 import zstandard
-from databento.common.dbnstore import is_zstandard
 from databento_dbn import Compression
+
+from databento.common.dbnstore import is_zstandard
 
 
 FILE_READ_SIZE: Final = 2**10

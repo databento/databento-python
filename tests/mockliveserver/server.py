@@ -13,6 +13,8 @@ from io import FileIO
 from typing import Any
 from typing import Final
 
+from databento_dbn import Schema
+
 from databento.common import cram
 from databento.common.publishers import Dataset
 from databento.live.gateway import AuthenticationRequest
@@ -23,7 +25,6 @@ from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
 from databento.live.gateway import parse_gateway_message
-from databento_dbn import Schema
 
 from .source import ReplayProtocol
 

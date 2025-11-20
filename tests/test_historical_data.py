@@ -1,5 +1,6 @@
-import databento
 import pytest
+
+import databento
 from databento.common.constants import SCHEMA_STRUCT_MAP
 
 

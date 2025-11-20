@@ -4,14 +4,15 @@ import pathlib
 from collections.abc import Callable
 from unittest.mock import MagicMock
 
-import databento as db
 import pytest
 import requests
+from databento_dbn import Schema
+
+import databento as db
 from databento import DBNStore
 from databento import Historical
 from databento.common.enums import HistoricalGateway
 from databento.common.publishers import Dataset
-from databento_dbn import Schema
 
 
 def test_key_returns_expected() -> None:

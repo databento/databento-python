@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import pytest
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
+
 from databento.common.publishers import Dataset
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import AuthenticationResponse
@@ -9,9 +13,6 @@ from databento.live.gateway import GatewayControl
 from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
-from databento_dbn import Encoding
-from databento_dbn import Schema
-from databento_dbn import SType
 
 
 ALL_MESSAGES = (

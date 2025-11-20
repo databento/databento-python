@@ -11,10 +11,10 @@ from typing import TypeVar
 
 import pytest
 import pytest_asyncio
-from databento.common.publishers import Dataset
-from databento.live.gateway import GatewayControl
 from databento_dbn import Schema
 
+from databento.common.publishers import Dataset
+from databento.live.gateway import GatewayControl
 from tests import TESTS_ROOT
 
 

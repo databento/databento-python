@@ -16,6 +16,10 @@ from unittest.mock import MagicMock
 import databento_dbn
 import pytest
 import zstandard
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
+
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.cram import BUCKET_ID_LENGTH
@@ -27,10 +31,6 @@ from databento.live import client
 from databento.live import gateway
 from databento.live import protocol
 from databento.live import session
-from databento_dbn import Encoding
-from databento_dbn import Schema
-from databento_dbn import SType
-
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
 

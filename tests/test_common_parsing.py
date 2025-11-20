@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 import pytest
+from databento_dbn import SType
+
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
@@ -14,7 +16,6 @@ from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.parsing import optional_values_list_to_string
 from databento.common.parsing import symbols_list_to_list
-from databento_dbn import SType
 
 
 # Set the type to `Any` to disable mypy type checking. Used to test if functions

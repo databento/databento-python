@@ -4,12 +4,12 @@ from collections.abc import Iterable
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import databento as db
 import pytest
 import requests
 import zstandard
-from databento.reference.client import Reference
 
+import databento as db
+from databento.reference.client import Reference
 from tests import TESTS_ROOT
 
 

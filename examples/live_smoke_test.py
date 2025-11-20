@@ -4,15 +4,16 @@ import argparse
 import os
 import typing
 
+from databento_dbn import ErrorMsg
+from databento_dbn import MBOMsg
+from databento_dbn import RType
+from databento_dbn import SymbolMappingMsg
+
 from databento import Dataset
 from databento import Live
 from databento import RecordFlags
 from databento import Schema
 from databento import SType
-from databento_dbn import ErrorMsg
-from databento_dbn import MBOMsg
-from databento_dbn import RType
-from databento_dbn import SymbolMappingMsg
 
 
 def parse_args() -> argparse.Namespace:
