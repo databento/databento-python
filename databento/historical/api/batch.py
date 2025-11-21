@@ -71,7 +71,7 @@ class BatchHttpAPI(BentoHttpAPI):
         compression: Compression | str = "zstd",
         pretty_px: bool = False,
         pretty_ts: bool = False,
-        map_symbols: bool = False,
+        map_symbols: bool | None = None,
         split_symbols: bool = False,
         split_duration: SplitDuration | str = "day",
         split_size: int | None = None,
@@ -116,9 +116,10 @@ class BatchHttpAPI(BentoHttpAPI):
         pretty_ts : bool, default False
             If timestamps should be formatted as ISO 8601 strings.
             Only applicable for 'csv' or 'json' encodings.
-        map_symbols : bool, default False
-            If the requested symbol should be appended to every text encoded record.
-            Only applicable for 'csv' or 'json' encodings.
+        map_symbols : bool, optional
+            If a symbol field should be included with every text encoded record.
+            If `None`, will default to `True` for `csv` and `json` encodings and `False` for
+            `dbn`.
         split_symbols : bool, default False
             If files should be split by raw symbol. Cannot be requested with `'ALL_SYMBOLS'`.
         split_duration : SplitDuration or str {'day', 'week', 'month', 'none'}, default 'day'
@@ -149,6 +150,10 @@ class BatchHttpAPI(BentoHttpAPI):
         """
         stype_in_valid = validate_enum(stype_in, SType, "stype_in")
         symbols_list = symbols_list_to_list(symbols, stype_in_valid)
+        encoding_valid = validate_enum(encoding, Encoding, "encoding")
+
+        if map_symbols is None:
+            map_symbols = encoding_valid != Encoding.DBN
 
         data: dict[str, object | None] = {
             "dataset": validate_semantic_string(dataset, "dataset"),
@@ -158,7 +163,7 @@ class BatchHttpAPI(BentoHttpAPI):
             "schema": str(validate_enum(schema, Schema, "schema")),
             "stype_in": str(stype_in_valid),
             "stype_out": str(validate_enum(stype_out, SType, "stype_out")),
-            "encoding": str(validate_enum(encoding, Encoding, "encoding")),
+            "encoding": str(encoding_valid),
             "compression": (
                 str(validate_enum(compression, Compression, "compression")) if compression else None
             ),
@@ -292,7 +297,9 @@ class BatchHttpAPI(BentoHttpAPI):
 
         """
         if keep_zip and filename_to_download:
-            raise ValueError("Cannot specify an individual file to download when `keep_zip=True`")
+            raise ValueError(
+                "Cannot specify an individual file to download when `keep_zip=True`",
+            )
 
         batch_download = _BatchJob(
             self,
@@ -369,7 +376,9 @@ class BatchHttpAPI(BentoHttpAPI):
 
         """
         if keep_zip and filename_to_download:
-            raise ValueError("Cannot specify an individual file to download when `keep_zip=True`")
+            raise ValueError(
+                "Cannot specify an individual file to download when `keep_zip=True`",
+            )
 
         batch_download = _BatchJob(
             self,
@@ -458,7 +467,9 @@ class BatchHttpAPI(BentoHttpAPI):
                 ) as response:
                     check_http_error(response)
                     with open(output_path, mode=mode) as f:
-                        for chunk in response.iter_content(chunk_size=HTTP_STREAMING_READ_SIZE):
+                        for chunk in response.iter_content(
+                            chunk_size=HTTP_STREAMING_READ_SIZE,
+                        ):
                             f.write(chunk)
 
                             # Successfully wrote some data, reset attempts counter
@@ -548,7 +559,9 @@ class BatchHttpAPI(BentoHttpAPI):
                 ) as response:
                     check_http_error(response)
                     with open(output_path, mode="wb") as f:
-                        for chunk in response.iter_content(chunk_size=HTTP_STREAMING_READ_SIZE):
+                        for chunk in response.iter_content(
+                            chunk_size=HTTP_STREAMING_READ_SIZE,
+                        ):
                             f.write(chunk)
             except BentoHttpError as exc:
                 if exc.http_status == 429:
@@ -615,7 +628,9 @@ class _BatchJob:
                 urls = file_detail["urls"]
             except KeyError as exc:
                 missing_key = exc.args[0]
-                raise BentoError(f"Batch job manifest missing key '{missing_key}'") from None
+                raise BentoError(
+                    f"Batch job manifest missing key '{missing_key}'",
+                ) from None
             except TypeError:
                 raise BentoError("Error parsing job manifest") from None
 

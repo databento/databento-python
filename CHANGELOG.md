@@ -10,6 +10,7 @@
 
 #### Breaking changes
 - Several log messages have been reformatted to improve clarity and reduce redundancy, especially at debug levels
+- The `map_symbols` parameter for `Historical.batch.submit_job()` now defaults to `True` for JSON and CSV encodings
 
 ## 0.66.0 - 2025-11-18
 

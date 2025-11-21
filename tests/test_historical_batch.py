@@ -99,7 +99,7 @@ def test_batch_submit_job_sends_expected_request(
         "compression": "zstd",
         "pretty_px": False,
         "pretty_ts": False,
-        "map_symbols": False,
+        "map_symbols": True,
         "split_symbols": False,
         "split_duration": "day",
         "delivery": "download",
