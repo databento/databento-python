@@ -5,6 +5,8 @@
 #### Enhancements
 - Added a property `Live.subscription_requests` which returns a list of tuples containing every `SubscriptionRequest` for the live session
 - Changed the return value of `Live.subscribe()` to `int`, the value of the subscription ID, which can be used to index into the `Live.subscription_requests` property
+- Added feature to automatically monitor for hung connections in the `Live` client
+  - Hung connections will be disconnected client side with a `BentoError`
 
 #### Breaking changes
 - Several log messages have been reformatted to improve clarity and reduce redundancy, especially at debug levels

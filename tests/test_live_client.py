@@ -4,7 +4,6 @@ Unit tests for the Live client.
 
 from __future__ import annotations
 
-import asyncio
 import pathlib
 import platform
 import random
@@ -279,7 +278,7 @@ async def test_live_client_reuse(
     live_client.stop()
     assert live_client.session_id == first_session_id
 
-    await asyncio.sleep(1)
+    await live_client.wait_for_close()
 
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
