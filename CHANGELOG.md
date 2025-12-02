@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.67.0 - TBD
+## 0.67.0 - 2025-12-02
 
 #### Enhancements
 - Added a property `Live.subscription_requests` which returns a list of tuples containing every `SubscriptionRequest` for the live session
