@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.68.0 - TBD
+
+This release adds support for Python 3.14.
+
+#### Enhancements
+- Added support for Python 3.14
+
 ## 0.67.0 - 2025-12-02
 
 #### Enhancements
@@ -351,7 +358,7 @@ was preventing `ts_out` from being correctly decoded in the Python DBNDecoder
 
 ## 0.45.0 - 2024-11-12
 
-This release adds support for Python v3.13.
+This release adds support for Python 3.13.
 
 #### Enhancements
 - Added support for Python 3.13
@@ -675,7 +682,7 @@ This release adds support for transcoding DBN data into Apache parquet.
 
 ## 0.24.0 - 2023-11-23
 
-This release adds support for DBN v2 as well as Python v3.12.
+This release adds support for DBN v2 as well as Python 3.12.
 
 DBN v2 delivers improvements to the `Metadata` header symbology, new `stype_in` and `stype_out` fields for `SymbolMappingMsg`, and extends the symbol field length for `SymbolMappingMsg` and `InstrumentDefMsg`. The entire change notes are available [here](https://github.com/databento/dbn/releases/tag/v0.14.0). Users who wish to convert DBN v1 files to v2 can use the `dbn-cli` tool available in the [databento-dbn](https://github.com/databento/dbn/) crate. On a future date, the Databento live and historical APIs will stop serving DBN v1.
 
