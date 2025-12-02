@@ -2,14 +2,15 @@ from collections.abc import Callable
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import databento as db
 import pytest
 import requests
+from databento_dbn import Schema
+
+import databento as db
 from databento import DBNStore
 from databento.common.error import BentoServerError
 from databento.common.publishers import Dataset
 from databento.historical.client import Historical
-from databento_dbn import Schema
 
 
 def test_get_range_given_invalid_schema_raises_error(

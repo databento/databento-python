@@ -1,8 +1,9 @@
 import json
 
 import pytest
-from databento.common.http import check_backend_warnings
 from requests import Response
+
+from databento.common.http import check_backend_warnings
 
 
 @pytest.mark.parametrize(

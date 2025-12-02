@@ -1,4 +1,5 @@
 import pytest
+
 from databento.common.error import BentoError
 from databento.live.session import DBNQueue
 

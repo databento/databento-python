@@ -118,6 +118,8 @@ class Venue(StringyMixin, str, Enum):
         Eurex Exchange.
     XEEE
         European Energy Exchange.
+    XCBF
+        Cboe Futures Exchange.
 
     """
 
@@ -172,6 +174,7 @@ class Venue(StringyMixin, str, Enum):
     IFLL = "IFLL"
     XEUR = "XEUR"
     XEEE = "XEEE"
+    XCBF = "XCBF"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -280,6 +283,8 @@ class Venue(StringyMixin, str, Enum):
             return Venue.XEUR
         if value == 51:
             return Venue.XEEE
+        if value == 52:
+            return Venue.XCBF
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -388,6 +393,8 @@ class Venue(StringyMixin, str, Enum):
             return 50
         if self == Venue.XEEE:
             return 51
+        if self == Venue.XCBF:
+            return 52
         raise ValueError("Invalid Venue")
 
     @property
@@ -497,6 +504,8 @@ class Venue(StringyMixin, str, Enum):
             return "Eurex Exchange"
         if self == Venue.XEEE:
             return "European Energy Exchange"
+        if self == Venue.XCBF:
+            return "Cboe Futures Exchange"
         raise ValueError("Unexpected Venue value")
 
 
@@ -584,6 +593,8 @@ class Dataset(StringyMixin, str, Enum):
         Eurex EOBI.
     XEEE_EOBI
         European Energy Exchange EOBI.
+    XCBF_PITCH
+        Cboe Futures Exchange PITCH.
 
     """
 
@@ -626,6 +637,7 @@ class Dataset(StringyMixin, str, Enum):
     IFLL_IMPACT = "IFLL.IMPACT"
     XEUR_EOBI = "XEUR.EOBI"
     XEEE_EOBI = "XEEE.EOBI"
+    XCBF_PITCH = "XCBF.PITCH"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -710,6 +722,8 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.XEUR_EOBI
         if value == 39:
             return Dataset.XEEE_EOBI
+        if value == 40:
+            return Dataset.XCBF_PITCH
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -794,6 +808,8 @@ class Dataset(StringyMixin, str, Enum):
             return 38
         if self == Dataset.XEEE_EOBI:
             return 39
+        if self == Dataset.XCBF_PITCH:
+            return 40
         raise ValueError("Invalid Dataset")
 
     @property
@@ -879,6 +895,8 @@ class Dataset(StringyMixin, str, Enum):
             return "Eurex EOBI"
         if self == Dataset.XEEE_EOBI:
             return "European Energy Exchange EOBI"
+        if self == Dataset.XCBF_PITCH:
+            return "Cboe Futures Exchange PITCH"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -1096,6 +1114,8 @@ class Publisher(StringyMixin, str, Enum):
         Eurex EOBI - Off-Market Trades.
     XEEE_EOBI_XOFF
         European Energy Exchange EOBI - Off-Market Trades.
+    XCBF_PITCH_XCBF
+        Cboe Futures Exchange.
 
     """
 
@@ -1203,6 +1223,7 @@ class Publisher(StringyMixin, str, Enum):
     XEEE_EOBI_XEEE = "XEEE.EOBI.XEEE"
     XEUR_EOBI_XOFF = "XEUR.EOBI.XOFF"
     XEEE_EOBI_XOFF = "XEEE.EOBI.XOFF"
+    XCBF_PITCH_XCBF = "XCBF.PITCH.XCBF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1417,6 +1438,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XEUR_EOBI_XOFF
         if value == 104:
             return Publisher.XEEE_EOBI_XOFF
+        if value == 105:
+            return Publisher.XCBF_PITCH_XCBF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1631,6 +1654,8 @@ class Publisher(StringyMixin, str, Enum):
             return 103
         if self == Publisher.XEEE_EOBI_XOFF:
             return 104
+        if self == Publisher.XCBF_PITCH_XCBF:
+            return 105
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1846,6 +1871,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XOFF
         if self == Publisher.XEEE_EOBI_XOFF:
             return Venue.XOFF
+        if self == Publisher.XCBF_PITCH_XCBF:
+            return Venue.XCBF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2061,6 +2088,8 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XEUR_EOBI
         if self == Publisher.XEEE_EOBI_XOFF:
             return Dataset.XEEE_EOBI
+        if self == Publisher.XCBF_PITCH_XCBF:
+            return Dataset.XCBF_PITCH
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2276,4 +2305,6 @@ class Publisher(StringyMixin, str, Enum):
             return "Eurex EOBI - Off-Market Trades"
         if self == Publisher.XEEE_EOBI_XOFF:
             return "European Energy Exchange EOBI - Off-Market Trades"
+        if self == Publisher.XCBF_PITCH_XCBF:
+            return "Cboe Futures Exchange"
         raise ValueError("Unexpected Publisher value")

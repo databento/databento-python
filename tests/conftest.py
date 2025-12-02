@@ -12,14 +12,14 @@ from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
 
-import databento.live.session
 import pytest
+from databento_dbn import Schema
+
+import databento.live.session
 from databento import historical
 from databento import live
 from databento import reference
 from databento.common.publishers import Dataset
-from databento_dbn import Schema
-
 from tests import TESTS_ROOT
 from tests.mockliveserver.fixture import MockLiveServerInterface
 from tests.mockliveserver.fixture import fixture_mock_live_server  # noqa

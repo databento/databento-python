@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import aiohttp
 import pytest
 import requests
+
 from databento.common.error import BentoClientError
 from databento.common.error import BentoServerError
 from databento.common.http import check_http_error

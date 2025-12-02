@@ -5,6 +5,7 @@ Unit tests for DBNStore compression.
 from io import BytesIO
 
 import pytest
+
 from databento.common.dbnstore import is_dbn
 from databento.common.dbnstore import is_zstandard
 

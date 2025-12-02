@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pandas as pd
 import pytest
+
 from databento import Dataset
 from databento import Schema
 from databento import SType
@@ -15,7 +16,6 @@ from databento.live import client
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
-
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
 
@@ -65,9 +65,9 @@ async def test_reconnect_before_start(
     reconnect_policy: ReconnectPolicy = ReconnectPolicy.RECONNECT,
 ) -> None:
     """
-    Test that a reconnect policy of "reconnect_do_not_replay" reconnects a
-    client but does not send the session start command if the session was not
-    streaming previously.
+    Test that a reconnect policy of "reconnect" reconnects a client but does
+    not send the session start command if the session was not streaming
+    previously.
     """
     # Arrange
     live_client = client.Live(
@@ -138,8 +138,8 @@ async def test_reconnect_subscriptions(
     reconnect_policy: ReconnectPolicy = ReconnectPolicy.RECONNECT,
 ) -> None:
     """
-    Test that a reconnect policy of "reconnect_do_not_replay" re-sends the
-    subscription requests with a start of `None`.
+    Test that a reconnect policy of "reconnect" re-sends the subscription
+    requests with a start of `None`.
     """
     # Arrange
     live_client = client.Live(
@@ -192,8 +192,8 @@ async def test_reconnect_callback(
     reconnect_policy: ReconnectPolicy = ReconnectPolicy.RECONNECT,
 ) -> None:
     """
-    Test that a reconnect policy of "reconnect_do_not_replay" will cause a user
-    supplied reconnection callback to be executed when a reconnection occurs.
+    Test that a reconnect policy of "reconnect" will cause a user supplied
+    reconnection callback to be executed when a reconnection occurs.
     """
     # Arrange
     live_client = client.Live(

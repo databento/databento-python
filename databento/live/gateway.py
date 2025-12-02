@@ -5,19 +5,17 @@ import logging
 from io import BytesIO
 from operator import attrgetter
 from typing import SupportsBytes
-from typing import TypeVar
 
 from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
+from typing_extensions import Self
 
 from databento.common.publishers import Dataset
 from databento.common.system import USER_AGENT
 
 
 logger = logging.getLogger(__name__)
-
-T = TypeVar("T", bound="GatewayControl")
 
 
 @dataclasses.dataclass
@@ -27,9 +25,9 @@ class GatewayControl(SupportsBytes):
     """
 
     @classmethod
-    def parse(cls: type[T], line: str | bytes) -> T:
+    def parse(cls: type[Self], line: str | bytes) -> Self:
         """
-        Parse a message of type `T` from a string.
+        Parse a `GatewayControl` message from a string.
 
         Parameters
         ----------

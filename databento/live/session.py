@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import itertools
 import logging
+import math
 import queue
 import struct
 import threading
@@ -34,6 +36,7 @@ AUTH_TIMEOUT_SECONDS: Final = 30.0
 CONNECT_TIMEOUT_SECONDS: Final = 10.0
 DBN_QUEUE_CAPACITY: Final = 2**20
 DEFAULT_REMOTE_PORT: Final = 13000
+CLIENT_TIMEOUT_MARGIN_SECONDS: Final = 10
 
 
 class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
@@ -211,6 +214,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
         self._last_ts_event: int | None = None
+        self._last_msg_loop_time: float = math.inf
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         if self._metadata:
@@ -234,6 +238,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         if self._dbn_queue.is_enabled():
             self._queue_for_iteration(record)
         self._last_ts_event = record.ts_event
+        self._last_msg_loop_time = self._loop.time()
 
         return super().received_record(record)
 
@@ -323,16 +328,16 @@ class LiveSession:
 
         self._api_key = api_key
         self._ts_out = ts_out
-        self._heartbeat_interval_s = heartbeat_interval_s
+        self._heartbeat_interval_s = heartbeat_interval_s or 30
 
         self._protocol: _SessionProtocol | None = None
         self._transport: asyncio.Transport | None = None
         self._session_id: str | None = None
 
-        self._subscription_counter = 0
-        self._subscriptions: list[SubscriptionRequest] = []
+        self._subscriptions: list[tuple[SubscriptionRequest, ...]] = []
         self._reconnect_policy = ReconnectPolicy(reconnect_policy)
         self._reconnect_task: asyncio.Task[None] | None = None
+        self._heartbeat_monitor_task: asyncio.Task[None] | None = None
 
         self._dataset = ""
 
@@ -436,8 +441,6 @@ class LiveSession:
         with self._lock:
             if self._transport is None:
                 return
-            if self._protocol is not None:
-                self._protocol.disconnected.add_done_callback(lambda _: self._cleanup())
             self._loop.call_soon_threadsafe(self._transport.close)
 
     def start(self) -> None:
@@ -454,6 +457,9 @@ class LiveSession:
             if self._protocol is None:
                 raise ValueError("session is not connected")
             self._protocol.start()
+            self._heartbeat_monitor_task = self._loop.create_task(
+                self._heartbeat_monitor(),
+            )
 
     def subscribe(
         self,
@@ -463,7 +469,7 @@ class LiveSession:
         stype_in: SType | str = SType.RAW_SYMBOL,
         start: str | int | None = None,
         snapshot: bool = False,
-    ) -> None:
+    ) -> int:
         """
         Send a subscription request on the current connection. This will create
         a new connection if there is no active connection to the gateway.
@@ -498,17 +504,20 @@ class LiveSession:
                 self._session_id = None
                 self._connect(dataset=dataset)
 
-            self._subscription_counter += 1
-            self._subscriptions.extend(
-                self._protocol.subscribe(
-                    schema=schema,
-                    symbols=symbols,
-                    stype_in=stype_in,
-                    start=start,
-                    snapshot=snapshot,
-                    subscription_id=self._subscription_counter,
+            subscription_id = len(self._subscriptions)
+            self._subscriptions.append(
+                tuple(
+                    self._protocol.subscribe(
+                        schema=schema,
+                        symbols=symbols,
+                        stype_in=stype_in,
+                        start=start,
+                        snapshot=snapshot,
+                        subscription_id=subscription_id,
+                    ),
                 ),
             )
+        return subscription_id
 
     def terminate(self) -> None:
         with self._lock:
@@ -542,7 +551,7 @@ class LiveSession:
             self._cleanup()
 
     def _cleanup(self) -> None:
-        logger.debug("cleaning up session_id=%s", self.session_id)
+        logger.debug("cleaning up session_id='%s'", self.session_id)
         self._user_callbacks.clear()
         for stream in self._user_streams:
             if not stream.is_closed:
@@ -550,6 +559,8 @@ class LiveSession:
             if stream.is_managed:
                 stream.close()
 
+        if self._heartbeat_monitor_task is not None:
+            self._heartbeat_monitor_task.cancel()
         self._user_callbacks.clear()
         self._user_streams.clear()
         self._user_reconnect_callbacks.clear()
@@ -596,7 +607,7 @@ class LiveSession:
             logger.debug("using default gateway for dataset %s", dataset)
         else:
             gateway = self._user_gateway
-            logger.debug("using user specified gateway: %s", gateway)
+            logger.debug("user gateway override gateway='%s'", gateway)
 
         logger.info("connecting to remote gateway")
         try:
@@ -638,11 +649,26 @@ class LiveSession:
 
         self._session_id = session_id
         logger.info(
-            "authenticated session %s",
+            "authenticated session_id='%s'",
             self.session_id,
         )
 
         return transport, protocol
+
+    async def _heartbeat_monitor(self) -> None:
+        while not self._protocol.disconnected.done():
+            await asyncio.sleep(1)
+            gap = self._loop.time() - self._protocol._last_msg_loop_time
+            if gap > (self._heartbeat_interval_s + CLIENT_TIMEOUT_MARGIN_SECONDS):
+                logger.error(
+                    "disconnecting client due to timeout, no data received for %d second(s)",
+                    int(gap),
+                )
+                self._protocol.disconnected.set_exception(
+                    BentoError(
+                        f"Gateway timeout: {gap:.0f} second(s) since last message",
+                    ),
+                )
 
     async def _reconnect(self) -> None:
         while True:
@@ -669,7 +695,7 @@ class LiveSession:
                         dataset=self._protocol._dataset,
                     )
 
-                    for sub in self._subscriptions:
+                    for sub in itertools.chain(*self._subscriptions):
                         self._protocol.subscribe(
                             schema=sub.schema,
                             symbols=sub.symbols,

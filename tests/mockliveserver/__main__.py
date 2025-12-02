@@ -6,9 +6,9 @@ import sys
 from collections import defaultdict
 from socket import AF_INET
 
-from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
+from databento.common.publishers import Dataset
 from tests.mockliveserver.controller import Controller
 from tests.mockliveserver.source import ReplayProtocol
 

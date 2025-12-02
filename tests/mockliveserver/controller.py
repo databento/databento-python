@@ -8,10 +8,10 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from pathlib import Path
 
-from databento.common.cram import BUCKET_ID_LENGTH
-from databento.common.publishers import Dataset
 from databento_dbn import Schema
 
+from databento.common.cram import BUCKET_ID_LENGTH
+from databento.common.publishers import Dataset
 from tests.mockliveserver.server import MockLiveServerProtocol
 from tests.mockliveserver.source import FileReplay
 from tests.mockliveserver.source import ReplayProtocol

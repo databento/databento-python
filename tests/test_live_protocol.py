@@ -3,11 +3,11 @@ import platform
 from unittest.mock import MagicMock
 
 import pytest
-from databento.common.publishers import Dataset
-from databento.live.protocol import DatabentoLiveProtocol
 from databento_dbn import Schema
 from databento_dbn import SType
 
+from databento.common.publishers import Dataset
+from databento.live.protocol import DatabentoLiveProtocol
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
 

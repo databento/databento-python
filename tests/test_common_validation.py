@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from databento_dbn import Encoding
+
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_gateway
@@ -12,7 +14,6 @@ from databento.common.validation import validate_maybe_enum
 from databento.common.validation import validate_path
 from databento.common.validation import validate_semantic_string
 from databento.common.validation import validate_smart_symbol
-from databento_dbn import Encoding
 
 
 @pytest.mark.parametrize(

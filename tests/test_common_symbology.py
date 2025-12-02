@@ -10,16 +10,17 @@ from typing import NamedTuple
 import databento_dbn
 import pandas as pd
 import pytest
-from databento.common.dbnstore import DBNStore
-from databento.common.publishers import Dataset
-from databento.common.symbology import InstrumentMap
-from databento.common.symbology import MappingInterval
 from databento_dbn import UNDEF_TIMESTAMP
 from databento_dbn import Metadata
 from databento_dbn import Schema
 from databento_dbn import SType
 from databento_dbn import SymbolMappingMsg
 from databento_dbn import SymbolMappingMsgV1
+
+from databento.common.dbnstore import DBNStore
+from databento.common.publishers import Dataset
+from databento.common.symbology import InstrumentMap
+from databento.common.symbology import MappingInterval
 
 
 class SymbolMapping(NamedTuple):

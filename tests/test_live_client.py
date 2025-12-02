@@ -4,7 +4,6 @@ Unit tests for the Live client.
 
 from __future__ import annotations
 
-import asyncio
 import pathlib
 import platform
 import random
@@ -16,6 +15,10 @@ from unittest.mock import MagicMock
 import databento_dbn
 import pytest
 import zstandard
+from databento_dbn import Encoding
+from databento_dbn import Schema
+from databento_dbn import SType
+
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.cram import BUCKET_ID_LENGTH
@@ -27,10 +30,6 @@ from databento.live import client
 from databento.live import gateway
 from databento.live import protocol
 from databento.live import session
-from databento_dbn import Encoding
-from databento_dbn import Schema
-from databento_dbn import SType
-
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
 
@@ -163,7 +162,7 @@ def test_live_connection_cram_failure(
         )
 
     # Ensure this was an authentication error
-    exc.match(r"User authentication failed:")
+    exc.match(r"Authentication failed.")
 
 
 @pytest.mark.parametrize(
@@ -279,7 +278,7 @@ async def test_live_client_reuse(
     live_client.stop()
     assert live_client.session_id == first_session_id
 
-    await asyncio.sleep(1)
+    await live_client.wait_for_close()
 
     live_client.subscribe(
         dataset=Dataset.GLBX_MDP3,
@@ -554,6 +553,8 @@ async def test_live_subscribe(
     assert message.symbols == symbols
     assert message.start == start
     assert message.snapshot == "0"
+    assert len(live_client.subscription_requests[0]) == 1
+    assert live_client.subscription_requests[0][0].id == int(message.id)
 
 
 @pytest.mark.parametrize(
@@ -645,6 +646,7 @@ async def test_live_subscribe_large_symbol_list(
         symbols=large_symbol_list,
     )
 
+    batched = []
     reconstructed: list[str] = []
     for i in range(8):
         message = await mock_live_server.wait_for_message_of_type(
@@ -652,9 +654,11 @@ async def test_live_subscribe_large_symbol_list(
         )
         assert int(message.is_last) == int(i == 7)
         reconstructed.extend(message.symbols.split(","))
+        batched.append(message)
 
     # Assert
     assert reconstructed == large_symbol_list
+    assert len(live_client.subscription_requests[0]) == len(batched)
 
 
 async def test_live_subscribe_from_callback(
@@ -1663,7 +1667,7 @@ async def test_live_connection_reuse_cram_failure(
         )
 
     # Ensure this was an authentication error
-    exc.match(r"User authentication failed:")
+    exc.match(r"Authentication failed.")
 
     async with mock_live_server.api_key_context(test_api_key):
         live_client.subscribe(
