@@ -7,6 +7,7 @@
 - Changed the return value of `Live.subscribe()` to `int`, the value of the subscription ID, which can be used to index into the `Live.subscription_requests` property
 - Added feature to automatically monitor for hung connections in the `Live` client
   - Hung connections will be disconnected client side with a `BentoError`
+- Added new venue, dataset, and publisher for Cboe Futures Exchange (`XCBF.PITCH`)
 
 #### Breaking changes
 - Several log messages have been reformatted to improve clarity and reduce redundancy, especially at debug levels
