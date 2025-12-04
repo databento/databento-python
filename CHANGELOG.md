@@ -6,6 +6,7 @@ This release adds support for Python 3.14.
 
 #### Enhancements
 - Added support for Python 3.14
+- Functions which accept a path as an argument now expand user directories
 
 ## 0.67.0 - 2025-12-02
 

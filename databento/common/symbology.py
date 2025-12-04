@@ -23,6 +23,7 @@ from databento_dbn import SymbolMappingMsg
 from databento_dbn import SymbolMappingMsgV1
 
 from databento.common.parsing import datetime_to_unix_nanoseconds
+from databento.common.validation import validate_path
 
 
 class MappingInterval(NamedTuple):
@@ -49,7 +50,7 @@ def _validate_path_pair(
     in_file: PathLike[str] | str,
     out_file: PathLike[str] | str | None,
 ) -> tuple[Path, Path]:
-    in_file_valid = Path(in_file)
+    in_file_valid = validate_path(in_file, "in_file")
 
     if not in_file_valid.exists():
         raise ValueError(f"{in_file_valid} does not exist")
@@ -57,7 +58,7 @@ def _validate_path_pair(
         raise ValueError(f"{in_file_valid} is not a file")
 
     if out_file is not None:
-        out_file_valid = Path(out_file)
+        out_file_valid = validate_path(out_file, "out_file")
     else:
         out_file_valid = in_file_valid.with_name(
             f"{in_file_valid.stem}_mapped{in_file_valid.suffix}",
