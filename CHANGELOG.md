@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.69.0
+
+#### Enhancements
+- Improved the performance of `DBNStore.to_df()` symbol mapping
+
 ## 0.68.0 - 2025-12-09
 
 This release adds support for Python 3.14.

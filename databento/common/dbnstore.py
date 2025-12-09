@@ -1287,7 +1287,7 @@ class DBNStore:
     ) -> None:
         if map_symbols:
             self._instrument_map.insert_metadata(self.metadata)
-            symbol_map = self._instrument_map._data
+            symbol_map = self._instrument_map.build_symbol_map()
         else:
             symbol_map = None
 
@@ -1299,7 +1299,7 @@ class DBNStore:
             pretty_ts=pretty_ts,
             has_metadata=True,
             map_symbols=map_symbols,
-            symbol_interval_map=symbol_map,  # type: ignore [arg-type]
+            symbol_interval_map=symbol_map,
             schema=schema,
         )
 
@@ -1508,19 +1508,12 @@ class DataFrameIterator:
     def _format_map_symbols(self, df: pd.DataFrame) -> None:
         # the first ordered field will be ts_recv or ts_event when appropriate
         ts_name = self._struct_type._ordered_fields[0]
+        dates = df[ts_name] if self._pretty_ts else pd.to_datetime(df[ts_name], utc=True).dt.date
 
-        if df.empty:
-            df["symbol"] = []
-        else:
-            df["symbol"] = df.apply(
-                lambda r: self._instrument_map.resolve(
-                    r["instrument_id"],
-                    (
-                        r[ts_name] if self._pretty_ts else pd.to_datetime(r[ts_name], utc=True)
-                    ).date(),
-                ),
-                axis=1,
-            )
+        df["symbol"] = self._instrument_map.resolve_many(
+            df["instrument_id"].to_numpy(),
+            np.asarray(dates, dtype="datetime64[D]"),
+        )
 
     def _format_timezone(self, df: pd.DataFrame) -> None:
         for field in self._struct_type._timestamp_fields:
