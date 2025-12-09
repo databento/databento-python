@@ -1,6 +1,5 @@
 import datetime as dt
 import logging
-import pathlib
 import warnings
 from collections.abc import Callable
 from os import PathLike
@@ -13,6 +12,7 @@ import databento_dbn
 import pandas as pd
 
 from databento.common.error import BentoWarning
+from databento.common.validation import validate_file_write_path
 
 
 logger = logging.getLogger(__name__)
@@ -110,7 +110,7 @@ class ClientStream:
         is_managed = False
 
         if isinstance(stream, (str, PathLike)):
-            stream = pathlib.Path(stream).open("xb")
+            stream = validate_file_write_path(stream, "stream", False).open("xb")
             is_managed = True
 
         if not hasattr(stream, "write"):

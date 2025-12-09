@@ -20,7 +20,8 @@ E = TypeVar("E", bound=Enum)
 
 def validate_path(value: PathLike[str] | str, param: str) -> Path:
     """
-    Validate whether the given value is a valid path.
+    Validate whether the given value is a valid path. This also expands user
+    directories to form valid paths.
 
     Parameters
     ----------
@@ -38,10 +39,12 @@ def validate_path(value: PathLike[str] | str, param: str) -> Path:
     ------
     TypeError
         If value is not a valid path.
+    RuntimeError
+        If a user's home directory cannot be expanded.
 
     """
     try:
-        return Path(value)
+        return Path(value).expanduser()
     except TypeError:
         raise TypeError(
             f"The `{param}` was not a valid path type. " "Use any of [PathLike[str], str].",
@@ -72,6 +75,10 @@ def validate_file_write_path(
 
     Raises
     ------
+    TypeError
+        If value is not a valid path.
+    RuntimeError
+        If a user's home directory cannot be expanded.
     IsADirectoryError
         If path is a directory.
     FileExistsError

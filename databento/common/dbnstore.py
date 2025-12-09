@@ -60,6 +60,7 @@ from databento.common.types import MappingIntervalDict
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_file_write_path
 from databento.common.validation import validate_maybe_enum
+from databento.common.validation import validate_path
 
 
 logger = logging.getLogger(__name__)
@@ -138,15 +139,15 @@ class FileDataSource(DataSource):
         The name of the file.
     nbytes : int
         The size of the data in bytes; equal to the file size.
-    path : PathLike[str] or str
+    path : Path
         The path of the file.
     reader : IO[bytes]
         A `BufferedReader` for this file-backed data.
 
     """
 
-    def __init__(self, source: PathLike[str] | str):
-        self._path = Path(source)
+    def __init__(self, source: Path):
+        self._path = source
 
         if not self._path.is_file() or not self._path.exists():
             raise FileNotFoundError(source)
@@ -653,7 +654,7 @@ class DBNStore:
             If an empty file is specified.
 
         """
-        return cls(FileDataSource(path))
+        return cls(FileDataSource(validate_path(path, "path")))
 
     @classmethod
     def from_bytes(cls, data: BytesIO | bytes | IO[bytes]) -> DBNStore:
