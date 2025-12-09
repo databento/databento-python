@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.68.0 - TBD
+## 0.68.0 - 2025-12-09
 
 This release adds support for Python 3.14.
 
