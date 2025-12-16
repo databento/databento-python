@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.69.0
+## 0.68.1 - 2025-12-16
 
 #### Enhancements
 - Improved the performance of `DBNStore.to_df()` symbol mapping
