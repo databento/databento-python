@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from typing import NamedTuple
 
 import databento_dbn
+import numpy as np
 import pandas as pd
 import pytest
 from databento_dbn import UNDEF_TIMESTAMP
@@ -57,7 +58,7 @@ def fixture_instrument_map() -> InstrumentMap:
 def fixture_start_date() -> pd.Timestamp:
     """
     Fixture for a start date. This is one day behind the date provided by the
-    `start_date` fixture.
+    `end_date` fixture.
 
     Returns
     -------
@@ -199,7 +200,10 @@ def test_instrument_map(
     Test the creation of an InstrumentMap.
     """
     # Arrange, Act, Assert
-    assert instrument_map._data == {}
+    assert len(instrument_map._starts) == 0
+    assert len(instrument_map._ends) == 0
+    assert len(instrument_map._instrument_ids) == 0
+    assert len(instrument_map._symbols) == 0
 
 
 @pytest.mark.parametrize(
@@ -323,7 +327,10 @@ def test_instrument_map_insert_metadata_empty_mappings(
     instrument_map.insert_metadata(metadata)
 
     # Assert
-    assert instrument_map._data == {}
+    assert len(instrument_map._starts) == 0
+    assert len(instrument_map._ends) == 0
+    assert len(instrument_map._instrument_ids) == 0
+    assert len(instrument_map._symbols) == 0
 
 
 @pytest.mark.parametrize(
@@ -570,7 +577,10 @@ def test_instrument_map_insert_symbology_response_empty_mapping(
     instrument_map.insert_json(sym_resp)
 
     # Assert
-    assert instrument_map._data == {}
+    assert len(instrument_map._starts) == 0
+    assert len(instrument_map._ends) == 0
+    assert len(instrument_map._instrument_ids) == 0
+    assert len(instrument_map._symbols) == 0
 
 
 @pytest.mark.parametrize(
@@ -709,7 +719,10 @@ def test_instrument_map_insert_json_str_empty_mapping(
     instrument_map.insert_json(json.dumps(sym_resp))
 
     # Assert
-    assert instrument_map._data == {}
+    assert len(instrument_map._starts) == 0
+    assert len(instrument_map._ends) == 0
+    assert len(instrument_map._instrument_ids) == 0
+    assert len(instrument_map._symbols) == 0
 
 
 @pytest.mark.parametrize(
@@ -793,13 +806,16 @@ def test_instrument_map_resolve_with_date(
     symbol = "test_1"
     instrument_id = 1234
 
-    instrument_map._data[instrument_id] = [
-        MappingInterval(
-            start_date=start_date.date(),
-            end_date=end_date.date(),
-            symbol=symbol,
-        ),
-    ]
+    instrument_map._insert_intervals(
+        [instrument_id],
+        [
+            MappingInterval(
+                start_date=start_date.date(),
+                end_date=end_date.date(),
+                symbol=symbol,
+            ),
+        ],
+    )
 
     # Assert
     assert (
@@ -811,42 +827,6 @@ def test_instrument_map_resolve_with_date(
     )
     assert instrument_map.resolve(instrument_id, start_date.date()) == symbol
     assert instrument_map.resolve(instrument_id, end_date.date()) is None
-
-
-def test_instrument_map_ignore_duplicate(
-    instrument_map: InstrumentMap,
-    start_date: pd.Timestamp,
-    end_date: pd.Timestamp,
-) -> None:
-    """
-    Test that a duplicate entry is not inserted into an InstrumentMap.
-    """
-    # Arrange, Act
-    symbol = "test_1"
-    instrument_id = 1234
-
-    instrument_map._data[instrument_id] = [
-        MappingInterval(
-            start_date=start_date.date(),
-            end_date=end_date.date(),
-            symbol=symbol,
-        ),
-    ]
-
-    # Act, Assert
-    assert len(instrument_map._data[instrument_id]) == 1
-
-    msg = create_symbol_mapping_message(
-        instrument_id=instrument_id,
-        stype_in_symbol=symbol,
-        stype_out_symbol=instrument_id,
-        start_ts=start_date,
-        end_ts=end_date,
-    )
-
-    instrument_map.insert_symbol_mapping_msg(msg)
-
-    assert len(instrument_map._data[instrument_id]) == 1
 
 
 @pytest.mark.parametrize(
@@ -1000,3 +980,77 @@ def test_insert_symbology_json_mismatched_stypes(
     # Assert
     assert store.to_df().iloc[0]["symbol"] == "NVDA"
     assert store.to_df().iloc[0]["instrument_id"] == 6155
+
+
+def test_instrument_map_resolve() -> None:
+    """
+    Test a synthetic symbology of symbols, resolving an instrument ID across
+    many dates where the symbol it points to rotates every day.
+    """
+    # Arrange
+    instrument_map = InstrumentMap()
+    start_date = pd.Timestamp("2020-01-01")
+    end_date = pd.Timestamp("2021-01-01")
+
+    instrument_ids = np.arange(100).astype("uint64")
+    symbols = instrument_ids.astype(str)
+    dates = pd.date_range(start_date, end_date, freq="D", inclusive="left").to_numpy(
+        "datetime64[D]",
+    )
+
+    # Act
+    for offset, date in enumerate(dates):
+        instrument_map._insert_intervals(
+            np.roll(instrument_ids, offset).tolist(),
+            [
+                MappingInterval(
+                    start_date=date,
+                    end_date=date + pd.Timedelta(days=1),
+                    symbol=symbol,
+                )
+                for symbol in symbols
+            ],
+        )
+
+    # Resolve instrument ID 1 on every date
+    resolve_many_result = instrument_map.resolve_many(
+        np.ones(dtype="uint64", shape=dates.shape),
+        dates,
+    )
+
+    # Assert
+    resolve_results = []
+    for date in dates:
+        resolve_results.append(instrument_map.resolve(1, date))
+
+    assert resolve_results == resolve_many_result.tolist()
+
+
+@pytest.mark.parametrize(
+    "dataset",
+    Dataset,
+)
+def test_instrument_map_resolve_definition(
+    test_data_path: Callable[[Dataset, Schema], pathlib.Path],
+    dataset: Dataset,
+) -> None:
+    """
+    Test that symbology resolved with `InstrumentMap.resolve()` and
+    `InstrumentMap.resolve_many()` agree and are both correct using stub
+    Definition data.
+    """
+    # Arrange
+    store = DBNStore.from_file(test_data_path(dataset, Schema.DEFINITION))
+    df = store.to_df(map_symbols=False)
+
+    # Act
+    instrument_ids = df["instrument_id"]
+    dates = df.index.date
+    expected = df["raw_symbol"]
+    resolve_many_result = store._instrument_map.resolve_many(instrument_ids, dates)
+
+    # Assert
+    assert (resolve_many_result == expected).all
+    for i, (instrument_id, date) in enumerate(zip(instrument_ids, dates)):
+        resolve_result = store._instrument_map.resolve(instrument_id, date)
+        assert resolve_many_result[i] == resolve_result
