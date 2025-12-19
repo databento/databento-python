@@ -17,6 +17,7 @@ dependencies = [
     "pip-system-certs>=4.0; platform_system == 'Windows'",
     "pyarrow>=13.0.0",
     "requests>=2.27.0",
+    "typing_extensions>=4.15.0",
     "zstandard>=0.21.0",
 ]
 
