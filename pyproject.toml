@@ -81,4 +81,3 @@ asyncio_mode = "auto"
 
 [tool.ruff]
 extend = "../ruff.toml"
-target-version = "py310"
