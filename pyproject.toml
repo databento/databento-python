@@ -1,6 +1,6 @@
 [project]
 name = "databento"
-version = "0.68.1"
+version = "0.68.2"
 description = "Official Python client library for Databento"
 readme = "README.md"
 requires-python = ">=3.10"
