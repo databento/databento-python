@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.68.2 - 2026-01-06
+
+#### Bug fixes
+- Fix use of `Self` in `GatewayControl.parse()`
+
 ## 0.68.1 - 2025-12-16
 
 #### Enhancements
