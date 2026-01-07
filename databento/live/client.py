@@ -57,7 +57,8 @@ class Live:
         gateway.
     heartbeat_interval_s: int, optional
         The interval in seconds at which the gateway will send heartbeat records if no
-        other data records are sent.
+        other data records are sent. By default heartbeats will be sent at the gateway's
+        default interval. Minimum interval is 5 seconds.
     reconnect_policy: ReconnectPolicy | str, optional
         The reconnect policy for the live session.
             - "none": the client will not reconnect (default)
