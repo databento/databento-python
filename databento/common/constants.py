@@ -4,6 +4,7 @@ import numpy as np
 from databento_dbn import BBOMsg
 from databento_dbn import CBBOMsg
 from databento_dbn import CMBP1Msg
+from databento_dbn import DBNRecord
 from databento_dbn import ImbalanceMsg
 from databento_dbn import InstrumentDefMsg
 from databento_dbn import MBOMsg
@@ -16,8 +17,6 @@ from databento_dbn import StatusMsg
 from databento_dbn import TradeMsg
 from databento_dbn import v1
 from databento_dbn import v2
-
-from databento.common.types import DBNRecord
 
 
 ALL_SYMBOLS: Final = "ALL_SYMBOLS"

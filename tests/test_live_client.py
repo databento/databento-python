@@ -15,6 +15,7 @@ from unittest.mock import MagicMock
 import databento_dbn
 import pytest
 import zstandard
+from databento_dbn import DBNRecord
 from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -25,7 +26,6 @@ from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
-from databento.common.types import DBNRecord
 from databento.live import client
 from databento.live import gateway
 from databento.live import protocol

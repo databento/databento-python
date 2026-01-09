@@ -14,6 +14,7 @@ from databento_dbn import CBBOMsg
 from databento_dbn import CMBP1Msg
 from databento_dbn import Compression
 from databento_dbn import ConsolidatedBidAskPair
+from databento_dbn import DBNRecord
 from databento_dbn import Encoding
 from databento_dbn import ErrorCode
 from databento_dbn import ErrorMsg
@@ -74,7 +75,6 @@ from databento.common.publishers import Dataset
 from databento.common.publishers import Publisher
 from databento.common.publishers import Venue
 from databento.common.symbology import InstrumentMap
-from databento.common.types import DBNRecord
 from databento.historical.client import Historical
 from databento.live.client import Live
 from databento.reference.client import Reference

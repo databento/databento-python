@@ -6,12 +6,12 @@ from unittest.mock import MagicMock
 
 import pandas as pd
 import pytest
+from databento_dbn import DBNRecord
 
 from databento import Dataset
 from databento import Schema
 from databento import SType
 from databento.common.enums import ReconnectPolicy
-from databento.common.types import DBNRecord
 from databento.live import client
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import SessionStart
