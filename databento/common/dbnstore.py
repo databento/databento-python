@@ -35,6 +35,7 @@ from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import UNDEF_PRICE
 from databento_dbn import Compression
 from databento_dbn import DBNDecoder
+from databento_dbn import DBNRecord
 from databento_dbn import Encoding
 from databento_dbn import InstrumentDefMsg
 from databento_dbn import InstrumentDefMsgV1
@@ -54,7 +55,6 @@ from databento.common.enums import PriceType
 from databento.common.error import BentoError
 from databento.common.error import BentoWarning
 from databento.common.symbology import InstrumentMap
-from databento.common.types import DBNRecord
 from databento.common.types import Default
 from databento.common.types import MappingIntervalDict
 from databento.common.validation import validate_enum

@@ -14,6 +14,7 @@ from typing import Final
 
 import databento_dbn
 import pandas as pd
+from databento_dbn import DBNRecord
 from databento_dbn import Schema
 from databento_dbn import SType
 
@@ -23,7 +24,6 @@ from databento.common.error import BentoError
 from databento.common.publishers import Dataset
 from databento.common.types import ClientRecordCallback
 from databento.common.types import ClientStream
-from databento.common.types import DBNRecord
 from databento.common.types import ExceptionCallback
 from databento.common.types import ReconnectCallback
 from databento.live.gateway import SubscriptionRequest

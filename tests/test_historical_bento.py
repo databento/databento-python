@@ -15,6 +15,7 @@ import pytest
 import pytz
 import zstandard
 from databento_dbn import Compression
+from databento_dbn import DBNRecord
 from databento_dbn import MBOMsg
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -26,7 +27,6 @@ from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
 from databento.common.error import BentoWarning
 from databento.common.publishers import Dataset
-from databento.common.types import DBNRecord
 
 
 def test_from_file_when_not_exists_raises_expected_exception() -> None:

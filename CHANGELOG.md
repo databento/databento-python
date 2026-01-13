@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.69.0 - 2026-01-13
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.46.0
+  - Added `DBNRecord` union type to Python which includes all record types
+  - Removed `Record` class from Python type stubs to match code: the record classes don't
+    share a base class. Use `DBNRecord` instead.
+
+#### Breaking changes
+- Removed `DBNRecord` union type from `databento.common.types`, use `databento_dbn.DBNRecord` instead
+
 ## 0.68.2 - 2026-01-06
 
 #### Bug fixes
