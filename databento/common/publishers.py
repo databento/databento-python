@@ -1116,6 +1116,8 @@ class Publisher(StringyMixin, str, Enum):
         European Energy Exchange EOBI - Off-Market Trades.
     XCBF_PITCH_XCBF
         Cboe Futures Exchange.
+    XCBF_PITCH_XOFF
+        Cboe Futures Exchange - Off-Market Trades.
 
     """
 
@@ -1224,6 +1226,7 @@ class Publisher(StringyMixin, str, Enum):
     XEUR_EOBI_XOFF = "XEUR.EOBI.XOFF"
     XEEE_EOBI_XOFF = "XEEE.EOBI.XOFF"
     XCBF_PITCH_XCBF = "XCBF.PITCH.XCBF"
+    XCBF_PITCH_XOFF = "XCBF.PITCH.XOFF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1440,6 +1443,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XEEE_EOBI_XOFF
         if value == 105:
             return Publisher.XCBF_PITCH_XCBF
+        if value == 106:
+            return Publisher.XCBF_PITCH_XOFF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1656,6 +1661,8 @@ class Publisher(StringyMixin, str, Enum):
             return 104
         if self == Publisher.XCBF_PITCH_XCBF:
             return 105
+        if self == Publisher.XCBF_PITCH_XOFF:
+            return 106
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1873,6 +1880,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XOFF
         if self == Publisher.XCBF_PITCH_XCBF:
             return Venue.XCBF
+        if self == Publisher.XCBF_PITCH_XOFF:
+            return Venue.XOFF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2089,6 +2098,8 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XEEE_EOBI_XOFF:
             return Dataset.XEEE_EOBI
         if self == Publisher.XCBF_PITCH_XCBF:
+            return Dataset.XCBF_PITCH
+        if self == Publisher.XCBF_PITCH_XOFF:
             return Dataset.XCBF_PITCH
         raise ValueError("Unexpected Publisher value")
 
@@ -2307,4 +2318,6 @@ class Publisher(StringyMixin, str, Enum):
             return "European Energy Exchange EOBI - Off-Market Trades"
         if self == Publisher.XCBF_PITCH_XCBF:
             return "Cboe Futures Exchange"
+        if self == Publisher.XCBF_PITCH_XOFF:
+            return "Cboe Futures Exchange - Off-Market Trades"
         raise ValueError("Unexpected Publisher value")
