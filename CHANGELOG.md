@@ -4,6 +4,11 @@
 
 #### Enhancements
 - Added new off-market publisher for Cboe Futures Exchange (`XCBF_PITCH_XOFF`)
+- Added new `StatType` variants to be used by `XCBF.PITCH` dataset:
+  - `UPPER_PRICE_LIMIT`
+  - `LOWER_PRICE_LIMIT`
+  - `BLOCK_VOLUME`
+  - `VENUE_SPECIFIC_VOLUME_1`
 
 ## 0.69.0 - 2026-01-13
 
