@@ -16,6 +16,7 @@ from databento_dbn import VersionUpgradePolicy
 
 from databento.common import cram
 from databento.common.constants import ALL_SYMBOLS
+from databento.common.enums import SlowReadBehavior
 from databento.common.error import BentoError
 from databento.common.iterator import chunk
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
@@ -73,6 +74,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         dataset: Dataset | str,
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
+        slow_reader_behavior: SlowReadBehavior | str | None = None,
     ) -> None:
         self.__api_key = api_key
         self.__transport: asyncio.Transport | None = None
@@ -81,6 +83,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         self._dataset = validate_semantic_string(dataset, "dataset")
         self._ts_out = ts_out
         self._heartbeat_interval_s = heartbeat_interval_s
+        self._slow_reader_behavior: SlowReadBehavior | str | None = slow_reader_behavior
 
         self._dbn_decoder = databento_dbn.DBNDecoder(
             upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V3,
@@ -441,6 +444,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             dataset=self._dataset,
             ts_out=str(int(self._ts_out)),
             heartbeat_interval_s=self._heartbeat_interval_s,
+            slow_reader_behavior=self._slow_reader_behavior,
         )
         logger.debug(
             "sending CRAM challenge response auth='%s' dataset=%s encoding=%s ts_out=%s heartbeat_interval_s=%s client='%s'",

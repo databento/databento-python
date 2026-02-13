@@ -24,6 +24,7 @@ from databento.common.constants import ALL_SYMBOLS
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.dbnstore import DBNStore
+from databento.common.enums import SlowReadBehavior
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
 from databento.live import client
@@ -329,6 +330,50 @@ async def test_live_connect_auth_with_heartbeat_interval(
     assert message.dataset == live_client.dataset
     assert message.encoding == Encoding.DBN
     assert message.heartbeat_interval_s == "10"
+
+
+@pytest.mark.parametrize(
+    "slow_reader_behavior",
+    [b for b in SlowReadBehavior],
+)
+async def test_live_connect_auth_with_slow_reader_behavior(
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
+    slow_reader_behavior: SlowReadBehavior,
+) -> None:
+    """
+    Test that setting `slow_reader_behavior` on a Live client sends that field
+    to the gateway.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        heartbeat_interval_s=10,
+        slow_reader_behavior=slow_reader_behavior,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    # Act
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
+    )
+
+    # Assert
+    assert message.auth.endswith(live_client.key[-BUCKET_ID_LENGTH:])
+    assert message.dataset == live_client.dataset
+    assert message.encoding == Encoding.DBN
+
+    # Temporary handling of renamed variant
+    if slow_reader_behavior == SlowReadBehavior.SKIP:
+        assert message.slow_reader_behavior == "drop"
+    else:
+        assert message.slow_reader_behavior == slow_reader_behavior
 
 
 async def test_live_connect_auth_two_clients(

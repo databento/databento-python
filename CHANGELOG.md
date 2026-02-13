@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.71.0 - TBD
+
+#### Enhancements
+- Added `slow_reader_behavior` field to `AuthenticationRequest` message
+- Added `SlowReadBehavior` enum
+
 ## 0.70.0 - 2026-01-27
 
 #### Enhancements

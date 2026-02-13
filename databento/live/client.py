@@ -21,6 +21,7 @@ from databento_dbn import SType
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.enums import ReconnectPolicy
+from databento.common.enums import SlowReadBehavior
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
@@ -63,6 +64,10 @@ class Live:
         The reconnect policy for the live session.
             - "none": the client will not reconnect (default)
             - "reconnect": the client will reconnect automatically
+    slow_reader_behavior: SlowReadBehavior | str, optional
+        The live gateway behavior when the client falls behind real time.
+            - "skip": skip records to immediately catch up
+            - "warn": send a slow reader warning `SystemMsg` but continue reading every record
 
     """
 
@@ -82,6 +87,7 @@ class Live:
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
         reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
+        slow_reader_behavior: SlowReadBehavior | str | None = None,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -112,6 +118,7 @@ class Live:
             user_gateway=self._gateway,
             user_port=port,
             reconnect_policy=reconnect_policy,
+            slow_reader_behavior=slow_reader_behavior,
         )
 
         self._session._user_callbacks.append(ClientRecordCallback(self._map_symbol))
