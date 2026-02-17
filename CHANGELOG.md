@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.71.0 - TBD
+## 0.71.0 - 2026-02-17
 
 #### Enhancements
 - Added `slow_reader_behavior` field to `AuthenticationRequest` message
