@@ -7,6 +7,7 @@ from operator import attrgetter
 from typing import SupportsBytes
 from typing import TypeVar
 
+from databento_dbn import Compression
 from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -118,6 +119,7 @@ class AuthenticationRequest(GatewayControl):
     encoding: Encoding = Encoding.DBN
     details: str | None = None
     ts_out: str = "0"
+    compression: Compression | str = Compression.NONE
     heartbeat_interval_s: int | None = None
     slow_reader_behavior: SlowReaderBehavior | str | None = None
     client: str = USER_AGENT

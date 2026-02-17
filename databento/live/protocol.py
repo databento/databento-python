@@ -7,6 +7,7 @@ from functools import singledispatchmethod
 from typing import Final
 
 import databento_dbn
+from databento_dbn import Compression
 from databento_dbn import DBNRecord
 from databento_dbn import Metadata
 from databento_dbn import Schema
@@ -61,6 +62,8 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     heartbeat_interval_s: int, optional
         The interval in seconds at which the gateway will send heartbeat records if no
         other data records are sent.
+    compression : Compression, default Compression.NONE
+        The compression format for the session.
 
     See Also
     --------
@@ -75,6 +78,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
         slow_reader_behavior: SlowReaderBehavior | str | None = None,
+        compression: Compression = Compression.NONE,
     ) -> None:
         self.__api_key = api_key
         self.__transport: asyncio.Transport | None = None
@@ -84,9 +88,11 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         self._ts_out = ts_out
         self._heartbeat_interval_s = heartbeat_interval_s
         self._slow_reader_behavior: SlowReaderBehavior | str | None = slow_reader_behavior
+        self._compression = compression
 
         self._dbn_decoder = databento_dbn.DBNDecoder(
             upgrade_policy=VersionUpgradePolicy.UPGRADE_TO_V3,
+            compression=compression,
         )
         self._gateway_decoder = GatewayDecoder()
 
@@ -443,15 +449,17 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             auth=response,
             dataset=self._dataset,
             ts_out=str(int(self._ts_out)),
+            compression=str(self._compression).lower(),
             heartbeat_interval_s=self._heartbeat_interval_s,
             slow_reader_behavior=self._slow_reader_behavior,
         )
         logger.debug(
-            "sending CRAM challenge response auth='%s' dataset=%s encoding=%s ts_out=%s heartbeat_interval_s=%s client='%s'",
+            "sending CRAM challenge response auth='%s' dataset=%s encoding=%s ts_out=%s compression=%s heartbeat_interval_s=%s client='%s'",
             auth_request.auth,
             auth_request.dataset,
             auth_request.encoding,
             auth_request.ts_out,
+            auth_request.compression,
             auth_request.heartbeat_interval_s,
             auth_request.client,
         )

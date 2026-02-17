@@ -14,6 +14,7 @@ from typing import Final
 
 import databento_dbn
 import pandas as pd
+from databento_dbn import Compression
 from databento_dbn import DBNRecord
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -207,8 +208,16 @@ class _SessionProtocol(DatabentoLiveProtocol):
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
         slow_reader_behavior: SlowReaderBehavior | str | None = None,
+        compression: Compression = Compression.NONE,
     ):
-        super().__init__(api_key, dataset, ts_out, heartbeat_interval_s, slow_reader_behavior)
+        super().__init__(
+            api_key,
+            dataset,
+            ts_out,
+            heartbeat_interval_s,
+            slow_reader_behavior,
+            compression,
+        )
 
         self._dbn_queue = dbn_queue
         self._loop = loop
@@ -304,6 +313,8 @@ class LiveSession:
         The reconnect policy for the live session.
             - "none": the client will not reconnect (default)
             - "reconnect": the client will reconnect automatically
+    compression : Compression, optional
+        The compression format for the session. Defaults to no compression.
     """
 
     def __init__(
@@ -316,6 +327,7 @@ class LiveSession:
         user_port: int = DEFAULT_REMOTE_PORT,
         reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
         slow_reader_behavior: SlowReaderBehavior | str | None = None,
+        compression: Compression = Compression.NONE,
     ) -> None:
         self._dbn_queue = DBNQueue()
         self._lock = threading.RLock()
@@ -333,6 +345,7 @@ class LiveSession:
         self._ts_out = ts_out
         self._heartbeat_interval_s = heartbeat_interval_s or 30
         self._slow_reader_behavior = slow_reader_behavior
+        self._compression = compression
 
         self._protocol: _SessionProtocol | None = None
         self._transport: asyncio.Transport | None = None
@@ -584,6 +597,7 @@ class LiveSession:
             ts_out=self.ts_out,
             heartbeat_interval_s=self.heartbeat_interval_s,
             slow_reader_behavior=self._slow_reader_behavior,
+            compression=self._compression,
         )
 
     def _connect(
