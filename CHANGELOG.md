@@ -5,6 +5,8 @@
 #### Enhancements
 - Added `slow_reader_behavior` field to `AuthenticationRequest` message
 - Added `SlowReadBehavior` enum
+- Upgraded `databento-dbn` to 0.49.0:
+  - Added support for decompressing Zstd in the Python `DBNDecoder` and new optional `compression` parameter
 
 ## 0.70.0 - 2026-01-27
 
