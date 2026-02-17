@@ -21,7 +21,7 @@ from databento_dbn import SType
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.enums import ReconnectPolicy
-from databento.common.enums import SlowReadBehavior
+from databento.common.enums import SlowReaderBehavior
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
@@ -87,7 +87,7 @@ class Live:
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
         reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
-        slow_reader_behavior: SlowReadBehavior | str | None = None,
+        slow_reader_behavior: SlowReaderBehavior | str | None = None,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")

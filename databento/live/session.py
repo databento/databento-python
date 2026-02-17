@@ -20,7 +20,7 @@ from databento_dbn import SType
 
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.enums import ReconnectPolicy
-from databento.common.enums import SlowReadBehavior
+from databento.common.enums import SlowReaderBehavior
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
 from databento.common.types import ClientRecordCallback
@@ -206,7 +206,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         metadata: SessionMetadata,
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
-        slow_reader_behavior: SlowReadBehavior | str | None = None,
+        slow_reader_behavior: SlowReaderBehavior | str | None = None,
     ):
         super().__init__(api_key, dataset, ts_out, heartbeat_interval_s, slow_reader_behavior)
 
@@ -315,7 +315,7 @@ class LiveSession:
         user_gateway: str | None = None,
         user_port: int = DEFAULT_REMOTE_PORT,
         reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
-        slow_reader_behavior: SlowReadBehavior | str | None = None,
+        slow_reader_behavior: SlowReaderBehavior | str | None = None,
     ) -> None:
         self._dbn_queue = DBNQueue()
         self._lock = threading.RLock()

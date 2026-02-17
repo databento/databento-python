@@ -11,7 +11,7 @@ from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
 
-from databento.common.enums import SlowReadBehavior
+from databento.common.enums import SlowReaderBehavior
 from databento.common.publishers import Dataset
 from databento.common.system import USER_AGENT
 
@@ -119,12 +119,12 @@ class AuthenticationRequest(GatewayControl):
     details: str | None = None
     ts_out: str = "0"
     heartbeat_interval_s: int | None = None
-    slow_reader_behavior: SlowReadBehavior | str | None = None
+    slow_reader_behavior: SlowReaderBehavior | str | None = None
     client: str = USER_AGENT
 
     def __post_init__(self) -> None:
         # Temporary work around for LSG support
-        if self.slow_reader_behavior in [SlowReadBehavior.SKIP, "skip"]:
+        if self.slow_reader_behavior in [SlowReaderBehavior.SKIP, "skip"]:
             self.slow_reader_behavior = "drop"
 
 

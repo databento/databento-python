@@ -260,7 +260,7 @@ class JobState(StringyMixin, str, Enum):
 
 
 @unique
-class SlowReadBehavior(StringyMixin, str, Enum):
+class SlowReaderBehavior(StringyMixin, str, Enum):
     """
     Live session parameter which controls gateway behavior when the client
     falls behind real time.
