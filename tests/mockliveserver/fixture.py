@@ -70,13 +70,14 @@ class MockLiveServerInterface:
     async def _send_command(
         self,
         command: str,
-        timeout: float = 1.0,
+        timeout: float = 10.0,
     ) -> None:
         if self._process.stdin is None:
             raise RuntimeError("cannot write command to mock live server")
         self._process.stdin.write(
             f"{command.strip()}\n".encode(),
         )
+        await self._process.stdin.drain()
 
         try:
             line = await asyncio.wait_for(self.stdout.readline(), timeout)
