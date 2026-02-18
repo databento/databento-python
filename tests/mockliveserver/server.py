@@ -13,6 +13,8 @@ from io import FileIO
 from typing import Any
 from typing import Final
 
+import zstandard
+from databento_dbn import Compression
 from databento_dbn import Schema
 
 from databento.common import cram
@@ -79,6 +81,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self._data = BytesIO()
         self._state = SessionState.NEW
         self._dataset: Dataset | None = None
+        self._compression: Compression = Compression.NONE
         self._subscriptions: list[SubscriptionRequest] = []
         self._replay_tasks: set[asyncio.Task[None]] = set()
 
@@ -194,6 +197,13 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
 
         self.state = SessionState.AUTHENTICATED
         self._dataset = Dataset(message.dataset)
+        # Parse compression from the auth request
+        compression_str = getattr(message, "compression", "none")
+        if compression_str == "zstd":
+            self._compression = Compression.ZSTD
+        else:
+            self._compression = Compression.NONE
+        logger.debug("client requested compression=%s", compression_str)
         self.send_gateway_message(
             self.get_authentication_response(
                 success=True,
@@ -297,6 +307,11 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
             self.hangup(reason="all replay tasks completed")
 
     async def _file_replay_task(self) -> None:
+        compressor = None
+        if self._compression == Compression.ZSTD:
+            compressor = zstandard.ZstdCompressor()
+            cctx = compressor.compressobj()
+
         for subscription in self._subscriptions:
             schema = (
                 Schema.from_str(subscription.schema)
@@ -304,8 +319,25 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
                 else subscription.schema
             )
             replay = self._file_replay_table[(self.dataset, schema)]
-            logger.info("starting replay %s for %s", replay.name, self.peer)
+            logger.info(
+                "starting replay %s for %s (compression=%s)",
+                replay.name,
+                self.peer,
+                self._compression,
+            )
             for chunk in replay:
-                self.transport.write(chunk)
+                if compressor is not None:
+                    compressed = cctx.compress(chunk)
+                    if compressed:
+                        self.transport.write(compressed)
+                else:
+                    self.transport.write(chunk)
                 await asyncio.sleep(0)
+
+            # Flush remaining compressed data
+            if compressor is not None:
+                remaining = cctx.flush()
+                if remaining:
+                    self.transport.write(remaining)
+
             logger.info("replay of %s completed for %s", replay.name, self.peer)

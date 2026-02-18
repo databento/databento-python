@@ -257,3 +257,14 @@ class JobState(StringyMixin, str, Enum):
     PROCESSING = "processing"
     DONE = "done"
     EXPIRED = "expired"
+
+
+@unique
+class SlowReaderBehavior(StringyMixin, str, Enum):
+    """
+    Live session parameter which controls gateway behavior when the client
+    falls behind real time.
+    """
+
+    SKIP = "skip"
+    WARN = "warn"

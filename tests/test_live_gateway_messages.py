@@ -93,7 +93,7 @@ def test_parse_authentication_request(
                 dataset=Dataset.GLBX_MDP3,
                 client="unittest",
             ),
-            b"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=0|client=unittest\n",
+            b"auth=abcd1234|dataset=GLBX.MDP3|encoding=dbn|ts_out=0|compression=none|client=unittest\n",
         ),
         pytest.param(
             AuthenticationRequest(
@@ -103,7 +103,16 @@ def test_parse_authentication_request(
                 client="unittest",
                 heartbeat_interval_s=35,
             ),
-            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1|heartbeat_interval_s=35|client=unittest\n",
+            b"auth=abcd1234|dataset=XNAS.ITCH|encoding=dbn|ts_out=1|compression=none|heartbeat_interval_s=35|client=unittest\n",
+        ),
+        pytest.param(
+            AuthenticationRequest(
+                auth="abc",
+                dataset=Dataset.OPRA_PILLAR,
+                compression="zstd",
+                client="Databento",
+            ),
+            b"auth=abc|dataset=OPRA.PILLAR|encoding=dbn|ts_out=0|compression=zstd|client=Databento\n",
         ),
     ],
 )

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.71.0 - 2026-02-17
+
+#### Enhancements
+- Added `slow_reader_behavior` field to `AuthenticationRequest` message
+- Added `SlowReaderBehavior` enum
+- Added support for using compression in the live API:
+  - Added `compression` parameter to the `Live` client constructor
+  - Added `compression` property to the `Live` client
+  - Added `compression` field to `AuthenticationRequest`
+- Upgraded `databento-dbn` to 0.49.0:
+  - Added support for decompressing Zstd in the Python `DBNDecoder` and new optional `compression` parameter
+
 ## 0.70.0 - 2026-01-27
 
 #### Enhancements

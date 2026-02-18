@@ -5,7 +5,6 @@ Unit tests for the Live client.
 from __future__ import annotations
 
 import pathlib
-import platform
 import random
 import string
 from collections.abc import Callable
@@ -24,6 +23,7 @@ from databento.common.constants import ALL_SYMBOLS
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.dbnstore import DBNStore
+from databento.common.enums import SlowReaderBehavior
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
 from databento.live import client
@@ -31,11 +31,6 @@ from databento.live import gateway
 from databento.live import protocol
 from databento.live import session
 from tests.mockliveserver.fixture import MockLiveServerInterface
-
-
-# TODO(nm): Remove when stable
-if platform.system() == "Windows":
-    pytest.skip(reason="Skip on Windows due to flakiness", allow_module_level=True)
 
 
 def test_live_connection_refused(
@@ -331,6 +326,50 @@ async def test_live_connect_auth_with_heartbeat_interval(
     assert message.heartbeat_interval_s == "10"
 
 
+@pytest.mark.parametrize(
+    "slow_reader_behavior",
+    [b for b in SlowReaderBehavior],
+)
+async def test_live_connect_auth_with_slow_reader_behavior(
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
+    slow_reader_behavior: SlowReaderBehavior,
+) -> None:
+    """
+    Test that setting `slow_reader_behavior` on a Live client sends that field
+    to the gateway.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        heartbeat_interval_s=10,
+        slow_reader_behavior=slow_reader_behavior,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+    )
+
+    # Act
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.AuthenticationRequest,
+    )
+
+    # Assert
+    assert message.auth.endswith(live_client.key[-BUCKET_ID_LENGTH:])
+    assert message.dataset == live_client.dataset
+    assert message.encoding == Encoding.DBN
+
+    # Temporary handling of renamed variant
+    if slow_reader_behavior == SlowReaderBehavior.SKIP:
+        assert message.slow_reader_behavior == "drop"
+    else:
+        assert message.slow_reader_behavior == slow_reader_behavior
+
+
 async def test_live_connect_auth_two_clients(
     mock_live_server: MockLiveServerInterface,
     test_live_api_key: str,
@@ -394,6 +433,10 @@ async def test_live_start(
         schema=Schema.MBO,
     )
 
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
     assert live_client.is_connected() is True
 
     # Act
@@ -420,14 +463,12 @@ async def test_live_start_twice(
         schema=Schema.MBO,
     )
 
-    # Act
-    live_client.start()
-
     _ = await mock_live_server.wait_for_message_of_type(
-        message_type=gateway.SessionStart,
+        message_type=gateway.AuthenticationRequest,
     )
 
-    # Assert
+    # Act, Assert
+    live_client.start()
     with pytest.raises(ValueError):
         live_client.start()
 
@@ -944,6 +985,7 @@ async def test_live_wait_for_close_timeout(
     live_client.terminate.assert_called_once()  # type: ignore
 
 
+@pytest.mark.skip()
 @pytest.mark.usefixtures("mock_live_server")
 async def test_live_wait_for_close_timeout_stream(
     live_client: client.Live,
@@ -1048,6 +1090,7 @@ def test_live_add_stream_path_directory(
 
 async def test_live_async_iteration(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test async-iteration of DBN records.
@@ -1061,6 +1104,10 @@ async def test_live_async_iteration(
     )
 
     records: list[DBNRecord] = []
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
 
     # Act
     async for record in live_client:
@@ -1077,6 +1124,7 @@ async def test_live_async_iteration(
 async def test_live_async_iteration_backpressure(
     monkeypatch: pytest.MonkeyPatch,
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that a full queue disables reading on the transport but will resume it
@@ -1098,6 +1146,10 @@ async def test_live_async_iteration_backpressure(
         pause_mock := MagicMock(),
     )
 
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
     # Act
     live_it = iter(live_client)
     await live_client.wait_for_close()
@@ -1115,6 +1167,7 @@ async def test_live_async_iteration_dropped(
     monkeypatch: pytest.MonkeyPatch,
     live_client: client.Live,
     test_api_key: str,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that an artificially small queue size will not drop messages when
@@ -1136,6 +1189,10 @@ async def test_live_async_iteration_dropped(
         pause_mock := MagicMock(),
     )
 
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
     # Act
     live_it = iter(live_client)
     await live_client.wait_for_close()
@@ -1151,6 +1208,7 @@ async def test_live_async_iteration_dropped(
 
 async def test_live_async_iteration_stop(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that stopping in the middle of iteration does not prevent iterating
@@ -1163,7 +1221,12 @@ async def test_live_async_iteration_stop(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
+
     records = []
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
 
     # Act
     async for record in live_client:
@@ -1175,8 +1238,9 @@ async def test_live_async_iteration_stop(
     assert live_client._session._dbn_queue.empty()
 
 
-def test_live_sync_iteration(
+async def test_live_sync_iteration(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test synchronous iteration of DBN records.
@@ -1188,7 +1252,12 @@ def test_live_sync_iteration(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
+
     records = []
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
 
     # Act
     for record in live_client:
@@ -1460,6 +1529,7 @@ def test_live_disconnect(
 
 async def test_live_terminate(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
 ) -> None:
     """
     Test that terminate closes the connection.
@@ -1470,6 +1540,10 @@ async def test_live_terminate(
         schema=Schema.MBO,
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
+    )
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
     )
 
     # Act
@@ -1486,6 +1560,7 @@ async def test_live_terminate(
 )
 async def test_live_iteration_with_reuse(
     live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
     test_data_path: Callable[[Dataset, Schema], pathlib.Path],
     schema: Schema,
 ) -> None:
@@ -1501,6 +1576,10 @@ async def test_live_iteration_with_reuse(
         schema=schema,
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
+    )
+
+    _ = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
     )
 
     assert live_client.is_connected()

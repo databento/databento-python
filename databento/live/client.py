@@ -14,6 +14,7 @@ from typing import IO
 
 import databento_dbn
 import pandas as pd
+from databento_dbn import Compression
 from databento_dbn import DBNRecord
 from databento_dbn import Schema
 from databento_dbn import SType
@@ -21,6 +22,7 @@ from databento_dbn import SType
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.cram import BUCKET_ID_LENGTH
 from databento.common.enums import ReconnectPolicy
+from databento.common.enums import SlowReaderBehavior
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
@@ -63,6 +65,13 @@ class Live:
         The reconnect policy for the live session.
             - "none": the client will not reconnect (default)
             - "reconnect": the client will reconnect automatically
+    slow_reader_behavior: SlowReadBehavior | str, optional
+        The live gateway behavior when the client falls behind real time.
+            - "skip": skip records to immediately catch up
+            - "warn": send a slow reader warning `SystemMsg` but continue reading every record
+    compression : Compression or str, default "none"
+        The compression format for live data. Set to "zstd" for
+        Zstandard-compressed data from the gateway.
 
     """
 
@@ -82,6 +91,8 @@ class Live:
         ts_out: bool = False,
         heartbeat_interval_s: int | None = None,
         reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
+        slow_reader_behavior: SlowReaderBehavior | str | None = None,
+        compression: Compression = Compression.NONE,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -99,6 +110,7 @@ class Live:
 
         self._dataset: Dataset | str = ""
         self._ts_out = ts_out
+        self._compression = compression
         self._heartbeat_interval_s = heartbeat_interval_s
 
         self._metadata: SessionMetadata = SessionMetadata()
@@ -112,6 +124,8 @@ class Live:
             user_gateway=self._gateway,
             user_port=port,
             reconnect_policy=reconnect_policy,
+            slow_reader_behavior=slow_reader_behavior,
+            compression=compression,
         )
 
         self._session._user_callbacks.append(ClientRecordCallback(self._map_symbol))
@@ -290,6 +304,18 @@ class Live:
 
         """
         return self._ts_out
+
+    @property
+    def compression(self) -> Compression:
+        """
+        Returns the compression mode for this live client.
+
+        Returns
+        -------
+        Compression
+
+        """
+        return self._compression
 
     def add_callback(
         self,
