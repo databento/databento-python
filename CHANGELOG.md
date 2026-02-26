@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.72.0 - 2026-02-26
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.50.0:
+  - Added `SkippedRecordsAfterSlowReading` to the `ErrorCode` enum for gateway errors originating
+    from slow client catch-up.
+
 ## 0.71.0 - 2026-02-17
 
 #### Enhancements
