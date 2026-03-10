@@ -363,11 +363,7 @@ async def test_live_connect_auth_with_slow_reader_behavior(
     assert message.dataset == live_client.dataset
     assert message.encoding == Encoding.DBN
 
-    # Temporary handling of renamed variant
-    if slow_reader_behavior == SlowReaderBehavior.SKIP:
-        assert message.slow_reader_behavior == "drop"
-    else:
-        assert message.slow_reader_behavior == slow_reader_behavior
+    assert message.slow_reader_behavior == slow_reader_behavior
 
 
 async def test_live_connect_auth_two_clients(

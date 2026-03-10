@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.74.0 - TBD
+
+#### Enhancements
+- Changed `SlowReaderBehavior.SKIP` to send "skip" instead of "drop" to the gateway
+
 ## 0.73.0 - 2026-03-10
 
 #### Enhancements
