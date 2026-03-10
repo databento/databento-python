@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.73.0 - 2026-03-10
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.51.0:
+  - Added logic to set `code` when upgrading version 1 `ErrorMsg` to newer versions
+
 ## 0.72.0 - 2026-02-26
 
 #### Enhancements
