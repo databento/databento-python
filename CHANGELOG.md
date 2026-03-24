@@ -1,15 +1,17 @@
 # Changelog
 
-## 0.74.0 - TBD
+## 0.74.0 - 2026-03-24
 
 #### Enhancements
-- Changed default of `Live` client `slow_reader_behavior` to `SlowReaderBehavior.SKIP` instead of `SlowReaderBehavior.DROP`
 - Upgraded `databento-dbn` to 0.52.0:
   - Added `SYMBOL_CSTR_LEN` constant and versioned variants (`SYMBOL_CSTR_LEN_V1`,
     `SYMBOL_CSTR_LEN_V2`, `SYMBOL_CSTR_LEN_V3`) to Python, including in each versioned
     module (`v1`, `v2`, `v3`) as `SYMBOL_CSTR_LEN`
   - Added `v1`, `v2`, and `v3` submodule imports to `databento_dbn.__init__` so they are
     accessible as attributes (e.g. `databento_dbn.v1`)
+
+#### Breaking changes
+- Changed default of `Live` client `slow_reader_behavior` to `SlowReaderBehavior.SKIP` instead of `SlowReaderBehavior.DROP`
 
 ## 0.73.0 - 2026-03-10
 
