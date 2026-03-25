@@ -32,7 +32,7 @@ The library is fully compatible with distributions of Anaconda 2023.x and above.
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
 - python = "^3.10"
 - aiohttp = "^3.8.3"
-- databento-dbn = "~0.51.0"
+- databento-dbn = "~0.52.0"
 - numpy = ">=1.23.5"
 - pandas = ">=1.5.3"
 - pip-system-certs = ">=4.0" (Windows only)
@@ -49,7 +49,7 @@ To install the latest stable version of the package from PyPI:
 The library needs to be configured with an API key from your account.
 [Sign up](https://databento.com/signup) for free and you will automatically
 receive a set of API keys to start with. Each API key is a 32-character
-string starting with `db-`, that can be found on the API Keys page of your [Databento user portal](https://databento.com/platform/keys).
+string starting with `db-`, that can be found on the API Keys page of your [Databento user portal](https://databento.com/portal/keys).
 
 A simple Databento application looks like this:
 

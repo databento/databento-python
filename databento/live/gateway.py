@@ -124,11 +124,6 @@ class AuthenticationRequest(GatewayControl):
     slow_reader_behavior: SlowReaderBehavior | str | None = None
     client: str = USER_AGENT
 
-    def __post_init__(self) -> None:
-        # Temporary work around for LSG support
-        if self.slow_reader_behavior in [SlowReaderBehavior.SKIP, "skip"]:
-            self.slow_reader_behavior = "drop"
-
 
 @dataclasses.dataclass
 class SubscriptionRequest(GatewayControl):
