@@ -383,12 +383,18 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             raise
         else:
             for record in records:
-                logger.debug("dispatching %s", type(record).__name__)
-                if isinstance(record, databento_dbn.Metadata):
-                    self.received_metadata(record)
-                    continue
-                self._handle_control_record(record)
-                self.received_record(record)
+                self._dispatch_decoded_record(record)
+
+    def _dispatch_decoded_record(self, record: DBNRecord | Metadata) -> None:
+        """
+        Route a single decoded record to the appropriate handler.
+        """
+        logger.debug("dispatching %s", type(record).__name__)
+        if isinstance(record, databento_dbn.Metadata):
+            self.received_metadata(record)
+        else:
+            self._handle_control_record(record)
+            self.received_record(record)
 
     def _handle_control_record(self, record: DBNRecord) -> None:
         """

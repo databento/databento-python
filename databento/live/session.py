@@ -270,9 +270,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
             raise
 
         for record in records:
-            if isinstance(record, databento_dbn.Metadata):
-                self.received_metadata(record)
-            elif isinstance(record, bytes):
+            if isinstance(record, bytes):
                 # Data record as raw bytes, no Python object creation.
                 logger.debug("dispatching raw data record")
                 self._dispatch_raw_callbacks(record)
@@ -280,10 +278,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
                 self._last_ts_event = struct.unpack_from("<Q", record, 8)[0]
                 self._last_msg_loop_time = self._loop.time()
             else:
-                # Control record (ErrorMsg, SystemMsg, SymbolMappingMsg).
-                logger.debug("dispatching %s", type(record).__name__)
-                self._handle_control_record(record)
-                self.received_record(record)
+                self._dispatch_decoded_record(record)
 
     def _dispatch_raw_callbacks(self, raw: bytes) -> None:
         for callback in self._raw_callbacks:

@@ -265,40 +265,17 @@ class ClientRecordCallback:
                 )
 
 
-class ClientRawRecordCallback:
+class ClientRawRecordCallback(ClientRecordCallback):
     def __init__(
         self,
         fn: RawRecordCallback,
         exc_fn: ExceptionCallback | None = None,
         max_warnings: int = 10,
     ) -> None:
-        if not callable(fn):
-            raise ValueError(f"{fn} is not callable")
-        if exc_fn is not None and not callable(exc_fn):
-            raise ValueError(f"{exc_fn} is not callable")
+        super().__init__(fn=fn, exc_fn=exc_fn, max_warnings=max_warnings)  # type: ignore [arg-type]
 
-        self._fn = fn
-        self._exc_fn = exc_fn
-        self._max_warnings = max(0, max_warnings)
-        self._warning_count = 0
-
-    @property
-    def callback_name(self) -> str:
-        return getattr(self._fn, "__name__", str(self._fn))
-
-    def call(self, raw: bytes) -> None:
-        try:
-            self._fn(raw)
-        except Exception as exc:
-            if self._exc_fn is None:
-                logger.warning(
-                    "raw callback '%s' encountered an exception without an exception callback: %r",
-                    self.callback_name,
-                    exc,
-                )
-            else:
-                try:
-                    self._exc_fn(exc)
-                except Exception as inner_exc:
-                    raise inner_exc from exc
-            raise exc
+    def call(self, raw: bytes) -> None:  # type: ignore [override]
+        """
+        Execute the callback, passing raw bytes.
+        """
+        super().call(raw)  # type: ignore [arg-type]
