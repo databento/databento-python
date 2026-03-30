@@ -364,10 +364,8 @@ class Live:
         """
         Add a callback for handling records as raw bytes.
 
-        Unlike `add_callback`, this receives each record as a raw `bytes` object
-        without boxing into a Python record type. This avoids CPython memory arena
-        accumulation at high message rates and is the preferred path for consumers
-        that immediately re-serialize the data (e.g. pass to a native encoder).
+        Unlike `add_callback`, this receives each record as raw `bytes`.
+        No Python objects are created, avoiding overhead and memory issues.
 
         Parameters
         ----------
