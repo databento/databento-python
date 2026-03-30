@@ -24,9 +24,11 @@ from databento.common.enums import ReconnectPolicy
 from databento.common.enums import SlowReaderBehavior
 from databento.common.error import BentoError
 from databento.common.publishers import Dataset
+from databento.common.types import ClientRawRecordCallback
 from databento.common.types import ClientRecordCallback
 from databento.common.types import ClientStream
 from databento.common.types import ExceptionCallback
+from databento.common.types import RawRecordCallback
 from databento.common.types import ReconnectCallback
 from databento.live.gateway import SubscriptionRequest
 from databento.live.protocol import DatabentoLiveProtocol
@@ -209,6 +211,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         heartbeat_interval_s: int | None = None,
         slow_reader_behavior: SlowReaderBehavior | str | None = None,
         compression: Compression = Compression.NONE,
+        raw_callbacks: list[ClientRawRecordCallback] | None = None,
     ):
         super().__init__(
             api_key,
@@ -224,6 +227,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._metadata: SessionMetadata = metadata
         self._user_callbacks = user_callbacks
         self._user_streams = user_streams
+        self._raw_callbacks: list[ClientRawRecordCallback] = raw_callbacks if raw_callbacks is not None else []
         self._last_ts_event: int | None = None
         self._last_msg_loop_time: float = math.inf
 
@@ -252,6 +256,45 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._last_msg_loop_time = self._loop.time()
 
         return super().received_record(record)
+
+    def _process_dbn(self, data: bytes) -> None:
+        if not self._raw_callbacks:
+            return super()._process_dbn(data)
+
+        try:
+            self._dbn_decoder.write(bytes(data))
+            records = self._dbn_decoder.decode_raw()
+        except Exception:
+            logger.exception("error decoding DBN record")
+            self.transport.close()
+            raise
+
+        for record in records:
+            if isinstance(record, databento_dbn.Metadata):
+                self.received_metadata(record)
+            elif isinstance(record, bytes):
+                # Data record as raw bytes, no Python object creation.
+                logger.debug("dispatching raw data record")
+                self._dispatch_raw_callbacks(record)
+                # ts_event lives at RecordHeader offset 8 (u64 LE).
+                self._last_ts_event = struct.unpack_from("<Q", record, 8)[0]
+                self._last_msg_loop_time = self._loop.time()
+            else:
+                # Control record (ErrorMsg, SystemMsg, SymbolMappingMsg).
+                logger.debug("dispatching %s", type(record).__name__)
+                self._handle_control_record(record)
+                self.received_record(record)
+
+    def _dispatch_raw_callbacks(self, raw: bytes) -> None:
+        for callback in self._raw_callbacks:
+            try:
+                callback.call(raw)
+            except Exception as exc:
+                logger.error(
+                    "error dispatching raw record to `%s` callback",
+                    callback.callback_name,
+                    exc_info=exc,
+                )
 
     def _dispatch_callbacks(self, record: DBNRecord) -> None:
         for callback in self._user_callbacks:
@@ -336,6 +379,7 @@ class LiveSession:
         self._user_gateway: str | None = user_gateway
         self._user_streams: list[ClientStream] = []
         self._user_callbacks: list[ClientRecordCallback] = []
+        self._raw_callbacks: list[ClientRawRecordCallback] = []
         self._user_reconnect_callbacks: list[tuple[ReconnectCallback, ExceptionCallback | None]] = (
             []
         )
@@ -598,6 +642,7 @@ class LiveSession:
             heartbeat_interval_s=self.heartbeat_interval_s,
             slow_reader_behavior=self._slow_reader_behavior,
             compression=self._compression,
+            raw_callbacks=self._raw_callbacks,
         )
 
     def _connect(

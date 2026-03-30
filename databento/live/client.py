@@ -26,9 +26,11 @@ from databento.common.enums import SlowReaderBehavior
 from databento.common.error import BentoError
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.publishers import Dataset
+from databento.common.types import ClientRawRecordCallback
 from databento.common.types import ClientRecordCallback
 from databento.common.types import ClientStream
 from databento.common.types import ExceptionCallback
+from databento.common.types import RawRecordCallback
 from databento.common.types import ReconnectCallback
 from databento.common.types import RecordCallback
 from databento.common.validation import validate_enum
@@ -353,6 +355,43 @@ class Live:
 
         logger.info("adding user callback %s", client_callback.callback_name)
         self._session._user_callbacks.append(client_callback)
+
+    def add_raw_callback(
+        self,
+        record_callback: RawRecordCallback,
+        exception_callback: ExceptionCallback | None = None,
+    ) -> None:
+        """
+        Add a callback for handling records as raw bytes.
+
+        Unlike `add_callback`, this receives each record as a raw `bytes` object
+        without boxing into a Python record type. This avoids CPython memory arena
+        accumulation at high message rates and is the preferred path for consumers
+        that immediately re-serialize the data (e.g. pass to a native encoder).
+
+        Parameters
+        ----------
+        record_callback : Callable[[bytes], None]
+            A callback to register for handling live records as raw bytes.
+        exception_callback : Callable[[Exception], None], optional
+            An error handling callback for exceptions raised in `record_callback`.
+
+        Raises
+        ------
+        ValueError
+            If `record_callback` is not callable.
+
+        See Also
+        --------
+        Live.add_callback
+
+        """
+        client_callback = ClientRawRecordCallback(
+            fn=record_callback,
+            exc_fn=exception_callback,
+        )
+        logger.info("adding raw callback %s", client_callback.callback_name)
+        self._session._raw_callbacks.append(client_callback)
 
     def add_stream(
         self,

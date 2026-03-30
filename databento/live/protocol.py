@@ -387,28 +387,36 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
                 if isinstance(record, databento_dbn.Metadata):
                     self.received_metadata(record)
                     continue
-                if isinstance(record, databento_dbn.ErrorMsg):
-                    logger.error(
-                        "gateway error code=%s err='%s'",
-                        record.code,
-                        record.err,
-                    )
-                    self._error_msgs.append(record.err)
-                elif isinstance(record, databento_dbn.SystemMsg):
-                    if record.is_heartbeat():
-                        logger.debug("gateway heartbeat")
-                    else:
-                        if record.code == SystemCode.END_OF_INTERVAL:
-                            system_msg_level = logging.DEBUG
-                        else:
-                            system_msg_level = logging.INFO
-                        logger.log(
-                            system_msg_level,
-                            "system message code=%s msg='%s'",
-                            record.code,
-                            record.msg,
-                        )
+                self._handle_control_record(record)
                 self.received_record(record)
+
+    def _handle_control_record(self, record: DBNRecord) -> None:
+        """
+        Process control record side effects: logging and error tracking.
+
+        Called for ErrorMsg and SystemMsg before received_record().
+        """
+        if isinstance(record, databento_dbn.ErrorMsg):
+            logger.error(
+                "gateway error code=%s err='%s'",
+                record.code,
+                record.err,
+            )
+            self._error_msgs.append(record.err)
+        elif isinstance(record, databento_dbn.SystemMsg):
+            if record.is_heartbeat():
+                logger.debug("gateway heartbeat")
+            else:
+                if record.code == SystemCode.END_OF_INTERVAL:
+                    system_msg_level = logging.DEBUG
+                else:
+                    system_msg_level = logging.INFO
+                logger.log(
+                    system_msg_level,
+                    "system message code=%s msg='%s'",
+                    record.code,
+                    record.msg,
+                )
 
     def _process_gateway(self, data: bytes) -> None:
         try:
