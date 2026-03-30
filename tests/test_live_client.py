@@ -1301,6 +1301,42 @@ async def test_live_callback(
     assert isinstance(records[3], databento_dbn.MBOMsg)
 
 
+async def test_live_raw_callback(
+    live_client: client.Live,
+) -> None:
+    """
+    Test raw callback dispatch of DBN records as bytes.
+
+    Mirrors test_live_callback but uses add_raw_callback. Data records
+    should arrive as raw bytes; control records still go to add_callback.
+    """
+    # Arrange
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+    raw_records: list[bytes] = []
+
+    def raw_callback(raw: bytes) -> None:
+        raw_records.append(raw)
+
+    # Act
+    live_client.add_raw_callback(raw_callback)
+
+    live_client.start()
+
+    await live_client.wait_for_close()
+
+    # Assert — same 4 MBO records, but as raw bytes
+    assert len(raw_records) == 4
+    mbo_size = len(bytes(databento_dbn.MBOMsg(0x01, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0)))
+    for raw in raw_records:
+        assert isinstance(raw, bytes)
+        assert len(raw) == mbo_size
+
+
 @pytest.mark.parametrize(
     "dataset",
     [
