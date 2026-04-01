@@ -81,7 +81,7 @@ class Venue(StringyMixin, str, Enum):
     XNDQ
         Nasdaq Options.
     XBXO
-        Nasdaq BX Options.
+        Nasdaq Texas Options.
     C2OX
         Cboe C2 Options.
     XPHL
@@ -474,7 +474,7 @@ class Venue(StringyMixin, str, Enum):
         if self == Venue.XNDQ:
             return "Nasdaq Options"
         if self == Venue.XBXO:
-            return "Nasdaq BX Options"
+            return "Nasdaq Texas Options"
         if self == Venue.C2OX:
             return "Cboe C2 Options"
         if self == Venue.XPHL:
@@ -529,7 +529,7 @@ class Dataset(StringyMixin, str, Enum):
     XNAS_ITCH
         Nasdaq TotalView-ITCH.
     XBOS_ITCH
-        Nasdaq BX TotalView-ITCH.
+        Nasdaq Texas TotalView-ITCH.
     XPSX_ITCH
         Nasdaq PSX TotalView-ITCH.
     BATS_PITCH
@@ -838,7 +838,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.XNAS_ITCH:
             return "Nasdaq TotalView-ITCH"
         if self == Dataset.XBOS_ITCH:
-            return "Nasdaq BX TotalView-ITCH"
+            return "Nasdaq Texas TotalView-ITCH"
         if self == Dataset.XPSX_ITCH:
             return "Nasdaq PSX TotalView-ITCH"
         if self == Dataset.BATS_PITCH:
@@ -929,7 +929,7 @@ class Publisher(StringyMixin, str, Enum):
     XNAS_ITCH_XNAS
         Nasdaq TotalView-ITCH.
     XBOS_ITCH_XBOS
-        Nasdaq BX TotalView-ITCH.
+        Nasdaq Texas TotalView-ITCH.
     XPSX_ITCH_XPSX
         Nasdaq PSX TotalView-ITCH.
     BATS_PITCH_BATS
@@ -989,7 +989,7 @@ class Publisher(StringyMixin, str, Enum):
     OPRA_PILLAR_XNDQ
         OPRA - Nasdaq Options.
     OPRA_PILLAR_XBXO
-        OPRA - Nasdaq BX Options.
+        OPRA - Nasdaq Texas Options.
     OPRA_PILLAR_C2OX
         OPRA - Cboe C2 Options.
     OPRA_PILLAR_XPHL
@@ -1073,7 +1073,7 @@ class Publisher(StringyMixin, str, Enum):
     EQUS_ALL_EDGX
         Databento US Equities (All Feeds) - Cboe EDGX.
     EQUS_ALL_XBOS
-        Databento US Equities (All Feeds) - Nasdaq BX.
+        Databento US Equities (All Feeds) - Nasdaq Texas.
     EQUS_ALL_XPSX
         Databento US Equities (All Feeds) - Nasdaq PSX.
     EQUS_ALL_MEMX
@@ -1095,11 +1095,11 @@ class Publisher(StringyMixin, str, Enum):
     NDEX_IMPACT_XOFF
         ICE Endex - Off-Market Trades.
     XNAS_NLS_XBOS
-        Nasdaq NLS - Nasdaq BX.
+        Nasdaq NLS - Nasdaq Texas.
     XNAS_NLS_XPSX
         Nasdaq NLS - Nasdaq PSX.
     XNAS_BASIC_XBOS
-        Nasdaq Basic - Nasdaq BX.
+        Nasdaq Basic - Nasdaq Texas.
     XNAS_BASIC_XPSX
         Nasdaq Basic - Nasdaq PSX.
     EQUS_SUMMARY_EQUS
@@ -2142,7 +2142,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XNAS_ITCH_XNAS:
             return "Nasdaq TotalView-ITCH"
         if self == Publisher.XBOS_ITCH_XBOS:
-            return "Nasdaq BX TotalView-ITCH"
+            return "Nasdaq Texas TotalView-ITCH"
         if self == Publisher.XPSX_ITCH_XPSX:
             return "Nasdaq PSX TotalView-ITCH"
         if self == Publisher.BATS_PITCH_BATS:
@@ -2202,7 +2202,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.OPRA_PILLAR_XNDQ:
             return "OPRA - Nasdaq Options"
         if self == Publisher.OPRA_PILLAR_XBXO:
-            return "OPRA - Nasdaq BX Options"
+            return "OPRA - Nasdaq Texas Options"
         if self == Publisher.OPRA_PILLAR_C2OX:
             return "OPRA - Cboe C2 Options"
         if self == Publisher.OPRA_PILLAR_XPHL:
@@ -2286,7 +2286,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.EQUS_ALL_EDGX:
             return "Databento US Equities (All Feeds) - Cboe EDGX"
         if self == Publisher.EQUS_ALL_XBOS:
-            return "Databento US Equities (All Feeds) - Nasdaq BX"
+            return "Databento US Equities (All Feeds) - Nasdaq Texas"
         if self == Publisher.EQUS_ALL_XPSX:
             return "Databento US Equities (All Feeds) - Nasdaq PSX"
         if self == Publisher.EQUS_ALL_MEMX:
@@ -2308,11 +2308,11 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.NDEX_IMPACT_XOFF:
             return "ICE Endex - Off-Market Trades"
         if self == Publisher.XNAS_NLS_XBOS:
-            return "Nasdaq NLS - Nasdaq BX"
+            return "Nasdaq NLS - Nasdaq Texas"
         if self == Publisher.XNAS_NLS_XPSX:
             return "Nasdaq NLS - Nasdaq PSX"
         if self == Publisher.XNAS_BASIC_XBOS:
-            return "Nasdaq Basic - Nasdaq BX"
+            return "Nasdaq Basic - Nasdaq Texas"
         if self == Publisher.XNAS_BASIC_XPSX:
             return "Nasdaq Basic - Nasdaq PSX"
         if self == Publisher.EQUS_SUMMARY_EQUS:

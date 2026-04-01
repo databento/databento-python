@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.74.1 - 2026-03-31
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.52.1:
+  - Added `__index__` to all int-representable and char-backed Python enums, enabling
+    use with `int()`, `hex()`, and as sequence indices
+  - Fixed memory leak in Python bindings where every record object leaked ~64 bytes
+    due to a `pyo3` 0.28 regression in `#[pyclass(dict)]` deallocation. Downgraded
+    `pyo3` to 0.27.2
+  - Removed unnecessary `dict` from `BidAskPair` and `ConsolidatedBidAskPair` Python
+    classes
+  - Fixed Python type stubs to reflect that `record_size()` is a method, not a property
+  - Fixed Python type stubs for record fields to indicate which fields are writable
+    (e.g. `publisher_id`, `instrument_id`, `price`, `size`) and added `@setter` stubs
+    for enum fields (e.g. `action`, `side`)
+
 ## 0.74.0 - 2026-03-24
 
 #### Enhancements
