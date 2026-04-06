@@ -553,7 +553,7 @@ class Dataset(StringyMixin, str, Enum):
     XCIS_TRADES
         NYSE National Trades.
     MEMX_MEMOIR
-        MEMX Memoir Depth.
+        MEMX MEMOIR Depth.
     EPRL_DOM
         MIAX Pearl Depth.
     FINN_NLS
@@ -862,7 +862,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.XCIS_TRADES:
             return "NYSE National Trades"
         if self == Dataset.MEMX_MEMOIR:
-            return "MEMX Memoir Depth"
+            return "MEMX MEMOIR Depth"
         if self == Dataset.EPRL_DOM:
             return "MIAX Pearl Depth"
         if self == Dataset.FINN_NLS:
@@ -953,7 +953,7 @@ class Publisher(StringyMixin, str, Enum):
     XCIS_TRADES_XCIS
         NYSE National Trades.
     MEMX_MEMOIR_MEMX
-        MEMX Memoir Depth.
+        MEMX MEMOIR Depth.
     EPRL_DOM_EPRL
         MIAX Pearl Depth.
     XNAS_NLS_FINN
@@ -2166,7 +2166,7 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XCIS_TRADES_XCIS:
             return "NYSE National Trades"
         if self == Publisher.MEMX_MEMOIR_MEMX:
-            return "MEMX Memoir Depth"
+            return "MEMX MEMOIR Depth"
         if self == Publisher.EPRL_DOM_EPRL:
             return "MIAX Pearl Depth"
         if self == Publisher.XNAS_NLS_FINN:
