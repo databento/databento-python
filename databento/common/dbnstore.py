@@ -1244,6 +1244,9 @@ class DBNStore:
             schema_rtype = RType.from_schema(schema)
             schema_filter = filter(lambda r: r.rtype == schema_rtype, self)
 
+            if self._metadata.ts_out:
+                schema_dtype.append(("ts_out", "u8"))
+
             reader = self.reader
             reader.seek(self._metadata_length)
             ndarray_iter = NDArrayBytesIterator(
@@ -1255,9 +1258,6 @@ class DBNStore:
             # If schema is set, we're handling homogeneous historical data
             schema_struct = self._schema_struct_map[self.schema]
             schema_dtype = schema_struct._dtypes
-
-            if self._metadata.ts_out:
-                schema_dtype.append(("ts_out", "u8"))
 
             if schema is not None and schema != self.schema:
                 # This is to maintain identical behavior with NDArrayBytesIterator

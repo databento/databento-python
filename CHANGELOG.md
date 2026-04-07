@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.75.0 - TBD
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.53.0:
+  - Made `ts_out` a permanent field on all Python record types, replacing the
+    dynamic `__dict__` attribute. `ts_out` returns an `int` (`UNDEF_TIMESTAMP` when
+    not set)
+  - Removed `__dict__` from all Python record classes, eliminating a separate
+    per-instance allocation
+
 ## 0.74.1 - 2026-03-31
 
 #### Enhancements
