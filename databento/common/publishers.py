@@ -603,7 +603,7 @@ class Dataset(StringyMixin, str, Enum):
     XEEE_EOBI
         European Energy Exchange EOBI.
     XCBF_PITCH
-        Cboe Futures Exchange PITCH.
+        CFE Depth.
     OCEA_MEMOIR
         Blue Ocean ATS MEMOIR Depth.
 
@@ -912,7 +912,7 @@ class Dataset(StringyMixin, str, Enum):
         if self == Dataset.XEEE_EOBI:
             return "European Energy Exchange EOBI"
         if self == Dataset.XCBF_PITCH:
-            return "Cboe Futures Exchange PITCH"
+            return "CFE Depth"
         if self == Dataset.OCEA_MEMOIR:
             return "Blue Ocean ATS MEMOIR Depth"
         raise ValueError("Unexpected Dataset value")
@@ -1133,9 +1133,9 @@ class Publisher(StringyMixin, str, Enum):
     XEEE_EOBI_XOFF
         European Energy Exchange EOBI - Off-Market Trades.
     XCBF_PITCH_XCBF
-        Cboe Futures Exchange.
+        Cboe Futures Exchange (CFE).
     XCBF_PITCH_XOFF
-        Cboe Futures Exchange - Off-Market Trades.
+        Cboe Futures Exchange (CFE) - Off-Market Trades.
     OCEA_MEMOIR_OCEA
         Blue Ocean ATS MEMOIR.
 
@@ -2346,9 +2346,9 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.XEEE_EOBI_XOFF:
             return "European Energy Exchange EOBI - Off-Market Trades"
         if self == Publisher.XCBF_PITCH_XCBF:
-            return "Cboe Futures Exchange"
+            return "Cboe Futures Exchange (CFE)"
         if self == Publisher.XCBF_PITCH_XOFF:
-            return "Cboe Futures Exchange - Off-Market Trades"
+            return "Cboe Futures Exchange (CFE) - Off-Market Trades"
         if self == Publisher.OCEA_MEMOIR_OCEA:
             return "Blue Ocean ATS MEMOIR"
         raise ValueError("Unexpected Publisher value")
