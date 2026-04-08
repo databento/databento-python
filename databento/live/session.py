@@ -6,7 +6,6 @@ import itertools
 import logging
 import math
 import queue
-import struct
 import threading
 from collections.abc import Iterable
 from functools import partial
@@ -267,16 +266,14 @@ class _SessionProtocol(DatabentoLiveProtocol):
 
     def _dispatch_writes(self, record: DBNRecord) -> None:
         record_bytes = bytes(record)
-        ts_out_bytes = struct.pack("Q", record.ts_out) if self._metadata.has_ts_out else b""
         for stream in self._user_streams:
             try:
                 stream.write(record_bytes)
-                stream.write(ts_out_bytes)
             except Exception as exc:
                 logger.error(
                     "error writing %s record (%d bytes) to `%s` stream",
                     type(record).__name__,
-                    len(record_bytes) + len(ts_out_bytes),
+                    len(record_bytes),
                     stream.stream_name,
                     exc_info=exc,
                 )
