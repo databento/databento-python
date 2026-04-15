@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.76.0 - TBD
+
+#### Enhancements
+- Added new publisher values for OPRA MEMX MX2 Options and IEX Options
+
 ## 0.75.0 - 2026-04-07
 
 #### Enhancements

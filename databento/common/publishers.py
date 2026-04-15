@@ -122,6 +122,10 @@ class Venue(StringyMixin, str, Enum):
         Cboe Futures Exchange.
     OCEA
         Blue Ocean ATS.
+    MXTO
+        MX2 Options.
+    IEXO
+        IEX Options LLC.
 
     """
 
@@ -178,6 +182,8 @@ class Venue(StringyMixin, str, Enum):
     XEEE = "XEEE"
     XCBF = "XCBF"
     OCEA = "OCEA"
+    MXTO = "MXTO"
+    IEXO = "IEXO"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -290,6 +296,10 @@ class Venue(StringyMixin, str, Enum):
             return Venue.XCBF
         if value == 53:
             return Venue.OCEA
+        if value == 54:
+            return Venue.MXTO
+        if value == 55:
+            return Venue.IEXO
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -402,6 +412,10 @@ class Venue(StringyMixin, str, Enum):
             return 52
         if self == Venue.OCEA:
             return 53
+        if self == Venue.MXTO:
+            return 54
+        if self == Venue.IEXO:
+            return 55
         raise ValueError("Invalid Venue")
 
     @property
@@ -515,6 +529,10 @@ class Venue(StringyMixin, str, Enum):
             return "Cboe Futures Exchange"
         if self == Venue.OCEA:
             return "Blue Ocean ATS"
+        if self == Venue.MXTO:
+            return "MX2 Options"
+        if self == Venue.IEXO:
+            return "IEX Options LLC"
         raise ValueError("Unexpected Venue value")
 
 
@@ -1138,6 +1156,10 @@ class Publisher(StringyMixin, str, Enum):
         Cboe Futures Exchange (CFE) - Off-Market Trades.
     OCEA_MEMOIR_OCEA
         Blue Ocean ATS MEMOIR.
+    OPRA_PILLAR_MXTO
+        OPRA - MEMX MX2 Options.
+    OPRA_PILLAR_IEXO
+        OPRA - IEX Options LLC.
 
     """
 
@@ -1248,6 +1270,8 @@ class Publisher(StringyMixin, str, Enum):
     XCBF_PITCH_XCBF = "XCBF.PITCH.XCBF"
     XCBF_PITCH_XOFF = "XCBF.PITCH.XOFF"
     OCEA_MEMOIR_OCEA = "OCEA.MEMOIR.OCEA"
+    OPRA_PILLAR_MXTO = "OPRA.PILLAR.MXTO"
+    OPRA_PILLAR_IEXO = "OPRA.PILLAR.IEXO"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1468,6 +1492,10 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.XCBF_PITCH_XOFF
         if value == 107:
             return Publisher.OCEA_MEMOIR_OCEA
+        if value == 108:
+            return Publisher.OPRA_PILLAR_MXTO
+        if value == 109:
+            return Publisher.OPRA_PILLAR_IEXO
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1688,6 +1716,10 @@ class Publisher(StringyMixin, str, Enum):
             return 106
         if self == Publisher.OCEA_MEMOIR_OCEA:
             return 107
+        if self == Publisher.OPRA_PILLAR_MXTO:
+            return 108
+        if self == Publisher.OPRA_PILLAR_IEXO:
+            return 109
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1909,6 +1941,10 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.XOFF
         if self == Publisher.OCEA_MEMOIR_OCEA:
             return Venue.OCEA
+        if self == Publisher.OPRA_PILLAR_MXTO:
+            return Venue.MXTO
+        if self == Publisher.OPRA_PILLAR_IEXO:
+            return Venue.IEXO
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2130,6 +2166,10 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XCBF_PITCH
         if self == Publisher.OCEA_MEMOIR_OCEA:
             return Dataset.OCEA_MEMOIR
+        if self == Publisher.OPRA_PILLAR_MXTO:
+            return Dataset.OPRA_PILLAR
+        if self == Publisher.OPRA_PILLAR_IEXO:
+            return Dataset.OPRA_PILLAR
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2351,4 +2391,8 @@ class Publisher(StringyMixin, str, Enum):
             return "Cboe Futures Exchange (CFE) - Off-Market Trades"
         if self == Publisher.OCEA_MEMOIR_OCEA:
             return "Blue Ocean ATS MEMOIR"
+        if self == Publisher.OPRA_PILLAR_MXTO:
+            return "OPRA - MEMX MX2 Options"
+        if self == Publisher.OPRA_PILLAR_IEXO:
+            return "OPRA - IEX Options LLC"
         raise ValueError("Unexpected Publisher value")
