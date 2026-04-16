@@ -36,6 +36,9 @@ logger = logging.getLogger(__name__)
 AUTH_TIMEOUT_SECONDS: Final = 30.0
 CONNECT_TIMEOUT_SECONDS: Final = 10.0
 DBN_QUEUE_CAPACITY: Final = 2**20
+DBN_QUEUE_LAG_THRESHOLD: Final = 128
+DBN_QUEUE_MAX_LAG_NS: Final = 1_000_000_000
+DBN_QUEUE_FULL_WARNING_INTERVAL_S: Final = 60.0
 DEFAULT_REMOTE_PORT: Final = 13000
 CLIENT_TIMEOUT_MARGIN_SECONDS: Final = 10
 
@@ -48,6 +51,8 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
     def __init__(self) -> None:
         super().__init__()
         self._enabled = threading.Event()
+        self._front_ts_index: int | None = None
+        self._back_ts_index: int | None = None
 
     def is_enabled(self) -> bool:
         """
@@ -62,7 +67,16 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
         """
         Return True when the queue has reached capacity; False otherwise.
         """
-        return self.qsize() > DBN_QUEUE_CAPACITY
+        if self.qsize() > DBN_QUEUE_CAPACITY:
+            return True
+        if (
+            self.qsize() > DBN_QUEUE_LAG_THRESHOLD
+            and self._front_ts_index is not None
+            and self._back_ts_index is not None
+            and self._back_ts_index - self._front_ts_index > DBN_QUEUE_MAX_LAG_NS
+        ):
+            return True
+        return False
 
     def enable(self) -> None:
         """
@@ -106,6 +120,9 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
 
         """
         if self._enabled.wait(timeout):
+            if self._front_ts_index is None:
+                self._front_ts_index = item.ts_index
+            self._back_ts_index = item.ts_index
             return super().put(item, block, timeout)
         if timeout is not None:
             raise BentoError(f"queue is not enabled after {timeout} second(s)")
@@ -131,8 +148,33 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
 
         """
         if self.is_enabled():
+            if self._front_ts_index is None:
+                self._front_ts_index = item.ts_index
+            self._back_ts_index = item.ts_index
             return super().put_nowait(item)
         raise BentoError("queue is not enabled")
+
+    def get(
+        self,
+        block: bool = True,
+        timeout: float | None = None,
+    ) -> DBNRecord:
+        record = super().get(block, timeout)
+        if self.empty():
+            self._front_ts_index = None
+            self._back_ts_index = None
+        else:
+            self._front_ts_index = record.ts_index
+        return record
+
+    def get_nowait(self) -> DBNRecord:
+        record = super().get_nowait()
+        if self.empty():
+            self._front_ts_index = None
+            self._back_ts_index = None
+        else:
+            self._front_ts_index = record.ts_index
+        return record
 
 
 @dataclasses.dataclass
@@ -225,6 +267,7 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._user_streams = user_streams
         self._last_ts_event: int | None = None
         self._last_msg_loop_time: float = math.inf
+        self._last_queue_full_warning_t: float = -math.inf
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         if self._metadata:
@@ -282,10 +325,13 @@ class _SessionProtocol(DatabentoLiveProtocol):
         self._dbn_queue.put(record)
         # DBNQueue has no max size; so check if it's above capacity, and if so, pause reading
         if self._dbn_queue.is_full():
-            logger.warning(
-                "record queue is full; %d record(s) to be processed",
-                self._dbn_queue.qsize(),
-            )
+            now = self._loop.time()
+            if now - self._last_queue_full_warning_t >= DBN_QUEUE_FULL_WARNING_INTERVAL_S:
+                logger.warning(
+                    "record queue is full; %d record(s) to be processed",
+                    self._dbn_queue.qsize(),
+                )
+                self._last_queue_full_warning_t = now
             self.transport.pause_reading()
 
 

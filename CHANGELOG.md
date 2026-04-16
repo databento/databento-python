@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.78.0 - TBD
+
+#### Enhancements
+- Added time-based backpressure to the live client: pauses reading records from the live
+  gateway when the internal queue spans more than 1 second of data by `ts_index`
+  (`ts_recv` when present, otherwise `ts_event`)
+
 ## 0.77.0 - 2026-04-28
 
 #### Enhancements
