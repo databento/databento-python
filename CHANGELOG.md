@@ -4,6 +4,8 @@
 
 #### Enhancements
 - Added new publisher values for OPRA MEMX MX2 Options and IEX Options
+- Upgraded `databento-dbn` to 0.55.0:
+  - Performance improvements to `DBNDecoder`
 
 ## 0.75.0 - 2026-04-07
 
