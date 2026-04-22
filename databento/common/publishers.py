@@ -126,6 +126,8 @@ class Venue(StringyMixin, str, Enum):
         MX2 Options.
     IEXO
         IEX Options LLC.
+    CGIF
+        Cboe Global Indices Feed.
 
     """
 
@@ -184,6 +186,7 @@ class Venue(StringyMixin, str, Enum):
     OCEA = "OCEA"
     MXTO = "MXTO"
     IEXO = "IEXO"
+    CGIF = "CGIF"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -300,6 +303,8 @@ class Venue(StringyMixin, str, Enum):
             return Venue.MXTO
         if value == 55:
             return Venue.IEXO
+        if value == 56:
+            return Venue.CGIF
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -416,6 +421,8 @@ class Venue(StringyMixin, str, Enum):
             return 54
         if self == Venue.IEXO:
             return 55
+        if self == Venue.CGIF:
+            return 56
         raise ValueError("Invalid Venue")
 
     @property
@@ -533,6 +540,8 @@ class Venue(StringyMixin, str, Enum):
             return "MX2 Options"
         if self == Venue.IEXO:
             return "IEX Options LLC"
+        if self == Venue.CGIF:
+            return "Cboe Global Indices Feed"
         raise ValueError("Unexpected Venue value")
 
 
@@ -624,6 +633,8 @@ class Dataset(StringyMixin, str, Enum):
         CFE Depth.
     OCEA_MEMOIR
         Blue Ocean ATS MEMOIR Depth.
+    CGIF_TITANIUM
+        Cboe Titanium Cboe Global Indices Feed.
 
     """
 
@@ -668,6 +679,7 @@ class Dataset(StringyMixin, str, Enum):
     XEEE_EOBI = "XEEE.EOBI"
     XCBF_PITCH = "XCBF.PITCH"
     OCEA_MEMOIR = "OCEA.MEMOIR"
+    CGIF_TITANIUM = "CGIF.TITANIUM"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -756,6 +768,8 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.XCBF_PITCH
         if value == 41:
             return Dataset.OCEA_MEMOIR
+        if value == 42:
+            return Dataset.CGIF_TITANIUM
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -844,6 +858,8 @@ class Dataset(StringyMixin, str, Enum):
             return 40
         if self == Dataset.OCEA_MEMOIR:
             return 41
+        if self == Dataset.CGIF_TITANIUM:
+            return 42
         raise ValueError("Invalid Dataset")
 
     @property
@@ -933,6 +949,8 @@ class Dataset(StringyMixin, str, Enum):
             return "CFE Depth"
         if self == Dataset.OCEA_MEMOIR:
             return "Blue Ocean ATS MEMOIR Depth"
+        if self == Dataset.CGIF_TITANIUM:
+            return "Cboe Titanium Cboe Global Indices Feed"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -1160,6 +1178,8 @@ class Publisher(StringyMixin, str, Enum):
         OPRA - MEMX MX2 Options.
     OPRA_PILLAR_IEXO
         OPRA - IEX Options LLC.
+    CGIF_TITANIUM_CGIF
+        Cboe Global Indices Feed.
 
     """
 
@@ -1272,6 +1292,7 @@ class Publisher(StringyMixin, str, Enum):
     OCEA_MEMOIR_OCEA = "OCEA.MEMOIR.OCEA"
     OPRA_PILLAR_MXTO = "OPRA.PILLAR.MXTO"
     OPRA_PILLAR_IEXO = "OPRA.PILLAR.IEXO"
+    CGIF_TITANIUM_CGIF = "CGIF.TITANIUM.CGIF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1496,6 +1517,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.OPRA_PILLAR_MXTO
         if value == 109:
             return Publisher.OPRA_PILLAR_IEXO
+        if value == 110:
+            return Publisher.CGIF_TITANIUM_CGIF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1720,6 +1743,8 @@ class Publisher(StringyMixin, str, Enum):
             return 108
         if self == Publisher.OPRA_PILLAR_IEXO:
             return 109
+        if self == Publisher.CGIF_TITANIUM_CGIF:
+            return 110
         raise ValueError("Invalid Publisher")
 
     @property
@@ -1945,6 +1970,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.MXTO
         if self == Publisher.OPRA_PILLAR_IEXO:
             return Venue.IEXO
+        if self == Publisher.CGIF_TITANIUM_CGIF:
+            return Venue.CGIF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2170,6 +2197,8 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.OPRA_PILLAR
         if self == Publisher.OPRA_PILLAR_IEXO:
             return Dataset.OPRA_PILLAR
+        if self == Publisher.CGIF_TITANIUM_CGIF:
+            return Dataset.CGIF_TITANIUM
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2395,4 +2424,6 @@ class Publisher(StringyMixin, str, Enum):
             return "OPRA - MEMX MX2 Options"
         if self == Publisher.OPRA_PILLAR_IEXO:
             return "OPRA - IEX Options LLC"
+        if self == Publisher.CGIF_TITANIUM_CGIF:
+            return "Cboe Global Indices Feed"
         raise ValueError("Unexpected Publisher value")

@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.77.0 - TBD
+
+##### Enhancements
+- Added new publisher values for Cboe Titanium Cboe Global Indices Feed
+
 ## 0.76.0 - 2026-04-21
 
 #### Enhancements
