@@ -255,7 +255,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         """
         logger.debug("read %d bytes from remote gateway", nbytes)
-        data = self.__buffer[:nbytes]
+        data = bytes(memoryview(self.__buffer)[:nbytes])
 
         if self.authenticated.done():
             self._process_dbn(data)
@@ -375,7 +375,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             raise ValueError("not connected")
 
         try:
-            self._dbn_decoder.write(bytes(data))
+            self._dbn_decoder.write(data)
             records = self._dbn_decoder.decode()
         except Exception:
             logger.exception("error decoding DBN record")
