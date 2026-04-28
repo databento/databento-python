@@ -375,8 +375,7 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             raise ValueError("not connected")
 
         try:
-            self._dbn_decoder.write(data)
-            records = self._dbn_decoder.decode()
+            records = self._dbn_decoder.write_and_decode(data)
         except Exception:
             logger.exception("error decoding DBN record")
             self.__transport.close()
