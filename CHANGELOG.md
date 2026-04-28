@@ -5,6 +5,9 @@
 #### Enhancements
 - Added new publisher values for Cboe Titanium Cboe Global Indices Feed
 - Added `YEAR` to `SplitDuration` enum to support yearly historical batch job submission
+- Upgraded `databento-dbn` to 0.56.0:
+  - Improved Python `DBNDecoder.decode()` performance with pre-allocated output buffers
+  - Added `DBNDecoder.write_and_decode()` to combine write and decode in a single call
 
 ## 0.76.0 - 2026-04-21
 
