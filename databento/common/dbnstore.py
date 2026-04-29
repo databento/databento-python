@@ -391,8 +391,7 @@ class DBNStore:
         while True:
             raw = reader.read(DBNStore.DBN_READ_SIZE)
             if raw:
-                decoder.write(raw)
-                records = decoder.decode()
+                records = decoder.write_and_decode(raw)
                 for record in records:
                     if isinstance(record, databento_dbn.Metadata):
                         continue

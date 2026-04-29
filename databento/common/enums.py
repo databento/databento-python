@@ -134,6 +134,7 @@ class SplitDuration(StringyMixin, str, Enum):
     DAY = "day"
     WEEK = "week"
     MONTH = "month"
+    YEAR = "year"
     NONE = "none"
 
 

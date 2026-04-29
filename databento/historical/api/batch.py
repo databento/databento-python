@@ -122,7 +122,7 @@ class BatchHttpAPI(BentoHttpAPI):
             `dbn`.
         split_symbols : bool, default False
             If files should be split by raw symbol. Cannot be requested with `'ALL_SYMBOLS'`.
-        split_duration : SplitDuration or str {'day', 'week', 'month', 'none'}, default 'day'
+        split_duration : SplitDuration or str {'day', 'week', 'month', 'year', 'none'}, default 'day'
             The maximum time duration before batched data is split into multiple files.
             A week starts on Sunday UTC.
         split_size : int, optional
