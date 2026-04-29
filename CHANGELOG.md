@@ -6,6 +6,8 @@
 - Added time-based backpressure to the live client: pauses reading records from the live
   gateway when the internal queue spans more than 1 second of data by `ts_index`
   (`ts_recv` when present, otherwise `ts_event`)
+- Added `INDEX` `InstrumentClass` variant
+- Added `StatType` variants `INDICATIVE_CLOSE_PRICE` and `VENUE_SPECIFIC_PRICE_1`
 
 ## 0.77.0 - 2026-04-28
 
