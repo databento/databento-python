@@ -202,8 +202,9 @@ class SessionMetadata:
 
     def check(self, other: databento_dbn.Metadata) -> None:
         """
-        Verify the Metadata is compatible with another Metadata message. This
-        is used to ensure DBN streams are compatible with one another.
+        Verify the Metadata is compatible with another Metadata message.
+
+        This is used to ensure DBN streams are compatible with one another.
 
         Parameters
         ----------
@@ -531,8 +532,9 @@ class LiveSession:
         snapshot: bool = False,
     ) -> int:
         """
-        Send a subscription request on the current connection. This will create
-        a new connection if there is no active connection to the gateway.
+        Send a subscription request on the current connection.
+
+        This will create a new connection if there is no active connection to the gateway.
 
         Parameters
         ----------

@@ -20,8 +20,9 @@ E = TypeVar("E", bound=Enum)
 
 def validate_path(value: PathLike[str] | str, param: str) -> Path:
     """
-    Validate whether the given value is a valid path. This also expands user
-    directories to form valid paths.
+    Validate whether the given value is a valid path.
+
+    This also expands user directories to form valid paths.
 
     Parameters
     ----------

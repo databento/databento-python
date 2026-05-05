@@ -168,8 +168,9 @@ def symbols_list_to_list(
 @symbols_list_to_list.register(cls=Integral)
 def _(symbols: Integral, stype_in: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_list. Handles integral types,
-    alerting when an integer is given for STypes that expect strings.
+    Dispatch method for optional_symbols_list_to_list.
+
+    Handles integral types, alerting when an integer is given for STypes that expect strings.
 
     See Also
     --------
@@ -187,8 +188,9 @@ def _(symbols: Integral, stype_in: SType) -> list[str]:
 @symbols_list_to_list.register(cls=str)
 def _(symbols: str, stype_in: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_list. Handles str, splitting
-    on commas and validating smart symbology.
+    Dispatch method for optional_symbols_list_to_list.
+
+    Handles str, splitting on commas and validating smart symbology.
 
     See Also
     --------
@@ -212,8 +214,9 @@ def _(symbols: str, stype_in: SType) -> list[str]:
 @symbols_list_to_list.register(cls=Iterable)
 def _(symbols: Iterable[Any], stype_in: SType) -> list[str]:
     """
-    Dispatch method for optional_symbols_list_to_list. Handles Iterables by
-    dispatching the individual members.
+    Dispatch method for optional_symbols_list_to_list.
+
+    Handles Iterables by dispatching the individual members.
 
     See Also
     --------

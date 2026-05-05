@@ -150,8 +150,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
     @property
     def is_streaming(self) -> bool:
         """
-        True if the session has started streaming. This occurs when the
-        SessionStart message is sent to the gateway.
+        True if the session has started streaming.
+
+        This occurs when the SessionStart message is sent to the gateway.
 
         Returns
         -------
@@ -266,8 +267,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
     def received_metadata(self, metadata: databento_dbn.Metadata) -> None:
         """
-        Call when the protocol receives a Metadata header. This is always sent
-        by the gateway before any data records.
+        Call when the protocol receives a Metadata header.
+
+        This is always sent by the gateway before any data records.
 
         Parameters
         ----------
@@ -297,8 +299,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
         subscription_id: int | None = None,
     ) -> list[SubscriptionRequest]:
         """
-        Send a SubscriptionRequest to the gateway. Returns a list of all
-        subscription requests sent to the gateway.
+        Send a SubscriptionRequest to the gateway.
+
+        Returns a list of all subscription requests sent to the gateway.
 
         Parameters
         ----------

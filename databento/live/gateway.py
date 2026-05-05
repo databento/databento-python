@@ -194,8 +194,9 @@ class GatewayDecoder:
 
     def write(self, data: bytes) -> None:
         """
-        Write data to the decoder's buffer. This will make the data available
-        for decoding.
+        Write data to the decoder's buffer.
+
+        This will make the data available for decoding.
 
         Parameters
         ----------
@@ -208,8 +209,9 @@ class GatewayDecoder:
 
     def decode(self) -> list[GatewayControl]:
         """
-        Decode messages from the decoder's buffer. This will consume decoded
-        data from the buffer.
+        Decode messages from the decoder's buffer.
+
+        This will consume decoded data from the buffer.
 
         Returns
         -------

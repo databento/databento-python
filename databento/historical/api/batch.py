@@ -588,7 +588,8 @@ class _BatchJob:
     """
     Helper class for downloading multiple batch files from a job.
 
-    Supports sync and async downloads using a shared `ThreadPoolExecutor`.
+    Supports sync and async downloads using a shared
+    `ThreadPoolExecutor`.
 
     """
 

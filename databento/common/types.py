@@ -22,8 +22,9 @@ _T = TypeVar("_T")
 
 class Default(Generic[_T]):
     """
-    A container for a default value. This is to be used when a callable wants
-    to detect if a default parameter value is being used.
+    A container for a default value.
+
+    This is to be used when a callable wants to detect if a default parameter value is being used.
 
     Example
     -------
@@ -152,8 +153,9 @@ class ClientStream:
 
     def write(self, data: bytes) -> None:
         """
-        Write data to the underlying stream. Any exceptions encountered will be
-        dispatched to the exception callback, if defined.
+        Write data to the underlying stream.
+
+        Any exceptions encountered will be dispatched to the exception callback, if defined.
 
         Parameters
         ----------
