@@ -52,10 +52,7 @@ def test_mbp_fields(
     difference = fields.symmetric_difference(struct._ordered_fields)
 
     # Assert
-    assert "levels" in difference
-
-    # bid/ask size, price, ct for each level, plus the levels field
-    assert len(difference) == 6 * level_count + 1
+    assert difference == {"levels"}
 
 
 @pytest.mark.parametrize(
