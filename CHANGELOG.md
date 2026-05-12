@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.78.0 - 2026-05-12
+
+#### Enhancements
+- Added time-based backpressure to the live client: pauses reading records from the live
+  gateway when the internal queue spans more than 1 second of data by `ts_index`
+  (`ts_recv` when present, otherwise `ts_event`)
+- Upgraded `databento-dbn` to 0.58.0:
+  - Added flat per-level properties (`bid_px_00`, `pretty_ask_px_03`, etc.) to the
+    Python `MBP1Msg`, `MBP10Msg`, `BBOMsg`, `CMBP1Msg`, and `CBBOMsg` record classes
+    for parity with the DataFrame layout
+  - Added `INDEX` `InstrumentClass` variant
+  - Added `StatType` variants `INDICATIVE_CLOSE_PRICE` and `VENUE_SPECIFIC_PRICE_1`
+
+
 ## 0.77.0 - 2026-04-28
 
 #### Enhancements

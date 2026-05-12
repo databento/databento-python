@@ -645,8 +645,9 @@ class InstrumentMap:
 
     def build_symbol_map(self) -> dict[int, list[tuple[dt.date, dt.date, str]]]:
         """
-        Build a simple symbol map. This is to interface with methods of
-        databento-dbn.
+        Build a simple symbol map.
+
+        This is to interface with methods of databento-dbn.
 
         Returns
         -------

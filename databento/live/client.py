@@ -159,8 +159,9 @@ class Live:
     @property
     def dataset(self) -> str:
         """
-        Return the dataset for this live client. If no subscriptions have been
-        made an empty string will be returned.
+        Return the dataset for this live client.
+
+        If no subscriptions have been made an empty string will be returned.
 
         Returns
         -------
@@ -234,8 +235,9 @@ class Live:
     @property
     def session_id(self) -> str | None:
         """
-        Return the session ID for the current session. If `None`, the client is
-        not connected.
+        Return the session ID for the current session.
+
+        If `None`, the client is not connected.
 
         Returns
         -------
@@ -279,8 +281,9 @@ class Live:
     @property
     def symbology_map(self) -> dict[int, str | int]:
         """
-        Return the symbology map for this client session. A symbol mapping is
-        added when the client receives a SymbolMappingMsg.
+        Return the symbology map for this client session.
+
+        A symbol mapping is added when the client receives a SymbolMappingMsg.
 
         This can be used to transform an `instrument_id` in a DBN record
         to the input symbology.
@@ -398,8 +401,9 @@ class Live:
         exception_callback: ExceptionCallback | None = None,
     ) -> None:
         """
-        Add a callback for handling client reconnection events. This will only
-        be called when using a reconnection policy other than
+        Add a callback for handling client reconnection events.
+
+        This will only be called when using a reconnection policy other than
         `ReconnectPolicy.NONE` and if the session has been started with
         `Live.start`.
 
@@ -614,8 +618,9 @@ class Live:
         timeout: float | None = None,
     ) -> None:
         """
-        Block until the session closes or a timeout is reached. A session will
-        close after the remote gateway disconnects, or after `Live.stop` or
+        Block until the session closes or a timeout is reached.
+
+        A session will close after the remote gateway disconnects, or after `Live.stop` or
         `Live.terminate` are called.
 
         If a `timeout` is specified, `Live.terminate` will be called when the
@@ -661,8 +666,9 @@ class Live:
         timeout: float | None = None,
     ) -> None:
         """
-        Coroutine to wait until the session closes or a timeout is reached. A
-        session will close when the remote gateway disconnects, or after
+        Coroutine to wait until the session closes or a timeout is reached.
+
+        A session will close when the remote gateway disconnects, or after
         `Live.stop` or `Live.terminate` are called.
 
         If a `timeout` is specified, `Live.terminate` will be called when the
@@ -718,8 +724,9 @@ class Live:
 
 class LiveIterator:
     """
-    Iterator class for the `Live` client. Automatically starts the client when
-    created and will stop it when destroyed. This provides context-manager-like
+    Iterator class for the `Live` client.
+
+    Automatically starts the client when created and will stop it when destroyed. This provides context-manager-like
     behavior to for loops.
 
     Parameters

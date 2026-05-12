@@ -57,8 +57,9 @@ def fixture_instrument_map() -> InstrumentMap:
 @pytest.fixture(name="start_date")
 def fixture_start_date() -> pd.Timestamp:
     """
-    Fixture for a start date. This is one day behind the date provided by the
-    `end_date` fixture.
+    Fixture for a start date.
+
+    This is one day behind the date provided by the `end_date` fixture.
 
     Returns
     -------
@@ -80,8 +81,9 @@ def fixture_start_date() -> pd.Timestamp:
 @pytest.fixture(name="end_date")
 def fixture_end_date() -> pd.Timestamp:
     """
-    Fixture for an end date. This is one day head of the date provided by the
-    `start_date` fixture.
+    Fixture for an end date.
+
+    This is one day head of the date provided by the `start_date` fixture.
 
     Returns
     -------

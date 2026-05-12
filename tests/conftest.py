@@ -27,16 +27,18 @@ from tests.mockliveserver.fixture import fixture_mock_live_server  # noqa
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
-    Customize pytest cli options. This should not be invoked directly.
+    Customize pytest cli options.
+
+    This should not be invoked directly.
 
     Parameters
     ----------
-    parser : pytest.Parser
-        The pytest argument parser.
+        parser : pytest.Parser
+            The pytest argument parser.
 
     See Also
     --------
-    pytest.addoption
+        pytest.addoption
 
     """
     # Add a --release flag
@@ -49,12 +51,14 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def pytest_configure(config: pytest.Config) -> None:
     """
-    Configure pytest. This should not be invoked directly.
+    Configure pytest.
+
+    This should not be invoked directly.
 
     Parameters
     ----------
-    config : pytest.Config
-        The pytest configuration.
+        config : pytest.Config
+            The pytest configuration.
 
     """
     # Add custom mark for `release`
@@ -69,14 +73,16 @@ def pytest_collection_modifyitems(
     items: Iterable[pytest.Item],
 ) -> None:
     """
-    Customize test items. This should not be invoked directly.
+    Customize test items.
+
+    This should not be invoked directly.
 
     Parameters
     ----------
-    config : pytest.Config
-        The pytest configuration.
-    items : Iterable[pytest.Item]
-        The pytest test item.
+        config : pytest.Config
+            The pytest configuration.
+        items : Iterable[pytest.Item]
+            The pytest test item.
 
     """
     skip_release = pytest.mark.skip(
@@ -203,8 +209,9 @@ def fixture_test_data(
 @pytest.fixture(name="test_api_key")
 def fixture_test_api_key() -> str:
     """
-    Generate a random API key for testing. API keys are 32 characters in
-    length, the first three of which are "db-".
+    Generate a random API key for testing.
+
+    API keys are 32 characters in length, the first three of which are "db-".
 
     Returns
     -------
