@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.78.0 - TBD
+## 0.78.0 - 2026-05-12
 
 #### Enhancements
 - Added time-based backpressure to the live client: pauses reading records from the live
