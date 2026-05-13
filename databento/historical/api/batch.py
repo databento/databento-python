@@ -268,7 +268,8 @@ class BatchHttpAPI(BentoHttpAPI):
         Will automatically generate any necessary directories if they do not
         already exist.
 
-        Makes one or many `GET /batch/download/{job_id}/{filename}` HTTP request(s).
+        Makes a `GET /batch.download` HTTP request for full job downloads,
+        or `GET /batch/download/{job_id}/{filename}` for individual files.
 
         Parameters
         ----------
@@ -303,20 +304,28 @@ class BatchHttpAPI(BentoHttpAPI):
                 "Cannot specify an individual file to download when `keep_zip=True`",
             )
 
-        batch_download = _BatchJob(
-            self,
-            job_id=job_id,
-            output_dir=output_dir,
-        )
+        if output_dir is None:
+            output_dir = Path.cwd()
+        else:
+            output_dir = validate_path(output_dir, "output_dir")
+
+        job_output_dir = output_dir / job_id
+        job_output_dir.mkdir(exist_ok=True, parents=True)
 
         if filename_to_download is None:
-            filenames_to_download = None
+            # Download all files as ZIP using batch.download endpoint
+            zip_path = job_output_dir / f"{job_id}.zip"
+            downloaded_files = [self._download_batch_zip(job_id, zip_path)]
         else:
-            filenames_to_download = [filename_to_download]
-
-        downloaded_files = batch_download.download(
-            filenames_to_download=filenames_to_download,
-        )
+            # Download specific file using _BatchJob
+            batch_download = _BatchJob(
+                self,
+                job_id=job_id,
+                output_dir=output_dir,
+            )
+            downloaded_files = batch_download.download(
+                filenames_to_download=[filename_to_download],
+            )
 
         if keep_zip:
             return downloaded_files
@@ -348,7 +357,8 @@ class BatchHttpAPI(BentoHttpAPI):
         Will automatically generate any necessary directories if they do not
         already exist.
 
-        Makes one or many `GET /batch/download/{job_id}/{filename}` HTTP request(s).
+        Makes a `GET /batch.download` HTTP request for full job downloads,
+        or `GET /batch/download/{job_id}/{filename}` for individual files.
 
         Parameters
         ----------
@@ -382,20 +392,31 @@ class BatchHttpAPI(BentoHttpAPI):
                 "Cannot specify an individual file to download when `keep_zip=True`",
             )
 
-        batch_download = _BatchJob(
-            self,
-            job_id=job_id,
-            output_dir=output_dir,
-        )
+        output_dir = validate_path(output_dir, "output_dir")
+        job_output_dir = output_dir / job_id
+        job_output_dir.mkdir(exist_ok=True, parents=True)
 
         if filename_to_download is None:
-            filenames_to_download = None
+            # Download all files as ZIP using batch.download endpoint
+            zip_path = job_output_dir / f"{job_id}.zip"
+            downloaded_files = [
+                await asyncio.get_running_loop().run_in_executor(
+                    _BatchJob._executor,
+                    self._download_batch_zip,
+                    job_id,
+                    zip_path,
+                ),
+            ]
         else:
-            filenames_to_download = [filename_to_download]
-
-        downloaded_files = await batch_download.download_async(
-            filenames_to_download=filenames_to_download,
-        )
+            # Download specific file using _BatchJob
+            batch_download = _BatchJob(
+                self,
+                job_id=job_id,
+                output_dir=output_dir,
+            )
+            downloaded_files = await batch_download.download_async(
+                filenames_to_download=[filename_to_download],
+            )
 
         if keep_zip:
             return downloaded_files
@@ -520,7 +541,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
     def _download_batch_zip(
         self,
-        batch_download_url: str,
+        job_id: str,
         output_path: Path,
     ) -> Path:
         """
@@ -528,8 +549,8 @@ class BatchHttpAPI(BentoHttpAPI):
 
         Parameters
         ----------
-        batch_download_url : _BatchDownloadFile
-            The batch download URL for the zipfile, should contain the job ID appended with .zip.
+        job_id : str
+            The job ID of the batch job to download.
         output_path : Path
             The output path of the file.
 
@@ -553,7 +574,8 @@ class BatchHttpAPI(BentoHttpAPI):
 
             try:
                 with requests.get(
-                    url=batch_download_url,
+                    url=f"{self._base_url}.download",
+                    params={"job_id": job_id},
                     headers=headers,
                     auth=HTTPBasicAuth(username=self._key, password=""),
                     allow_redirects=True,
@@ -586,7 +608,7 @@ class BatchHttpAPI(BentoHttpAPI):
 
 class _BatchJob:
     """
-    Helper class for downloading multiple batch files from a job.
+    Helper class for downloading individual batch files from a job.
 
     Supports sync and async downloads using a shared
     `ThreadPoolExecutor`.
@@ -619,9 +641,6 @@ class _BatchJob:
             logger.error(error_message)
             raise RuntimeError(error_message)
 
-        zip_filename = f"{job_id}.zip"
-        zip_url = None
-
         batch_files = []
         for file_detail in job_details:
             try:
@@ -645,9 +664,6 @@ class _BatchJob:
                     "'download' delivery is not available for this job.",
                 ) from None
 
-            if zip_url is None:
-                zip_url = urls["https"].replace(filename, zip_filename)
-
             batch_files.append(
                 _BatchJob._BatchJobFile(
                     filename=filename,
@@ -657,18 +673,16 @@ class _BatchJob:
                 ),
             )
 
-        if not batch_files or not zip_url:
+        if not batch_files:
             raise ValueError(f"No job files for {job_id}.")
 
-        self._zip_filename = zip_filename
-        self._zip_url = zip_url
         self._batch_http_api = batch_http_api
         self._output_dir = validate_path(output_dir, "output_dir") / job_id
         self._batch_files = batch_files
 
     def download(
         self,
-        filenames_to_download: Iterable[str] | None,
+        filenames_to_download: Iterable[str],
     ) -> list[Path]:
         self._output_dir.mkdir(
             exist_ok=True,
@@ -678,31 +692,22 @@ class _BatchJob:
         file_paths = []
         tasks = []
 
-        if filenames_to_download is None:
+        filenames_to_download = set(filenames_to_download)
+        for batch_file in self._batch_files:
+            if not filenames_to_download:
+                break
+
+            if batch_file.filename not in filenames_to_download:
+                continue
+
             tasks.append(
                 self._executor.submit(
-                    self._batch_http_api._download_batch_zip,
-                    self._zip_url,
-                    self._output_dir / self._zip_filename,
+                    self._batch_http_api._download_batch_file,
+                    batch_file,
+                    self._output_dir / batch_file.filename,
                 ),
             )
-        else:
-            filenames_to_download = set(filenames_to_download)
-            for batch_file in self._batch_files:
-                if not filenames_to_download:
-                    break
-
-                if batch_file.filename not in filenames_to_download:
-                    continue
-
-                tasks.append(
-                    self._executor.submit(
-                        self._batch_http_api._download_batch_file,
-                        batch_file,
-                        self._output_dir / batch_file.filename,
-                    ),
-                )
-                filenames_to_download.remove(batch_file.filename)
+            filenames_to_download.remove(batch_file.filename)
 
         for completed in as_completed(tasks):
             path = completed.result()
@@ -712,7 +717,7 @@ class _BatchJob:
 
     async def download_async(
         self,
-        filenames_to_download: Iterable[str] | None,
+        filenames_to_download: Iterable[str],
     ) -> list[Path]:
         self._output_dir.mkdir(
             exist_ok=True,
@@ -722,34 +727,22 @@ class _BatchJob:
         file_paths: list[Path] = []
         tasks = []
 
-        if filenames_to_download is None:
+        filenames_to_download = set(filenames_to_download)
+        for batch_file in self._batch_files:
+            if not filenames_to_download:
+                break
+
+            if batch_file.filename not in filenames_to_download:
+                continue
+
             tasks.append(
                 asyncio.get_running_loop().run_in_executor(
                     self._executor,
-                    self._batch_http_api._download_batch_zip,
-                    self._zip_url,
-                    self._output_dir / self._zip_filename,
+                    self._batch_http_api._download_batch_file,
+                    batch_file,
+                    self._output_dir / batch_file.filename,
                 ),
             )
-        else:
-            filenames_to_download = set(filenames_to_download)
-
-            tasks = []
-            for batch_file in self._batch_files:
-                if not filenames_to_download:
-                    break
-
-                if batch_file.filename not in filenames_to_download:
-                    continue
-
-                tasks.append(
-                    asyncio.get_running_loop().run_in_executor(
-                        self._executor,
-                        self._batch_http_api._download_batch_file,
-                        batch_file,
-                        self._output_dir / batch_file.filename,
-                    ),
-                )
 
         for completed in asyncio.as_completed(tasks):
             try:

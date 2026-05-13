@@ -4,6 +4,8 @@
 
 #### Enhancements
 - Added new venues, datasets, and publishers for US Equities Securities Information Processors
+- Changed the `batch.download` method to use the API's `batch.download` endpoint for
+downloading a batch job as a ZIP archive
 
 ## 0.78.0 - 2026-05-12
 

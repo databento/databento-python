@@ -450,28 +450,6 @@ def test_batch_download_all_files(
         stub.writestr("testfile.dbn", testfile_data)
 
     job_id = "GLBX-20220610-5DEFXVTMSM"
-    file_content = stub_zip_path.read_bytes()
-    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
-    file_size = len(file_content)
-
-    # Mock the call to list files so it returns a test manifest
-    monkeypatch.setattr(
-        historical_client.batch,
-        "list_files",
-        mocked_batch_list_files := MagicMock(
-            return_value=[
-                {
-                    "filename": "testfile.dbn",
-                    "hash": file_hash,
-                    "size": file_size,
-                    "urls": {
-                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/testfile.dbn",
-                        "ftp": "",
-                    },
-                },
-            ],
-        ),
-    )
 
     # Mock the call for get, so we can simulate a ZIP response
     zip_response = MagicMock()
@@ -497,13 +475,12 @@ def test_batch_download_all_files(
     )
 
     # Assert
-    assert mocked_batch_list_files.call_args.args == (job_id,)
-
     call = mocked_get.call_args.kwargs
     assert call["allow_redirects"]
     assert call["headers"]["accept"] == "application/json"
     assert call["stream"]
-    assert call["url"] == f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{job_id}.zip"
+    assert call["url"] == "https://localhost/v0/batch.download"
+    assert call["params"] == {"job_id": job_id}
 
     if keep_zip:
         assert (tmp_path / job_id / f"{job_id}.zip").exists()
@@ -539,28 +516,6 @@ async def test_batch_download_all_files_async(
         stub.writestr("testfile.dbn", testfile_data)
 
     job_id = "GLBX-20220610-5DEFXVTMSM"
-    file_content = stub_zip_path.read_bytes()
-    file_hash = f"sha256:{hashlib.sha256(file_content).hexdigest()}"
-    file_size = len(file_content)
-
-    # Mock the call to list files so it returns a test manifest
-    monkeypatch.setattr(
-        historical_client.batch,
-        "list_files",
-        mocked_batch_list_files := MagicMock(
-            return_value=[
-                {
-                    "filename": "testfile.dbn",
-                    "hash": file_hash,
-                    "size": file_size,
-                    "urls": {
-                        "https": f"localhost:442/v0/batch/download/TESTUSER/{job_id}/testfile.dbn",
-                        "ftp": "",
-                    },
-                },
-            ],
-        ),
-    )
 
     # Mock the call for get, so we can simulate a ZIP response
     zip_response = MagicMock()
@@ -586,13 +541,12 @@ async def test_batch_download_all_files_async(
     )
 
     # Assert
-    assert mocked_batch_list_files.call_args.args == (job_id,)
-
     call = mocked_get.call_args.kwargs
     assert call["allow_redirects"]
     assert call["headers"]["accept"] == "application/json"
     assert call["stream"]
-    assert call["url"] == f"localhost:442/v0/batch/download/TESTUSER/{job_id}/{job_id}.zip"
+    assert call["url"] == "https://localhost/v0/batch.download"
+    assert call["params"] == {"job_id": job_id}
 
     if keep_zip:
         assert (tmp_path / job_id / f"{job_id}.zip").exists()
