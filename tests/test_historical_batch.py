@@ -157,6 +157,30 @@ def test_batch_list_files_sends_expected_request(
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
 
+def test_batch_get_job_details_sends_expected_request(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+) -> None:
+    # Arrange
+    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+    job_id = "GLBX-20220610-5DEFXVTMSM"
+
+    # Act
+    historical_client.batch.get_job_details(job_id=job_id)
+
+    # Assert
+    call = mocked_get.call_args.kwargs
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/batch.get_job_details"
+    assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+    assert call["headers"]["accept"] == "application/json"
+    assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
+    assert call["params"] == [
+        ("job_id", job_id),
+    ]
+    assert call["timeout"] == (100, 100)
+    assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+
 def test_batch_download_single_file_sends_expected_request(
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,

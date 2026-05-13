@@ -191,6 +191,34 @@ class BatchHttpAPI(BentoHttpAPI):
             basic_auth=True,
         ).json()
 
+    def get_job_details(
+        self,
+        job_id: str,
+    ) -> dict[str, Any]:
+        """
+        Request the full details of a batch job for the user account.
+
+        Parameters
+        ----------
+        job_id : str
+            The batch job identifier.
+
+        Returns
+        -------
+        dict[str, Any]
+            The file details for the batch job.
+
+        """
+        params: list[tuple[str, str | None]] = [
+            ("job_id", job_id),
+        ]
+
+        return self._get(
+            url=self._base_url + ".get_job_details",
+            params=params,
+            basic_auth=True,
+        ).json()
+
     def list_jobs(
         self,
         states: Iterable[JobState | str] | JobState | str | None = "queued,processing,done",
