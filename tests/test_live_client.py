@@ -465,6 +465,7 @@ async def test_live_start_twice(
 
     # Act, Assert
     live_client.start()
+    await mock_live_server.wait_for_message_of_type(message_type=gateway.SessionStart)
     with pytest.raises(ValueError):
         live_client.start()
 

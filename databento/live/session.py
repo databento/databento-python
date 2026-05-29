@@ -517,7 +517,7 @@ class LiveSession:
         with self._lock:
             if self._protocol is None:
                 raise ValueError("session is not connected")
-            self._protocol.start()
+            self._loop.call_soon_threadsafe(self._protocol.start)
             self._heartbeat_monitor_task = self._loop.create_task(
                 self._heartbeat_monitor(),
             )
@@ -585,7 +585,7 @@ class LiveSession:
         with self._lock:
             if self._transport is None:
                 return
-            self._transport.abort()
+            self._loop.call_soon_threadsafe(self._transport.abort)
             self._cleanup()
 
     async def wait_for_close(self) -> None:

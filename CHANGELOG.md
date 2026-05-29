@@ -8,6 +8,10 @@
   downloading a batch job as a ZIP archive
 - Added method for `batch.get_job_details` to access the full details of a batch job
 
+#### Bug fixes
+- Fixed some thread-unsafe behavior in `Live.start()` and `Live.terminate()` which would
+  call methods from the client's event loop in the main thread
+
 ## 0.78.0 - 2026-05-12
 
 #### Enhancements
