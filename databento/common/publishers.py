@@ -1280,6 +1280,10 @@ class Publisher(StringyMixin, str, Enum):
         US Equities SIP - FINRA/Nasdaq TRF Chicago.
     EQUS_SIP_XADF
         US Equities SIP - FINRA Alternative Display Facility.
+    EQUS_SIP_CTA
+        US Equities SIP - CTA.
+    EQUS_SIP_UTP
+        US Equities SIP - UTP.
 
     """
 
@@ -1416,6 +1420,8 @@ class Publisher(StringyMixin, str, Enum):
     EQUS_SIP_FINY = "EQUS.SIP.FINY"
     EQUS_SIP_FINC = "EQUS.SIP.FINC"
     EQUS_SIP_XADF = "EQUS.SIP.XADF"
+    EQUS_SIP_CTA = "EQUS.SIP.CTA"
+    EQUS_SIP_UTP = "EQUS.SIP.UTP"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1688,6 +1694,10 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.EQUS_SIP_FINC
         if value == 133:
             return Publisher.EQUS_SIP_XADF
+        if value == 134:
+            return Publisher.EQUS_SIP_CTA
+        if value == 135:
+            return Publisher.EQUS_SIP_UTP
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -1960,6 +1970,10 @@ class Publisher(StringyMixin, str, Enum):
             return 132
         if self == Publisher.EQUS_SIP_XADF:
             return 133
+        if self == Publisher.EQUS_SIP_CTA:
+            return 134
+        if self == Publisher.EQUS_SIP_UTP:
+            return 135
         raise ValueError("Invalid Publisher")
 
     @property
@@ -2233,6 +2247,10 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.FINC
         if self == Publisher.EQUS_SIP_XADF:
             return Venue.XADF
+        if self == Publisher.EQUS_SIP_CTA:
+            return Venue.CTA
+        if self == Publisher.EQUS_SIP_UTP:
+            return Venue.UTP
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2505,6 +2523,10 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.EQUS_SIP_FINC:
             return Dataset.EQUS_SIP
         if self == Publisher.EQUS_SIP_XADF:
+            return Dataset.EQUS_SIP
+        if self == Publisher.EQUS_SIP_CTA:
+            return Dataset.EQUS_SIP
+        if self == Publisher.EQUS_SIP_UTP:
             return Dataset.EQUS_SIP
         raise ValueError("Unexpected Publisher value")
 
@@ -2779,4 +2801,8 @@ class Publisher(StringyMixin, str, Enum):
             return "US Equities SIP - FINRA/Nasdaq TRF Chicago"
         if self == Publisher.EQUS_SIP_XADF:
             return "US Equities SIP - FINRA Alternative Display Facility"
+        if self == Publisher.EQUS_SIP_CTA:
+            return "US Equities SIP - CTA"
+        if self == Publisher.EQUS_SIP_UTP:
+            return "US Equities SIP - UTP"
         raise ValueError("Unexpected Publisher value")
