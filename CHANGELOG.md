@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.79.0 - TBD
+## 0.79.0 - 2026-06-02
 
 #### Enhancements
 - Added new venues, datasets, and publishers for US Equities Securities Information Processors
