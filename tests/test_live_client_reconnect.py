@@ -45,7 +45,10 @@ async def test_reconnect_policy_none(
         stype_in=SType.RAW_SYMBOL,
         symbols="TEST",
     )
-    live_client._session._protocol.disconnected.set_exception(ConnectionResetError)
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
 
     await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
 
@@ -90,7 +93,10 @@ async def test_reconnect_before_start(
     live_client.add_callback(records.append)
 
     # Act
-    live_client._session._protocol.disconnected.set_exception(ConnectionResetError)
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
     await mock_live_server.disconnect(
         session_id=live_client._session.session_id,
     )
@@ -162,7 +168,10 @@ async def test_reconnect_subscriptions(
     await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
 
     # Act
-    live_client._session._protocol.disconnected.set_exception(ConnectionResetError)
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
     await mock_live_server.disconnect(
         session_id=live_client._session.session_id,
     )
@@ -217,8 +226,11 @@ async def test_reconnect_callback(
 
     # Act
     live_client.start()
-    live_client._session._protocol.disconnected.set_exception(ConnectionResetError)
 
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
     await mock_live_server.wait_for_message_of_type(SessionStart)
 
     await live_client.wait_for_close()
