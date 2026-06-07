@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.80.0 - TBD
+
+#### Enhancements
+- Added `MATCH_ALGORITHM` variant `ALLOCATION`
+
 ## 0.79.0 - 2026-06-02
 
 #### Enhancements
