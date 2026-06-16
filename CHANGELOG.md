@@ -3,7 +3,8 @@
 ## 0.80.0 - TBD
 
 #### Enhancements
-- Added `MATCH_ALGORITHM` variant `ALLOCATION`
+- Upgraded `databento-dbn` to 0.61.0:
+  - Added `MatchAlgorithm` variant `Allocation`
 
 ## 0.79.0 - 2026-06-02
 
