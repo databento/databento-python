@@ -190,9 +190,9 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
 
         """
         logger.debug("established connection to gateway")
-        if not isinstance(transport, asyncio.Transport):
-            raise TypeError("Connection does not support read-write operations.")
-        self.__transport = transport
+        if not hasattr(transport, "write"):
+            raise TypeError("Connection does not support write operations.")
+        self.__transport = transport  # type: ignore [assignment]
         return super().connection_made(transport)
 
     def connection_lost(self, exc: Exception | None) -> None:
