@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.80.0 - 2026-06-16
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.61.0:
+  - Added `MatchAlgorithm` variant `Allocation`
+
+#### Bug fixes
+- Fixed an issue where the `Live` client would throw a `TypeError` when connecting
+  using `uvloop`
+
 ## 0.79.0 - 2026-06-02
 
 #### Enhancements
