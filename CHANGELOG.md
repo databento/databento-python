@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.81.0 - TBD
+
+#### Enhancements
+- Added `StatType` variants `MwcbLevel1`, `MwcbLevel2`, and `MwcbLevel3`
+
 ## 0.80.0 - 2026-06-16
 
 #### Enhancements
