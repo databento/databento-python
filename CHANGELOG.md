@@ -5,10 +5,17 @@
 #### Enhancements
 - Upgraded `databento-dbn` to 0.61.0:
   - Added `MatchAlgorithm` variant `Allocation`
+- Added new publisher values for Cboe Titanium Cboe Global Indices Feed
 
 #### Bug fixes
 - Fixed an issue where the `Live` client would throw a `TypeError` when connecting
   using `uvloop`
+
+#### Breaking changes
+- Renamed the following Venue, Dataset, and Publisher:
+    - `CGIF` to `MAIN`
+    - `CGIF.TITANIUM` to `MAIN.CGIF`
+    - `CGIF.TITANIUM.CGIF` to `MAIN.CGIF.MAIN`
 
 ## 0.79.0 - 2026-06-02
 
