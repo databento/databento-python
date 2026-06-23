@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 echo "Running $(poetry run mypy --version)..."
-poetry run mypy .
+poetry run -- mypy --no-site-packages .
