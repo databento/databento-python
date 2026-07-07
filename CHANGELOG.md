@@ -3,9 +3,12 @@
 ## 0.81.0 - TBD
 
 #### Enhancements
-- Added `StatType` variants `MwcbLevel1`, `MwcbLevel2`, and `MwcbLevel3`
-- Added `StatType` variants `AuctionCollarReferencePrice`, `AuctionCollarUpperPrice`,
-  and `AuctionCollarLowerPrice`
+- Upgraded `databento-dbn` to 0.62.0:
+  - Added `StatType` variants `MwcbLevel1`, `MwcbLevel2`, and `MwcbLevel3`
+  - Added `StatType` variants `AuctionCollarReferencePrice`, `AuctionCollarUpperPrice`,
+    and `AuctionCollarLowerPrice`
+  - Changed the default `size` field to 0 in `MboMsg`, `TradeMsg`, `Mbp1Msg`, `Mbp10Msg`,
+    `BboMsg`, `Cmbp1Msg`, and `CbboMsg`
 
 ## 0.80.0 - 2026-06-16
 
