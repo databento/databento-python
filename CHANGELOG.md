@@ -1,14 +1,31 @@
 # Changelog
 
+## 0.81.0 - 2026-07-07
+
+#### Enhancements
+- Upgraded `databento-dbn` to 0.62.0:
+  - Added `StatType` variants `MwcbLevel1`, `MwcbLevel2`, and `MwcbLevel3`
+  - Added `StatType` variants `AuctionCollarReferencePrice`, `AuctionCollarUpperPrice`,
+    and `AuctionCollarLowerPrice`
+  - Changed the default `size` field to 0 in `MboMsg`, `TradeMsg`, `Mbp1Msg`, `Mbp10Msg`,
+    `BboMsg`, `Cmbp1Msg`, and `CbboMsg`
+
 ## 0.80.0 - 2026-06-16
 
 #### Enhancements
 - Upgraded `databento-dbn` to 0.61.0:
   - Added `MatchAlgorithm` variant `Allocation`
+- Added new publisher values for Cboe Titanium Cboe Global Indices Feed
 
 #### Bug fixes
 - Fixed an issue where the `Live` client would throw a `TypeError` when connecting
   using `uvloop`
+
+#### Breaking changes
+- Renamed the following Venue, Dataset, and Publisher:
+    - `CGIF` to `MAIN`
+    - `CGIF.TITANIUM` to `MAIN.CGIF`
+    - `CGIF.TITANIUM.CGIF` to `MAIN.CGIF.MAIN`
 
 ## 0.79.0 - 2026-06-02
 
