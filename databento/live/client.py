@@ -72,16 +72,16 @@ class Live:
     compression : Compression or str, default "none"
         The compression format for live data. Set to "zstd" for
         Zstandard-compressed data from the gateway.
+    loop : asyncio.AbstractEventLoop, optional
+        The event loop to run the client connection in. The loop must already be
+        running on another thread than the caller's. If unspecified, a shared
+        event loop running on a background thread will be used.
 
     """
 
-    _loop = asyncio.new_event_loop()
+    _shared_loop: asyncio.AbstractEventLoop | None = None
     _lock = threading.Lock()
-    _thread = threading.Thread(
-        target=_loop.run_forever,
-        name="databento_live",
-        daemon=True,
-    )
+    _thread: threading.Thread | None = None
 
     def __init__(
         self,
@@ -93,6 +93,7 @@ class Live:
         reconnect_policy: ReconnectPolicy | str = ReconnectPolicy.NONE,
         slow_reader_behavior: SlowReaderBehavior | str | None = None,
         compression: Compression = Compression.NONE,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         if key is None:
             key = os.environ.get("DATABENTO_API_KEY")
@@ -112,6 +113,7 @@ class Live:
         self._ts_out = ts_out
         self._compression = compression
         self._heartbeat_interval_s = heartbeat_interval_s
+        self._loop = loop if loop is not None else Live._get_shared_loop()
 
         self._metadata: SessionMetadata = SessionMetadata()
         self._symbology_map: dict[int, str | int] = {}
@@ -130,9 +132,18 @@ class Live:
 
         self._session._user_callbacks.append(ClientRecordCallback(self._map_symbol))
 
-        with Live._lock:
-            if not Live._thread.is_alive():
-                Live._thread.start()
+    @classmethod
+    def _get_shared_loop(cls) -> asyncio.AbstractEventLoop:
+        with cls._lock:
+            if cls._shared_loop is None:
+                cls._shared_loop = asyncio.new_event_loop()
+                cls._thread = threading.Thread(
+                    target=cls._shared_loop.run_forever,
+                    name="databento_live",
+                    daemon=True,
+                )
+                cls._thread.start()
+            return cls._shared_loop
 
     def __del__(self) -> None:
         try:
@@ -649,7 +660,7 @@ class Live:
         try:
             asyncio.run_coroutine_threadsafe(
                 self._session.wait_for_close(),
-                loop=Live._loop,
+                loop=self._loop,
             ).result(timeout=timeout)
         except (futures.TimeoutError, KeyboardInterrupt) as exc:
             logger.info("closing session due to %s", type(exc).__name__)
@@ -697,7 +708,7 @@ class Live:
         waiter = asyncio.wrap_future(
             asyncio.run_coroutine_threadsafe(
                 self._session.wait_for_close(),
-                loop=Live._loop,
+                loop=self._loop,
             ),
         )
 

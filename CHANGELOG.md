@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.82.0 - TBD
+
+#### Enhancements
+- Added a `loop` parameter to the `Live` client to provide user level control
+of which event loop the client's connection uses
+- The `Live` class will no longer create a background thread and event loop
+upon import
+
 ## 0.81.0 - 2026-07-07
 
 #### Enhancements
