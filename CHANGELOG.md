@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.82.0 - TBD
+## 0.82.0 - 2026-07-21
 
 #### Enhancements
 - Added a `loop` parameter to the `Live` client to provide user level control
