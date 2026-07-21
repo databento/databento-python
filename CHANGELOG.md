@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.82.0 - 2026-07-21
+
+#### Enhancements
+- Added a `loop` parameter to the `Live` client to provide user level control
+  of which event loop the client's connection uses
+- The `Live` class will no longer create a background thread and event loop
+  upon import
+- Upgraded `databento-dbn` to 0.63.0:
+  - Added an integer representation for `VersionUpgradePolicy`: the enum is now
+    has a value property, a from_int, and comparison against integers
+
 ## 0.81.0 - 2026-07-07
 
 #### Enhancements
