@@ -6,6 +6,10 @@
 - Added `CorporateActionsHttpAPI.list_events()` and `list_enums()` for fetching
   documentation on supported corporate action event types and enum values
 
+#### Bug fixes
+- Fixed an issue where the `Live` client's monitor task would not get recreated
+for the new session after a reconnection
+
 ## 0.82.0 - 2026-07-21
 
 #### Enhancements

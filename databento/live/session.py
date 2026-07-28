@@ -519,7 +519,7 @@ class LiveSession:
                 raise ValueError("session is not connected")
             self._loop.call_soon_threadsafe(self._protocol.start)
             self._heartbeat_monitor_task = self._loop.create_task(
-                self._heartbeat_monitor(),
+                self._heartbeat_monitor(self._protocol),
             )
 
     def subscribe(
@@ -719,20 +719,22 @@ class LiveSession:
 
         return transport, protocol
 
-    async def _heartbeat_monitor(self) -> None:
-        while not self._protocol.disconnected.done():
+    async def _heartbeat_monitor(self, protocol: _SessionProtocol) -> None:
+        while not protocol.disconnected.done():
             await asyncio.sleep(1)
-            gap = self._loop.time() - self._protocol._last_msg_loop_time
+            gap = self._loop.time() - protocol._last_msg_loop_time
             if gap > (self._heartbeat_interval_s + CLIENT_TIMEOUT_MARGIN_SECONDS):
                 logger.error(
                     "disconnecting client due to timeout, no data received for %d second(s)",
                     int(gap),
                 )
-                self._protocol.disconnected.set_exception(
-                    BentoError(
-                        f"Gateway timeout: {gap:.0f} second(s) since last message",
-                    ),
-                )
+                if not protocol.disconnected.done():
+                    protocol.disconnected.set_exception(
+                        BentoError(
+                            f"Gateway timeout: {gap:.0f} second(s) since last message",
+                        ),
+                    )
+                return
 
     async def _reconnect(self) -> None:
         while True:
@@ -770,6 +772,11 @@ class LiveSession:
                         )
 
                     if should_restart:
+                        if self._heartbeat_monitor_task is not None:
+                            self._heartbeat_monitor_task.cancel()
+                        self._heartbeat_monitor_task = self._loop.create_task(
+                            self._heartbeat_monitor(self._protocol),
+                        )
                         self._protocol.start()
                         metadata = await self._protocol._metadata_received
                         gap_end = pd.Timestamp(metadata.start, tz="UTC")
