@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.83.0 - Upcoming
+
+#### Enhancements
+- Added `CorporateActionsHttpAPI.list_events()` and `list_enums()` for fetching
+  documentation on supported corporate action event types and enum values
+
 ## 0.82.0 - 2026-07-21
 
 #### Enhancements

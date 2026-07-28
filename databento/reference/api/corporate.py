@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
+from typing import Any
 
 import pandas as pd
 from databento_dbn import Compression
@@ -172,3 +173,37 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
                 df.sort_index(inplace=True)
 
         return df
+
+    def list_events(self) -> dict[str, dict[str, Any]]:
+        """
+        Request the documentation information for supported corporate action
+        events.
+
+        Makes a `GET /corporate_actions.list_events` HTTP request.
+
+        Returns
+        -------
+        dict[str, dict]
+            The raw JSON response as a dict keyed by event code, describing
+            that event's fields, subtypes, and applicable calendar dates.
+
+        """
+        response = self._get(url=self._base_url + ".list_events")
+        return response.json()
+
+    def list_enums(self) -> dict[str, list[dict[str, Any]]]:
+        """
+        Request the documentation information for supported corporate action
+        enums.
+
+        Makes a `GET /corporate_actions.list_enums` HTTP request.
+
+        Returns
+        -------
+        dict[str, list[dict]]
+            The raw JSON response as a dict keyed by enum name, containing a
+            list of `{code, description}` variants.
+
+        """
+        response = self._get(url=self._base_url + ".list_enums")
+        return response.json()
