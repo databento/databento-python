@@ -6,6 +6,7 @@
 - Added `CorporateActionsHttpAPI.list_events()` and `list_enums()` for fetching
   documentation on supported corporate action event types and enum values
 - Added `REPLAY_DATA_AGED_OUT` variant to `ErrorCode` enum
+- Added new publisher values for JPX
 
 #### Bug fixes
 - Fixed an issue where the `Live` client's monitor task would not get recreated
