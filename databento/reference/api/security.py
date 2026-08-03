@@ -39,6 +39,7 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
         stype_in: SType | str = "raw_symbol",
         countries: Iterable[str] | str | None = None,
         security_types: Iterable[str] | str | None = None,
+        allocate_isins: bool = True,
     ) -> pd.DataFrame:
         """
         Request a new security master time series from Databento.
@@ -81,6 +82,9 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
             Takes any number of security types per request.
             If not specified then will select **all** security types by default.
             See [SECTYPE](https://databento.com/docs/standards-and-conventions/reference-data-enums#sectype) enum.
+        allocate_isins: bool, default True
+            Whether this request should allocate any new ISINs for plans that are ISIN-limited.
+            The request will drop any rows that would create new allocations.
 
         Returns
         -------
@@ -100,6 +104,7 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
             "stype_in": stype_in,
             "countries": ",".join(countries) if countries else None,
             "security_types": ",".join(security_types) if security_types else None,
+            "allocate_isins": allocate_isins,
             "compression": str(Compression.ZSTD),  # Always request zstd
         }
 
@@ -127,6 +132,7 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
         stype_in: SType | str = "raw_symbol",
         countries: Iterable[str] | str | None = None,
         security_types: Iterable[str] | str | None = None,
+        allocate_isins: bool = True,
     ) -> pd.DataFrame:
         """
         Request the latest security master from Databento.
@@ -155,6 +161,9 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
             Takes any number of security types per request.
             If not specified then will select **all** security types by default.
             See [SECTYPE](https://databento.com/docs/standards-and-conventions/reference-data-enums#sectype) enum.
+        allocate_isins: bool, default True
+            Whether this request should allocate any new ISINs for plans that are ISIN-limited.
+            The request will drop any rows that would create new allocations.
 
         Returns
         -------
@@ -171,6 +180,7 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
             "stype_in": stype_in,
             "countries": ",".join(countries) if countries else None,
             "security_types": ",".join(security_types) if security_types else None,
+            "allocate_isins": allocate_isins,
             "compression": str(Compression.ZSTD),  # Always request zstd
         }
 

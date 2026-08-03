@@ -7,6 +7,10 @@
   documentation on supported corporate action event types and enum values
 - Added `REPLAY_DATA_AGED_OUT` variant to `ErrorCode` enum
 - Added new publisher values for JPX
+- Added an `allocate_isins` parameter to `AdjustmentFactorsHttpAPI.get_range()`,
+  `CorporateActionsHttpAPI.get_range()`, `SecurityMasterHttpAPI.get_range()`,
+  and `SecurityMasterHttpAPI.get_last()` to control whether new ISINs are
+  allocated for plans that are ISIN-limited
 
 #### Bug fixes
 - Fixed an issue where the `Live` client's monitor task would not get recreated

@@ -44,6 +44,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
         security_types: Iterable[str] | str | None = None,
         flatten: bool = True,
         pit: bool = False,
+        allocate_isins: bool = True,
     ) -> pd.DataFrame:
         """
         Request a new corporate actions time series from Databento.
@@ -105,6 +106,9 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             the complete point-in-time history.
             If False (default), the DataFrame will include only the most recent record for each
             `event_unique_id` based on the `ts_record` timestamp.
+        allocate_isins: bool, default True
+            Whether this request should allocate any new ISINs for plans that are ISIN-limited.
+            The request will drop any rows that would create new allocations.
 
         Returns
         -------
@@ -127,6 +131,7 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             "events": ",".join(events) if events else None,
             "countries": ",".join(countries) if countries else None,
             "security_types": ",".join(security_types) if security_types else None,
+            "allocate_isins": allocate_isins,
             "compression": str(Compression.ZSTD),  # Always request zstd
         }
 
