@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.83.0 - Upcoming
+## 0.83.0 - 2026-08-04
 
 #### Enhancements
 - Added `CorporateActionsHttpAPI.list_events()` and `list_enums()` for fetching
@@ -12,7 +12,7 @@
   and `SecurityMasterHttpAPI.get_last()` to control whether new ISINs are
   allocated for plans that are ISIN-limited
 - Upgraded `databento-dbn` to 0.65.0:
-  - Added finish() method to the Python Transcoder and a context manager
+  - Added `finish()` method to the Python Transcoder and a context manager
     to call this method on exit. This will ensure compressed output contains the
     end-of-frame block
 
