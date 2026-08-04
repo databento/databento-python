@@ -11,6 +11,10 @@
   `CorporateActionsHttpAPI.get_range()`, `SecurityMasterHttpAPI.get_range()`,
   and `SecurityMasterHttpAPI.get_last()` to control whether new ISINs are
   allocated for plans that are ISIN-limited
+- Upgraded `databento-dbn` to 0.65.0:
+  - Added finish() method to the Python Transcoder and a context manager
+    to call this method on exit. This will ensure compressed output contains the
+    end-of-frame block
 
 #### Bug fixes
 - Fixed an issue where the `Live` client's monitor task would not get recreated
