@@ -87,6 +87,7 @@ def test_security_master_get_last_sends_expected_request(
         "stype_in": "raw_symbol",
         "countries": expected_countries,
         "security_types": expected_security_types,
+        "allocate_isins": True,
         "compression": "zstd",
     }
     assert call["timeout"] == (100, 100)
@@ -171,6 +172,7 @@ def test_security_master_get_range_sends_expected_request(
         "stype_in": "raw_symbol",
         "countries": expected_countries,
         "security_types": expected_security_types,
+        "allocate_isins": True,
         "compression": "zstd",
     }
     assert call["timeout"] == (100, 100)

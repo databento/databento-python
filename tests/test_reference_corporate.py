@@ -111,6 +111,7 @@ def test_corporate_actions_get_range_sends_expected_request(
         "events": expected_events,
         "countries": expected_countries,
         "security_types": expected_security_types,
+        "allocate_isins": True,
         "compression": "zstd",
     }
     assert call["timeout"] == (100, 100)
@@ -257,3 +258,123 @@ def test_corporate_actions_get_range_without_flattening(
     # Assert the columns were retained
     for col in ["date_info", "rate_info", "event_info"]:
         assert col in df_raw.columns
+
+
+LIST_EVENTS_RESPONSE = {
+    "AGM": {
+        "calendar_dates": [
+            {"alias": "meeting_date", "name": "event_date"},
+            {"alias": None, "name": "record_date"},
+        ],
+        "category": "proposals",
+        "code": "AGM",
+        "description": "Annual General meeting of shareholders.",
+        "fields": [
+            {
+                "description": "Company Meeting Number",
+                "group": "event_info",
+                "name": "meeting_number",
+            },
+        ],
+        "level": "issuer",
+        "name": "Company Meeting",
+        "participation": "voluntary",
+        "subtypes": [
+            {"code": "AGM", "description": "Annual General Meeting"},
+        ],
+    },
+}
+
+
+def test_corporate_actions_list_events_sends_expected_request(
+    monkeypatch: pytest.MonkeyPatch,
+    reference_client: Reference,
+) -> None:
+    # Arrange
+    mock_response = MagicMock()
+    mock_response.json.return_value = LIST_EVENTS_RESPONSE
+    mock_response.__enter__.return_value = mock_response
+    mock_response.__exit__ = MagicMock()
+    monkeypatch.setattr(requests, "get", mocked_get := MagicMock(return_value=mock_response))
+
+    # Act
+    reference_client.corporate_actions.list_events()
+
+    # Assert
+    call = mocked_get.call_args.kwargs
+    assert (
+        call["url"] == f"{reference_client.gateway}/v{db.API_VERSION}/corporate_actions.list_events"
+    )
+    assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+    assert call["headers"]["accept"] == "application/json"
+    assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
+    assert call["timeout"] == (100, 100)
+
+
+def test_corporate_actions_list_events_response(
+    monkeypatch: pytest.MonkeyPatch,
+    reference_client: Reference,
+) -> None:
+    # Arrange
+    mock_response = MagicMock()
+    mock_response.json.return_value = LIST_EVENTS_RESPONSE
+    mock_response.__enter__.return_value = mock_response
+    mock_response.__exit__ = MagicMock()
+    monkeypatch.setattr(requests, "get", MagicMock(return_value=mock_response))
+
+    # Act
+    data = reference_client.corporate_actions.list_events()
+
+    # Assert
+    assert data == LIST_EVENTS_RESPONSE
+
+
+LIST_ENUMS_RESPONSE = {
+    "ACTION": [
+        {"code": "C", "description": "Cancelled"},
+        {"code": "I", "description": "Inserted"},
+    ],
+}
+
+
+def test_corporate_actions_list_enums_sends_expected_request(
+    monkeypatch: pytest.MonkeyPatch,
+    reference_client: Reference,
+) -> None:
+    # Arrange
+    mock_response = MagicMock()
+    mock_response.json.return_value = LIST_ENUMS_RESPONSE
+    mock_response.__enter__.return_value = mock_response
+    mock_response.__exit__ = MagicMock()
+    monkeypatch.setattr(requests, "get", mocked_get := MagicMock(return_value=mock_response))
+
+    # Act
+    reference_client.corporate_actions.list_enums()
+
+    # Assert
+    call = mocked_get.call_args.kwargs
+    assert (
+        call["url"] == f"{reference_client.gateway}/v{db.API_VERSION}/corporate_actions.list_enums"
+    )
+    assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+    assert call["headers"]["accept"] == "application/json"
+    assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
+    assert call["timeout"] == (100, 100)
+
+
+def test_corporate_actions_list_enums_response(
+    monkeypatch: pytest.MonkeyPatch,
+    reference_client: Reference,
+) -> None:
+    # Arrange
+    mock_response = MagicMock()
+    mock_response.json.return_value = LIST_ENUMS_RESPONSE
+    mock_response.__enter__.return_value = mock_response
+    mock_response.__exit__ = MagicMock()
+    monkeypatch.setattr(requests, "get", MagicMock(return_value=mock_response))
+
+    # Act
+    data = reference_client.corporate_actions.list_enums()
+
+    # Assert
+    assert data == LIST_ENUMS_RESPONSE

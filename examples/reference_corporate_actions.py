@@ -1,4 +1,5 @@
 from pprint import pprint
+from typing import Any
 
 import pandas as pd
 
@@ -19,3 +20,9 @@ if __name__ == "__main__":
     )
 
     pprint(response.head())
+
+    event_docs: dict[str, dict[str, Any]] = client.corporate_actions.list_events()
+    pprint(event_docs)
+
+    enum_docs: dict[str, list[Any]] = client.corporate_actions.list_enums()
+    pprint(enum_docs)

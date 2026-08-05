@@ -13,9 +13,11 @@ from databento import Schema
 from databento import SType
 from databento.common.enums import ReconnectPolicy
 from databento.live import client
+from databento.live import session
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
+from databento.live.protocol import DatabentoLiveProtocol
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
 
@@ -241,3 +243,54 @@ async def test_reconnect_callback(
     gap_start, gap_end = args
     assert isinstance(gap_start, pd.Timestamp)
     assert isinstance(gap_end, pd.Timestamp)
+
+
+async def test_reconnect_after_heartbeat_timeout(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+    monkeypatch: pytest.MonkeyPatch,
+    reconnect_policy: ReconnectPolicy = ReconnectPolicy.RECONNECT,
+) -> None:
+    """
+    Test that the heartbeat monitor reconnects the client every time the
+    gateway times out, not just the first time.
+    """
+    # Arrange
+    # this mock will make the connection go silent instead of disconnecting
+    monkeypatch.setattr(DatabentoLiveProtocol, "eof_received", lambda _: True)
+    monkeypatch.setattr(session, "CLIENT_TIMEOUT_MARGIN_SECONDS", 0)
+
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        heartbeat_interval_s=1,
+        reconnect_policy=reconnect_policy,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # Act
+    live_client.start()
+
+    await mock_live_server.wait_for_message_of_type(SessionStart)
+
+    # Assert
+    for _ in range(2):
+        await mock_live_server.wait_for_message_of_type(
+            AuthenticationRequest,
+            timeout=10,
+        )
+        await mock_live_server.wait_for_message_of_type(
+            SessionStart,
+            timeout=10,
+        )
+
+    live_client.stop()

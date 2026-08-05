@@ -93,6 +93,7 @@ def test_adjustment_factors_get_range_sends_expected_request(
         "stype_in": "raw_symbol",
         "countries": expected_countries,
         "security_types": expected_security_types,
+        "allocate_isins": True,
         "compression": "zstd",
     }
     assert call["timeout"] == (100, 100)

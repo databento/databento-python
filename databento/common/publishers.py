@@ -152,6 +152,12 @@ class Venue(StringyMixin, str, Enum):
         CGIF CBOE Global Indices.
     DEF
         CGIF Definitions.
+    XTKS
+        Tokyo Stock Exchange.
+    XTKT
+        Tokyo Commodity Exchange.
+    XOSE
+        Osaka Exchange.
 
     """
 
@@ -223,6 +229,9 @@ class Venue(StringyMixin, str, Enum):
     CCCY = "CCCY"
     CGI = "CGI"
     DEF = "DEF"
+    XTKS = "XTKS"
+    XTKT = "XTKT"
+    XOSE = "XOSE"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -365,6 +374,12 @@ class Venue(StringyMixin, str, Enum):
             return Venue.CGI
         if value == 68:
             return Venue.DEF
+        if value == 69:
+            return Venue.XTKS
+        if value == 70:
+            return Venue.XTKT
+        if value == 71:
+            return Venue.XOSE
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -507,6 +522,12 @@ class Venue(StringyMixin, str, Enum):
             return 67
         if self == Venue.DEF:
             return 68
+        if self == Venue.XTKS:
+            return 69
+        if self == Venue.XTKT:
+            return 70
+        if self == Venue.XOSE:
+            return 71
         raise ValueError("Invalid Venue")
 
     @property
@@ -650,6 +671,12 @@ class Venue(StringyMixin, str, Enum):
             return "CGIF CBOE Global Indices"
         if self == Venue.DEF:
             return "CGIF Definitions"
+        if self == Venue.XTKS:
+            return "Tokyo Stock Exchange"
+        if self == Venue.XTKT:
+            return "Tokyo Commodity Exchange"
+        if self == Venue.XOSE:
+            return "Osaka Exchange"
         raise ValueError("Unexpected Venue value")
 
 
@@ -757,6 +784,12 @@ class Dataset(StringyMixin, str, Enum):
         CGIF - Crypto Currency.
     CGI_CGIF
         CGIF - CBOE Global Indices.
+    XTKS_FLEX
+        Arrowhead FLEX.
+    XTKT_ITCH
+        JPX JGATE3.0-ITCH.
+    XOSE_ITCH
+        JPX JGATE3.0-ITCH.
 
     """
 
@@ -809,6 +842,9 @@ class Dataset(StringyMixin, str, Enum):
     MSTAR_CGIF = "MSTAR.CGIF"
     CCCY_CGIF = "CCCY.CGIF"
     CGI_CGIF = "CGI.CGIF"
+    XTKS_FLEX = "XTKS.FLEX"
+    XTKT_ITCH = "XTKT.ITCH"
+    XOSE_ITCH = "XOSE.ITCH"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -913,6 +949,12 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.CCCY_CGIF
         if value == 49:
             return Dataset.CGI_CGIF
+        if value == 50:
+            return Dataset.XTKS_FLEX
+        if value == 51:
+            return Dataset.XTKT_ITCH
+        if value == 52:
+            return Dataset.XOSE_ITCH
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -1017,6 +1059,12 @@ class Dataset(StringyMixin, str, Enum):
             return 48
         if self == Dataset.CGI_CGIF:
             return 49
+        if self == Dataset.XTKS_FLEX:
+            return 50
+        if self == Dataset.XTKT_ITCH:
+            return 51
+        if self == Dataset.XOSE_ITCH:
+            return 52
         raise ValueError("Invalid Dataset")
 
     @property
@@ -1122,6 +1170,12 @@ class Dataset(StringyMixin, str, Enum):
             return "CGIF - Crypto Currency"
         if self == Dataset.CGI_CGIF:
             return "CGIF - CBOE Global Indices"
+        if self == Dataset.XTKS_FLEX:
+            return "Arrowhead FLEX"
+        if self == Dataset.XTKT_ITCH:
+            return "JPX JGATE3.0-ITCH"
+        if self == Dataset.XOSE_ITCH:
+            return "JPX JGATE3.0-ITCH"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -1415,6 +1469,12 @@ class Publisher(StringyMixin, str, Enum):
         CGIF - CBOE Global Indices.
     MAIN_CGIF_DEF
         CGIF - Definitions.
+    XTKS_FLEX_XTKS
+        JPX - Tokyo Stock Exchange.
+    XTKT_ITCH_XTKT
+        JPX - Tokyo Commodity Exchange.
+    XOSE_ITCH_XOSE
+        JPX - Osaka Exchange.
 
     """
 
@@ -1560,6 +1620,9 @@ class Publisher(StringyMixin, str, Enum):
     CCCY_CGIF_CCCY = "CCCY.CGIF.CCCY"
     CGI_CGIF_CGI = "CGI.CGIF.CGI"
     MAIN_CGIF_DEF = "MAIN.CGIF.DEF"
+    XTKS_FLEX_XTKS = "XTKS.FLEX.XTKS"
+    XTKT_ITCH_XTKT = "XTKT.ITCH.XTKT"
+    XOSE_ITCH_XOSE = "XOSE.ITCH.XOSE"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1850,6 +1913,12 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.CGI_CGIF_CGI
         if value == 142:
             return Publisher.MAIN_CGIF_DEF
+        if value == 143:
+            return Publisher.XTKS_FLEX_XTKS
+        if value == 144:
+            return Publisher.XTKT_ITCH_XTKT
+        if value == 145:
+            return Publisher.XOSE_ITCH_XOSE
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -2140,6 +2209,12 @@ class Publisher(StringyMixin, str, Enum):
             return 141
         if self == Publisher.MAIN_CGIF_DEF:
             return 142
+        if self == Publisher.XTKS_FLEX_XTKS:
+            return 143
+        if self == Publisher.XTKT_ITCH_XTKT:
+            return 144
+        if self == Publisher.XOSE_ITCH_XOSE:
+            return 145
         raise ValueError("Invalid Publisher")
 
     @property
@@ -2431,6 +2506,12 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.CGI
         if self == Publisher.MAIN_CGIF_DEF:
             return Venue.DEF
+        if self == Publisher.XTKS_FLEX_XTKS:
+            return Venue.XTKS
+        if self == Publisher.XTKT_ITCH_XTKT:
+            return Venue.XTKT
+        if self == Publisher.XOSE_ITCH_XOSE:
+            return Venue.XOSE
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2722,6 +2803,12 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.CGI_CGIF
         if self == Publisher.MAIN_CGIF_DEF:
             return Dataset.MAIN_CGIF
+        if self == Publisher.XTKS_FLEX_XTKS:
+            return Dataset.XTKS_FLEX
+        if self == Publisher.XTKT_ITCH_XTKT:
+            return Dataset.XTKT_ITCH
+        if self == Publisher.XOSE_ITCH_XOSE:
+            return Dataset.XOSE_ITCH
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -3013,4 +3100,10 @@ class Publisher(StringyMixin, str, Enum):
             return "CGIF - CBOE Global Indices"
         if self == Publisher.MAIN_CGIF_DEF:
             return "CGIF - Definitions"
+        if self == Publisher.XTKS_FLEX_XTKS:
+            return "JPX - Tokyo Stock Exchange"
+        if self == Publisher.XTKT_ITCH_XTKT:
+            return "JPX - Tokyo Commodity Exchange"
+        if self == Publisher.XOSE_ITCH_XOSE:
+            return "JPX - Osaka Exchange"
         raise ValueError("Unexpected Publisher value")

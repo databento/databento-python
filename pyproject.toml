@@ -1,6 +1,6 @@
 [project]
 name = "databento"
-version = "0.82.0"
+version = "0.83.0"
 description = "Official Python client library for Databento"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -10,7 +10,7 @@ dynamic = [ "classifiers" ]
 dependencies = [
     "aiohttp>=3.8.3,<4.0.0; python_version < '3.12'",
     "aiohttp>=3.9.0,<4.0.0; python_version >= '3.12'",
-    "databento-dbn~=0.63.0",
+    "databento-dbn~=0.65.0",
     "numpy>=1.23.5; python_version < '3.12'",
     "numpy>=1.26.0; python_version >= '3.12'",
     "pandas>=1.5.3,<4.0.0",
@@ -45,11 +45,11 @@ classifiers = [
 python = ">=3.10,<3.15"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.9.1"
+black = "^25.9.0"
 mypy = "1.5.1"
 pytest = "^7.4.2"
 pytest-asyncio = "==0.21.1"
-ruff = "^0.14.0"
+ruff = "^0.15.2"
 tomli = "^2.0.1"
 types-requests = "^2.30.0.0"
 teamcity-messages = "^1.32"
