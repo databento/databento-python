@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.84.0 - Upcoming
+
+#### Enhancements
+- Added support for `listing_id`, `issuer_id`, and `security_id` as `stype_in`
+  values for the security master and corporate actions reference data
+  endpoints, and `security_id` for the adjustment factors endpoint
+
 ## 0.83.0 - 2026-08-04
 
 #### Enhancements
