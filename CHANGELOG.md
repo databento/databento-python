@@ -6,6 +6,9 @@
 - Added support for `listing_id`, `issuer_id`, and `security_id` as `stype_in`
   values for the security master and corporate actions reference data
   endpoints, and `security_id` for the adjustment factors endpoint
+- Added a `dataset` parameter to `MetadataHttpAPI.list_fields()`. If not
+  provided, the returned fields are for the latest DBN encoding version,
+  which may not match a specific dataset's schema
 
 ## 0.83.0 - 2026-08-04
 
