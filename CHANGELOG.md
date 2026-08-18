@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.84.0 - Upcoming
+## 0.84.0 - 2026-08-18
 
 #### Enhancements
 - Added support for `listing_id`, `issuer_id`, and `security_id` as `stype_in`
