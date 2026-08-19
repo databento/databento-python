@@ -94,6 +94,42 @@ def test_list_fields_sends_expected_request(
     assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_fields"
     assert ("schema", "mbo") in call["params"]
     assert ("encoding", "dbn") in call["params"]
+    assert ("dataset", None) in call["params"]
+    assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
+    assert call["headers"]["accept"] == "application/json"
+    assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))
+    assert call["timeout"] == (100, 100)
+    assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
+
+
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        "GLBX.MDP3",
+        Dataset.GLBX_MDP3,
+    ],
+)
+def test_list_fields_with_dataset_sends_expected_request(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+    dataset: Dataset | str,
+) -> None:
+    # Arrange
+    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+
+    # Act
+    historical_client.metadata.list_fields(
+        schema="mbo",
+        encoding="dbn",
+        dataset=dataset,
+    )
+
+    # Assert
+    call = mocked_get.call_args.kwargs
+    assert call["url"] == f"{historical_client.gateway}/v{db.API_VERSION}/metadata.list_fields"
+    assert ("schema", "mbo") in call["params"]
+    assert ("encoding", "dbn") in call["params"]
+    assert ("dataset", "GLBX.MDP3") in call["params"]
     assert sorted(call["headers"].keys()) == ["accept", "user-agent"]
     assert call["headers"]["accept"] == "application/json"
     assert all(v in call["headers"]["user-agent"] for v in ("Databento/", "Python/"))

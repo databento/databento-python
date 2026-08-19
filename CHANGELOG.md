@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.84.0 - 2026-08-18
+
+#### Enhancements
+- Added support for `listing_id`, `issuer_id`, and `security_id` as `stype_in`
+  values for the security master and corporate actions reference data
+  endpoints, and `security_id` for the adjustment factors endpoint
+- Added a `dataset` parameter to `MetadataHttpAPI.list_fields()`. If not
+  provided, the returned fields are for the latest DBN encoding version,
+  which may not match a specific dataset's schema
+- Upgraded `databento-dbn` to 0.67.0:
+  - Improved performance of record field accessors that convert a raw value to an enum, such
+    as `side()`, `action()` and `rtype()`, by no longer copying the description when
+    constructing the conversion error
+
 ## 0.83.0 - 2026-08-04
 
 #### Enhancements

@@ -123,6 +123,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         self,
         schema: Schema | str,
         encoding: Encoding | str,
+        dataset: Dataset | str | None = None,
     ) -> list[dict[str, str]]:
         """
         List all fields for a particular schema and encoding from Databento.
@@ -135,6 +136,10 @@ class MetadataHttpAPI(BentoHttpAPI):
             The data record schema for the request.
         encoding : Encoding or str {'dbn', 'csv', 'json'}
             The data encoding.
+        dataset : Dataset or str, optional
+            The dataset code (string identifier) used to determine which fields are relevant.
+            If `None` then the fields for the latest DBN encoding version are returned,
+            which may differ from a specific dataset's schema.
 
         Returns
         -------
@@ -145,6 +150,10 @@ class MetadataHttpAPI(BentoHttpAPI):
         params: list[tuple[str, str | Any]] = [
             ("schema", validate_enum(schema, Schema, "schema")),
             ("encoding", validate_enum(encoding, Encoding, "encoding")),
+            (
+                "dataset",
+                validate_semantic_string(dataset, "dataset") if dataset is not None else None,
+            ),
         ]
 
         response: Response = self._get(
