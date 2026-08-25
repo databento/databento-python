@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.85.0 - Upcoming
+## 0.85.0 - 2026-08-25
 
 #### Enhancements
 - Added support for the `short` parameter of `batch.list_jobs`. When set
