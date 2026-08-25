@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.85.0 - 2026-08-25
+
+#### Enhancements
+- Added support for the `short` parameter of `batch.list_jobs`. When set
+  to `True`, the response will contain only the `id`, `state`, and
+  `ts_received` fields for each job
+- Upgraded `databento-dbn` to 0.68.0
+
 ## 0.84.0 - 2026-08-18
 
 #### Enhancements

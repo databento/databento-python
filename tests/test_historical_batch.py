@@ -133,6 +133,43 @@ def test_batch_list_jobs_sends_expected_request(
     assert isinstance(call["auth"], requests.auth.HTTPBasicAuth)
 
 
+@pytest.mark.parametrize(
+    ("short", "expected_params"),
+    [
+        pytest.param(
+            None,
+            [("states", "queued,processing,done"), ("since", None)],
+            id="default",
+        ),
+        pytest.param(
+            True,
+            [("states", "queued,processing,done"), ("since", None), ("short", "True")],
+            id="short",
+        ),
+        pytest.param(
+            False,
+            [("states", "queued,processing,done"), ("since", None), ("short", "False")],
+            id="not_short",
+        ),
+    ],
+)
+def test_batch_list_jobs_short_sends_expected_request(
+    monkeypatch: pytest.MonkeyPatch,
+    historical_client: Historical,
+    short: bool | None,
+    expected_params: list[tuple[str, str]],
+) -> None:
+    # Arrange
+    monkeypatch.setattr(requests, "get", mocked_get := MagicMock())
+
+    # Act
+    historical_client.batch.list_jobs(short=short)
+
+    # Assert
+    call = mocked_get.call_args.kwargs
+    assert call["params"] == expected_params
+
+
 def test_batch_list_files_sends_expected_request(
     monkeypatch: pytest.MonkeyPatch,
     historical_client: Historical,

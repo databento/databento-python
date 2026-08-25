@@ -223,6 +223,7 @@ class BatchHttpAPI(BentoHttpAPI):
         self,
         states: Iterable[JobState | str] | JobState | str | None = "queued,processing,done",
         since: pd.Timestamp | datetime | date | str | int | None = None,
+        short: bool | None = None,
     ) -> list[dict[str, Any]]:
         """
         Request all batch job details for the user account.
@@ -238,6 +239,8 @@ class BatchHttpAPI(BentoHttpAPI):
             Defaults to all except 'expired'.
         since : pd.Timestamp, datetime, date, str, or int, optional
             The filter for timestamp submitted (will not include jobs prior to this).
+        short : bool, optional
+            If True, return the short response containing only the `id`, `state`, and `ts_received` fields.
 
         Returns
         -------
@@ -249,6 +252,11 @@ class BatchHttpAPI(BentoHttpAPI):
             ("states", optional_states_list_to_string(states)),
             ("since", optional_datetime_to_string(since)),
         ]
+
+        if short is not None:
+            params.append(
+                ("short", str(short)),
+            )
 
         return self._get(
             url=self._base_url + ".list_jobs",
