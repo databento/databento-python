@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.86.0 - Upcoming
+
+#### Enhancements
+- Added `UNSUBSCRIBE_ACK` to the `SystemCode` enum for acknowledging unsubscribe requests
+
 ## 0.85.0 - 2026-08-25
 
 #### Enhancements
