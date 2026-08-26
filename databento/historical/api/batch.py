@@ -662,6 +662,58 @@ class _BatchJob:
         https_url: str
         size: int
 
+    @staticmethod
+    def _parse_batch_job_file(file_detail: dict[str, Any]) -> _BatchJob._BatchJobFile:
+        """
+        Parse a single manifest entry from `batch.list_files` into a
+        `_BatchJobFile`.
+
+        Parameters
+        ----------
+        file_detail : dict[str, Any]
+            A manifest entry from the `batch.list_files` endpoint.
+
+        Returns
+        -------
+        _BatchJobFile
+
+        Raises
+        ------
+        BentoError
+            If the manifest entry is missing a required key.
+            If the manifest entry is malformed.
+        ValueError
+            If the file cannot be downloaded over HTTPS.
+
+        """
+        try:
+            filename = str(file_detail["filename"])
+            hash_digest = str(file_detail["hash"])
+            size = int(file_detail["size"])
+            urls = file_detail["urls"]
+        except KeyError as exc:
+            missing_key = exc.args[0]
+            raise BentoError(
+                f"Batch job manifest missing key '{missing_key}'",
+            ) from None
+        except TypeError:
+            raise BentoError("Error parsing job manifest") from None
+
+        try:
+            https_url = urls["https"]
+        except KeyError:
+            raise ValueError(
+                f"Cannot download {filename} over HTTPS, "
+                "'download' delivery is not available for this job.",
+            ) from None
+
+        return _BatchJob._BatchJobFile(
+            filename=filename,
+            hash_str=hash_digest,
+            https_url=https_url,
+            size=size,
+        )
+
     def __init__(
         self,
         batch_http_api: BatchHttpAPI,
@@ -677,37 +729,10 @@ class _BatchJob:
             logger.error(error_message)
             raise RuntimeError(error_message)
 
-        batch_files = []
-        for file_detail in job_details:
-            try:
-                filename = str(file_detail["filename"])
-                hash_digest = str(file_detail["hash"])
-                size = int(file_detail["size"])
-                urls = file_detail["urls"]
-            except KeyError as exc:
-                missing_key = exc.args[0]
-                raise BentoError(
-                    f"Batch job manifest missing key '{missing_key}'",
-                ) from None
-            except TypeError:
-                raise BentoError("Error parsing job manifest") from None
-
-            try:
-                https_url = urls["https"]
-            except KeyError:
-                raise ValueError(
-                    f"Cannot download {filename} over HTTPS, "
-                    "'download' delivery is not available for this job.",
-                ) from None
-
-            batch_files.append(
-                _BatchJob._BatchJobFile(
-                    filename=filename,
-                    hash_str=hash_digest,
-                    https_url=https_url,
-                    size=size,
-                ),
-            )
+        batch_files = [
+            _BatchJob._parse_batch_job_file(file_detail)
+            for file_detail in job_details
+        ]
 
         if not batch_files:
             raise ValueError(f"No job files for {job_id}.")

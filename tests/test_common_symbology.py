@@ -208,6 +208,56 @@ def test_instrument_map(
     assert len(instrument_map._symbols) == 0
 
 
+def test_instrument_map_clear_invalidates_resolve_cache(
+    instrument_map: InstrumentMap,
+    start_date: pd.Timestamp,
+    end_date: pd.Timestamp,
+) -> None:
+    """
+    Test that clearing the InstrumentMap also invalidates the `resolve` cache.
+
+    `resolve` is decorated with `functools.lru_cache`, so without invalidation
+    a cleared and re-populated map would return stale symbols.
+
+    """
+    instrument_id = 1234
+
+    # Insert a mapping and resolve it to populate the `lru_cache`.
+    instrument_map.insert_json(
+        create_symbology_response(
+            result={
+                "test": [
+                    {
+                        "d0": start_date.isoformat(),
+                        "d1": end_date.isoformat(),
+                        "s": instrument_id,
+                    },
+                ],
+            },
+        ),
+    )
+    assert instrument_map.resolve(instrument_id, start_date.date()) == "test"
+
+    # Clear and re-insert a different mapping for the same instrument/date.
+    instrument_map.clear()
+    instrument_map.insert_json(
+        create_symbology_response(
+            result={
+                "different": [
+                    {
+                        "d0": start_date.isoformat(),
+                        "d1": end_date.isoformat(),
+                        "s": instrument_id,
+                    },
+                ],
+            },
+        ),
+    )
+
+    # Assert the stale cached result is not returned.
+    assert instrument_map.resolve(instrument_id, start_date.date()) == "different"
+
+
 @pytest.mark.parametrize(
     "stype_in",
     [

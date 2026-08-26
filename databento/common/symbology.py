@@ -198,6 +198,11 @@ class InstrumentMap:
         """
         Clear all mapping data.
         """
+        # `resolve` is decorated with `functools.lru_cache`, so its cache must
+        # be invalidated to avoid returning stale symbols after the map is
+        # cleared and re-populated.
+        self.resolve.cache_clear()
+
         self._instrument_ids = np.empty(shape=[0], dtype=np.uint64)
         self._starts = np.empty(shape=[0], dtype="datetime64[D]")
         self._ends = np.empty(shape=[0], dtype="datetime64[D]")
