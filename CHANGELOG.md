@@ -5,6 +5,9 @@
 #### Enhancements
 - Added `UNSUBSCRIBE_ACK` to the `SystemCode` enum for acknowledging unsubscribe requests
 
+#### Bug fixes
+- Fixed an issue where `InstrumentMap.clear()` didn't clear the LRU cache for `InstrumentMap.resolve()` (credit: @Tomperez98)
+
 ## 0.85.0 - 2026-08-25
 
 #### Enhancements
