@@ -199,14 +199,18 @@ class MockLiveServerInterface:
         """
         loop = asyncio.get_running_loop()
         deadline = loop.time() + timeout
+        partial = ""
         while self._process.returncode is None:
-            line = await asyncio.wait_for(
-                loop.run_in_executor(None, self._echo_fd.readline),
-                timeout=max(
-                    0,
-                    deadline - loop.time(),
-                ),
-            )
+            if loop.time() > deadline:
+                raise asyncio.TimeoutError(
+                    f"timed out waiting for message of type {message_type.__name__}",
+                )
+            line = partial + self._echo_fd.readline()
+            if not line.endswith("\n"):
+                partial = line
+                await asyncio.sleep(0.001)
+                continue
+            partial = ""
             try:
                 return message_type.parse(line)
             except ValueError:

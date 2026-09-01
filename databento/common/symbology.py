@@ -202,6 +202,7 @@ class InstrumentMap:
         self._starts = np.empty(shape=[0], dtype="datetime64[D]")
         self._ends = np.empty(shape=[0], dtype="datetime64[D]")
         self._symbols = np.empty(shape=[0], dtype="object")
+        self.resolve.cache_clear()
 
     @functools.lru_cache
     def resolve(self, instrument_id: int, date: dt.date) -> str | None:

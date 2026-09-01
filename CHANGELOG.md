@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.86.0 - 2026-09-01
+
+#### Enhancements
+- Added `UNSUBSCRIBE_ACK` to the `SystemCode` enum for acknowledging unsubscribe requests
+- Upgraded `databento-dbn` to 0.69.0
+  - Fixed incorrect count in DBN metadata causing decoding to read into the start of
+    records
+
+#### Bug fixes
+- Fixed an issue where `InstrumentMap.clear()` didn't clear the LRU cache for `InstrumentMap.resolve()` (credit: @Tomperez98)
+
 ## 0.85.0 - 2026-08-25
 
 #### Enhancements
