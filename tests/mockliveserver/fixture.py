@@ -202,7 +202,7 @@ class MockLiveServerInterface:
         partial = ""
         while self._process.returncode is None:
             if loop.time() > deadline:
-                raise TimeoutError(
+                raise asyncio.TimeoutError(
                     f"timed out waiting for message of type {message_type.__name__}",
                 )
             line = partial + self._echo_fd.readline()
