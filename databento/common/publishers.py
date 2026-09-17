@@ -150,7 +150,7 @@ class Venue(StringyMixin, str, Enum):
         CGIF Crypto Currency.
     CGI
         CGIF CBOE Global Indices.
-    DEF
+    CDEF
         CGIF Definitions.
     XTKS
         Tokyo Stock Exchange.
@@ -230,7 +230,7 @@ class Venue(StringyMixin, str, Enum):
     MSTAR = "MSTAR"
     CCCY = "CCCY"
     CGI = "CGI"
-    DEF = "DEF"
+    CDEF = "CDEF"
     XTKS = "XTKS"
     XTKT = "XTKT"
     XOSE = "XOSE"
@@ -376,7 +376,7 @@ class Venue(StringyMixin, str, Enum):
         if value == 67:
             return Venue.CGI
         if value == 68:
-            return Venue.DEF
+            return Venue.CDEF
         if value == 69:
             return Venue.XTKS
         if value == 70:
@@ -525,7 +525,7 @@ class Venue(StringyMixin, str, Enum):
             return 66
         if self == Venue.CGI:
             return 67
-        if self == Venue.DEF:
+        if self == Venue.CDEF:
             return 68
         if self == Venue.XTKS:
             return 69
@@ -676,7 +676,7 @@ class Venue(StringyMixin, str, Enum):
             return "CGIF Crypto Currency"
         if self == Venue.CGI:
             return "CGIF CBOE Global Indices"
-        if self == Venue.DEF:
+        if self == Venue.CDEF:
             return "CGIF Definitions"
         if self == Venue.XTKS:
             return "Tokyo Stock Exchange"
@@ -1485,7 +1485,7 @@ class Publisher(StringyMixin, str, Enum):
         CGIF - Crypto Currency.
     CGI_CGIF_CGI
         CGIF - CBOE Global Indices.
-    MAIN_CGIF_DEF
+    MAIN_CGIF_CDEF
         CGIF - Definitions.
     XTKS_FLEX_XTKS
         JPX - Tokyo Stock Exchange.
@@ -1507,6 +1507,8 @@ class Publisher(StringyMixin, str, Enum):
         CGIF - Crypto Currency.
     DBIX_CORE_CGI
         CGIF - CBOE Global Indices.
+    DBIX_CORE_CDEF
+        CGIF - Definitions.
 
     """
 
@@ -1651,7 +1653,7 @@ class Publisher(StringyMixin, str, Enum):
     MSTAR_CGIF_MSTAR = "MSTAR.CGIF.MSTAR"
     CCCY_CGIF_CCCY = "CCCY.CGIF.CCCY"
     CGI_CGIF_CGI = "CGI.CGIF.CGI"
-    MAIN_CGIF_DEF = "MAIN.CGIF.DEF"
+    MAIN_CGIF_CDEF = "MAIN.CGIF.CDEF"
     XTKS_FLEX_XTKS = "XTKS.FLEX.XTKS"
     XTKT_ITCH_XTKT = "XTKT.ITCH.XTKT"
     XOSE_ITCH_XOSE = "XOSE.ITCH.XOSE"
@@ -1662,6 +1664,7 @@ class Publisher(StringyMixin, str, Enum):
     DBIX_CORE_MSTAR = "DBIX.CORE.MSTAR"
     DBIX_CORE_CCCY = "DBIX.CORE.CCCY"
     DBIX_CORE_CGI = "DBIX.CORE.CGI"
+    DBIX_CORE_CDEF = "DBIX.CORE.CDEF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1951,7 +1954,7 @@ class Publisher(StringyMixin, str, Enum):
         if value == 141:
             return Publisher.CGI_CGIF_CGI
         if value == 142:
-            return Publisher.MAIN_CGIF_DEF
+            return Publisher.MAIN_CGIF_CDEF
         if value == 143:
             return Publisher.XTKS_FLEX_XTKS
         if value == 144:
@@ -1972,6 +1975,8 @@ class Publisher(StringyMixin, str, Enum):
             return Publisher.DBIX_CORE_CCCY
         if value == 152:
             return Publisher.DBIX_CORE_CGI
+        if value == 153:
+            return Publisher.DBIX_CORE_CDEF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -2260,7 +2265,7 @@ class Publisher(StringyMixin, str, Enum):
             return 140
         if self == Publisher.CGI_CGIF_CGI:
             return 141
-        if self == Publisher.MAIN_CGIF_DEF:
+        if self == Publisher.MAIN_CGIF_CDEF:
             return 142
         if self == Publisher.XTKS_FLEX_XTKS:
             return 143
@@ -2282,6 +2287,8 @@ class Publisher(StringyMixin, str, Enum):
             return 151
         if self == Publisher.DBIX_CORE_CGI:
             return 152
+        if self == Publisher.DBIX_CORE_CDEF:
+            return 153
         raise ValueError("Invalid Publisher")
 
     @property
@@ -2571,8 +2578,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.CCCY
         if self == Publisher.CGI_CGIF_CGI:
             return Venue.CGI
-        if self == Publisher.MAIN_CGIF_DEF:
-            return Venue.DEF
+        if self == Publisher.MAIN_CGIF_CDEF:
+            return Venue.CDEF
         if self == Publisher.XTKS_FLEX_XTKS:
             return Venue.XTKS
         if self == Publisher.XTKT_ITCH_XTKT:
@@ -2593,6 +2600,8 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.CCCY
         if self == Publisher.DBIX_CORE_CGI:
             return Venue.CGI
+        if self == Publisher.DBIX_CORE_CDEF:
+            return Venue.CDEF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2882,7 +2891,7 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.CCCY_CGIF
         if self == Publisher.CGI_CGIF_CGI:
             return Dataset.CGI_CGIF
-        if self == Publisher.MAIN_CGIF_DEF:
+        if self == Publisher.MAIN_CGIF_CDEF:
             return Dataset.MAIN_CGIF
         if self == Publisher.XTKS_FLEX_XTKS:
             return Dataset.XTKS_FLEX
@@ -2903,6 +2912,8 @@ class Publisher(StringyMixin, str, Enum):
         if self == Publisher.DBIX_CORE_CCCY:
             return Dataset.DBIX_CORE
         if self == Publisher.DBIX_CORE_CGI:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_CDEF:
             return Dataset.DBIX_CORE
         raise ValueError("Unexpected Publisher value")
 
@@ -3193,7 +3204,7 @@ class Publisher(StringyMixin, str, Enum):
             return "CGIF - Crypto Currency"
         if self == Publisher.CGI_CGIF_CGI:
             return "CGIF - CBOE Global Indices"
-        if self == Publisher.MAIN_CGIF_DEF:
+        if self == Publisher.MAIN_CGIF_CDEF:
             return "CGIF - Definitions"
         if self == Publisher.XTKS_FLEX_XTKS:
             return "JPX - Tokyo Stock Exchange"
@@ -3215,4 +3226,6 @@ class Publisher(StringyMixin, str, Enum):
             return "CGIF - Crypto Currency"
         if self == Publisher.DBIX_CORE_CGI:
             return "CGIF - CBOE Global Indices"
+        if self == Publisher.DBIX_CORE_CDEF:
+            return "CGIF - Definitions"
         raise ValueError("Unexpected Publisher value")
