@@ -4,6 +4,7 @@ Unit tests for the Live client.
 
 from __future__ import annotations
 
+import asyncio
 import pathlib
 import random
 import string
@@ -1233,6 +1234,48 @@ async def test_live_async_iteration_stop(
     # Assert
     assert len(records) > 1
     assert live_client._session._dbn_queue.empty()
+
+
+async def test_live_async_iteration_cancelled() -> None:
+    """
+    Test that cancelling a pending `__anext__` does not consume a record and
+    leaves the iterator usable.
+    """
+    # Arrange
+    dbn_queue = session.DBNQueue()
+    dbn_queue.enable()
+    mock_client = MagicMock()
+    mock_client._session.is_disconnected.return_value = False
+    mock_client._session.is_reading.return_value = True
+
+    live_it = client.LiveIterator.__new__(client.LiveIterator)
+    live_it._dbn_queue = dbn_queue
+    live_it._client = mock_client
+
+    record = databento_dbn.OHLCVMsg(
+        rtype=1,
+        publisher_id=1,
+        instrument_id=0,
+        ts_event=0,
+        open=100,
+        high=110,
+        low=90,
+        close=105,
+        volume=1000,
+    )
+
+    # Act
+    pending = asyncio.ensure_future(live_it.__anext__())
+    await asyncio.sleep(0.01)
+    pending.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await pending
+
+    dbn_queue.put_nowait(record)
+
+    # Assert
+    assert await asyncio.wait_for(live_it.__anext__(), timeout=1) is record
+    assert dbn_queue.empty()
 
 
 async def test_live_sync_iteration(

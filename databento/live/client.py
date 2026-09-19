@@ -771,29 +771,21 @@ class LiveIterator:
         if not self._dbn_queue.is_enabled():
             raise ValueError("iteration has not started")
 
-        loop = asyncio.get_running_loop()
-
-        try:
-            return self._dbn_queue.get_nowait()
-        except queue.Empty:
-            while True:
+        while True:
+            try:
                 try:
-                    return await loop.run_in_executor(
-                        None,
-                        self._dbn_queue.get,
-                        True,
-                        0.1,
-                    )
+                    return self._dbn_queue.get_nowait()
                 except queue.Empty:
                     if self.client._session.is_disconnected():
                         break
-        finally:
-            if not self._dbn_queue.is_full() and not self.client._session.is_reading():
-                logger.debug(
-                    "resuming reading with %d pending records",
-                    self._dbn_queue.qsize(),
-                )
-                self.client._session.resume_reading()
+                    await self._dbn_queue.wait_for_record(timeout=0.1)
+            finally:
+                if not self._dbn_queue.is_full() and not self.client._session.is_reading():
+                    logger.debug(
+                        "resuming reading with %d pending records",
+                        self._dbn_queue.qsize(),
+                    )
+                    self.client._session.resume_reading()
 
         self._dbn_queue.disable()
         await self.client.wait_for_close()

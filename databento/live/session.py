@@ -53,6 +53,8 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
         self._enabled = threading.Event()
         self._front_ts_index: int | None = None
         self._back_ts_index: int | None = None
+        self._waiters: list[asyncio.Future[None]] = []
+        self._waiter_lock = threading.Lock()
 
     def is_enabled(self) -> bool:
         """
@@ -123,7 +125,12 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
             if self._front_ts_index is None:
                 self._front_ts_index = item.ts_index
             self._back_ts_index = item.ts_index
-            return super().put(item, block, timeout)
+            with self._waiter_lock:
+                super().put(item, block, timeout)
+                waiters, self._waiters = self._waiters, []
+            for waiter in waiters:
+                self._wake_waiter(waiter)
+            return
         if timeout is not None:
             raise BentoError(f"queue is not enabled after {timeout} second(s)")
         raise BentoError("queue is not enabled")
@@ -151,7 +158,12 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
             if self._front_ts_index is None:
                 self._front_ts_index = item.ts_index
             self._back_ts_index = item.ts_index
-            return super().put_nowait(item)
+            with self._waiter_lock:
+                super().put_nowait(item)
+                waiters, self._waiters = self._waiters, []
+            for waiter in waiters:
+                self._wake_waiter(waiter)
+            return
         raise BentoError("queue is not enabled")
 
     def get(
@@ -175,6 +187,53 @@ class DBNQueue(queue.SimpleQueue):  # type: ignore [type-arg]
         else:
             self._front_ts_index = record.ts_index
         return record
+
+    async def wait_for_record(self, timeout: float | None = None) -> None:
+        """
+        Coroutine to wait until the queue is non-empty or `timeout` elapses.
+
+        This never consumes a record, so it is safe to cancel at any time.
+
+        Parameters
+        ----------
+        timeout : float, optional
+            The maximum duration in seconds to wait for a record.
+            If None, wait until a record is available.
+
+        """
+        loop = asyncio.get_running_loop()
+        waiter: asyncio.Future[None] = loop.create_future()
+        with self._waiter_lock:
+            if not self.empty():
+                return
+            self._waiters.append(waiter)
+
+        timer: asyncio.TimerHandle | None = None
+        if timeout is not None:
+            timer = loop.call_later(timeout, self._resolve_waiter, waiter)
+
+        try:
+            await waiter
+        finally:
+            if timer is not None:
+                timer.cancel()
+            with self._waiter_lock:
+                try:
+                    self._waiters.remove(waiter)
+                except ValueError:
+                    pass
+
+    @staticmethod
+    def _resolve_waiter(waiter: asyncio.Future[None]) -> None:
+        if not waiter.done():
+            waiter.set_result(None)
+
+    @classmethod
+    def _wake_waiter(cls, waiter: asyncio.Future[None]) -> None:
+        try:
+            waiter.get_loop().call_soon_threadsafe(cls._resolve_waiter, waiter)
+        except RuntimeError:
+            pass  # possible the event loop has been closed
 
 
 @dataclasses.dataclass
