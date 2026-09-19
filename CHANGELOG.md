@@ -6,6 +6,7 @@
 - Added new venue, dataset, and publishers for Databento Core Indices
 - Asynchronous iteration of `Live` no longer waits for records on a thread pool executor,
   reducing per-record overhead
+- Upgraded `databento-dbn` to 0.70.0
 
 #### Bug fixes
 - Fixed an issue where cancelling asynchronous iteration of `Live` could drop a record
