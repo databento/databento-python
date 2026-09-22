@@ -150,7 +150,7 @@ class Venue(StringyMixin, str, Enum):
         CGIF Crypto Currency.
     CGI
         CGIF CBOE Global Indices.
-    DEF
+    CDEF
         CGIF Definitions.
     XTKS
         Tokyo Stock Exchange.
@@ -158,6 +158,8 @@ class Venue(StringyMixin, str, Enum):
         Tokyo Commodity Exchange.
     XOSE
         Osaka Exchange.
+    DBIX
+        Databento Core Indices.
 
     """
 
@@ -228,10 +230,11 @@ class Venue(StringyMixin, str, Enum):
     MSTAR = "MSTAR"
     CCCY = "CCCY"
     CGI = "CGI"
-    DEF = "DEF"
+    CDEF = "CDEF"
     XTKS = "XTKS"
     XTKT = "XTKT"
     XOSE = "XOSE"
+    DBIX = "DBIX"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -373,13 +376,15 @@ class Venue(StringyMixin, str, Enum):
         if value == 67:
             return Venue.CGI
         if value == 68:
-            return Venue.DEF
+            return Venue.CDEF
         if value == 69:
             return Venue.XTKS
         if value == 70:
             return Venue.XTKT
         if value == 71:
             return Venue.XOSE
+        if value == 72:
+            return Venue.DBIX
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -520,7 +525,7 @@ class Venue(StringyMixin, str, Enum):
             return 66
         if self == Venue.CGI:
             return 67
-        if self == Venue.DEF:
+        if self == Venue.CDEF:
             return 68
         if self == Venue.XTKS:
             return 69
@@ -528,6 +533,8 @@ class Venue(StringyMixin, str, Enum):
             return 70
         if self == Venue.XOSE:
             return 71
+        if self == Venue.DBIX:
+            return 72
         raise ValueError("Invalid Venue")
 
     @property
@@ -669,7 +676,7 @@ class Venue(StringyMixin, str, Enum):
             return "CGIF Crypto Currency"
         if self == Venue.CGI:
             return "CGIF CBOE Global Indices"
-        if self == Venue.DEF:
+        if self == Venue.CDEF:
             return "CGIF Definitions"
         if self == Venue.XTKS:
             return "Tokyo Stock Exchange"
@@ -677,6 +684,8 @@ class Venue(StringyMixin, str, Enum):
             return "Tokyo Commodity Exchange"
         if self == Venue.XOSE:
             return "Osaka Exchange"
+        if self == Venue.DBIX:
+            return "Databento Core Indices"
         raise ValueError("Unexpected Venue value")
 
 
@@ -790,6 +799,8 @@ class Dataset(StringyMixin, str, Enum):
         JPX JGATE3.0-ITCH.
     XOSE_ITCH
         JPX JGATE3.0-ITCH.
+    DBIX_CORE
+        Databento Core Indices.
 
     """
 
@@ -845,6 +856,7 @@ class Dataset(StringyMixin, str, Enum):
     XTKS_FLEX = "XTKS.FLEX"
     XTKT_ITCH = "XTKT.ITCH"
     XOSE_ITCH = "XOSE.ITCH"
+    DBIX_CORE = "DBIX.CORE"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -955,6 +967,8 @@ class Dataset(StringyMixin, str, Enum):
             return Dataset.XTKT_ITCH
         if value == 52:
             return Dataset.XOSE_ITCH
+        if value == 53:
+            return Dataset.DBIX_CORE
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -1065,6 +1079,8 @@ class Dataset(StringyMixin, str, Enum):
             return 51
         if self == Dataset.XOSE_ITCH:
             return 52
+        if self == Dataset.DBIX_CORE:
+            return 53
         raise ValueError("Invalid Dataset")
 
     @property
@@ -1176,6 +1192,8 @@ class Dataset(StringyMixin, str, Enum):
             return "JPX JGATE3.0-ITCH"
         if self == Dataset.XOSE_ITCH:
             return "JPX JGATE3.0-ITCH"
+        if self == Dataset.DBIX_CORE:
+            return "Databento Core Indices"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -1467,7 +1485,7 @@ class Publisher(StringyMixin, str, Enum):
         CGIF - Crypto Currency.
     CGI_CGIF_CGI
         CGIF - CBOE Global Indices.
-    MAIN_CGIF_DEF
+    MAIN_CGIF_CDEF
         CGIF - Definitions.
     XTKS_FLEX_XTKS
         JPX - Tokyo Stock Exchange.
@@ -1475,6 +1493,22 @@ class Publisher(StringyMixin, str, Enum):
         JPX - Tokyo Commodity Exchange.
     XOSE_ITCH_XOSE
         JPX - Osaka Exchange.
+    DBIX_CORE_MAIN
+        CGIF - Main Feed.
+    DBIX_CORE_MSCI
+        CGIF - Morgan Stanley Capital International.
+    DBIX_CORE_FTSE
+        CGIF - FTSE Russell.
+    DBIX_CORE_INAV
+        CGIF - Intraday Net Asset Values.
+    DBIX_CORE_MSTAR
+        CGIF - Morning Star.
+    DBIX_CORE_CCCY
+        CGIF - Crypto Currency.
+    DBIX_CORE_CGI
+        CGIF - CBOE Global Indices.
+    DBIX_CORE_CDEF
+        CGIF - Definitions.
 
     """
 
@@ -1619,10 +1653,18 @@ class Publisher(StringyMixin, str, Enum):
     MSTAR_CGIF_MSTAR = "MSTAR.CGIF.MSTAR"
     CCCY_CGIF_CCCY = "CCCY.CGIF.CCCY"
     CGI_CGIF_CGI = "CGI.CGIF.CGI"
-    MAIN_CGIF_DEF = "MAIN.CGIF.DEF"
+    MAIN_CGIF_CDEF = "MAIN.CGIF.CDEF"
     XTKS_FLEX_XTKS = "XTKS.FLEX.XTKS"
     XTKT_ITCH_XTKT = "XTKT.ITCH.XTKT"
     XOSE_ITCH_XOSE = "XOSE.ITCH.XOSE"
+    DBIX_CORE_MAIN = "DBIX.CORE.MAIN"
+    DBIX_CORE_MSCI = "DBIX.CORE.MSCI"
+    DBIX_CORE_FTSE = "DBIX.CORE.FTSE"
+    DBIX_CORE_INAV = "DBIX.CORE.INAV"
+    DBIX_CORE_MSTAR = "DBIX.CORE.MSTAR"
+    DBIX_CORE_CCCY = "DBIX.CORE.CCCY"
+    DBIX_CORE_CGI = "DBIX.CORE.CGI"
+    DBIX_CORE_CDEF = "DBIX.CORE.CDEF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1912,13 +1954,29 @@ class Publisher(StringyMixin, str, Enum):
         if value == 141:
             return Publisher.CGI_CGIF_CGI
         if value == 142:
-            return Publisher.MAIN_CGIF_DEF
+            return Publisher.MAIN_CGIF_CDEF
         if value == 143:
             return Publisher.XTKS_FLEX_XTKS
         if value == 144:
             return Publisher.XTKT_ITCH_XTKT
         if value == 145:
             return Publisher.XOSE_ITCH_XOSE
+        if value == 146:
+            return Publisher.DBIX_CORE_MAIN
+        if value == 147:
+            return Publisher.DBIX_CORE_MSCI
+        if value == 148:
+            return Publisher.DBIX_CORE_FTSE
+        if value == 149:
+            return Publisher.DBIX_CORE_INAV
+        if value == 150:
+            return Publisher.DBIX_CORE_MSTAR
+        if value == 151:
+            return Publisher.DBIX_CORE_CCCY
+        if value == 152:
+            return Publisher.DBIX_CORE_CGI
+        if value == 153:
+            return Publisher.DBIX_CORE_CDEF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -2207,7 +2265,7 @@ class Publisher(StringyMixin, str, Enum):
             return 140
         if self == Publisher.CGI_CGIF_CGI:
             return 141
-        if self == Publisher.MAIN_CGIF_DEF:
+        if self == Publisher.MAIN_CGIF_CDEF:
             return 142
         if self == Publisher.XTKS_FLEX_XTKS:
             return 143
@@ -2215,6 +2273,22 @@ class Publisher(StringyMixin, str, Enum):
             return 144
         if self == Publisher.XOSE_ITCH_XOSE:
             return 145
+        if self == Publisher.DBIX_CORE_MAIN:
+            return 146
+        if self == Publisher.DBIX_CORE_MSCI:
+            return 147
+        if self == Publisher.DBIX_CORE_FTSE:
+            return 148
+        if self == Publisher.DBIX_CORE_INAV:
+            return 149
+        if self == Publisher.DBIX_CORE_MSTAR:
+            return 150
+        if self == Publisher.DBIX_CORE_CCCY:
+            return 151
+        if self == Publisher.DBIX_CORE_CGI:
+            return 152
+        if self == Publisher.DBIX_CORE_CDEF:
+            return 153
         raise ValueError("Invalid Publisher")
 
     @property
@@ -2504,14 +2578,30 @@ class Publisher(StringyMixin, str, Enum):
             return Venue.CCCY
         if self == Publisher.CGI_CGIF_CGI:
             return Venue.CGI
-        if self == Publisher.MAIN_CGIF_DEF:
-            return Venue.DEF
+        if self == Publisher.MAIN_CGIF_CDEF:
+            return Venue.CDEF
         if self == Publisher.XTKS_FLEX_XTKS:
             return Venue.XTKS
         if self == Publisher.XTKT_ITCH_XTKT:
             return Venue.XTKT
         if self == Publisher.XOSE_ITCH_XOSE:
             return Venue.XOSE
+        if self == Publisher.DBIX_CORE_MAIN:
+            return Venue.MAIN
+        if self == Publisher.DBIX_CORE_MSCI:
+            return Venue.MSCI
+        if self == Publisher.DBIX_CORE_FTSE:
+            return Venue.FTSE
+        if self == Publisher.DBIX_CORE_INAV:
+            return Venue.INAV
+        if self == Publisher.DBIX_CORE_MSTAR:
+            return Venue.MSTAR
+        if self == Publisher.DBIX_CORE_CCCY:
+            return Venue.CCCY
+        if self == Publisher.DBIX_CORE_CGI:
+            return Venue.CGI
+        if self == Publisher.DBIX_CORE_CDEF:
+            return Venue.CDEF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2801,7 +2891,7 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.CCCY_CGIF
         if self == Publisher.CGI_CGIF_CGI:
             return Dataset.CGI_CGIF
-        if self == Publisher.MAIN_CGIF_DEF:
+        if self == Publisher.MAIN_CGIF_CDEF:
             return Dataset.MAIN_CGIF
         if self == Publisher.XTKS_FLEX_XTKS:
             return Dataset.XTKS_FLEX
@@ -2809,6 +2899,22 @@ class Publisher(StringyMixin, str, Enum):
             return Dataset.XTKT_ITCH
         if self == Publisher.XOSE_ITCH_XOSE:
             return Dataset.XOSE_ITCH
+        if self == Publisher.DBIX_CORE_MAIN:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_MSCI:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_FTSE:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_INAV:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_MSTAR:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_CCCY:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_CGI:
+            return Dataset.DBIX_CORE
+        if self == Publisher.DBIX_CORE_CDEF:
+            return Dataset.DBIX_CORE
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -3098,7 +3204,7 @@ class Publisher(StringyMixin, str, Enum):
             return "CGIF - Crypto Currency"
         if self == Publisher.CGI_CGIF_CGI:
             return "CGIF - CBOE Global Indices"
-        if self == Publisher.MAIN_CGIF_DEF:
+        if self == Publisher.MAIN_CGIF_CDEF:
             return "CGIF - Definitions"
         if self == Publisher.XTKS_FLEX_XTKS:
             return "JPX - Tokyo Stock Exchange"
@@ -3106,4 +3212,20 @@ class Publisher(StringyMixin, str, Enum):
             return "JPX - Tokyo Commodity Exchange"
         if self == Publisher.XOSE_ITCH_XOSE:
             return "JPX - Osaka Exchange"
+        if self == Publisher.DBIX_CORE_MAIN:
+            return "CGIF - Main Feed"
+        if self == Publisher.DBIX_CORE_MSCI:
+            return "CGIF - Morgan Stanley Capital International"
+        if self == Publisher.DBIX_CORE_FTSE:
+            return "CGIF - FTSE Russell"
+        if self == Publisher.DBIX_CORE_INAV:
+            return "CGIF - Intraday Net Asset Values"
+        if self == Publisher.DBIX_CORE_MSTAR:
+            return "CGIF - Morning Star"
+        if self == Publisher.DBIX_CORE_CCCY:
+            return "CGIF - Crypto Currency"
+        if self == Publisher.DBIX_CORE_CGI:
+            return "CGIF - CBOE Global Indices"
+        if self == Publisher.DBIX_CORE_CDEF:
+            return "CGIF - Definitions"
         raise ValueError("Unexpected Publisher value")

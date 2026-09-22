@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from databento_dbn import CBBOMsg
 from databento_dbn import OHLCVMsg
@@ -119,3 +121,80 @@ def test_dbn_queue_is_full_triggers_on_ts_recv_lag() -> None:
         )
 
     assert queue.is_full()
+
+
+async def test_dbn_queue_wait_for_record_wakes_on_put() -> None:
+    """
+    Test that a waiter is woken by a put from another thread and that the
+    record is left on the queue for the consumer.
+    """
+    # Arrange
+    queue = DBNQueue()
+    queue.enable()
+    record = _record()
+    loop = asyncio.get_running_loop()
+
+    # Act
+    waiter = loop.create_task(queue.wait_for_record())
+    await asyncio.sleep(0.01)
+    assert not waiter.done()
+    await loop.run_in_executor(None, queue.put_nowait, record)
+    await asyncio.wait_for(waiter, timeout=1)
+
+    # Assert
+    assert queue.qsize() == 1
+    assert queue.get_nowait() is record
+
+
+async def test_dbn_queue_wait_for_record_returns_when_not_empty() -> None:
+    """
+    Test that waiting on a non-empty queue returns immediately.
+    """
+    # Arrange
+    queue = DBNQueue()
+    queue.enable()
+    queue.put_nowait(_record())
+
+    # Act, Assert
+    await asyncio.wait_for(queue.wait_for_record(), timeout=1)
+    assert queue.qsize() == 1
+
+
+async def test_dbn_queue_wait_for_record_timeout() -> None:
+    """
+    Test that a wait times out without leaving a stale waiter registered.
+    """
+    # Arrange
+    queue = DBNQueue()
+    queue.enable()
+
+    # Act
+    await asyncio.wait_for(queue.wait_for_record(timeout=0.01), timeout=1)
+
+    # Assert
+    assert queue.empty()
+    assert queue._waiters == []
+
+
+async def test_dbn_queue_wait_for_record_cancelled() -> None:
+    """
+    Test that cancelling a waiter does not consume a record put afterwards and
+    does not leave a stale waiter registered.
+    """
+    # Arrange
+    queue = DBNQueue()
+    queue.enable()
+    record = _record()
+    loop = asyncio.get_running_loop()
+
+    # Act
+    waiter = loop.create_task(queue.wait_for_record())
+    await asyncio.sleep(0.01)
+    waiter.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await waiter
+    queue.put_nowait(record)
+
+    # Assert
+    assert queue._waiters == []
+    assert queue.get_nowait() is record
