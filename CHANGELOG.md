@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.87.0 - Upcoming
+## 0.87.0 - 2026-09-22
 
 #### Enhancements
 - Added new venue, dataset, and publishers for Databento Core Indices
