@@ -2,7 +2,6 @@
 Pytest fixtures.
 """
 
-import asyncio
 import logging
 import pathlib
 import random
@@ -101,14 +100,6 @@ def fixture_log_capture(
 ) -> Generator[None, None, None]:
     with caplog.at_level(logging.DEBUG):
         yield
-
-
-@pytest.fixture(name="event_loop", scope="module")
-def fixture_event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(name="live_test_data_path")

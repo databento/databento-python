@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
-poetry install --with=dev --no-interaction --no-root
+set -euo pipefail
+
+uv sync --all-extras --all-groups

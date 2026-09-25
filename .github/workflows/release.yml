@@ -14,20 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: "3.12"
-      - uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
 
       - name: Build
         run: |
-          poetry build --no-interaction
-          echo "RELEASE_NAME=$(poetry version)" >> $GITHUB_ENV
-          echo "TAG_NAME=v$(poetry version -s)" >> $GITHUB_ENV
+          uv build
+          echo "RELEASE_NAME=$(uv version)" >> $GITHUB_ENV
+          echo "TAG_NAME=v$(uv version --short)" >> $GITHUB_ENV
           echo "## Release notes" > NOTES.md
           sed -n '/^## /{n; :a; /^## /q; p; n; ba}' CHANGELOG.md >> NOTES.md
 
@@ -43,5 +38,5 @@ jobs:
 
       - name: Publish
         env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-        run: poetry publish
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: uv publish

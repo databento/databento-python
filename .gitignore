@@ -27,6 +27,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# uv (this project intentionally does not track a lockfile)
+uv.lock
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

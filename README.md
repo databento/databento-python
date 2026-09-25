@@ -30,20 +30,45 @@ You can find our full client API reference on the [Historical Reference](https:/
 ## Requirements
 The library is fully compatible with distributions of Anaconda 2023.x and above.
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
-- python = "^3.10"
-- aiohttp = "^3.8.3"
-- databento-dbn = "~0.70.0"
-- numpy = ">=1.23.5"
-- pandas = ">=1.5.3"
-- pip-system-certs = ">=4.0" (Windows only)
-- pyarrow = ">=13.0.0"
-- requests = ">=2.25.1"
-- zstandard = ">=0.21.0"
+- python >= 3.10
+- aiohttp >= 3.8.3
+- databento-dbn ~= 0.70.0
+- numpy >= 1.23.5
+- pandas >= 1.5.3
+- pip-system-certs >= 4.0 (Windows only)
+- pyarrow >= 13.0.0
+- requests >= 2.27.0
+- zstandard >= 0.21.0
 
 ## Installation
 To install the latest stable version of the package from PyPI:
 
     pip install -U databento
+
+## Building from source
+Building this project requires [uv](https://docs.astral.sh/uv/); no other Python tooling is
+needed, as uv provisions the interpreter and virtual environment for you.
+
+```bash
+git clone https://github.com/databento/databento-python.git
+cd databento-python
+scripts/build.sh
+```
+
+This creates a `.venv` in the project directory containing the `dev` dependency group and an
+editable install of the package. From there:
+
+```bash
+scripts/test.sh     # run the test suite
+scripts/lint.sh     # type check with mypy
+uv run python       # start a REPL in the environment
+```
+
+To produce a wheel and source distribution under `dist/`:
+
+```bash
+uv build
+```
 
 ## Usage
 The library needs to be configured with an API key from your account.

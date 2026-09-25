@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
-poetry run pytest tests . "$@"
+set -euo pipefail
+
+uv run --frozen -- pytest tests "$@"

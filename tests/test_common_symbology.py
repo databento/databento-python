@@ -107,8 +107,8 @@ def create_symbology_response(
     symbols: Iterable[str] = [],
     stype_in: SType = SType.RAW_SYMBOL,
     stype_out: SType = SType.INSTRUMENT_ID,
-    start_date: pd.Timestamp = pd.Timestamp.utcnow(),
-    end_date: pd.Timestamp = pd.Timestamp.utcnow() + pd.Timedelta(days=1),
+    start_date: pd.Timestamp = pd.Timestamp.now(tz="UTC"),
+    end_date: pd.Timestamp = pd.Timestamp.now(tz="UTC") + pd.Timedelta(days=1),
     partial: Iterable[str] = [],
     not_found: Iterable[str] = [],
     message: str = "",
@@ -139,13 +139,13 @@ def create_symbology_response(
 def create_symbol_mapping_message(
     publisher_id: int = 0,
     instrument_id: int = 0,
-    ts_event: int = pd.Timestamp.utcnow().value,
+    ts_event: int = pd.Timestamp.now(tz="UTC").value,
     stype_in: SType = SType.RAW_SYMBOL,
     stype_in_symbol: str | int = "",
     stype_out: SType = SType.INSTRUMENT_ID,
     stype_out_symbol: str | int = "",
-    start_ts: pd.Timestamp = pd.Timestamp.utcnow(),
-    end_ts: pd.Timestamp = pd.Timestamp.utcnow(),
+    start_ts: pd.Timestamp = pd.Timestamp.now(tz="UTC"),
+    end_ts: pd.Timestamp = pd.Timestamp.now(tz="UTC"),
 ) -> SymbolMappingMsg:
     """
     Create a mock SymbolMappingMsg.

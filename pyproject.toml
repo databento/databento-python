@@ -5,8 +5,22 @@ description = "Official Python client library for Databento"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [{ name = "Databento", email = "support@databento.com" }]
-dynamic = [ "classifiers" ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "aiohttp>=3.8.3,<4.0.0; python_version < '3.12'",
     "aiohttp>=3.9.0,<4.0.0; python_version >= '3.12'",
@@ -26,37 +40,25 @@ Documentation = "https://databento.com/docs"
 Repository = "https://github.com/databento/databento-python"
 "Bug Tracker" = "https://github.com/databento/databento-python/issues"
 
-[tool.poetry]
-requires-poetry = ">=2.0"
-packages = [
-    { include = "databento" },
-    { include = "databento/py.typed" },
+[dependency-groups]
+dev = [
+    "black>=25.9.0,<26",
+    "mypy>=1.19.0,<2",
+    "pytest>=8.4.2,<9",
+    "pytest-asyncio>=1.2.0,<2",
+    "ruff>=0.15.12,<0.16",
+    "teamcity-messages>=1.32,<2",
+    "tomli>=2.0.1,<3",
+    "types-requests>=2.30.0,<3",
 ]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Operating System :: OS Independent",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Office/Business :: Financial",
-    "Topic :: Office/Business :: Financial :: Investment",
-]
-
-[tool.poetry.dependencies]
-python = ">=3.10,<3.15"
-
-[tool.poetry.group.dev.dependencies]
-black = "^25.9.0"
-mypy = "1.5.1"
-pytest = "^7.4.2"
-pytest-asyncio = "==0.21.1"
-ruff = "^0.15.2"
-tomli = "^2.0.1"
-types-requests = "^2.30.0.0"
-teamcity-messages = "^1.32"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "databento"
+module-root = ""
 
 [tool.black]
 line_length = 100
@@ -66,6 +68,7 @@ python_version = "3.10"
 disallow_untyped_defs = true
 disallow_any_generics = true
 disallow_subclassing_any = true
+disable_error_code = ["import-untyped"]
 ignore_missing_imports = true
 namespace_packages = true
 no_strict_optional = true
@@ -76,6 +79,8 @@ warn_unused_ignores = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "module"
+asyncio_default_test_loop_scope = "module"
 
 [tool.ruff]
 extend = "../ruff.toml"
