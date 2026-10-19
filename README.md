@@ -38,7 +38,7 @@ The minimum dependencies as found in the `pyproject.toml` are also listed below:
 - pip-system-certs >= 4.0 (Windows only)
 - pyarrow >= 13.0.0
 - requests >= 2.27.0
-- zstandard >= 0.21.0
+- zstandard >= 0.21.0 (Python < 3.14 only)
 
 ## Installation
 To install the latest stable version of the package from PyPI:

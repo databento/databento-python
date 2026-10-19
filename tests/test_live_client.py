@@ -14,12 +14,12 @@ from unittest.mock import MagicMock
 
 import databento_dbn
 import pytest
-import zstandard
 from databento_dbn import DBNRecord
 from databento_dbn import Encoding
 from databento_dbn import Schema
 from databento_dbn import SType
 
+from databento.common import zstd
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.cram import BUCKET_ID_LENGTH
@@ -1388,9 +1388,7 @@ async def test_live_stream_to_dbn(
     await live_client.wait_for_close()
 
     expected_data = BytesIO(
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(dataset, schema).open("rb"))
-        .read(),
+        zstd.decompress(test_data_path(dataset, schema).read_bytes()),
     )
     expected_data.seek(0)  # rewind
 
@@ -1441,9 +1439,7 @@ async def test_live_stream_to_dbn_from_path(
     await live_client.wait_for_close()
 
     expected_data = BytesIO(
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(dataset, schema).open("rb"))
-        .read(),
+        zstd.decompress(test_data_path(dataset, schema).read_bytes()),
     )
     expected_data.seek(0)  # rewind
 
@@ -1493,9 +1489,7 @@ async def test_live_stream_to_dbn_with_tiny_buffer(
     await live_client.wait_for_close()
 
     expected_data = BytesIO(
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(Dataset.GLBX_MDP3, schema).open("rb"))
-        .read(),
+        zstd.decompress(test_data_path(Dataset.GLBX_MDP3, schema).read_bytes()),
     )
     expected_data.seek(0)  # rewind
 
@@ -1646,9 +1640,7 @@ async def test_live_iteration_with_reuse(
     assert not live_client.is_connected()
 
     expected_data = BytesIO(
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(Dataset.GLBX_MDP3, schema).open("rb"))
-        .read(),
+        zstd.decompress(test_data_path(Dataset.GLBX_MDP3, schema).read_bytes()),
     )
     dbn = DBNStore.from_bytes(expected_data)
 
@@ -1696,9 +1688,7 @@ async def test_live_callback_with_reuse(
         assert not live_client.is_connected()
 
     expected_data = BytesIO(
-        zstandard.ZstdDecompressor()
-        .stream_reader(test_data_path(Dataset.GLBX_MDP3, schema).open("rb"))
-        .read(),
+        zstd.decompress(test_data_path(Dataset.GLBX_MDP3, schema).read_bytes()),
     )
     dbn = DBNStore.from_bytes(expected_data)
     assert len(records) == 5 * len(list(dbn))

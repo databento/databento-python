@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.88.0 - Upcoming
+
+#### Enhancements
+- `zstandard` is now only a dependency on Python versions below 3.14; on Python 3.14 and
+  later the standard library `compression.zstd` module is used instead
+
 ## 0.87.0 - 2026-09-22
 
 #### Enhancements

@@ -13,11 +13,11 @@ from io import FileIO
 from typing import Any
 from typing import Final
 
-import zstandard
 from databento_dbn import Compression
 from databento_dbn import Schema
 
 from databento.common import cram
+from databento.common import zstd
 from databento.common.publishers import Dataset
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import AuthenticationResponse
@@ -307,10 +307,9 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
             self.hangup(reason="all replay tasks completed")
 
     async def _file_replay_task(self) -> None:
-        compressor = None
+        cctx: zstd.IncrementalCompressor | None = None
         if self._compression == Compression.ZSTD:
-            compressor = zstandard.ZstdCompressor()
-            cctx = compressor.compressobj()
+            cctx = zstd.incremental_compressor()
 
         for subscription in self._subscriptions:
             schema = (
@@ -326,7 +325,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
                 self._compression,
             )
             for chunk in replay:
-                if compressor is not None:
+                if cctx is not None:
                     compressed = cctx.compress(chunk)
                     if compressed:
                         self.transport.write(compressed)
@@ -335,7 +334,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
                 await asyncio.sleep(0)
 
             # Flush remaining compressed data
-            if compressor is not None:
+            if cctx is not None:
                 remaining = cctx.flush()
                 if remaining:
                     self.transport.write(remaining)

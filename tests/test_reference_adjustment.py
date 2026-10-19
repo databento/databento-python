@@ -6,9 +6,9 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-import zstandard
 
 import databento as db
+from databento.common import zstd
 from databento.reference.client import Reference
 from tests import TESTS_ROOT
 
@@ -63,7 +63,7 @@ def test_adjustment_factors_get_range_sends_expected_request(
 ) -> None:
     # Arrange
     mock_response = MagicMock()
-    mock_response.content = zstandard.compress(b'{"ex_date":"1970-01-01"}\n')
+    mock_response.content = zstd.compress(b'{"ex_date":"1970-01-01"}\n')
     mock_response.__enter__.return_value = mock_response
     mock_response.__exit__ = MagicMock()
     monkeypatch.setattr(requests, "post", mock_post := MagicMock(return_value=mock_response))
@@ -106,7 +106,7 @@ def test_adjustment_factors_get_range_when_empty_response(
 ) -> None:
     # Arrange
     mock_response = MagicMock()
-    mock_response.content = zstandard.compress(b"")
+    mock_response.content = zstd.compress(b"")
     mock_response.__enter__.return_value = mock_response
     mock_response.__exit__ = MagicMock()
     monkeypatch.setattr(requests, "post", MagicMock(return_value=mock_response))
@@ -130,7 +130,7 @@ def test_adjustment_factors_get_range_response(
     # Arrange
     mock_response = MagicMock()
     data_path = Path(TESTS_ROOT) / "data" / "REFERENCE" / "test_data.adjustment-factors.jsonl"
-    mock_response.content = zstandard.compress(data_path.read_bytes())
+    mock_response.content = zstd.compress(data_path.read_bytes())
     mock_response.__enter__.return_value = mock_response
     mock_response.__exit__ = MagicMock()
     monkeypatch.setattr(requests, "post", MagicMock(return_value=mock_response))

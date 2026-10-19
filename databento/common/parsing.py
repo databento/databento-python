@@ -12,9 +12,9 @@ from typing import IO
 from typing import Any
 
 import pandas as pd
-import zstandard
 from databento_dbn import SType
 
+from databento.common import zstd
 from databento.common.constants import ALL_SYMBOLS
 from databento.common.enums import JobState
 from databento.common.validation import validate_enum
@@ -474,8 +474,7 @@ def convert_jsonl_to_df(data: bytes, compressed: bool) -> pd.DataFrame:
 
     """
     if compressed:
-        decompressor = zstandard.ZstdDecompressor()
-        reader: IO[bytes] = decompressor.stream_reader(data)
+        reader: IO[bytes] = zstd.stream_reader(BytesIO(data))
     else:
         reader = BytesIO(data)
 
