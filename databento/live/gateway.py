@@ -4,8 +4,8 @@ import dataclasses
 import logging
 from io import BytesIO
 from operator import attrgetter
+from typing import Self
 from typing import SupportsBytes
-from typing import TypeVar
 
 from databento_dbn import Compression
 from databento_dbn import Encoding
@@ -26,10 +26,8 @@ class GatewayControl(SupportsBytes):
     Base class for gateway control messages.
     """
 
-    GC = TypeVar("GC", bound="GatewayControl")
-
     @classmethod
-    def parse(cls: type[GC], line: str | bytes) -> GC:
+    def parse(cls, line: str | bytes) -> Self:
         """
         Parse a `GatewayControl` message from a string.
 
@@ -40,7 +38,7 @@ class GatewayControl(SupportsBytes):
 
         Returns
         -------
-        T
+        Self
 
         Raises
         ------

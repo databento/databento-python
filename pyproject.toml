@@ -3,7 +3,7 @@ name = "databento"
 version = "0.89.0"
 description = "Official Python client library for Databento"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Databento", email = "support@databento.com" }]
@@ -11,11 +11,11 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Investment",
     "Topic :: Software Development :: Libraries",
@@ -25,7 +25,7 @@ dependencies = [
     "aiohttp>=3.8.3,<4.0.0; python_version < '3.12'",
     "aiohttp>=3.9.0,<4.0.0; python_version >= '3.12'",
     "certifi>=2026.10.19",
-    "databento-dbn~=0.70.0",
+    "databento-dbn~=0.73.0",
     "numpy>=1.23.5; python_version < '3.12'",
     "numpy>=1.26.0; python_version >= '3.12'",
     "pandas>=1.5.3,<4.0.0",
@@ -49,7 +49,6 @@ dev = [
     "pytest-asyncio>=1.2.0,<2",
     "ruff>=0.15.12,<0.16",
     "teamcity-messages>=1.32,<2",
-    "tomli>=2.0.1,<3",
     "types-requests>=2.30.0,<3",
 ]
 
@@ -65,7 +64,7 @@ module-root = ""
 line_length = 100
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 disallow_untyped_defs = true
 disallow_any_generics = true
 disallow_subclassing_any = true
@@ -85,3 +84,4 @@ asyncio_default_test_loop_scope = "module"
 
 [tool.ruff]
 extend = "../ruff.toml"
+target-version = "py311"

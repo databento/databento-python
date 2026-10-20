@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.90.0 - Upcoming
+
+#### Enhancements
+- Added support for Python 3.15
+- String enumerations such as `Dataset`, `Venue`, and `Publisher` now subclass
+  `enum.StrEnum`
+- Upgraded `databento-dbn` to 0.73.0
+
+#### Breaking changes
+- Removed support for Python 3.10 due to end of life
+
 ## 0.89.0 - 2026-10-27
 
 #### Enhancements

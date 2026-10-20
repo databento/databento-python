@@ -774,15 +774,13 @@ class LiveSession:
         logger.info("connecting to remote gateway")
         try:
             factory = partial(self._create_protocol, dataset=dataset)
-            transport, protocol = await asyncio.wait_for(
-                self._loop.create_connection(
+            async with asyncio.timeout(CONNECT_TIMEOUT_SECONDS):
+                transport, protocol = await self._loop.create_connection(
                     protocol_factory=factory,
                     host=gateway,
                     port=self._port,
-                ),
-                timeout=CONNECT_TIMEOUT_SECONDS,
-            )
-        except asyncio.TimeoutError:
+                )
+        except TimeoutError:
             raise BentoError(
                 f"Connection to {gateway}:{self._port} timed out after "
                 f"{CONNECT_TIMEOUT_SECONDS} second(s).",
@@ -799,11 +797,9 @@ class LiveSession:
         )
 
         try:
-            session_id = await asyncio.wait_for(
-                protocol.authenticated,
-                timeout=AUTH_TIMEOUT_SECONDS,
-            )
-        except asyncio.TimeoutError:
+            async with asyncio.timeout(AUTH_TIMEOUT_SECONDS):
+                session_id = await protocol.authenticated
+        except TimeoutError:
             raise BentoError(
                 f"Authentication with {gateway}:{self._port} timed out after "
                 f"{AUTH_TIMEOUT_SECONDS} second(s).",

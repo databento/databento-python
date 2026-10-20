@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from enum import unique
 
-from databento.common.enums import StringyMixin
 from databento.common.enums import coercible
 
 
@@ -12,7 +11,7 @@ from databento.common.enums import coercible
 
 @unique
 @coercible
-class Venue(StringyMixin, str, Enum):
+class Venue(StrEnum):
     """
     A trading execution venue.
 
@@ -691,7 +690,7 @@ class Venue(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class Dataset(StringyMixin, str, Enum):
+class Dataset(StrEnum):
     """
     A source of data.
 
@@ -1199,7 +1198,7 @@ class Dataset(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class Publisher(StringyMixin, str, Enum):
+class Publisher(StrEnum):
     """
     A specific Venue from a specific data source.
 

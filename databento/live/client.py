@@ -6,7 +6,6 @@ import os
 import queue
 import threading
 from collections.abc import Iterable
-from concurrent import futures
 from datetime import date
 from datetime import datetime
 from os import PathLike
@@ -743,7 +742,7 @@ class Live:
                 self._session.wait_for_close(),
                 loop=self._loop,
             ).result(timeout=timeout)
-        except (futures.TimeoutError, KeyboardInterrupt) as exc:
+        except (TimeoutError, KeyboardInterrupt) as exc:
             logger.info("closing session due to %s", type(exc).__name__)
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
@@ -794,8 +793,9 @@ class Live:
         )
 
         try:
-            await asyncio.wait_for(waiter, timeout=timeout)
-        except (asyncio.TimeoutError, KeyboardInterrupt) as exc:
+            async with asyncio.timeout(timeout):
+                await waiter
+        except (TimeoutError, KeyboardInterrupt) as exc:
             logger.info("closing session due to %s", type(exc).__name__)
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):

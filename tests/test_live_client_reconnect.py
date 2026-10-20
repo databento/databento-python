@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import platform
 from unittest.mock import MagicMock
 
@@ -61,7 +60,7 @@ async def test_reconnect_policy_none(
     )
 
     # Assert
-    with pytest.raises(asyncio.TimeoutError):
+    with pytest.raises(TimeoutError):
         await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
 
 
@@ -109,7 +108,7 @@ async def test_reconnect_before_start(
     live_client.stop()
 
     # Assert
-    with pytest.raises(asyncio.TimeoutError):
+    with pytest.raises(TimeoutError):
         await mock_live_server.wait_for_message_of_type(SessionStart)
 
 

@@ -293,7 +293,7 @@ def test_maybe_datetime_to_string_give_valid_values_returns_expected_results(
         pytest.param("1680736543000000000", 1680736543000000000, id="str-int"),
         pytest.param(dt.date(2023, 4, 5), 1680652800000000000, id="date"),
         pytest.param(
-            dt.datetime(2023, 4, 5, 23, 15, 43, tzinfo=dt.timezone.utc),
+            dt.datetime(2023, 4, 5, 23, 15, 43, tzinfo=dt.UTC),
             1680736543000000000,
             id="datetime",
         ),

@@ -878,7 +878,7 @@ class DBNStore:
         map_symbols: bool = True,
         schema: Schema | str | None = None,
         tz: datetime.tzinfo | str | Default[datetime.tzinfo] = Default[datetime.tzinfo](
-            datetime.timezone.utc,
+            datetime.UTC,
         ),
         count: int | None = None,
     ) -> pd.DataFrame | DataFrameIterator:
