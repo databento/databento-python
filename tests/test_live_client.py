@@ -700,6 +700,103 @@ async def test_live_subscribe_large_symbol_list(
     assert len(live_client.subscription_requests[0]) == len(batched)
 
 
+async def test_live_unsubscribe(
+    live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
+) -> None:
+    """
+    Test that `Live.unsubscribe` sends an UnsubscribeRequest for the current
+    connection.
+    """
+    # Arrange
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.TRADES,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+    await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
+    # Act
+    live_client.unsubscribe(
+        schema=Schema.TRADES,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    # Assert
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.UnsubscribeRequest,
+    )
+    assert message.schema == Schema.TRADES
+    assert message.stype_in == SType.RAW_SYMBOL
+    assert message.symbols == "TEST"
+    assert len(live_client.unsubscription_requests) == 1
+    assert live_client.unsubscription_requests[0][0].symbols == "TEST"
+
+
+async def test_live_unsubscribe_large_symbol_list(
+    live_client: client.Live,
+    mock_live_server: MockLiveServerInterface,
+) -> None:
+    """
+    Test that sending an unsubscribe with a large symbol list breaks that list
+    up into multiple messages.
+    """
+    # Arrange
+    large_symbol_list = list(
+        random.choices(string.ascii_uppercase, k=3950),  # noqa: S311
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+    await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.SubscriptionRequest,
+    )
+
+    # Act
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=large_symbol_list,
+    )
+
+    reconstructed: list[str] = []
+    for i in range(8):
+        message = await mock_live_server.wait_for_message_of_type(
+            message_type=gateway.UnsubscribeRequest,
+        )
+        assert int(message.is_last) == int(i == 7)
+        reconstructed.extend(message.symbols.split(","))
+
+    # Assert
+    assert reconstructed == large_symbol_list
+
+
+async def test_live_unsubscribe_before_connect(
+    test_live_api_key: str,
+) -> None:
+    """
+    Test that `Live.unsubscribe` raises a ValueError if called before a
+    connection has been made.
+    """
+    # Arrange
+    live_client = client.Live(key=test_live_api_key)
+
+    # Act, Assert
+    with pytest.raises(ValueError):
+        live_client.unsubscribe(
+            schema=Schema.TRADES,
+            stype_in=SType.RAW_SYMBOL,
+            symbols="TEST",
+        )
+
+
 async def test_live_subscribe_from_callback(
     live_client: client.Live,
     mock_live_server: MockLiveServerInterface,

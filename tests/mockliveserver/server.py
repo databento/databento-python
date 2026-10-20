@@ -26,6 +26,7 @@ from databento.live.gateway import GatewayControl
 from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
+from databento.live.gateway import UnsubscribeRequest
 from databento.live.gateway import parse_gateway_message
 
 from .source import ReplayProtocol
@@ -83,6 +84,7 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
         self._dataset: Dataset | None = None
         self._compression: Compression = Compression.NONE
         self._subscriptions: list[SubscriptionRequest] = []
+        self._unsubscriptions: list[UnsubscribeRequest] = []
         self._replay_tasks: set[asyncio.Task[None]] = set()
 
     @property
@@ -221,6 +223,17 @@ class MockLiveServerProtocol(asyncio.BufferedProtocol):
             )
 
         self._subscriptions.append(message)
+
+    @handle_client_message.register(UnsubscribeRequest)
+    def _(self, message: UnsubscribeRequest) -> None:
+        logger.info("received unsubscribe request %s from %s", str(message).strip(), self.peer)
+        if self.state == SessionState.NOT_AUTHENTICATED:
+            self.hangup(
+                reason="unsubscribe received while unauthenticated",
+                is_error=True,
+            )
+
+        self._unsubscriptions.append(message)
 
     @handle_client_message.register(SessionStart)
     def _(self, message: SessionStart) -> None:

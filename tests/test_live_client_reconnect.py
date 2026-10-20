@@ -17,6 +17,7 @@ from databento.live import session
 from databento.live.gateway import AuthenticationRequest
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
+from databento.live.gateway import UnsubscribeRequest
 from databento.live.protocol import DatabentoLiveProtocol
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
@@ -195,6 +196,67 @@ async def test_reconnect_subscriptions(
         assert sub.symbols == symbol
         assert sub.start is None
         assert sub.snapshot == str(int(snapshot))
+
+
+async def test_reconnect_replays_unsubscriptions_in_order(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+) -> None:
+    """
+    Test that a reconnect policy of "reconnect" re-sends subscription and
+    unsubscribe requests in the order they were originally sent.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        reconnect_policy=ReconnectPolicy.RECONNECT,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST0",
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST0",
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST1",
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # Act
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
+    await mock_live_server.disconnect(
+        session_id=live_client._session.session_id,
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # Messages of other types are skipped while waiting, so a request sent out
+    # of order causes a later wait to time out
+    first_sub = await mock_live_server.wait_for_message_of_type(SubscriptionRequest)
+    unsub = await mock_live_server.wait_for_message_of_type(UnsubscribeRequest)
+    second_sub = await mock_live_server.wait_for_message_of_type(SubscriptionRequest)
+
+    live_client.stop()
+
+    # Assert
+    assert first_sub.symbols == "TEST0"
+    assert unsub.symbols == "TEST0"
+    assert second_sub.symbols == "TEST1"
 
 
 async def test_reconnect_callback(

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
-import itertools
+import heapq
 import logging
 import math
 import queue
 import threading
+import time
 from collections.abc import Iterable
 from functools import partial
 from typing import Final
@@ -28,6 +29,7 @@ from databento.common.types import ClientStream
 from databento.common.types import ExceptionCallback
 from databento.common.types import ReconnectCallback
 from databento.live.gateway import SubscriptionRequest
+from databento.live.gateway import UnsubscribeRequest
 from databento.live.protocol import DatabentoLiveProtocol
 
 
@@ -454,7 +456,8 @@ class LiveSession:
         self._transport: asyncio.Transport | None = None
         self._session_id: str | None = None
 
-        self._subscriptions: list[tuple[SubscriptionRequest, ...]] = []
+        self._subscriptions: list[tuple[int, tuple[SubscriptionRequest, ...]]] = []
+        self._unsubscriptions: list[tuple[int, tuple[UnsubscribeRequest, ...]]] = []
         self._reconnect_policy = ReconnectPolicy(reconnect_policy)
         self._reconnect_task: asyncio.Task[None] | None = None
         self._heartbeat_monitor_task: asyncio.Task[None] | None = None
@@ -626,19 +629,55 @@ class LiveSession:
                 self._connect(dataset=dataset)
 
             subscription_id = len(self._subscriptions)
-            self._subscriptions.append(
-                tuple(
-                    self._protocol.subscribe(
-                        schema=schema,
-                        symbols=symbols,
-                        stype_in=stype_in,
-                        start=start,
-                        snapshot=snapshot,
-                        subscription_id=subscription_id,
-                    ),
+            subscription = tuple(
+                self._protocol.subscribe(
+                    schema=schema,
+                    symbols=symbols,
+                    stype_in=stype_in,
+                    start=start,
+                    snapshot=snapshot,
+                    subscription_id=subscription_id,
                 ),
             )
+            self._subscriptions.append((time.time_ns(), subscription))
         return subscription_id
+
+    def unsubscribe(
+        self,
+        schema: Schema | str,
+        symbols: Iterable[str | int] | str | int,
+        stype_in: SType | str = SType.RAW_SYMBOL,
+    ) -> None:
+        """
+        Send an unsubscribe request on the current connection.
+
+        Parameters
+        ----------
+        schema : Schema or str
+            The schema to unsubscribe from.
+        symbols : Iterable[str | int] or str or int
+            The symbols to unsubscribe from.
+        stype_in : SType or str, default 'raw_symbol'
+            The input symbology type that was used to resolve the subscription.
+
+        Raises
+        ------
+        ValueError
+            If there is no active connection to the gateway.
+
+        """
+        with self._lock:
+            if self._protocol is None:
+                raise ValueError("session is not connected")
+
+            unsubscription = tuple(
+                self._protocol.unsubscribe(
+                    schema=schema,
+                    symbols=symbols,
+                    stype_in=stype_in,
+                ),
+            )
+            self._unsubscriptions.append((time.time_ns(), unsubscription))
 
     def terminate(self) -> None:
         with self._lock:
@@ -820,15 +859,7 @@ class LiveSession:
                         dataset=self._protocol._dataset,
                     )
 
-                    for sub in itertools.chain(*self._subscriptions):
-                        self._protocol.subscribe(
-                            schema=sub.schema,
-                            symbols=sub.symbols,
-                            stype_in=sub.stype_in,
-                            snapshot=bool(sub.snapshot),
-                            start=None,
-                            subscription_id=sub.id,
-                        )
+                    self._replay_requests()
 
                     if should_restart:
                         if self._heartbeat_monitor_task is not None:
@@ -850,6 +881,48 @@ class LiveSession:
                 continue
             else:
                 return
+
+    def _replay_requests(self) -> None:
+        """
+        Resend subscriptions and unsubscriptions in the order they were sent so
+        the gateway ends up with the same symbols.
+
+        Subscriptions are resent without their original `start`. Ties keep the
+        subscription first.
+
+        """
+        requests = heapq.merge(
+            (
+                (sent_at, partial(self._resend_subscriptions, batch))
+                for sent_at, batch in self._subscriptions
+            ),
+            (
+                (sent_at, partial(self._resend_unsubscriptions, batch))
+                for sent_at, batch in self._unsubscriptions
+            ),
+            key=lambda entry: entry[0],
+        )
+        for _, replay in requests:
+            replay()
+
+    def _resend_subscriptions(self, subscriptions: tuple[SubscriptionRequest, ...]) -> None:
+        for sub in subscriptions:
+            self._protocol.subscribe(
+                schema=sub.schema,
+                symbols=sub.symbols,
+                stype_in=sub.stype_in,
+                snapshot=bool(sub.snapshot),
+                start=None,
+                subscription_id=sub.id,
+            )
+
+    def _resend_unsubscriptions(self, unsubscriptions: tuple[UnsubscribeRequest, ...]) -> None:
+        for unsub in unsubscriptions:
+            self._protocol.unsubscribe(
+                schema=unsub.schema,
+                symbols=unsub.symbols,
+                stype_in=unsub.stype_in,
+            )
 
     def _dispatch_reconnect_callbacks(
         self,

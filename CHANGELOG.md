@@ -2,6 +2,13 @@
 
 ## 0.89.0 - Upcoming
 
+#### Enhancements
+- Added `Live.unsubscribe()` for removing symbols from a live session's
+  subscriptions
+- Added `Live.unsubscription_requests`
+- Modified reconnection with `ReconnectPolicy.RECONNECT` to resubscribe only to active
+  subscriptions
+
 #### Bug fixes
 - Fixed an issue where `InsturmentMap.map_symbols_csv()` and `InstrumentMap.map_symbols_json()`
   could overwrite the input file in unusual cases
