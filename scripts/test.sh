@@ -1,2 +1,8 @@
 #!/usr/bin/env bash
-poetry run pytest tests . "$@"
+set -euo pipefail
+
+uv run --frozen \
+    --exclude-newer "7 days" \
+    --exclude-newer-package certifi=false \
+    --exclude-newer-package databento-dbn=false \
+    -- pytest tests "$@"

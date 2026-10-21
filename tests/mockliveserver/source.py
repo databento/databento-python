@@ -5,9 +5,9 @@ from typing import IO
 from typing import Final
 from typing import Protocol
 
-import zstandard
 from databento_dbn import Compression
 
+from databento.common import zstd
 from databento.common.dbnstore import is_zstandard
 
 
@@ -37,7 +37,7 @@ class FileReplay(ReplayProtocol):
     def __iter__(self) -> Generator[bytes, None, None]:
         with self._dbn_file.open("rb") as dbn:
             if self._compression == Compression.ZSTD:
-                reader: IO[bytes] = zstandard.ZstdDecompressor().stream_reader(dbn)
+                reader: IO[bytes] = zstd.stream_reader(dbn)
             else:
                 reader = dbn
             while next_bytes := reader.read(FILE_READ_SIZE):

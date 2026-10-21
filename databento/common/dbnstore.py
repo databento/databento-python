@@ -30,7 +30,6 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-import zstandard
 from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import UNDEF_PRICE
 from databento_dbn import Compression
@@ -47,6 +46,7 @@ from databento_dbn import SType
 from databento_dbn import Transcoder
 from databento_dbn import VersionUpgradePolicy
 
+from databento.common import zstd
 from databento.common.constants import DEFINITION_TYPE_MAX_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP_V1
@@ -86,12 +86,7 @@ def is_zstandard(reader: IO[bytes]) -> bool:
 
     """
     reader.seek(0)  # ensure we read from the beginning
-    try:
-        zstandard.get_frame_parameters(reader.read(18))
-    except zstandard.ZstdError:
-        return False
-    else:
-        return True
+    return zstd.is_frame_header(reader.read(18))
 
 
 def is_dbn(reader: IO[bytes]) -> bool:
@@ -356,7 +351,7 @@ class DBNStore:
 
         if is_zstandard(buffer):
             self._compression = Compression.ZSTD
-            buffer = zstandard.ZstdDecompressor().stream_reader(data_source.reader)
+            buffer = zstd.stream_reader(data_source.reader)
         elif is_dbn(buffer):
             self._compression = Compression.NONE
             buffer = data_source.reader
@@ -540,10 +535,7 @@ class DBNStore:
 
         """
         if self.compression == Compression.ZSTD:
-            return zstandard.ZstdDecompressor().stream_reader(
-                self._data_source.reader,
-                read_across_frames=True,
-            )
+            return zstd.stream_reader(self._data_source.reader)
         return self._data_source.reader
 
     @property
@@ -1102,7 +1094,7 @@ class DBNStore:
         compression = validate_maybe_enum(compression, Compression, "compression")
         file_path = validate_file_write_path(path, "path", exist_ok=mode == "w")
 
-        writer: IO[bytes] | zstandard.ZstdCompressionWriter
+        writer: IO[bytes]
         if compression is None or compression == self.compression:
             # Handle trivial case
             with open(file_path, mode=f"{mode}b") as writer:
@@ -1112,12 +1104,7 @@ class DBNStore:
             return
 
         if compression == Compression.ZSTD:
-            writer = zstandard.ZstdCompressor(
-                write_checksum=True,
-            ).stream_writer(
-                open(file_path, mode=f"{mode}b"),
-                closefd=True,
-            )
+            writer = zstd.stream_writer(file_path, mode)
         else:
             writer = open(file_path, mode=f"{mode}b")
 

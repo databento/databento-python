@@ -240,7 +240,7 @@ class MetadataHttpAPI(BentoHttpAPI):
     def get_dataset_range(
         self,
         dataset: Dataset | str,
-    ) -> dict[str, str]:
+    ) -> dict[str, str | dict[str, dict[str, str]]]:
         """
         Request the available range for the dataset given the user's
         entitlements.
@@ -254,7 +254,7 @@ class MetadataHttpAPI(BentoHttpAPI):
 
         Returns
         -------
-        dict[str, str | dict[str, str]]
+        dict[str, str | dict[str, dict[str, str]]]
             The available range for the dataset.
 
         """

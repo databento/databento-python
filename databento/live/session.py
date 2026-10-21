@@ -812,7 +812,7 @@ class LiveSession:
                     elif self._metadata.data is not None:
                         gap_start = pd.Timestamp(self._metadata.data.start, tz="UTC")
                     else:
-                        gap_start = pd.Timestamp.utcnow()
+                        gap_start = pd.Timestamp.now(tz="UTC")
 
                     if self._transport is not None:
                         self._transport.abort()

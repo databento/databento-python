@@ -13,7 +13,6 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 import pytest
-import zstandard
 from databento_dbn import Compression
 from databento_dbn import DBNRecord
 from databento_dbn import MBOMsg
@@ -22,6 +21,7 @@ from databento_dbn import SType
 
 import databento
 import databento.common.dbnstore
+from databento.common import zstd
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.dbnstore import DBNStore
 from databento.common.error import BentoError
@@ -1108,7 +1108,7 @@ def test_dbnstore_compression_equality(
     """
     # Arrange
     zstd_stub_data = test_data(Dataset.GLBX_MDP3, schema)
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(zstd_stub_data).read()
+    dbn_stub_data = zstd.decompress(zstd_stub_data)
 
     # Act
     zstd_dbnstore = DBNStore.from_bytes(zstd_stub_data)
@@ -1129,9 +1129,7 @@ def test_dbnstore_buffer_short(
     decoding.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
-    )
+    dbn_stub_data = zstd.decompress(test_data(Dataset.GLBX_MDP3, Schema.MBO))
 
     # Act
     dbnstore = DBNStore.from_bytes(data=dbn_stub_data[:-2])
@@ -1165,9 +1163,7 @@ def test_dbnstore_buffer_long(
     decoding.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
-    )
+    dbn_stub_data = zstd.decompress(test_data(Dataset.GLBX_MDP3, Schema.MBO))
 
     # Act
     dbn_stub_data += b"\xf0\xff"
@@ -1201,9 +1197,7 @@ def test_dbnstore_buffer_rewind(
     Test that creating a DBNStore from a seekable buffer will rewind.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
-    )
+    dbn_stub_data = zstd.decompress(test_data(Dataset.GLBX_MDP3, Schema.MBO))
 
     # Act
     dbn_bytes = BytesIO()
@@ -1670,9 +1664,7 @@ def test_dbnstore_iterate_truncated_dbn(
     stream, even if it is corrupted/truncated.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
-    )
+    dbn_stub_data = zstd.decompress(test_data(Dataset.GLBX_MDP3, Schema.MBO))
     truncated = tmp_path / "truncated.dbn"
     truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
 
@@ -1697,7 +1689,7 @@ def test_dbnstore_iterate_truncated_live_dbn(
     stream, even if it is corrupted/truncated.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    dbn_stub_data = zstd.decompress(live_test_data)
     truncated = tmp_path / "truncated.dbn"
     truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
 
@@ -1722,9 +1714,7 @@ def test_dbnstore_to_df_truncated_dbn(
     from a DBN stream, even if it is corrupted/truncated.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
-    )
+    dbn_stub_data = zstd.decompress(test_data(Dataset.GLBX_MDP3, Schema.MBO))
     truncated = tmp_path / "truncated.dbn"
     truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
 
@@ -1749,7 +1739,7 @@ def test_dbnstore_to_df_truncated_live_dbn(
     from a live DBN stream, even if it is corrupted/truncated.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    dbn_stub_data = zstd.decompress(live_test_data)
     truncated = tmp_path / "truncated.dbn"
     truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
 
@@ -1776,9 +1766,7 @@ def test_dbnstore_transcode_truncated_dbn(
     data, even if it is corrupted/truncated.
     """
     # Arrange
-    dbn_stub_data = (
-        zstandard.ZstdDecompressor().stream_reader(test_data(Dataset.GLBX_MDP3, Schema.MBO)).read()
-    )
+    dbn_stub_data = zstd.decompress(test_data(Dataset.GLBX_MDP3, Schema.MBO))
     truncated = tmp_path / "truncated.dbn"
     truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
 
@@ -1805,7 +1793,7 @@ def test_dbnstore_transcode_truncated_live_dbn(
     live DBN data, even if it is corrupted/truncated.
     """
     # Arrange
-    dbn_stub_data = zstandard.ZstdDecompressor().stream_reader(live_test_data).read()
+    dbn_stub_data = zstd.decompress(live_test_data)
     truncated = tmp_path / "truncated.dbn"
     truncated.write_bytes(dbn_stub_data[:-8])  # leave out 8 bytes of data
 

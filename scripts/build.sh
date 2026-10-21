@@ -1,2 +1,7 @@
 #!/usr/bin/env bash
-poetry install --with=dev --no-interaction --no-root
+set -euo pipefail
+
+uv sync --all-extras --all-groups \
+    --exclude-newer "7 days" \
+    --exclude-newer-package certifi=false \
+    --exclude-newer-package databento-dbn=false
