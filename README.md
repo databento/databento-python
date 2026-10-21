@@ -32,6 +32,7 @@ The library is fully compatible with distributions of Anaconda 2023.x and above.
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
 - python >= 3.10
 - aiohttp >= 3.8.3
+- certifi >= 2026.10.19
 - databento-dbn ~= 0.70.0
 - numpy >= 1.23.5
 - pandas >= 1.5.3

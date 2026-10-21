@@ -24,6 +24,7 @@ classifiers = [
 dependencies = [
     "aiohttp>=3.8.3,<4.0.0; python_version < '3.12'",
     "aiohttp>=3.9.0,<4.0.0; python_version >= '3.12'",
+    "certifi>=2026.10.19",
     "databento-dbn~=0.70.0",
     "numpy>=1.23.5; python_version < '3.12'",
     "numpy>=1.26.0; python_version >= '3.12'",

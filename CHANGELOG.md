@@ -5,6 +5,8 @@
 #### Enhancements
 - `zstandard` is now only a dependency on Python versions below 3.14; on Python 3.14 and
   later the standard library `compression.zstd` module is used instead
+- Added a direct dependency on `certifi` 2026.10.19 or later so that HTTPS connections
+  no longer trust the compromised eMudhra intermediate CAs (emSign ECC Root CA - G3)
 
 ## 0.87.0 - 2026-09-22
 
