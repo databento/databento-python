@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.88.0 - Upcoming
+## 0.88.0 - 2026-10-21
 
 #### Enhancements
 - `zstandard` is now only a dependency on Python versions below 3.14; on Python 3.14 and
