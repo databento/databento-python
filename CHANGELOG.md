@@ -8,6 +8,10 @@
 - Added a direct dependency on `certifi` 2026.10.19 or later so that HTTPS connections
   no longer trust the compromised eMudhra intermediate CAs (emSign ECC Root CA - G3)
 
+#### Bug fixes
+- Fixed the return type annotation of `metadata.get_dataset_range()` to include the
+  per-schema ranges under the `schema` key
+
 ## 0.87.0 - 2026-09-22
 
 #### Enhancements
