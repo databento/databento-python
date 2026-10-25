@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.89.0 - Upcoming
+
+#### Bug fixes
+- Fixed an issue where `InsturmentMap.map_symbols_csv()` and `InstrumentMap.map_symbols_json()`
+  could overwrite the input file in unusual cases
+
 ## 0.88.0 - 2026-10-21
 
 #### Enhancements
