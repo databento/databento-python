@@ -13,6 +13,11 @@
 - Fixed an issue where `InsturmentMap.map_symbols_csv()` and `InstrumentMap.map_symbols_json()`
   could overwrite the input file in unusual cases
 
+#### Breaking changes
+- Removed the `short` parameter from `batch.list_jobs`, which now always returns the
+  short response containing only the `id`, `state`, and `ts_received` fields for each
+  job. Use `batch.get_job_details` to request the full details of a job
+
 ## 0.88.0 - 2026-10-21
 
 #### Enhancements
