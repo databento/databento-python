@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.89.0 - Upcoming
+## 0.89.0 - 2026-10-27
 
 #### Enhancements
 - Added `Live.unsubscribe()` for removing symbols from a live session's
