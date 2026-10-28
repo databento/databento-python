@@ -33,6 +33,7 @@ from databento.live.gateway import GatewayDecoder
 from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
+from databento.live.gateway import UnsubscribeRequest
 
 
 RECV_BUFFER_SIZE: Final = 64 * 2**10  # 64kb
@@ -361,6 +362,63 @@ class DatabentoLiveProtocol(asyncio.BufferedProtocol):
             )
         self.transport.writelines(map(bytes, subscriptions))
         return subscriptions
+
+    def unsubscribe(
+        self,
+        schema: Schema | str,
+        symbols: Iterable[str | int] | str | int,
+        stype_in: SType | str = SType.RAW_SYMBOL,
+    ) -> list[UnsubscribeRequest]:
+        """
+        Send an UnsubscribeRequest to the gateway.
+
+        Returns a list of all unsubscribe requests sent to the gateway.
+
+        Parameters
+        ----------
+        schema : Schema or str
+            The schema to unsubscribe from.
+        symbols : Iterable[str | int] or str or int
+            The symbols to unsubscribe from.
+        stype_in : SType or str, default 'raw_symbol'
+            The input symbology type that was used to resolve the subscription.
+
+        Returns
+        -------
+        list[UnsubscribeRequest]
+
+        """
+        logger.debug(
+            "sending unsubscribe request schema=%s stype_in=%s symbols='%s'",
+            schema,
+            stype_in,
+            symbols,
+        )
+
+        stype_in_valid = validate_enum(stype_in, SType, "stype_in")
+        symbols_list = symbols_list_to_list(symbols, stype_in_valid)
+
+        unsubscriptions: list[UnsubscribeRequest] = []
+        chunked_symbols = list(chunk(symbols_list, SYMBOL_LIST_BATCH_SIZE))
+        last_chunk_idx = len(chunked_symbols) - 1
+        for i, batch in enumerate(chunked_symbols):
+            batch_str = ",".join(batch)
+            message = UnsubscribeRequest(
+                unsubscribe=0,
+                schema=validate_enum(schema, Schema, "schema"),
+                stype_in=stype_in_valid,
+                symbols=batch_str,
+                is_last=int(i == last_chunk_idx),
+            )
+            unsubscriptions.append(message)
+
+        if len(unsubscriptions) > 1:
+            logger.debug(
+                "batched unsubscribe into %d requests",
+                len(unsubscriptions),
+            )
+        self.transport.writelines(map(bytes, unsubscriptions))
+        return unsubscriptions
 
     def start(
         self,

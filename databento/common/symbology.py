@@ -70,9 +70,8 @@ def _validate_path_pair(
                 f"{in_file_valid.stem}_mapped_{i}{in_file_valid.suffix}",
             )
             i += 1
-
-    if in_file_valid == out_file_valid:
-        raise ValueError("The input file cannot be the same path as the output file.")
+    if out_file_valid.exists() and in_file_valid.samefile(out_file_valid):
+        raise ValueError("The input file cannot be the same as the output file.")
 
     return in_file_valid, out_file_valid
 

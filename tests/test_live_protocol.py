@@ -7,6 +7,7 @@ from databento_dbn import Schema
 from databento_dbn import SType
 
 from databento.common.publishers import Dataset
+from databento.live import gateway
 from databento.live.protocol import DatabentoLiveProtocol
 from tests.mockliveserver.fixture import MockLiveServerInterface
 
@@ -109,3 +110,39 @@ async def test_protocol_connection_streaming(
     # Assert
     assert metadata_mock.call_count == 1
     assert record_mock.call_count == 4
+
+
+async def test_protocol_unsubscribe(
+    mock_live_server: MockLiveServerInterface,
+    test_live_api_key: str,
+) -> None:
+    """
+    Test the low-level DatabentoLiveProtocol can send an unsubscribe request to
+    the live subscription gateway.
+    """
+    # Arrange
+    _, protocol = await asyncio.get_event_loop().create_connection(
+        protocol_factory=lambda: DatabentoLiveProtocol(
+            api_key=test_live_api_key,
+            dataset=Dataset.GLBX_MDP3,
+        ),
+        host=mock_live_server.host,
+        port=mock_live_server.port,
+    )
+
+    await asyncio.wait_for(protocol.authenticated, timeout=1)
+
+    # Act
+    protocol.unsubscribe(
+        schema=Schema.TRADES,
+        symbols="TEST",
+        stype_in=SType.RAW_SYMBOL,
+    )
+
+    # Assert
+    message = await mock_live_server.wait_for_message_of_type(
+        message_type=gateway.UnsubscribeRequest,
+    )
+    assert message.schema == Schema.TRADES
+    assert message.stype_in == SType.RAW_SYMBOL
+    assert message.symbols == "TEST"

@@ -141,6 +141,20 @@ class SubscriptionRequest(GatewayControl):
 
 
 @dataclasses.dataclass
+class UnsubscribeRequest(GatewayControl):
+    """
+    An unsubscribe request is sent to the gateway upon request from the client.
+    """
+
+    # The gateway identifies an unsubscribe request by this leading key; its value is ignored.
+    unsubscribe: int = dataclasses.field(kw_only=True)
+    schema: Schema | str
+    stype_in: SType
+    symbols: str
+    is_last: int = 1
+
+
+@dataclasses.dataclass
 class SessionStart(GatewayControl):
     """
     A session start message is sent to the gateway upon request from the

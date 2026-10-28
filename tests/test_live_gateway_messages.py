@@ -13,6 +13,7 @@ from databento.live.gateway import GatewayControl
 from databento.live.gateway import Greeting
 from databento.live.gateway import SessionStart
 from databento.live.gateway import SubscriptionRequest
+from databento.live.gateway import UnsubscribeRequest
 
 
 ALL_MESSAGES = (
@@ -23,6 +24,7 @@ ALL_MESSAGES = (
     Greeting,
     SubscriptionRequest,
     SessionStart,
+    UnsubscribeRequest,
 )
 
 
@@ -408,6 +410,128 @@ def test_serialize_subscription_request(
 ) -> None:
     """
     Test that a SubscriptionRequest is serialized as expected.
+    """
+    # Arrange, Act, Assert
+    assert bytes(message) == expected
+
+
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        pytest.param(
+            "unsubscribe=0|schema=trades|stype_in=instrument_id|symbols=1,2,3\n",
+            ("trades", "instrument_id", "1,2,3"),
+        ),
+        pytest.param(
+            "unsubscribe|schema=trades|stype_in=instrument_id|symbols=1,2,3\n",
+            ("trades", "instrument_id", "1,2,3"),
+            id="bare_unsubscribe",
+        ),
+        pytest.param(
+            "unsubscribe=0|symbols=SPY,QQQ|schema=mbo|stype_in=raw_symbol\n",
+            ("mbo", "raw_symbol", "SPY,QQQ"),
+            id="different_order",
+        ),
+        pytest.param(
+            "unsubscribe=0|schema=trades|stype_in=instrument_id|symbols=1,2,3|is_last=0\n",
+            ("trades", "instrument_id", "1,2,3"),
+            id="is_last",
+        ),
+        pytest.param(
+            "unsubscribe=0|schema=trades|stype_in=instrument_id|symbols=1,2,3",
+            ValueError,
+            id="no_newline",
+        ),
+        pytest.param(
+            "unsubscribeeee=0|schema=trades|stype_in=instrument_id|symbols=1,2,3\n",
+            ValueError,
+            id="not_unsubscribe",
+        ),
+        pytest.param(
+            "schema=trades|stype_in=instrument_id|symbols=1,2,3\n",
+            ValueError,
+            id="missing_unsubscribe_literal",
+        ),
+        pytest.param(
+            "unsubscribe=0|schema=trades|stype_in=instrument_id\n",
+            ValueError,
+            id="missing_symbols",
+        ),
+        pytest.param(
+            "unsubscribe=0|schema=trades|stype_in=instrument_id|symbols=1,2,3|extra=key\n",
+            ValueError,
+            id="extra_key",
+        ),
+    ],
+)
+def test_parse_unsubscribe_request(
+    line: str,
+    expected: tuple[str, ...] | type[Exception],
+) -> None:
+    """
+    Test that an UnsubscribeRequest is parsed from a string as expected.
+    """
+    # Arrange, Act, Assert
+    if isinstance(expected, tuple):
+        msg = UnsubscribeRequest.parse(line)
+        assert (msg.schema, msg.stype_in, msg.symbols) == expected
+    else:
+        with pytest.raises(expected):
+            UnsubscribeRequest.parse(line)
+
+
+@pytest.mark.parametrize(
+    "message,expected",
+    [
+        pytest.param(
+            UnsubscribeRequest(
+                unsubscribe=0,
+                schema=Schema.TRADES,
+                stype_in=SType.INSTRUMENT_ID,
+                symbols="1234,5678,90",
+            ),
+            b"unsubscribe=0|"
+            b"schema=trades|"
+            b"stype_in=instrument_id|"
+            b"symbols=1234,5678,90|"
+            b"is_last=1\n",
+        ),
+        pytest.param(
+            UnsubscribeRequest(
+                unsubscribe=0,
+                schema=Schema.MBO,
+                stype_in=SType.RAW_SYMBOL,
+                symbols="SPY,QQQ",
+            ),
+            b"unsubscribe=0|"
+            b"schema=mbo|"
+            b"stype_in=raw_symbol|"
+            b"symbols=SPY,QQQ|"
+            b"is_last=1\n",
+        ),
+        pytest.param(
+            UnsubscribeRequest(
+                unsubscribe=0,
+                schema=Schema.MBO,
+                stype_in=SType.RAW_SYMBOL,
+                symbols="SPY,QQQ",
+                is_last=0,
+            ),
+            b"unsubscribe=0|"
+            b"schema=mbo|"
+            b"stype_in=raw_symbol|"
+            b"symbols=SPY,QQQ|"
+            b"is_last=0\n",
+            id="not_last",
+        ),
+    ],
+)
+def test_serialize_unsubscribe_request(
+    message: UnsubscribeRequest,
+    expected: str | type[Exception],
+) -> None:
+    """
+    Test that an UnsubscribeRequest is serialized as expected.
     """
     # Arrange, Act, Assert
     assert bytes(message) == expected

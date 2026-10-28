@@ -34,6 +34,7 @@ from databento.common.types import RecordCallback
 from databento.common.validation import validate_enum
 from databento.common.validation import validate_semantic_string
 from databento.live.gateway import SubscriptionRequest
+from databento.live.gateway import UnsubscribeRequest
 from databento.live.session import DEFAULT_REMOTE_PORT
 from databento.live.session import LiveSession
 from databento.live.session import SessionMetadata
@@ -287,7 +288,32 @@ class Live:
         Live.subscribe()
 
         """
-        return self._session._subscriptions
+        return [requests for _, requests in self._session._subscriptions]
+
+    @property
+    def unsubscription_requests(
+        self,
+    ) -> list[tuple[UnsubscribeRequest, ...]]:
+        """
+        Return a list of tuples containing every `UnsubscribeRequest` message
+        sent for the session, in the order the unsubscriptions were made.
+
+        Unsubscriptions which contain a large list of symbols are batched.
+        Because of this, a single call to `Live.unsubscribe()` may have more
+        than one associated `UnsubscribeRequest`.
+
+        Returns
+        -------
+        list[tuple[UnsubscribeRequest, ...]]
+            A list of tuples containing every unsubscribe request.
+            Each entry in the list corresponds to a single unsubscription.
+
+        See Also
+        --------
+        Live.unsubscribe()
+
+        """
+        return [requests for _, requests in self._session._unsubscriptions]
 
     @property
     def symbology_map(self) -> dict[int, str | int]:
@@ -596,6 +622,61 @@ class Live:
             symbols=symbols,
             start=start,
             snapshot=snapshot,
+        )
+
+    def unsubscribe(
+        self,
+        schema: Schema | str,
+        symbols: Iterable[str | int] | str | int,
+        stype_in: SType | str = SType.RAW_SYMBOL,
+    ) -> None:
+        """
+        Remove the specified symbols from the session's subscriptions for a
+        schema.
+
+        The symbols don't need to match an earlier `Live.subscribe` call: any
+        subset of the subscribed symbols can be removed, and `ALL_SYMBOLS`
+        removes every symbol for the schema. Symbols that aren't subscribed,
+        or that are only subscribed through a parent symbol, are left in place
+        and reported in a non-fatal error record.
+
+        Parameters
+        ----------
+        schema : Schema or str
+            The schema to unsubscribe from.
+        symbols : Iterable[str | int] or str or int
+            The symbols to unsubscribe from.
+        stype_in : SType or str, default 'raw_symbol'
+            The symbology type of `symbols`. Must be 'raw_symbol', 'parent',
+            or 'instrument_id'.
+
+        Raises
+        ------
+        ValueError
+            If called before a connection has been made.
+
+        See Also
+        --------
+        Live.subscribe
+        Live.start
+
+        """
+        logger.info(
+            "unsubscribing from schema=%s stype_in=%s symbols='%s'",
+            schema,
+            stype_in,
+            symbols,
+        )
+        if self._session is None:
+            raise ValueError("cannot unsubscribe before a connection has been made")
+
+        schema = validate_enum(schema, Schema, "schema")
+        stype_in = validate_enum(stype_in, SType, "stype_in")
+
+        self._session.unsubscribe(
+            schema=schema,
+            stype_in=stype_in,
+            symbols=symbols,
         )
 
     def terminate(self) -> None:
