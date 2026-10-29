@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import platform
 from unittest.mock import MagicMock
 
@@ -354,4 +355,67 @@ async def test_reconnect_after_heartbeat_timeout(
             timeout=10,
         )
 
+    live_client.stop()
+
+
+async def test_reconnect_does_not_block_session_lock(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+    monkeypatch: pytest.MonkeyPatch,
+    reconnect_policy: ReconnectPolicy = ReconnectPolicy.RECONNECT,
+) -> None:
+    """
+    Test that the session lock is not held while a reconnection attempt is in
+    progress, so calls like `is_connected` from another thread do not block.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        reconnect_policy=reconnect_policy,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST",
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # hold the reconnection attempt open until we release it
+    connect_started = asyncio.Event()
+    connect_release = asyncio.Event()
+    test_loop = asyncio.get_running_loop()
+    original_connect_task = session.LiveSession._connect_task
+
+    async def slow_connect_task(self: session.LiveSession, dataset: str) -> object:
+        test_loop.call_soon_threadsafe(connect_started.set)
+        await asyncio.wrap_future(
+            asyncio.run_coroutine_threadsafe(connect_release.wait(), test_loop),
+        )
+        return await original_connect_task(self, dataset=dataset)
+
+    monkeypatch.setattr(session.LiveSession, "_connect_task", slow_connect_task)
+
+    # Act
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
+    await mock_live_server.disconnect(
+        session_id=live_client._session.session_id,
+    )
+    await asyncio.wait_for(connect_started.wait(), timeout=5)
+
+    # Assert
+    await asyncio.wait_for(
+        test_loop.run_in_executor(None, live_client.is_connected),
+        timeout=1,
+    )
+
+    connect_release.set()
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
     live_client.stop()

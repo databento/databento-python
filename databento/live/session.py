@@ -417,7 +417,10 @@ class LiveSession:
     reconnect_policy: ReconnectPolicy | str, optional
         The reconnect policy for the live session.
             - "none": the client will not reconnect (default)
-            - "reconnect": the client will reconnect automatically
+            - "reconnect": the client will make a single attempt to reconnect and
+              resubscribe after an unexpected disconnection. If that attempt fails the
+              session closes and the error is raised from `Live.block_for_close` or
+              `Live.wait_for_close`.
     compression : Compression, optional
         The compression format for the session. Defaults to no compression.
     """
@@ -834,11 +837,12 @@ class LiveSession:
         while True:
             try:
                 await self._protocol.disconnected
-            except Exception:
-                with self._lock:
-                    logger.info("reconnecting live session")
+            except Exception as exc:
+                logger.info("reconnecting live session: %s", exc)
 
+                with self._lock:
                     should_restart = self.is_streaming()
+                    dataset = self._protocol._dataset
                     if self._protocol._last_ts_event is not None:
                         gap_start = pd.Timestamp(
                             self._protocol._last_ts_event,
@@ -851,29 +855,44 @@ class LiveSession:
 
                     if self._transport is not None:
                         self._transport.abort()
-                    self._transport, self._protocol = await self._connect_task(
-                        dataset=self._protocol._dataset,
-                    )
 
+                try:
+                    transport, protocol = await self._connect_task(dataset=dataset)
+                except Exception as exc:
+                    logger.error("failed to reconnect live session: %s", exc)
+                    raise
+
+                with self._lock:
+                    if self._protocol is None:
+                        # The session was terminated during the connection attempt
+                        transport.abort()
+                        return
+
+                    self._transport, self._protocol = transport, protocol
                     self._replay_requests()
 
                     if should_restart:
                         if self._heartbeat_monitor_task is not None:
                             self._heartbeat_monitor_task.cancel()
                         self._heartbeat_monitor_task = self._loop.create_task(
-                            self._heartbeat_monitor(self._protocol),
+                            self._heartbeat_monitor(protocol),
                         )
-                        self._protocol.start()
-                        metadata = await self._protocol._metadata_received
-                        gap_end = pd.Timestamp(metadata.start, tz="UTC")
-                        logger.debug(
-                            "reconnection gap of %f second(s)",
-                            (gap_end - gap_start).total_seconds(),
-                        )
-                        self._dispatch_reconnect_callbacks(
-                            gap_start=gap_start,
-                            gap_end=gap_end,
-                        )
+                        protocol.start()
+
+                if should_restart:
+                    metadata = await protocol._metadata_received
+                    gap_end = pd.Timestamp(metadata.start, tz="UTC")
+                    logger.info(
+                        "reconnected live session session_id='%s' with gap of %f second(s)",
+                        self.session_id,
+                        (gap_end - gap_start).total_seconds(),
+                    )
+                    self._dispatch_reconnect_callbacks(
+                        gap_start=gap_start,
+                        gap_end=gap_end,
+                    )
+                else:
+                    logger.info("reconnected live session session_id='%s'", self.session_id)
                 continue
             else:
                 return

@@ -6,10 +6,16 @@
 - Added support for Python 3.15
 - String enumerations such as `Dataset`, `Venue`, and `Publisher` now subclass
   `enum.StrEnum`
+- Added logging for `Live` reconnection success and failure when using
+  `ReconnectPolicy.RECONNECT`
 - Upgraded `databento-dbn` to 0.73.0
 
 #### Breaking changes
 - Removed support for Python 3.10 due to end of life
+
+#### Bug fixes
+- Fixed an issue where `Live` methods such as `is_connected()`, `stop()`, and `terminate()`
+  could block for the duration of a reconnection attempt
 
 ## 0.89.0 - 2026-10-27
 
