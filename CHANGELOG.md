@@ -1,16 +1,18 @@
 # Changelog
 
-## 0.90.1 - TBD
+## 0.91 - TBD
 
 #### Enhancements
+- Added support for free-threaded Python 3.15
 - Added new venues, datasets, and publishers for HKEX
 - Removed use of the `inplace` keyword, which is deprecated in `pandas` 3.1
+- Upgraded `databento-dbn` to 0.74.0
 
 #### Bug fixes
 - Fixed `DBNStore.to_df` with `price_type="decimal"` raising an `AttributeError` on
   `pandas` versions before 2.1
 - Fixed a race condition where iterating a `Live` client could miss records
-  at the start of the stream in extreme cases (credit: rundef)
+  at the start of the stream in extreme cases (credit: @rundef)
 
 ## 0.90.0 - 2026-11-03
 
