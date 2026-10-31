@@ -20,9 +20,9 @@ class Venue(StrEnum):
     XNAS
         Nasdaq - All Markets.
     XBOS
-        Nasdaq OMX BX.
+        Nasdaq Texas.
     XPSX
-        Nasdaq OMX PSX.
+        Nasdaq PSX.
     BATS
         Cboe BZX U.S. Equities Exchange.
     BATY
@@ -36,7 +36,7 @@ class Venue(StrEnum):
     XCIS
         NYSE National, Inc..
     XASE
-        NYSE MKT LLC.
+        NYSE American.
     ARCX
         NYSE Arca.
     XCHI
@@ -144,11 +144,11 @@ class Venue(StrEnum):
     INAV
         CGIF Intraday Net Asset Values.
     MSTAR
-        CGIF Morning Star.
+        CGIF Morningstar.
     CCCY
-        CGIF Crypto Currency.
+        CGIF Cryptocurrency.
     CGI
-        CGIF CBOE Global Indices.
+        CGIF Cboe Global Indices.
     CDEF
         CGIF Definitions.
     XTKS
@@ -546,9 +546,9 @@ class Venue(StrEnum):
         if self == Venue.XNAS:
             return "Nasdaq - All Markets"
         if self == Venue.XBOS:
-            return "Nasdaq OMX BX"
+            return "Nasdaq Texas"
         if self == Venue.XPSX:
-            return "Nasdaq OMX PSX"
+            return "Nasdaq PSX"
         if self == Venue.BATS:
             return "Cboe BZX U.S. Equities Exchange"
         if self == Venue.BATY:
@@ -562,7 +562,7 @@ class Venue(StrEnum):
         if self == Venue.XCIS:
             return "NYSE National, Inc."
         if self == Venue.XASE:
-            return "NYSE MKT LLC"
+            return "NYSE American"
         if self == Venue.ARCX:
             return "NYSE Arca"
         if self == Venue.XCHI:
@@ -670,11 +670,11 @@ class Venue(StrEnum):
         if self == Venue.INAV:
             return "CGIF Intraday Net Asset Values"
         if self == Venue.MSTAR:
-            return "CGIF Morning Star"
+            return "CGIF Morningstar"
         if self == Venue.CCCY:
-            return "CGIF Crypto Currency"
+            return "CGIF Cryptocurrency"
         if self == Venue.CGI:
-            return "CGIF CBOE Global Indices"
+            return "CGIF Cboe Global Indices"
         if self == Venue.CDEF:
             return "CGIF Definitions"
         if self == Venue.XTKS:
@@ -787,11 +787,11 @@ class Dataset(StrEnum):
     INAV_CGIF
         CGIF - Intraday Net Asset Values.
     MSTAR_CGIF
-        CGIF - Morning Star.
+        CGIF - Morningstar.
     CCCY_CGIF
-        CGIF - Crypto Currency.
+        CGIF - Cryptocurrency.
     CGI_CGIF
-        CGIF - CBOE Global Indices.
+        CGIF - Cboe Global Indices.
     XTKS_FLEX
         Arrowhead FLEX.
     XTKT_ITCH
@@ -1180,11 +1180,11 @@ class Dataset(StrEnum):
         if self == Dataset.INAV_CGIF:
             return "CGIF - Intraday Net Asset Values"
         if self == Dataset.MSTAR_CGIF:
-            return "CGIF - Morning Star"
+            return "CGIF - Morningstar"
         if self == Dataset.CCCY_CGIF:
-            return "CGIF - Crypto Currency"
+            return "CGIF - Cryptocurrency"
         if self == Dataset.CGI_CGIF:
-            return "CGIF - CBOE Global Indices"
+            return "CGIF - Cboe Global Indices"
         if self == Dataset.XTKS_FLEX:
             return "Arrowhead FLEX"
         if self == Dataset.XTKT_ITCH:
@@ -1295,7 +1295,7 @@ class Publisher(StrEnum):
     XNAS_QBBO_XNAS
         Nasdaq QBBO.
     XNAS_NLS_XNAS
-        Nasdaq Trades.
+        Nasdaq NLS.
     EQUS_PLUS_XCHI
         Databento US Equities Plus - NYSE Texas.
     EQUS_PLUS_XCIS
@@ -1381,7 +1381,7 @@ class Publisher(StrEnum):
     XNAS_BASIC_XPSX
         Nasdaq Basic - Nasdaq PSX.
     EQUS_SUMMARY_EQUS
-        Databento Equities Summary.
+        Databento US Equities Summary.
     XCIS_TRADESBBO_XCIS
         NYSE National Trades and BBO.
     XNYS_TRADESBBO_XNYS
@@ -1479,11 +1479,11 @@ class Publisher(StrEnum):
     INAV_CGIF_INAV
         CGIF - Intraday Net Asset Values.
     MSTAR_CGIF_MSTAR
-        CGIF - Morning Star.
+        CGIF - Morningstar.
     CCCY_CGIF_CCCY
-        CGIF - Crypto Currency.
+        CGIF - Cryptocurrency.
     CGI_CGIF_CGI
-        CGIF - CBOE Global Indices.
+        CGIF - Cboe Global Indices.
     MAIN_CGIF_CDEF
         CGIF - Definitions.
     XTKS_FLEX_XTKS
@@ -1501,11 +1501,11 @@ class Publisher(StrEnum):
     DBIX_CORE_INAV
         CGIF - Intraday Net Asset Values.
     DBIX_CORE_MSTAR
-        CGIF - Morning Star.
+        CGIF - Morningstar.
     DBIX_CORE_CCCY
-        CGIF - Crypto Currency.
+        CGIF - Cryptocurrency.
     DBIX_CORE_CGI
-        CGIF - CBOE Global Indices.
+        CGIF - Cboe Global Indices.
     DBIX_CORE_CDEF
         CGIF - Definitions.
 
@@ -3014,7 +3014,7 @@ class Publisher(StrEnum):
         if self == Publisher.XNAS_QBBO_XNAS:
             return "Nasdaq QBBO"
         if self == Publisher.XNAS_NLS_XNAS:
-            return "Nasdaq Trades"
+            return "Nasdaq NLS"
         if self == Publisher.EQUS_PLUS_XCHI:
             return "Databento US Equities Plus - NYSE Texas"
         if self == Publisher.EQUS_PLUS_XCIS:
@@ -3100,7 +3100,7 @@ class Publisher(StrEnum):
         if self == Publisher.XNAS_BASIC_XPSX:
             return "Nasdaq Basic - Nasdaq PSX"
         if self == Publisher.EQUS_SUMMARY_EQUS:
-            return "Databento Equities Summary"
+            return "Databento US Equities Summary"
         if self == Publisher.XCIS_TRADESBBO_XCIS:
             return "NYSE National Trades and BBO"
         if self == Publisher.XNYS_TRADESBBO_XNYS:
@@ -3198,11 +3198,11 @@ class Publisher(StrEnum):
         if self == Publisher.INAV_CGIF_INAV:
             return "CGIF - Intraday Net Asset Values"
         if self == Publisher.MSTAR_CGIF_MSTAR:
-            return "CGIF - Morning Star"
+            return "CGIF - Morningstar"
         if self == Publisher.CCCY_CGIF_CCCY:
-            return "CGIF - Crypto Currency"
+            return "CGIF - Cryptocurrency"
         if self == Publisher.CGI_CGIF_CGI:
-            return "CGIF - CBOE Global Indices"
+            return "CGIF - Cboe Global Indices"
         if self == Publisher.MAIN_CGIF_CDEF:
             return "CGIF - Definitions"
         if self == Publisher.XTKS_FLEX_XTKS:
@@ -3220,11 +3220,11 @@ class Publisher(StrEnum):
         if self == Publisher.DBIX_CORE_INAV:
             return "CGIF - Intraday Net Asset Values"
         if self == Publisher.DBIX_CORE_MSTAR:
-            return "CGIF - Morning Star"
+            return "CGIF - Morningstar"
         if self == Publisher.DBIX_CORE_CCCY:
-            return "CGIF - Crypto Currency"
+            return "CGIF - Cryptocurrency"
         if self == Publisher.DBIX_CORE_CGI:
-            return "CGIF - CBOE Global Indices"
+            return "CGIF - Cboe Global Indices"
         if self == Publisher.DBIX_CORE_CDEF:
             return "CGIF - Definitions"
         raise ValueError("Unexpected Publisher value")
