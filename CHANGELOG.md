@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.90.0 - Upcoming
+## 0.90.0 - 2026-11-03
 
 #### Enhancements
 - Added support for Python 3.15
