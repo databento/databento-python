@@ -6,7 +6,6 @@ import os
 import queue
 import threading
 from collections.abc import Iterable
-from concurrent import futures
 from datetime import date
 from datetime import datetime
 from os import PathLike
@@ -65,7 +64,10 @@ class Live:
     reconnect_policy: ReconnectPolicy | str, optional
         The reconnect policy for the live session.
             - "none": the client will not reconnect (default)
-            - "reconnect": the client will reconnect automatically
+            - "reconnect": the client will make a single attempt to reconnect and
+              resubscribe after an unexpected disconnection. If that attempt fails the
+              session closes and the error is raised from `Live.block_for_close` or
+              `Live.wait_for_close`.
     slow_reader_behavior: SlowReadBehavior | str, optional
         The live gateway behavior when the client falls behind real time.
             - "skip": skip records to immediately catch up
@@ -442,7 +444,9 @@ class Live:
 
         This will only be called when using a reconnection policy other than
         `ReconnectPolicy.NONE` and if the session has been started with
-        `Live.start`.
+        `Live.start`. The callback is only called after a successful reconnection;
+        a failed reconnection attempt closes the session and its error is raised from
+        `Live.block_for_close` or `Live.wait_for_close`.
 
         Two instances of `pandas.Timestamp` will be passed to the callback:
             - The last `ts_event` or `Metadata.start` value from the disconnected session.
@@ -743,7 +747,7 @@ class Live:
                 self._session.wait_for_close(),
                 loop=self._loop,
             ).result(timeout=timeout)
-        except (futures.TimeoutError, KeyboardInterrupt) as exc:
+        except (TimeoutError, KeyboardInterrupt) as exc:
             logger.info("closing session due to %s", type(exc).__name__)
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):
@@ -794,8 +798,9 @@ class Live:
         )
 
         try:
-            await asyncio.wait_for(waiter, timeout=timeout)
-        except (asyncio.TimeoutError, KeyboardInterrupt) as exc:
+            async with asyncio.timeout(timeout):
+                await waiter
+        except (TimeoutError, KeyboardInterrupt) as exc:
             logger.info("closing session due to %s", type(exc).__name__)
             self.terminate()
             if isinstance(exc, KeyboardInterrupt):

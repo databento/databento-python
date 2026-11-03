@@ -4,10 +4,10 @@ Tests specific to releasing a version of databento-python.
 
 import operator
 import re
+import tomllib
 from datetime import date
 
 import pytest
-import tomli
 
 import databento
 from tests import PROJECT_ROOT
@@ -43,7 +43,7 @@ def fixture_pyproject_version() -> str:
     """
     # Arrange, Act, Assert
     with open(PROJECT_ROOT / "pyproject.toml", "rb") as pyproject:
-        data = tomli.load(pyproject)
+        data = tomllib.load(pyproject)
     return data["project"]["version"]
 
 

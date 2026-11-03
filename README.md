@@ -30,10 +30,10 @@ You can find our full client API reference on the [Historical Reference](https:/
 ## Requirements
 The library is fully compatible with distributions of Anaconda 2023.x and above.
 The minimum dependencies as found in the `pyproject.toml` are also listed below:
-- python >= 3.10
+- python >= 3.11
 - aiohttp >= 3.8.3
 - certifi >= 2026.10.19
-- databento-dbn ~= 0.70.0
+- databento-dbn ~= 0.73.0
 - numpy >= 1.23.5
 - pandas >= 1.5.3
 - pip-system-certs >= 4.0 (Windows only)

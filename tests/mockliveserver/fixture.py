@@ -81,7 +81,7 @@ class MockLiveServerInterface:
 
         try:
             line = await asyncio.wait_for(self.stdout.readline(), timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise RuntimeError("timeout waiting for command acknowledgement")
 
         line_str = line.decode("utf-8")
@@ -202,7 +202,7 @@ class MockLiveServerInterface:
         partial = ""
         while self._process.returncode is None:
             if loop.time() > deadline:
-                raise asyncio.TimeoutError(
+                raise TimeoutError(
                     f"timed out waiting for message of type {message_type.__name__}",
                 )
             line = partial + self._echo_fd.readline()

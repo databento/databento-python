@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from enum import Enum
-from enum import Flag
 from enum import IntFlag
+from enum import StrEnum
 from enum import unique
 from typing import TypeVar
 
@@ -83,30 +83,9 @@ def coercible(enum_type: type[M]) -> type[M]:
     return enum_type
 
 
-class StringyMixin:
-    """
-    Mixin class for overloading __str__ on Enum types.
-
-    This will use the Enumerations subclass, if any, to modify the
-    behavior of str().
-
-    For subclasses of enum.Flag a comma separated string of names is
-    returned. For integer enumerations, the lowercase member name is
-    returned. For string enumerations, the value is returned.
-
-    """
-
-    def __str__(self) -> str:
-        if isinstance(self, Flag):
-            return ", ".join(f.name.lower() for f in self.__class__ if f in self)
-        if isinstance(self, int):
-            return getattr(self, "name").lower()
-        return getattr(self, "value")
-
-
 @unique
 @coercible
-class HistoricalGateway(StringyMixin, str, Enum):
+class HistoricalGateway(StrEnum):
     """
     Represents a historical data center gateway location.
     """
@@ -116,7 +95,7 @@ class HistoricalGateway(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class FeedMode(StringyMixin, str, Enum):
+class FeedMode(StrEnum):
     """
     Represents a data feed mode.
     """
@@ -128,7 +107,7 @@ class FeedMode(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class SplitDuration(StringyMixin, str, Enum):
+class SplitDuration(StrEnum):
     """
     Represents the duration before splitting for each batched data file.
     """
@@ -142,7 +121,7 @@ class SplitDuration(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class Packaging(StringyMixin, str, Enum):
+class Packaging(StrEnum):
     """
     Represents the packaging method for batched data files.
     """
@@ -154,7 +133,7 @@ class Packaging(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class Delivery(StringyMixin, str, Enum):
+class Delivery(StrEnum):
     """
     Represents the delivery mechanism for batched data.
     """
@@ -164,7 +143,7 @@ class Delivery(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class RollRule(StringyMixin, str, Enum):
+class RollRule(StrEnum):
     """
     Represents a smart symbology roll rule.
     """
@@ -176,7 +155,7 @@ class RollRule(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class SymbologyResolution(StringyMixin, str, Enum):
+class SymbologyResolution(StrEnum):
     """
     Status code of symbology resolution.
 
@@ -193,8 +172,7 @@ class SymbologyResolution(StringyMixin, str, Enum):
 
 @unique
 @coercible
-# Ignore type to work around mypy bug https://github.com/python/mypy/issues/9319
-class RecordFlags(StringyMixin, IntFlag):  # type: ignore
+class RecordFlags(IntFlag):
     """
     Represents record flags.
 
@@ -227,10 +205,13 @@ class RecordFlags(StringyMixin, IntFlag):  # type: ignore
     F_MAYBE_BAD_BOOK = 4
     F_PUBLISHER_SPECIFIC = 2
 
+    def __str__(self) -> str:
+        return ", ".join(f.name.lower() for f in self.__class__ if f in self)
+
 
 @unique
 @coercible
-class ReconnectPolicy(StringyMixin, str, Enum):
+class ReconnectPolicy(StrEnum):
     """
     Live session reconnection policy.
     """
@@ -241,7 +222,7 @@ class ReconnectPolicy(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class PriceType(StringyMixin, str, Enum):
+class PriceType(StrEnum):
     """
     Price type for DataFrame price fields.
     """
@@ -253,7 +234,7 @@ class PriceType(StringyMixin, str, Enum):
 
 @unique
 @coercible
-class JobState(StringyMixin, str, Enum):
+class JobState(StrEnum):
     """
     Represents the different states for batch jobs.
     """
@@ -265,7 +246,7 @@ class JobState(StringyMixin, str, Enum):
 
 
 @unique
-class SlowReaderBehavior(StringyMixin, str, Enum):
+class SlowReaderBehavior(StrEnum):
     """
     Live session parameter which controls gateway behavior when the client
     falls behind real time.

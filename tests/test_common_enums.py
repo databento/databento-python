@@ -4,6 +4,7 @@ Unit tests for databento.common.enums.
 
 from enum import Enum
 from enum import Flag
+from enum import StrEnum
 from itertools import combinations
 from typing import Final
 
@@ -21,7 +22,6 @@ from databento.common.enums import Packaging
 from databento.common.enums import RecordFlags
 from databento.common.enums import RollRule
 from databento.common.enums import SplitDuration
-from databento.common.enums import StringyMixin
 from databento.common.enums import SymbologyResolution
 from databento.common.publishers import Dataset
 
@@ -179,18 +179,11 @@ def test_dbn_enum_none_not_coercible(enum_type: type[Enum]) -> None:
     "enum_type",
     (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, int)),
 )
-def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
+def test_int_enum_str(enum_type: type[Enum]) -> None:
     """
-    Test the StringyMixin for integer enumerations.
-
-    See: databento.common.enum.StringyMixin
-
+    Test that integer enumerations display their lowercase member name.
     """
-    # Arrange, Act
-    if not issubclass(enum_type, StringyMixin):
-        pytest.skip(f"{type(enum_type)} is not a subclass of StringyMixin")
-
-    # Assert
+    # Arrange, Act, Assert
     for enum in enum_type:
         assert str(enum) == enum.name.lower()
 
@@ -199,27 +192,26 @@ def test_int_enum_stringy_mixin(enum_type: type[Enum]) -> None:
     "enum_type",
     (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, str)),
 )
-def test_str_enum_stringy_mixin(enum_type: type[Enum]) -> None:
+def test_str_enum_str(enum_type: type[Enum]) -> None:
     """
-    Test the StringyMixin for string enumerations.
-
-    See: databento.common.enum.StringyMixin
-
+    Test that string enumerations display their value.
     """
     # Arrange, Act
-    if not issubclass(enum_type, StringyMixin):
-        pytest.skip(f"{type(enum_type)} is not a subclass of StringyMixin")
+    if not issubclass(enum_type, StrEnum):
+        pytest.skip(f"{type(enum_type)} is not a subclass of StrEnum")
 
     # Assert
     for enum in enum_type:
         assert str(enum) == enum.value
+        assert format(enum) == enum.value
+        assert f"{enum}" == enum.value
 
 
 @pytest.mark.parametrize(
     "enum_type",
     (pytest.param(enum) for enum in NATIVE_ENUMS if issubclass(enum, Flag)),
 )
-def test_int_flags_stringy_mixin(enum_type: type[Flag]) -> None:
+def test_int_flags_str(enum_type: type[Flag]) -> None:
     """
     Test that combinations of int flags are displayed properly.
     """
