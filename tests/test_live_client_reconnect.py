@@ -259,6 +259,50 @@ async def test_reconnect_replays_unsubscriptions_in_order(
     assert second_sub.symbols == "TEST1"
 
 
+@pytest.mark.parametrize("unsubscribe", [False, True], ids=["subscribe", "unsubscribe"])
+async def test_reconnect_preserves_request_batch_boundaries(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+    unsubscribe: bool,
+) -> None:
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        reconnect_policy=ReconnectPolicy.RECONNECT,
+    )
+    symbols = [f"TEST{i}" for i in range(501)]
+
+    try:
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=Schema.MBO,
+            symbols=symbols,
+        )
+        if unsubscribe:
+            live_client.unsubscribe(schema=Schema.MBO, symbols=symbols)
+
+        request_type: type[SubscriptionRequest | UnsubscribeRequest] = (
+            UnsubscribeRequest if unsubscribe else SubscriptionRequest
+        )
+        initial = [await mock_live_server.wait_for_message_of_type(request_type) for _ in range(2)]
+
+        live_client._loop.call_soon_threadsafe(
+            live_client._session._protocol.disconnected.set_exception,
+            ConnectionResetError,
+        )
+        await mock_live_server.disconnect(session_id=live_client._session.session_id)
+        await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+        replayed = [await mock_live_server.wait_for_message_of_type(request_type) for _ in range(2)]
+    finally:
+        live_client.stop()
+        await live_client.wait_for_close()
+
+    assert [int(request.is_last) for request in initial] == [0, 1]
+    assert [int(request.is_last) for request in replayed] == [0, 1]
+    assert replayed == initial
+
+
 async def test_reconnect_callback(
     test_live_api_key: str,
     mock_live_server: MockLiveServerInterface,
