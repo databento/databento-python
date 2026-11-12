@@ -921,23 +921,12 @@ class LiveSession:
             replay()
 
     def _resend_subscriptions(self, subscriptions: tuple[SubscriptionRequest, ...]) -> None:
-        for sub in subscriptions:
-            self._protocol.subscribe(
-                schema=sub.schema,
-                symbols=sub.symbols,
-                stype_in=sub.stype_in,
-                snapshot=bool(sub.snapshot),
-                start=None,
-                subscription_id=sub.id,
-            )
+        self._protocol.transport.writelines(
+            bytes(dataclasses.replace(sub, start=None)) for sub in subscriptions
+        )
 
     def _resend_unsubscriptions(self, unsubscriptions: tuple[UnsubscribeRequest, ...]) -> None:
-        for unsub in unsubscriptions:
-            self._protocol.unsubscribe(
-                schema=unsub.schema,
-                symbols=unsub.symbols,
-                stype_in=unsub.stype_in,
-            )
+        self._protocol.transport.writelines(map(bytes, unsubscriptions))
 
     def _dispatch_reconnect_callbacks(
         self,
