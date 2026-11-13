@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.90.1 - TBD
+
+#### Bug fixes
+- Fixed a race condition where iterating a `Live` client could miss records
+  at the start of the stream in extreme cases (credit: rundef)
+
 ## 0.90.0 - 2026-11-03
 
 #### Enhancements

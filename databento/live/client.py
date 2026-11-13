@@ -834,9 +834,13 @@ class LiveIterator:
     """
 
     def __init__(self, client: Live):
-        client.start()
         self._dbn_queue = client._session._dbn_queue
         self._dbn_queue.enable()
+        try:
+            client.start()
+        except Exception:
+            self._dbn_queue.disable()
+            raise
         self._client = client
 
     @property
