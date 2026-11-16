@@ -2,6 +2,9 @@
 
 ## 0.90.1 - TBD
 
+#### Enhancements
+- Added new venues, datasets, and publishers for HKEX
+
 #### Bug fixes
 - Fixed a race condition where iterating a `Live` client could miss records
   at the start of the stream in extreme cases (credit: rundef)

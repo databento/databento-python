@@ -159,6 +159,10 @@ class Venue(StrEnum):
         Osaka Exchange.
     DBIX
         Databento Core Indices.
+    XHKG
+        Hong Kong Exchanges and Clearing.
+    XHKF
+        Hong Kong Futures Exchange.
 
     """
 
@@ -234,6 +238,8 @@ class Venue(StrEnum):
     XTKT = "XTKT"
     XOSE = "XOSE"
     DBIX = "DBIX"
+    XHKG = "XHKG"
+    XHKF = "XHKF"
 
     @classmethod
     def from_int(cls, value: int) -> Venue:
@@ -384,6 +390,10 @@ class Venue(StrEnum):
             return Venue.XOSE
         if value == 72:
             return Venue.DBIX
+        if value == 73:
+            return Venue.XHKG
+        if value == 74:
+            return Venue.XHKF
         raise ValueError(f"Integer value {value} does not correspond with any Venue variant")
 
     def to_int(self) -> int:
@@ -534,6 +544,10 @@ class Venue(StrEnum):
             return 71
         if self == Venue.DBIX:
             return 72
+        if self == Venue.XHKG:
+            return 73
+        if self == Venue.XHKF:
+            return 74
         raise ValueError("Invalid Venue")
 
     @property
@@ -685,6 +699,10 @@ class Venue(StrEnum):
             return "Osaka Exchange"
         if self == Venue.DBIX:
             return "Databento Core Indices"
+        if self == Venue.XHKG:
+            return "Hong Kong Exchanges and Clearing"
+        if self == Venue.XHKF:
+            return "Hong Kong Futures Exchange"
         raise ValueError("Unexpected Venue value")
 
 
@@ -800,6 +818,10 @@ class Dataset(StrEnum):
         JPX JGATE3.0-ITCH.
     DBIX_CORE
         Databento Core Indices.
+    XHKG_OMDC
+        HKEX Orion Securities Market (Unreleased).
+    XHKF_OMDD
+        HKEX Orion Derivatives Market (Unreleased).
 
     """
 
@@ -856,6 +878,8 @@ class Dataset(StrEnum):
     XTKT_ITCH = "XTKT.ITCH"
     XOSE_ITCH = "XOSE.ITCH"
     DBIX_CORE = "DBIX.CORE"
+    XHKG_OMDC = "XHKG.OMDC"
+    XHKF_OMDD = "XHKF.OMDD"
 
     @classmethod
     def from_int(cls, value: int) -> Dataset:
@@ -968,6 +992,10 @@ class Dataset(StrEnum):
             return Dataset.XOSE_ITCH
         if value == 53:
             return Dataset.DBIX_CORE
+        if value == 54:
+            return Dataset.XHKG_OMDC
+        if value == 55:
+            return Dataset.XHKF_OMDD
         raise ValueError(f"Integer value {value} does not correspond with any Dataset variant")
 
     def to_int(self) -> int:
@@ -1080,6 +1108,10 @@ class Dataset(StrEnum):
             return 52
         if self == Dataset.DBIX_CORE:
             return 53
+        if self == Dataset.XHKG_OMDC:
+            return 54
+        if self == Dataset.XHKF_OMDD:
+            return 55
         raise ValueError("Invalid Dataset")
 
     @property
@@ -1193,6 +1225,10 @@ class Dataset(StrEnum):
             return "JPX JGATE3.0-ITCH"
         if self == Dataset.DBIX_CORE:
             return "Databento Core Indices"
+        if self == Dataset.XHKG_OMDC:
+            return "HKEX Orion Securities Market (Unreleased)"
+        if self == Dataset.XHKF_OMDD:
+            return "HKEX Orion Derivatives Market (Unreleased)"
         raise ValueError("Unexpected Dataset value")
 
 
@@ -1508,6 +1544,10 @@ class Publisher(StrEnum):
         CGIF - Cboe Global Indices.
     DBIX_CORE_CDEF
         CGIF - Definitions.
+    XHKG_OMDC_XHKG
+        HKEX - Hong Kong Securities Exchange (Unreleased).
+    XHKF_OMDD_XHKF
+        HKEX - Hong Kong Futures Exchange (Unreleased).
 
     """
 
@@ -1664,6 +1704,8 @@ class Publisher(StrEnum):
     DBIX_CORE_CCCY = "DBIX.CORE.CCCY"
     DBIX_CORE_CGI = "DBIX.CORE.CGI"
     DBIX_CORE_CDEF = "DBIX.CORE.CDEF"
+    XHKG_OMDC_XHKG = "XHKG.OMDC.XHKG"
+    XHKF_OMDD_XHKF = "XHKF.OMDD.XHKF"
 
     @classmethod
     def from_int(cls, value: int) -> Publisher:
@@ -1976,6 +2018,10 @@ class Publisher(StrEnum):
             return Publisher.DBIX_CORE_CGI
         if value == 153:
             return Publisher.DBIX_CORE_CDEF
+        if value == 154:
+            return Publisher.XHKG_OMDC_XHKG
+        if value == 155:
+            return Publisher.XHKF_OMDD_XHKF
         raise ValueError(f"Integer value {value} does not correspond with any Publisher variant")
 
     def to_int(self) -> int:
@@ -2288,6 +2334,10 @@ class Publisher(StrEnum):
             return 152
         if self == Publisher.DBIX_CORE_CDEF:
             return 153
+        if self == Publisher.XHKG_OMDC_XHKG:
+            return 154
+        if self == Publisher.XHKF_OMDD_XHKF:
+            return 155
         raise ValueError("Invalid Publisher")
 
     @property
@@ -2601,6 +2651,10 @@ class Publisher(StrEnum):
             return Venue.CGI
         if self == Publisher.DBIX_CORE_CDEF:
             return Venue.CDEF
+        if self == Publisher.XHKG_OMDC_XHKG:
+            return Venue.XHKG
+        if self == Publisher.XHKF_OMDD_XHKF:
+            return Venue.XHKF
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -2914,6 +2968,10 @@ class Publisher(StrEnum):
             return Dataset.DBIX_CORE
         if self == Publisher.DBIX_CORE_CDEF:
             return Dataset.DBIX_CORE
+        if self == Publisher.XHKG_OMDC_XHKG:
+            return Dataset.XHKG_OMDC
+        if self == Publisher.XHKF_OMDD_XHKF:
+            return Dataset.XHKF_OMDD
         raise ValueError("Unexpected Publisher value")
 
     @property
@@ -3227,4 +3285,8 @@ class Publisher(StrEnum):
             return "CGIF - Cboe Global Indices"
         if self == Publisher.DBIX_CORE_CDEF:
             return "CGIF - Definitions"
+        if self == Publisher.XHKG_OMDC_XHKG:
+            return "HKEX - Hong Kong Securities Exchange (Unreleased)"
+        if self == Publisher.XHKF_OMDD_XHKF:
+            return "HKEX - Hong Kong Futures Exchange (Unreleased)"
         raise ValueError("Unexpected Publisher value")
