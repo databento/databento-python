@@ -14,6 +14,7 @@ from requests import Response
 
 from databento.common import API_VERSION
 from databento.common.enums import FeedMode
+from databento.common.error import BentoDeprecationWarning
 from databento.common.http import BentoHttpAPI
 from databento.common.parsing import datetime_to_string
 from databento.common.parsing import optional_date_to_string
@@ -457,7 +458,7 @@ class MetadataHttpAPI(BentoHttpAPI):
         if not isinstance(mode, Default):
             warnings.warn(
                 "The `mode` parameter is deprecated and will be removed in a future release.",
-                DeprecationWarning,
+                BentoDeprecationWarning,
                 stacklevel=2,
             )
 

@@ -1483,9 +1483,7 @@ class DataFrameIterator:
 
         self._format_px(df, self._price_type)
 
-        self._format_set_index(df)
-
-        return df
+        return self._format_set_index(df)
 
     def _format_definition_fields(self, df: pd.DataFrame) -> None:
         for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
@@ -1520,8 +1518,12 @@ class DataFrameIterator:
         px_fields = self._struct_type._price_fields
 
         if price_type == PriceType.DECIMAL:
+            # `DataFrame.map` requires pandas 2.1, so map each column instead
             df[px_fields] = (
-                df[px_fields].replace(UNDEF_PRICE, np.nan).map(decimal.Decimal) / FIXED_PRICE_SCALE
+                df[px_fields]
+                .replace(UNDEF_PRICE, np.nan)
+                .apply(lambda column: column.map(decimal.Decimal))
+                / FIXED_PRICE_SCALE
             )
         elif price_type == PriceType.FLOAT:
             df[px_fields] = df[px_fields].replace(UNDEF_PRICE, np.nan) / FIXED_PRICE_SCALE
@@ -1532,7 +1534,7 @@ class DataFrameIterator:
         for field in self._struct_type._timestamp_fields:
             df[field] = pd.to_datetime(df[field], utc=True, errors="coerce")
 
-    def _format_set_index(self, df: pd.DataFrame) -> None:
+    def _format_set_index(self, df: pd.DataFrame) -> pd.DataFrame:
         # the first ordered field will be ts_recv or ts_event when appropriate
         index_column = self._struct_type._ordered_fields[0]
-        df.set_index(index_column, inplace=True)
+        return df.set_index(index_column)

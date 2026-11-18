@@ -68,6 +68,7 @@ from databento.common.enums import RollRule
 from databento.common.enums import SplitDuration
 from databento.common.enums import SymbologyResolution
 from databento.common.error import BentoClientError
+from databento.common.error import BentoDeprecationWarning
 from databento.common.error import BentoError
 from databento.common.error import BentoHttpError
 from databento.common.error import BentoServerError
@@ -161,8 +162,8 @@ __all__ = [
 # Setup logging
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-# Setup deprecation warnings
-warnings.simplefilter("always", DeprecationWarning)
+# Always show deprecation warnings raised by this package
+warnings.simplefilter("always", BentoDeprecationWarning)
 
 # Convenience imports
 enable_logging = bentologging.enable_logging

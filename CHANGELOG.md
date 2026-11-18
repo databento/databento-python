@@ -4,8 +4,11 @@
 
 #### Enhancements
 - Added new venues, datasets, and publishers for HKEX
+- Removed use of the `inplace` keyword, which is deprecated in `pandas` 3.1
 
 #### Bug fixes
+- Fixed `DBNStore.to_df` with `price_type="decimal"` raising an `AttributeError` on
+  `pandas` versions before 2.1
 - Fixed a race condition where iterating a `Live` client could miss records
   at the start of the stream in extreme cases (credit: rundef)
 

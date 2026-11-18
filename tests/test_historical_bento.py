@@ -1557,7 +1557,7 @@ def test_dbnstore_to_df_with_timezone(
 
     # Act
     df = dbnstore.to_df(tz=timezone)
-    df.reset_index(inplace=True)
+    df = df.reset_index()
 
     # Assert
     expected_timezone = zoneinfo.ZoneInfo(timezone).utcoffset(None)
@@ -1598,7 +1598,7 @@ def test_dbnstore_to_df_with_zoneinfo(
 
     # Act
     df = dbnstore.to_df(tz=timezone)
-    df.reset_index(inplace=True)
+    df = df.reset_index()
 
     # Assert
     failures = []
