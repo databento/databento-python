@@ -1,6 +1,5 @@
 from typing import Final
 
-import numpy as np
 from databento_dbn import BBOMsg
 from databento_dbn import CBBOMsg
 from databento_dbn import CMBP1Msg
@@ -21,10 +20,6 @@ from databento_dbn import v2
 
 ALL_SYMBOLS: Final = "ALL_SYMBOLS"
 
-
-DEFINITION_TYPE_MAX_MAP: Final = {
-    x[0]: np.iinfo(x[1]).max for x in InstrumentDefMsg._dtypes if not isinstance(x[1], str)
-}
 
 HTTP_STREAMING_READ_SIZE: Final = 2**12
 

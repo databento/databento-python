@@ -36,6 +36,9 @@ dependencies = [
     "zstandard>=0.21.0; python_version < '3.14'",
 ]
 
+[project.optional-dependencies]
+polars = ["polars>=1.4.0"]
+
 [project.urls]
 Homepage = "https://databento.com"
 Documentation = "https://databento.com/docs"

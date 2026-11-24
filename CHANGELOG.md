@@ -6,6 +6,14 @@
 - Added support for free-threaded Python 3.15
 - Added new venues, datasets, and publishers for HKEX
 - Removed use of the `inplace` keyword, which is deprecated in `pandas` 3.1
+- Added `DBNStore.to_pl()` for converting DBN data to a `polars.DataFrame`, or with
+  `lazy=True` a `polars.LazyFrame` that applies filters and row limits while reading.
+  Install the optional `polars` dependency with `pip install databento[polars]`
+- Improved the performance of `DBNStore.to_df()` and `DBNStore.to_parquet()` by
+  converting through Apache Arrow. On 7.3 million MBO records, `to_df()` is 12 times faster
+  with 30% less peak memory and `to_parquet()` is 3.5 times faster
+- `DBNStore.to_parquet()` now writes Zstandard-compressed files with the DBN metadata
+  under the `databento:metadata` key
 - Upgraded `databento-dbn` to 0.75.0:
   - Added experimental Arrow IPC and Parquet encodings to the `Transcoder` with
     `encoding="arrow"` and `encoding="parquet"`, and an `extra_columnar_metadata`
@@ -17,7 +25,17 @@
   - Fixed `DBNDecoder` and `Transcoder` raising `PanicException` instead of `DBNError`
     when decoding a record whose length is shorter than its `rtype` requires
 
+#### Breaking changes
+- Removed the `parquet_schema` and `**kwargs` parameters from `DBNStore.to_parquet()`
+- `DBNStore.to_parquet()` now raises a `ValueError` when `pretty_ts` is `False`
+- `DBNStore.to_parquet()` now writes `ts_recv` (or `ts_event`) as the first column
+- `DBNStore.to_parquet()` with `price_type="fixed"` now writes undefined prices as null
+  instead of `UNDEF_PRICE`
+
 #### Bug fixes
+- Fixed `DBNStore.to_df()` raising an error for DBN data with `ts_out` and omitting the
+  `ts_out` column for live data
+- Fixed missing `action` and `ts_in_delta` columns in `DBNStore.to_df()` for TCBBO data
 - Fixed `DBNStore.to_df` with `price_type="decimal"` raising an `AttributeError` on
   `pandas` versions before 2.1
 - Fixed a race condition where iterating a `Live` client could miss records
