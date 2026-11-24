@@ -4,6 +4,7 @@ import csv
 import datetime as dt
 import functools
 import json
+import threading
 from collections.abc import Mapping
 from io import TextIOWrapper
 from os import PathLike
@@ -189,7 +190,8 @@ class InstrumentMap:
         self._instrument_ids: NDArray[np.uint64]
         self._starts: NDArray[np.datetime64[dt.date]]
         self._ends: NDArray[np.datetime64[dt.date]]
-        self._symbols: NDArray[np.datetime64[dt.date]]
+        self._symbols: NDArray[np.object_]
+        self._lock = threading.Lock()
 
         self.clear()  # initialize
 
@@ -197,10 +199,11 @@ class InstrumentMap:
         """
         Clear all mapping data.
         """
-        self._instrument_ids = np.empty(shape=[0], dtype=np.uint64)
-        self._starts = np.empty(shape=[0], dtype="datetime64[D]")
-        self._ends = np.empty(shape=[0], dtype="datetime64[D]")
-        self._symbols = np.empty(shape=[0], dtype="object")
+        with self._lock:
+            self._instrument_ids = np.empty(shape=[0], dtype=np.uint64)
+            self._starts = np.empty(shape=[0], dtype="datetime64[D]")
+            self._ends = np.empty(shape=[0], dtype="datetime64[D]")
+            self._symbols = np.empty(shape=[0], dtype="object")
         self.resolve.cache_clear()
 
     @functools.lru_cache
@@ -229,13 +232,11 @@ class InstrumentMap:
         InstrumentMap.resolve_many()
 
         """
-        if self._instrument_ids.size == 0:
+        key_ids, key_starts, key_ends, key_symbols = self._arrays()
+        if key_ids.size == 0:
             return None
 
         np_date = np.datetime64(date)
-
-        key_ids = self._instrument_ids
-        key_starts = self._starts
 
         left = np.searchsorted(key_ids, instrument_id, side="left")
         right = np.searchsorted(key_ids, instrument_id, side="right")
@@ -250,8 +251,8 @@ class InstrumentMap:
 
         pos += left
 
-        if np_date < self._ends[pos]:
-            return self._symbols[pos]
+        if np_date < key_ends[pos]:
+            return key_symbols[pos]
 
         return None
 
@@ -285,8 +286,9 @@ class InstrumentMap:
         if instrument_ids.shape != dates.shape:
             raise ValueError("instrument_ids and dates must have the same shape")
 
+        key_ids, key_starts, key_ends, key_symbols = self._arrays()
         result = np.full(instrument_ids.shape, None, dtype=object)
-        if instrument_ids.size == 0 or self._instrument_ids.size == 0:
+        if instrument_ids.size == 0 or key_ids.size == 0:
             return result
 
         # Get unique instrument, date combinations and just resolve those
@@ -302,15 +304,15 @@ class InstrumentMap:
             idx = np.nonzero(mask)[0]
 
             # Slice the mapping arrays
-            left = np.searchsorted(self._instrument_ids, inst_id, side="left")
-            right = np.searchsorted(self._instrument_ids, inst_id, side="right")
+            left = np.searchsorted(key_ids, inst_id, side="left")
+            right = np.searchsorted(key_ids, inst_id, side="right")
 
             if left == right:
                 continue  # no intervals for this instrument
 
-            starts = self._starts[left:right]
-            ends = self._ends[left:right]
-            symbols = self._symbols[left:right]
+            starts = key_starts[left:right]
+            ends = key_ends[left:right]
+            symbols = key_symbols[left:right]
 
             # Get all the dates to resolve
             dates_to_check = unique_dates[idx]
@@ -656,16 +658,17 @@ class InstrumentMap:
         """
         symbol_map: dict[int, list[tuple[dt.date, dt.date, str]]] = {}
 
-        if self._instrument_ids.size == 0:
+        key_ids, key_starts, key_ends, key_symbols = self._arrays()
+        if key_ids.size == 0:
             return symbol_map
 
-        unique_ids, start_indices = np.unique(self._instrument_ids, return_index=True)
-        end_indices = np.append(start_indices[1:], self._instrument_ids.size)
+        unique_ids, start_indices = np.unique(key_ids, return_index=True)
+        end_indices = np.append(start_indices[1:], key_ids.size)
 
         for inst_id, start, end in zip(unique_ids, start_indices, end_indices):
-            starts = self._starts[start:end]
-            ends = self._ends[start:end]
-            symbols = self._symbols[start:end]
+            starts = key_starts[start:end]
+            ends = key_ends[start:end]
+            symbols = key_symbols[start:end]
 
             symbol_map[inst_id] = [
                 (_to_date(s), _to_date(e), str(sym)) for s, e, sym in zip(starts, ends, symbols)
@@ -690,16 +693,29 @@ class InstrumentMap:
         if n == 0:
             return  # nothing to insert
 
-        self._instrument_ids = np.concatenate([self._instrument_ids, new_ids])
-        self._starts = np.concatenate([self._starts, new_starts])
-        self._ends = np.concatenate([self._ends, new_ends])
-        self._symbols = np.concatenate([self._symbols, new_symbols])
+        with self._lock:
+            ids = np.concatenate([self._instrument_ids, new_ids])
+            starts = np.concatenate([self._starts, new_starts])
+            ends = np.concatenate([self._ends, new_ends])
+            symbols = np.concatenate([self._symbols, new_symbols])
 
-        order = np.lexsort((self._starts, self._instrument_ids))
-        self._instrument_ids = self._instrument_ids[order]
-        self._starts = self._starts[order]
-        self._ends = self._ends[order]
-        self._symbols = self._symbols[order]
+            order = np.lexsort((starts, ids))
+            self._instrument_ids = ids[order]
+            self._starts = starts[order]
+            self._ends = ends[order]
+            self._symbols = symbols[order]
+
+    def _arrays(
+        self,
+    ) -> tuple[
+        NDArray[np.uint64],
+        NDArray[np.datetime64[dt.date]],
+        NDArray[np.datetime64[dt.date]],
+        NDArray[np.object_],
+    ]:
+        # The arrays are never mutated in place, so the returned set stays consistent
+        with self._lock:
+            return self._instrument_ids, self._starts, self._ends, self._symbols
 
 
 def _to_date(value: np.datetime64[dt.date]) -> dt.date:
