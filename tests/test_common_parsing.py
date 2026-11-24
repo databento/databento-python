@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -9,13 +10,16 @@ import pandas as pd
 import pytest
 from databento_dbn import SType
 
+from databento.common import zstd
 from databento.common.constants import ALL_SYMBOLS
+from databento.common.parsing import convert_jsonl_to_df
 from databento.common.parsing import optional_date_to_string
 from databento.common.parsing import optional_datetime_to_string
 from databento.common.parsing import optional_datetime_to_unix_nanoseconds
 from databento.common.parsing import optional_symbols_list_to_list
 from databento.common.parsing import optional_values_list_to_string
 from databento.common.parsing import symbols_list_to_list
+from tests import TESTS_ROOT
 
 
 # Set the type to `Any` to disable mypy type checking. Used to test if functions
@@ -318,3 +322,91 @@ def test_datetime_to_unix_nanoseconds(
     """
     # Arrange, Act, Assert
     assert optional_datetime_to_unix_nanoseconds(value) == expected
+
+
+def test_convert_jsonl_to_df_keeps_numeric_strings() -> None:
+    # Arrange
+    data = (
+        b'{"cik":"0000320193","us_code":"037833100","local_code":"00005"}\n'
+        b'{"cik":null,"us_code":"594918104","local_code":"0700"}\n'
+    )
+
+    # Act
+    df = convert_jsonl_to_df(data, compressed=False)
+
+    # Assert
+    assert df["cik"].iloc[0] == "0000320193"
+    assert pd.isna(df["cik"].iloc[1])
+    assert df["us_code"].tolist() == ["037833100", "594918104"]
+    assert df["local_code"].tolist() == ["00005", "0700"]
+
+
+def test_convert_jsonl_to_df_does_not_parse_time_columns() -> None:
+    # Arrange
+    data = b'{"expiry_time":"17:00:00"}\n{"expiry_time":null}\n'
+
+    # Act
+    df = convert_jsonl_to_df(data, compressed=False)
+
+    # Assert
+    assert df["expiry_time"].iloc[0] == "17:00:00"
+    assert pd.isna(df["expiry_time"].iloc[1])
+
+
+def test_convert_jsonl_to_df_keeps_json_number_types() -> None:
+    # Arrange
+    data = b'{"lot_size":100,"ratio_old":1000.0}\n{"lot_size":1,"ratio_old":1.0}\n'
+
+    # Act
+    df = convert_jsonl_to_df(data, compressed=False)
+
+    # Assert
+    assert df["lot_size"].dtype == np.int64
+    assert df["ratio_old"].dtype == np.float64
+
+
+@pytest.mark.parametrize(
+    "compressed",
+    [
+        False,
+        True,
+    ],
+)
+def test_convert_jsonl_to_df_given_empty_data_returns_empty_frame(
+    compressed: bool,
+) -> None:
+    # Arrange
+    data = zstd.compress(b"") if compressed else b""
+
+    # Act
+    df = convert_jsonl_to_df(data, compressed=compressed)
+
+    # Assert
+    assert df.empty
+
+
+@pytest.mark.parametrize(
+    "file_name, column, expected",
+    [
+        ("test_data.security-master.jsonl", "us_code", "037833100"),
+        ("test_data.security-master.jsonl", "cik", "0000320193"),
+        ("test_data.security-master.jsonl", "sic", "3571"),
+        ("test_data.security-master.jsonl", "naics", "334111"),
+        ("test_data.adjustment-factors.jsonl", "us_code", "594918104"),
+        ("test_data.corporate-actions.jsonl", "option_id", "1"),
+        ("test_data.corporate-actions-pit.jsonl", "outturn_us_code", "228891305"),
+    ],
+)
+def test_convert_jsonl_to_df_reference_identifiers_stay_strings(
+    file_name: str,
+    column: str,
+    expected: str,
+) -> None:
+    # Arrange
+    data = (Path(TESTS_ROOT) / "data" / "REFERENCE" / file_name).read_bytes()
+
+    # Act
+    df = convert_jsonl_to_df(zstd.compress(data), compressed=True)
+
+    # Assert
+    assert df[column].iloc[0] == expected

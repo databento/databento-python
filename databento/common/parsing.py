@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
@@ -478,4 +479,5 @@ def convert_jsonl_to_df(data: bytes, compressed: bool) -> pd.DataFrame:
     else:
         reader = BytesIO(data)
 
-    return pd.read_json(TextIOWrapper(reader), lines=True)
+    with TextIOWrapper(reader, encoding="utf-8") as lines:
+        return pd.DataFrame(json.loads(line) for line in lines if line.strip())

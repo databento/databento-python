@@ -31,6 +31,13 @@
 - `DBNStore.to_parquet()` now writes `ts_recv` (or `ts_event`) as the first column
 - `DBNStore.to_parquet()` with `price_type="fixed"` now writes undefined prices as null
   instead of `UNDEF_PRICE`
+- Reference API `DataFrames` now keep the types sent by the API instead of inferring them
+  from the values in each response. Identifier columns such as `us_code`, `cik`, `sic`,
+  `naics`, `local_code`, `option_id`, and `serial_id` are now always strings. The
+  `expiry_time`, `option_expiry_time`, and `withdrawal_rights_expiry_time` columns
+  are strings instead of datetimes with the current date. Decimal columns such as
+  `ratio_old` and `ratio_new` are always floats. Columns with no values will have the
+  `object` dtype (credit: @JeetuSK0808)
 
 #### Bug fixes
 - Fixed `DBNStore.to_df()` raising an error for DBN data with `ts_out` and omitting the
