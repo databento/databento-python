@@ -6,7 +6,16 @@
 - Added support for free-threaded Python 3.15
 - Added new venues, datasets, and publishers for HKEX
 - Removed use of the `inplace` keyword, which is deprecated in `pandas` 3.1
-- Upgraded `databento-dbn` to 0.74.0
+- Upgraded `databento-dbn` to 0.75.0:
+  - Added experimental Arrow IPC and Parquet encodings to the `Transcoder` with
+    `encoding="arrow"` and `encoding="parquet"`, and an `extra_columnar_metadata`
+    parameter for adding custom metadata to the output
+  - Changed the type stubs to use `typing.Self` for enum constructors,
+    `Metadata.decode()`, and `Transcoder.__enter__()`
+  - Changed `SystemMsg.is_heartbeat()` to check the message text when `code` is
+    `SystemCode.UNSET`
+  - Fixed `DBNDecoder` and `Transcoder` raising `PanicException` instead of `DBNError`
+    when decoding a record whose length is shorter than its `rtype` requires
 
 #### Bug fixes
 - Fixed `DBNStore.to_df` with `price_type="decimal"` raising an `AttributeError` on
