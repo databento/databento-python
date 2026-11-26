@@ -11,6 +11,7 @@ from databento_dbn import DBNRecord
 from databento import Dataset
 from databento import Schema
 from databento import SType
+from databento.common.constants import ALL_SYMBOLS
 from databento.common.enums import ReconnectPolicy
 from databento.live import client
 from databento.live import session
@@ -147,8 +148,8 @@ async def test_reconnect_subscriptions(
     reconnect_policy: ReconnectPolicy = ReconnectPolicy.RECONNECT,
 ) -> None:
     """
-    Test that a reconnect policy of "reconnect" re-sends the subscription
-    requests with a start of `None`.
+    Test that a reconnect policy of "reconnect" re-sends the subscriptions as a
+    single request with a start of `None`.
     """
     # Arrange
     live_client = client.Live(
@@ -181,21 +182,286 @@ async def test_reconnect_subscriptions(
 
     await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
 
-    reconnect_subscriptions: list[SubscriptionRequest] = []
-    for _ in range(len(symbols)):
-        request = await mock_live_server.wait_for_message_of_type(SubscriptionRequest)
-        reconnect_subscriptions.append(request)
+    sub = await mock_live_server.wait_for_message_of_type(SubscriptionRequest)
 
     live_client.stop()
 
     # Assert
-    for i, symbol in enumerate(symbols):
-        sub = reconnect_subscriptions[i]
-        assert sub.schema == schema
-        assert sub.stype_in == stype_in
-        assert sub.symbols == symbol
-        assert sub.start is None
-        assert sub.snapshot == str(int(snapshot))
+    assert sub.schema == schema
+    assert sub.stype_in == stype_in
+    assert sub.symbols == ",".join(symbols)
+    assert sub.start is None
+    assert sub.snapshot == str(int(snapshot))
+    assert int(sub.is_last) == 1
+    assert sub.id is None
+
+
+async def test_reconnect_combines_requests(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+) -> None:
+    """
+    Test that a reconnect policy of "reconnect" recreates the session with the
+    fewest subscription and unsubscribe requests that leave the gateway with
+    the same symbols.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        reconnect_policy=ReconnectPolicy.RECONNECT,
+    )
+    large_symbol_list = [f"TEST{i}" for i in range(1200)]
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=large_symbol_list,
+        start=0,
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.TRADES,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST0",
+        start=0,
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=["TEST0", "OTHER"],
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.PARENT,
+        symbols="ES.FUT",
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST0",
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST1",
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.PARENT,
+        symbols="ES.FUT",
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.TRADES,
+        stype_in=SType.RAW_SYMBOL,
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST2",
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # Act
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
+    await mock_live_server.disconnect(
+        session_id=live_client._session.session_id,
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # Messages of other types are skipped while waiting, so a request sent out
+    # of order causes a later wait to time out
+    mbo_subs = [
+        await mock_live_server.wait_for_message_of_type(SubscriptionRequest) for _ in range(4)
+    ]
+    mbo_unsubs = [
+        await mock_live_server.wait_for_message_of_type(UnsubscribeRequest) for _ in range(2)
+    ]
+    last_subs = [
+        await mock_live_server.wait_for_message_of_type(SubscriptionRequest) for _ in range(3)
+    ]
+
+    live_client.stop()
+
+    # Assert
+    subs = [*mbo_subs, *last_subs]
+    assert all(sub.start is None for sub in subs)
+    assert all(sub.id is None for sub in subs)
+
+    # The raw symbol subscriptions made before the first unsubscribe are
+    # combined into one request, without the repeated symbol
+    assert [sub.schema for sub in mbo_subs] == ["mbo"] * 4
+    assert [sub.stype_in for sub in mbo_subs] == ["raw_symbol"] * 3 + ["parent"]
+    assert ",".join(sub.symbols for sub in mbo_subs[:3]).split(",") == [
+        *large_symbol_list,
+        "OTHER",
+    ]
+    assert [int(sub.is_last) for sub in mbo_subs] == [0, 0, 1, 1]
+    assert mbo_subs[3].symbols == "ES.FUT"
+
+    # Only consecutive unsubscribes with the same stype_in are combined
+    assert [unsub.schema for unsub in mbo_unsubs] == ["mbo"] * 2
+    assert [unsub.stype_in for unsub in mbo_unsubs] == ["raw_symbol", "parent"]
+    assert [unsub.symbols for unsub in mbo_unsubs] == ["TEST0,TEST1", "ES.FUT"]
+    assert [int(unsub.is_last) for unsub in mbo_unsubs] == [1, 1]
+
+    # A subscription sent after an unsubscribe for its schema stays after it,
+    # and a subscription for all symbols is not combined with other symbols
+    assert [sub.schema for sub in last_subs] == ["mbo", "trades", "trades"]
+    assert [sub.symbols for sub in last_subs] == ["TEST2", "TEST0", "ALL_SYMBOLS"]
+    assert [int(sub.is_last) for sub in last_subs] == [1, 1, 1]
+
+    # The stored requests are left as they were originally sent
+    stored_subs = [sub for batch in live_client.subscription_requests for sub in batch]
+    assert [sub.id for sub in stored_subs] == [0, 0, 0, 1, 2, 3, 4, 5]
+    assert [sub.start for sub in stored_subs] == [0, 0, 0, 0, None, None, None, None]
+
+
+async def test_reconnect_keeps_incompatible_requests_separate(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+) -> None:
+    """
+    Test that a reconnect policy of "reconnect" does not combine subscriptions
+    with a different `snapshot`, or an unsubscribe for all symbols with other
+    symbols.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        reconnect_policy=ReconnectPolicy.RECONNECT,
+    )
+
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST0",
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST1",
+        snapshot=True,
+    )
+    live_client.subscribe(
+        dataset=Dataset.GLBX_MDP3,
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST2",
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST0",
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=["TEST0", "TEST1"],
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols=ALL_SYMBOLS,
+    )
+    live_client.unsubscribe(
+        schema=Schema.MBO,
+        stype_in=SType.RAW_SYMBOL,
+        symbols="TEST2",
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # Act
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
+    await mock_live_server.disconnect(
+        session_id=live_client._session.session_id,
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    subs = [await mock_live_server.wait_for_message_of_type(SubscriptionRequest) for _ in range(2)]
+    unsubs = [await mock_live_server.wait_for_message_of_type(UnsubscribeRequest) for _ in range(3)]
+
+    live_client.stop()
+
+    # Assert
+    assert [sub.symbols for sub in subs] == ["TEST0,TEST2", "TEST1"]
+    assert [sub.snapshot for sub in subs] == ["0", "1"]
+    assert [int(sub.is_last) for sub in subs] == [1, 1]
+
+    # The repeated symbol is only sent once
+    assert [unsub.symbols for unsub in unsubs] == ["TEST0,TEST1", "ALL_SYMBOLS", "TEST2"]
+    assert [int(unsub.is_last) for unsub in unsubs] == [1, 1, 1]
+
+
+async def test_reconnect_batches_combined_subscriptions(
+    test_live_api_key: str,
+    mock_live_server: MockLiveServerInterface,
+) -> None:
+    """
+    Test that a reconnect policy of "reconnect" breaks a subscription combined
+    from several requests into multiple messages when it has a large symbol
+    list.
+    """
+    # Arrange
+    live_client = client.Live(
+        key=test_live_api_key,
+        gateway=mock_live_server.host,
+        port=mock_live_server.port,
+        reconnect_policy=ReconnectPolicy.RECONNECT,
+    )
+    symbols = [f"TEST{i}" for i in range(700)]
+
+    # Each subscription fits in a single message and the second repeats 100
+    # symbols of the first
+    for symbol_list in (symbols[:300], symbols[200:500], symbols[500:]):
+        live_client.subscribe(
+            dataset=Dataset.GLBX_MDP3,
+            schema=Schema.MBO,
+            stype_in=SType.RAW_SYMBOL,
+            symbols=symbol_list,
+        )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    # Act
+    live_client._loop.call_soon_threadsafe(
+        live_client._session._protocol.disconnected.set_exception,
+        ConnectionResetError,
+    )
+    await mock_live_server.disconnect(
+        session_id=live_client._session.session_id,
+    )
+
+    await mock_live_server.wait_for_message_of_type(AuthenticationRequest)
+
+    subs = [await mock_live_server.wait_for_message_of_type(SubscriptionRequest) for _ in range(2)]
+
+    live_client.stop()
+
+    # Assert
+    assert [len(sub.symbols.split(",")) for sub in subs] == [500, 200]
+    assert ",".join(sub.symbols for sub in subs).split(",") == symbols
+    assert [int(sub.is_last) for sub in subs] == [0, 1]
 
 
 async def test_reconnect_replays_unsubscriptions_in_order(
@@ -204,7 +470,8 @@ async def test_reconnect_replays_unsubscriptions_in_order(
 ) -> None:
     """
     Test that a reconnect policy of "reconnect" re-sends subscription and
-    unsubscribe requests in the order they were originally sent.
+    unsubscribe requests for the same schema in the order they were originally
+    sent.
     """
     # Arrange
     live_client = client.Live(
@@ -257,6 +524,10 @@ async def test_reconnect_replays_unsubscriptions_in_order(
     assert first_sub.symbols == "TEST0"
     assert unsub.symbols == "TEST0"
     assert second_sub.symbols == "TEST1"
+    # Nothing is combined because the request types alternate
+    assert int(first_sub.is_last) == 1
+    assert int(unsub.is_last) == 1
+    assert int(second_sub.is_last) == 1
 
 
 async def test_reconnect_callback(

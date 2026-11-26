@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.91 - TBD
+## 0.91.0 - Upcoming
 
 #### Enhancements
 - Added support for free-threaded Python 3.15
@@ -14,6 +14,10 @@
   with 30% less peak memory and `to_parquet()` is 3.5 times faster
 - `DBNStore.to_parquet()` now writes Zstandard-compressed files with the DBN metadata
   under the `databento:metadata` key
+- Improved reconnection with `ReconnectPolicy.RECONNECT` to recreate the session
+  with as few subscription and unsubscribe requests as possible, which shortens
+  the time to resume streaming. Subscriptions are acknowledged by the gateway
+  without a subscription ID after a reconnection
 - Upgraded `databento-dbn` to 0.75.0:
   - Added experimental Arrow IPC and Parquet encodings to the `Transcoder` with
     `encoding="arrow"` and `encoding="parquet"`, and an `extra_columnar_metadata`
@@ -47,6 +51,8 @@
   `pandas` versions before 2.1
 - Fixed a race condition where iterating a `Live` client could miss records
   at the start of the stream in extreme cases (credit: @rundef)
+- Fixed an issue where subscription requests sent the gateway during a reconnection
+  event always set `is_last` (credit: @ItsM0rty)
 
 ## 0.90.0 - 2026-11-03
 
