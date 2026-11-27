@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.91.0 - Upcoming
+## 0.91.0 - 2026-11-27
 
 #### Enhancements
 - Added support for free-threaded Python 3.15
