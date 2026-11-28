@@ -14,6 +14,8 @@ from urllib.parse import urlunsplit
 
 from databento_dbn import DBNError
 
+from databento.common.error import BentoDeprecationWarning
+
 
 E = TypeVar("E", bound=Enum)
 
@@ -306,7 +308,7 @@ def deprecated(name: str | None = None) -> Callable[[_D], _D]:
             func_name = name if name is not None else func.__name__
             warnings.warn(
                 f"{func_name} is deprecated and will be removed in a future release",
-                category=DeprecationWarning,
+                category=BentoDeprecationWarning,
                 stacklevel=2,
             )
             return func(*args, **kwargs)

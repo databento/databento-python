@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import heapq
+import itertools
 import logging
 import math
 import queue
 import threading
-import time
 from collections.abc import Iterable
+from collections.abc import Iterator
 from functools import partial
 from typing import Final
 
@@ -459,6 +460,7 @@ class LiveSession:
         self._transport: asyncio.Transport | None = None
         self._session_id: str | None = None
 
+        self._request_seqnum = itertools.count()
         self._subscriptions: list[tuple[int, tuple[SubscriptionRequest, ...]]] = []
         self._unsubscriptions: list[tuple[int, tuple[UnsubscribeRequest, ...]]] = []
         self._reconnect_policy = ReconnectPolicy(reconnect_policy)
@@ -642,7 +644,7 @@ class LiveSession:
                     subscription_id=subscription_id,
                 ),
             )
-            self._subscriptions.append((time.time_ns(), subscription))
+            self._subscriptions.append((next(self._request_seqnum), subscription))
         return subscription_id
 
     def unsubscribe(
@@ -680,7 +682,7 @@ class LiveSession:
                     stype_in=stype_in,
                 ),
             )
-            self._unsubscriptions.append((time.time_ns(), unsubscription))
+            self._unsubscriptions.append((next(self._request_seqnum), unsubscription))
 
     def terminate(self) -> None:
         with self._lock:
@@ -899,44 +901,83 @@ class LiveSession:
 
     def _replay_requests(self) -> None:
         """
-        Resend subscriptions and unsubscriptions in the order they were sent so
-        the gateway ends up with the same symbols.
+        Recreate the session's subscriptions on the gateway using as few
+        subscribe and unsubscribe commands as possible.
 
-        Subscriptions are resent without their original `start`. Ties keep the
-        subscription first.
+        Requests are combined as far as possible without changing the
+        symbols the gateway ends up with:
+
+        - An unsubscribe only affects subscriptions for its own schema, so
+          each schema is replayed separately in the order its requests were
+          sent.
+        - Subscriptions are additive, so the subscriptions sent between two
+          unsubscribes are combined when their `stype_in` and `snapshot`
+          match.
+        - Unsubscribes do not commute with each other across symbology types,
+          so only consecutive unsubscribes with the same `stype_in` are
+          combined.
+        - A request for all symbols is never combined with other symbols.
+
+        Subscriptions are resent without their original `start` so data that
+        was already received is not replayed, and without their `id` because
+        a combined subscription no longer corresponds to one call to
+        `subscribe`.
 
         """
-        requests = heapq.merge(
-            (
-                (sent_at, partial(self._resend_subscriptions, batch))
-                for sent_at, batch in self._subscriptions
-            ),
-            (
-                (sent_at, partial(self._resend_unsubscriptions, batch))
-                for sent_at, batch in self._unsubscriptions
-            ),
-            key=lambda entry: entry[0],
+        subscriptions: Iterator[tuple[int, SubscriptionRequest | UnsubscribeRequest]] = (
+            (sequence, sub) for sequence, batch in self._subscriptions for sub in batch
         )
-        for _, replay in requests:
-            replay()
+        unsubscriptions: Iterator[tuple[int, SubscriptionRequest | UnsubscribeRequest]] = (
+            (sequence, unsub) for sequence, batch in self._unsubscriptions for unsub in batch
+        )
 
-    def _resend_subscriptions(self, subscriptions: tuple[SubscriptionRequest, ...]) -> None:
+        requests_by_schema: dict[
+            Schema | str,
+            list[SubscriptionRequest | UnsubscribeRequest],
+        ] = {}
+
+        for _, request in heapq.merge(subscriptions, unsubscriptions, key=lambda entry: entry[0]):
+            requests_by_schema.setdefault(request.schema, []).append(request)
+
+        for schema, requests in requests_by_schema.items():
+            for request_type, commands_to_replay in itertools.groupby(requests, key=type):
+                if request_type is SubscriptionRequest:
+                    self._replay_subscriptions(schema, commands_to_replay)  # type: ignore [arg-type]
+                else:
+                    self._replay_unsubscriptions(schema, commands_to_replay)  # type: ignore [arg-type]
+
+    def _replay_subscriptions(
+        self,
+        schema: Schema | str,
+        subscriptions: Iterable[SubscriptionRequest],
+    ) -> None:
+        symbols: dict[tuple[SType, int, bool], dict[str, None]] = {}
         for sub in subscriptions:
+            key = (sub.stype_in, sub.snapshot, sub.symbols == ALL_SYMBOLS)
+            symbols.setdefault(key, {}).update(dict.fromkeys(sub.symbols.split(",")))
+
+        for (stype_in, snapshot, _is_all_symbols), group in symbols.items():
             self._protocol.subscribe(
-                schema=sub.schema,
-                symbols=sub.symbols,
-                stype_in=sub.stype_in,
-                snapshot=bool(sub.snapshot),
-                start=None,
-                subscription_id=sub.id,
+                schema=schema,
+                symbols=list(group),
+                stype_in=stype_in,
+                snapshot=bool(snapshot),
             )
 
-    def _resend_unsubscriptions(self, unsubscriptions: tuple[UnsubscribeRequest, ...]) -> None:
-        for unsub in unsubscriptions:
+    def _replay_unsubscriptions(
+        self,
+        schema: Schema | str,
+        unsubscriptions: Iterable[UnsubscribeRequest],
+    ) -> None:
+        for (stype_in, _is_all_symbols), run in itertools.groupby(
+            unsubscriptions,
+            key=lambda unsub: (unsub.stype_in, unsub.symbols == ALL_SYMBOLS),
+        ):
+            symbols = dict.fromkeys(symbol for unsub in run for symbol in unsub.symbols.split(","))
             self._protocol.unsubscribe(
-                schema=unsub.schema,
-                symbols=unsub.symbols,
-                stype_in=unsub.stype_in,
+                schema=schema,
+                symbols=list(symbols),
+                stype_in=stype_in,
             )
 
     def _dispatch_reconnect_callbacks(

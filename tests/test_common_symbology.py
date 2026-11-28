@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime as dt
+import itertools
 import json
 import pathlib
 from collections.abc import Callable
@@ -829,6 +831,125 @@ def test_instrument_map_resolve_with_date(
     )
     assert instrument_map.resolve(instrument_id, start_date.date()) == symbol
     assert instrument_map.resolve(instrument_id, end_date.date()) is None
+
+
+def _sep(day: int) -> dt.date:
+    return dt.date(2026, 9, day)
+
+
+@pytest.mark.parametrize(
+    "intervals, expected",
+    [
+        pytest.param(
+            [
+                MappingInterval(_sep(14), _sep(20), "ES.c.0"),
+                MappingInterval(_sep(14), _sep(16), "ES.v.0"),
+            ],
+            {13: None, 14: "ES.v.0", 15: "ES.v.0", 16: "ES.c.0", 19: "ES.c.0", 20: None},
+            id="same_start_short_last",
+        ),
+        pytest.param(
+            [
+                MappingInterval(_sep(14), _sep(16), "ES.v.0"),
+                MappingInterval(_sep(14), _sep(20), "ES.c.0"),
+            ],
+            {13: None, 14: "ES.c.0", 15: "ES.c.0", 16: "ES.c.0", 19: "ES.c.0", 20: None},
+            id="same_start_long_last",
+        ),
+        pytest.param(
+            [
+                MappingInterval(_sep(10), _sep(20), "A"),
+                MappingInterval(_sep(14), _sep(16), "B"),
+            ],
+            {9: None, 10: "A", 13: "A", 14: "B", 15: "B", 16: "A", 19: "A", 20: None},
+            id="nested",
+        ),
+        pytest.param(
+            [
+                MappingInterval(_sep(14), _sep(16), "B"),
+                MappingInterval(_sep(10), _sep(20), "A"),
+            ],
+            {9: None, 10: "A", 14: "A", 15: "A", 16: "A", 19: "A", 20: None},
+            id="covered",
+        ),
+        pytest.param(
+            [
+                MappingInterval(_sep(10), _sep(16), "A"),
+                MappingInterval(_sep(14), _sep(20), "B"),
+            ],
+            {9: None, 10: "A", 13: "A", 14: "B", 16: "B", 19: "B", 20: None},
+            id="staggered",
+        ),
+        pytest.param(
+            [
+                MappingInterval(_sep(10), _sep(24), "A"),
+                MappingInterval(_sep(12), _sep(20), "B"),
+                MappingInterval(_sep(14), _sep(16), "C"),
+            ],
+            {10: "A", 12: "B", 14: "C", 15: "C", 16: "B", 19: "B", 20: "A", 23: "A", 24: None},
+            id="three_deep",
+        ),
+        pytest.param(
+            [
+                MappingInterval(_sep(10), _sep(20), "A"),
+                MappingInterval(_sep(14), _sep(14), "B"),
+            ],
+            {10: "A", 13: "A", 14: "A", 19: "A", 20: None},
+            id="empty_interval",
+        ),
+        pytest.param(
+            [
+                MappingInterval(_sep(10), _sep(12), "A"),
+                MappingInterval(_sep(14), _sep(16), "B"),
+            ],
+            {9: None, 10: "A", 12: None, 13: None, 14: "B", 16: None},
+            id="gap",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "single_insert",
+    [True, False],
+)
+def test_instrument_map_resolve_overlapping_intervals(
+    instrument_map: InstrumentMap,
+    intervals: list[MappingInterval],
+    expected: dict[int, str | None],
+    single_insert: bool,
+) -> None:
+    """
+    Test that where the intervals of an instrument ID overlap, the later insert
+    replaces the earlier one, as it does in DBN.
+    """
+    # Arrange
+    instrument_id = 42140870
+    other_id = 10252
+    other_interval = MappingInterval(_sep(1), _sep(30), "other")
+
+    # Act
+    if single_insert:
+        instrument_map._insert_intervals(
+            [other_id, *[instrument_id] * len(intervals)],
+            [other_interval, *intervals],
+        )
+    else:
+        instrument_map._insert_intervals([other_id], [other_interval])
+        for interval in intervals:
+            instrument_map._insert_intervals([instrument_id], [interval])
+
+    dates = [_sep(day) for day in expected]
+    resolved_many = instrument_map.resolve_many(
+        np.full(len(dates), instrument_id, dtype=np.uint64),
+        np.array(dates, dtype="datetime64[D]"),
+    )
+
+    # Assert
+    assert [instrument_map.resolve(instrument_id, d) for d in dates] == list(expected.values())
+    assert resolved_many.tolist() == list(expected.values())
+    assert instrument_map.resolve(other_id, _sep(15)) == "other"
+    for _, mapped in instrument_map.build_symbol_map().items():
+        for (_, end, _), (next_start, _, _) in itertools.pairwise(mapped):
+            assert end <= next_start
 
 
 @pytest.mark.parametrize(

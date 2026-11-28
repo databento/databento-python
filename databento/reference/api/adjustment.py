@@ -114,7 +114,6 @@ class AdjustmentFactorsHttpAPI(BentoHttpAPI):
         convert_datetime_columns(df, ADJUSTMENT_FACTORS_DATETIME_COLUMNS)
         convert_date_columns(df, ADJUSTMENT_FACTORS_DATE_COLUMNS)
 
-        df.set_index("ex_date", inplace=True)
-        df.sort_index(inplace=True)
+        df = df.set_index("ex_date").sort_index()
 
         return df

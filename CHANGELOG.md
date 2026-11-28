@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.91.0 - 2026-11-27
+
+#### Enhancements
+- Added support for free-threaded Python 3.15
+- Added new venues, datasets, and publishers for HKEX
+- Removed use of the `inplace` keyword, which is deprecated in `pandas` 3.1
+- Added `DBNStore.to_pl()` for converting DBN data to a `polars.DataFrame`, or with
+  `lazy=True` a `polars.LazyFrame` that applies filters and row limits while reading.
+  Install the optional `polars` dependency with `pip install databento[polars]`
+- Improved the performance of `DBNStore.to_df()` and `DBNStore.to_parquet()` by
+  converting through Apache Arrow. On 7.3 million MBO records, `to_df()` is 12 times faster
+  with 30% less peak memory and `to_parquet()` is 3.5 times faster
+- `DBNStore.to_parquet()` now writes Zstandard-compressed files with the DBN metadata
+  under the `databento:metadata` key
+- Improved reconnection with `ReconnectPolicy.RECONNECT` to recreate the session
+  with as few subscription and unsubscribe requests as possible, which shortens
+  the time to resume streaming. Subscriptions are acknowledged by the gateway
+  without a subscription ID after a reconnection
+- Upgraded `databento-dbn` to 0.75.0:
+  - Added experimental Arrow IPC and Parquet encodings to the `Transcoder` with
+    `encoding="arrow"` and `encoding="parquet"`, and an `extra_columnar_metadata`
+    parameter for adding custom metadata to the output
+  - Changed the type stubs to use `typing.Self` for enum constructors,
+    `Metadata.decode()`, and `Transcoder.__enter__()`
+  - Changed `SystemMsg.is_heartbeat()` to check the message text when `code` is
+    `SystemCode.UNSET`
+  - Fixed `DBNDecoder` and `Transcoder` raising `PanicException` instead of `DBNError`
+    when decoding a record whose length is shorter than its `rtype` requires
+
+#### Breaking changes
+- Removed the `parquet_schema` and `**kwargs` parameters from `DBNStore.to_parquet()`
+- `DBNStore.to_parquet()` now raises a `ValueError` when `pretty_ts` is `False`
+- `DBNStore.to_parquet()` now writes `ts_recv` (or `ts_event`) as the first column
+- `DBNStore.to_parquet()` with `price_type="fixed"` now writes undefined prices as null
+  instead of `UNDEF_PRICE`
+- Reference API `DataFrames` now keep the types sent by the API instead of inferring them
+  from the values in each response. Identifier columns such as `us_code`, `cik`, `sic`,
+  `naics`, `local_code`, `option_id`, and `serial_id` are now always strings. The
+  `expiry_time`, `option_expiry_time`, and `withdrawal_rights_expiry_time` columns
+  are strings instead of datetimes with the current date. Decimal columns such as
+  `ratio_old` and `ratio_new` are always floats. Columns with no values will have the
+  `object` dtype (credit: @JeetuSK0808)
+
+#### Bug fixes
+- Fixed `DBNStore.to_df()` raising an error for DBN data with `ts_out` and omitting the
+  `ts_out` column for live data
+- Fixed missing `action` and `ts_in_delta` columns in `DBNStore.to_df()` for TCBBO data
+- Fixed `DBNStore.to_df` with `price_type="decimal"` raising an `AttributeError` on
+  `pandas` versions before 2.1
+- Fixed a race condition where iterating a `Live` client could miss records
+  at the start of the stream in extreme cases (credit: @rundef)
+- Fixed an issue where subscription requests sent the gateway during a reconnection
+  event always set `is_last` (credit: @ItsM0rty)
+- Fixed an issue where `DBNStore.to_df()` and `InstrumentMap.resolve()` could leave a symbol
+  unmapped when the mapping intervals for an instrument ID overlapped, such as when
+  requesting two continuous symbols that resolve to the same instrument (credit: @shanurwan)
+
 ## 0.90.0 - 2026-11-03
 
 #### Enhancements

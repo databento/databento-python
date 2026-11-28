@@ -123,7 +123,7 @@ class BentoWarning(Warning):
     """
 
 
-class BentoDeprecationWarning(BentoWarning):
+class BentoDeprecationWarning(DeprecationWarning):
     """
     Represents a Databento deprecation warning.
     """

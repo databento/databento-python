@@ -164,18 +164,17 @@ class CorporateActionsHttpAPI(BentoHttpAPI):
             df = df.merge(event_info_normalized, left_index=True, right_index=True)
 
             # Drop the original JSON columns
-            df.drop(columns=["date_info", "rate_info", "event_info"], inplace=True)
+            df = df.drop(columns=["date_info", "rate_info", "event_info"])
 
         if pit:
-            df.set_index(index, inplace=True)
-            df.sort_index(inplace=True)
+            df = df.set_index(index).sort_index()
         else:
             # Filter for the latest record of each unique event
-            df.sort_values("ts_record", inplace=True)
+            df = df.sort_values("ts_record")
             df = df.groupby("event_unique_id").agg("last").reset_index()
-            df.set_index(index, inplace=True)
+            df = df.set_index(index)
             if index != "ts_record":
-                df.sort_index(inplace=True)
+                df = df.sort_index()
 
         return df
 

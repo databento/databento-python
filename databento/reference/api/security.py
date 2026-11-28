@@ -121,8 +121,7 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
         convert_datetime_columns(df, SECURITY_MASTER_DATETIME_COLUMNS)
         convert_date_columns(df, SECURITY_MASTER_DATE_COLUMNS)
 
-        df.set_index(index, inplace=True)
-        df.sort_index(inplace=True)
+        df = df.set_index(index).sort_index()
 
         return df
 
@@ -197,7 +196,6 @@ class SecurityMasterHttpAPI(BentoHttpAPI):
         convert_datetime_columns(df, SECURITY_MASTER_DATETIME_COLUMNS)
         convert_date_columns(df, SECURITY_MASTER_DATE_COLUMNS)
 
-        df.set_index("ts_effective", inplace=True)
-        df.sort_index(inplace=True)
+        df = df.set_index("ts_effective").sort_index()
 
         return df

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import abc
+import collections
 import datetime
 import decimal
+import io
 import itertools
 import logging
+import sys
 import warnings
 import zoneinfo
 from collections.abc import Callable
@@ -19,7 +22,6 @@ from typing import IO
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import BinaryIO
-from typing import Final
 from typing import Literal
 from typing import Protocol
 from typing import TextIO
@@ -29,16 +31,14 @@ import databento_dbn
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-import pyarrow.parquet as pq
+import pyarrow.compute as pc
 from databento_dbn import FIXED_PRICE_SCALE
 from databento_dbn import UNDEF_PRICE
+from databento_dbn import UNDEF_TIMESTAMP
 from databento_dbn import Compression
 from databento_dbn import DBNDecoder
 from databento_dbn import DBNRecord
 from databento_dbn import Encoding
-from databento_dbn import InstrumentDefMsg
-from databento_dbn import InstrumentDefMsgV1
-from databento_dbn import InstrumentDefMsgV2
 from databento_dbn import Metadata
 from databento_dbn import RType
 from databento_dbn import Schema
@@ -47,7 +47,6 @@ from databento_dbn import Transcoder
 from databento_dbn import VersionUpgradePolicy
 
 from databento.common import zstd
-from databento.common.constants import DEFINITION_TYPE_MAX_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP
 from databento.common.constants import SCHEMA_STRUCT_MAP_V1
 from databento.common.constants import SCHEMA_STRUCT_MAP_V2
@@ -65,9 +64,9 @@ from databento.common.validation import validate_path
 
 logger = logging.getLogger(__name__)
 
-PARQUET_CHUNK_SIZE: Final = 2**16
-
 if TYPE_CHECKING:
+    import polars as pl
+
     from databento.historical.client import Historical
 
 
@@ -122,6 +121,8 @@ class DataSource(abc.ABC):
 
     @property
     def reader(self) -> IO[bytes]: ...
+
+    def _open_reader(self) -> IO[bytes]: ...
 
 
 class FileDataSource(DataSource):
@@ -206,6 +207,9 @@ class FileDataSource(DataSource):
         self.__buffer.seek(0)
         return self.__buffer
 
+    def _open_reader(self) -> BufferedReader:
+        return open(self._path, "rb")
+
 
 class MemoryDataSource(DataSource):
     """
@@ -233,6 +237,7 @@ class MemoryDataSource(DataSource):
             raise ValueError(
                 f"Cannot create data source from empty {type(source).__name__}",
             )
+        self._data = initial_data
         self.__buffer = BytesIO(initial_data)
         self._name = repr(source)
 
@@ -276,6 +281,9 @@ class MemoryDataSource(DataSource):
         """
         self.__buffer.seek(0)
         return self.__buffer
+
+    def _open_reader(self) -> BytesIO:
+        return BytesIO(self._data)
 
 
 class DBNStore:
@@ -927,50 +935,193 @@ class DBNStore:
 
         """
         price_type = validate_enum(price_type, PriceType, "price_type")
+        tz = _validate_tz(tz, pretty_ts)
         schema = validate_maybe_enum(schema, Schema, "schema")
-
-        if isinstance(tz, Default):
-            tz = tz.value  # consume default
-        elif not pretty_ts:
-            raise ValueError(
-                "A timezone was specified when `pretty_ts` is `False`. Did you mean to set `pretty_ts=True`?",
-            )
-
-        if isinstance(tz, str):
-            tz = zoneinfo.ZoneInfo(tz)
-        elif not isinstance(tz, datetime.tzinfo):
-            raise ValueError(
-                f"The value {tz!r} is not a valid datetime.tzinfo",
-            )
-
         if schema is None:
             if self.schema is None:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        if count is None:
-            records = iter([self.to_ndarray(schema)])
-        else:
-            records = self.to_ndarray(schema, count)
-
-        if map_symbols:
-            self._instrument_map.insert_metadata(self.metadata)
-
-        df_iter = DataFrameIterator(
-            records=records,
-            count=count,
-            struct_type=self._schema_struct_map[schema],
-            instrument_map=self._instrument_map,
-            tz=tz,
-            price_type=price_type,
-            pretty_ts=pretty_ts,
+        batches = self._arrow_batches(
+            pretty_px=price_type == PriceType.FLOAT,
             map_symbols=map_symbols,
+            schema=schema,
         )
 
-        if count is None:
-            return next(df_iter)
+        def to_df(table: pa.Table) -> pd.DataFrame:
+            return _arrow_to_df(table, price_type, pretty_ts, tz)
 
-        return df_iter
+        if count is None:
+            return to_df(batches.read_all())
+        return DataFrameIterator(map(to_df, _rebatch(batches, count)))
+
+    @overload
+    def to_pl(
+        self,
+        price_type: PriceType | str = ...,
+        pretty_ts: bool = ...,
+        map_symbols: bool = ...,
+        schema: Schema | str | None = ...,
+        tz: datetime.tzinfo | str = ...,
+        count: None = ...,
+        lazy: Literal[False] = ...,
+    ) -> pl.DataFrame: ...
+
+    @overload
+    def to_pl(
+        self,
+        price_type: PriceType | str = ...,
+        pretty_ts: bool = ...,
+        map_symbols: bool = ...,
+        schema: Schema | str | None = ...,
+        tz: datetime.tzinfo | str = ...,
+        count: int = ...,
+        lazy: Literal[False] = ...,
+    ) -> Iterator[pl.DataFrame]: ...
+
+    @overload
+    def to_pl(
+        self,
+        price_type: PriceType | str = ...,
+        pretty_ts: bool = ...,
+        map_symbols: bool = ...,
+        schema: Schema | str | None = ...,
+        tz: datetime.tzinfo | str = ...,
+        count: None = ...,
+        *,
+        lazy: Literal[True],
+    ) -> pl.LazyFrame: ...
+
+    def to_pl(
+        self,
+        price_type: PriceType | str = PriceType.FLOAT,
+        pretty_ts: bool = True,
+        map_symbols: bool = True,
+        schema: Schema | str | None = None,
+        tz: datetime.tzinfo | str | Default[datetime.tzinfo] = Default[datetime.tzinfo](
+            datetime.UTC,
+        ),
+        count: int | None = None,
+        lazy: bool = False,
+    ) -> pl.DataFrame | Iterator[pl.DataFrame] | pl.LazyFrame:
+        """
+        Return the data as a `polars.DataFrame`.
+
+        Requires the `polars` package, which you can install with
+        `pip install databento[polars]`.
+
+        Notes
+        -----
+        Undefined prices and timestamps are null.
+        The first column is `ts_recv` if it exists in the schema, otherwise `ts_event`.
+
+        Parameters
+        ----------
+        price_type : PriceType or str, default "float"
+            The price type to use for price fields.
+            If "fixed", prices will have a type of `Int64` in fixed decimal format; each unit representing 1e-9 or 0.000000001.
+            If "float", prices will have a type of `Float64`.
+            If "decimal", prices will have a type of `Decimal` with a scale of 9.
+        pretty_ts : bool, default True
+            If all timestamp columns should be converted from UNIX nanosecond
+            `UInt64` to tz-aware `Datetime`. The timezone can be specified using the `tz` parameter.
+            If `False`, timestamps are `UInt64` nanoseconds and undefined timestamps are null.
+        map_symbols : bool, default True
+            If symbology mappings from the metadata should be used to create
+            a 'symbol' column, mapping the instrument ID to its requested symbol for
+            every record.
+        schema : Schema or str, optional
+            The DBN schema for the dataframe.
+            This is only required when reading a DBN stream with mixed record types.
+        tz : datetime.tzinfo or str, default UTC
+            If `pretty_ts` is `True`, all timestamps will be converted to the specified timezone.
+        count : int, optional
+            If set, instead of returning a single `DataFrame` an iterator will be
+            returned. When iterated, this object will yield a `DataFrame` with
+            at most `count` rows until the entire contents of the `DBNStore` are
+            exhausted. This can be used to process a large `DBNStore` in pieces
+            instead of all at once.
+        lazy : bool, default False
+            If `True`, return a `polars.LazyFrame` that reads the data when collected,
+            so filters and row limits apply while reading instead of after loading
+            all the data. Cannot be combined with `count`.
+
+        Returns
+        -------
+        polars.DataFrame
+        Iterator[polars.DataFrame]
+        polars.LazyFrame
+
+        Raises
+        ------
+        ImportError
+            If polars is not installed.
+        ValueError
+            If the DBN schema is unspecified and cannot be determined.
+            If both `count` and `lazy` are set.
+
+        """
+        try:
+            import polars as pl
+        except ImportError as exc:
+            raise ImportError(
+                "`to_pl` requires polars, install it with `pip install databento[polars]`",
+            ) from exc
+
+        if lazy and count is not None:
+            raise ValueError("`count` and `lazy` cannot be combined")
+        price_type = validate_enum(price_type, PriceType, "price_type")
+        tz = _validate_tz(tz, pretty_ts)
+        schema = validate_maybe_enum(schema, Schema, "schema")
+        if schema is None:
+            if self.schema is None:
+                raise ValueError("a schema must be specified for mixed DBN data")
+            schema = self.schema
+
+        def arrow_batches(reader: IO[bytes] | None = None) -> pa.RecordBatchStreamReader:
+            return self._arrow_batches(
+                pretty_px=price_type == PriceType.FLOAT,
+                map_symbols=map_symbols,
+                schema=schema,
+                reader=reader,
+            )
+
+        def convert(table: pa.Table) -> pl.DataFrame:
+            return pl.from_arrow(_arrow_for_polars(table, price_type, pretty_ts, tz))
+
+        batches = arrow_batches()
+        if lazy:
+            from polars.io.plugins import register_io_source
+
+            def source(
+                with_columns: list[str] | None,
+                predicate: pl.Expr | None,
+                n_rows: int | None,
+                _batch_size: int | None,
+            ) -> Iterator[pl.DataFrame]:
+                # Concurrent scans of one store, e.g. a self-join, can't share `self.reader`
+                with self._data_source._open_reader() as raw:
+                    reader = (
+                        zstd.stream_reader(raw) if self.compression == Compression.ZSTD else raw
+                    )
+                    for batch in arrow_batches(reader):
+                        table = pa.Table.from_batches([batch])
+                        if with_columns is not None:
+                            table = table.select(with_columns)
+                        df = convert(table)
+                        if predicate is not None:
+                            df = df.filter(predicate)
+                        if n_rows is not None:
+                            df = df.head(n_rows)
+                            n_rows -= df.height
+                        yield df
+                        if n_rows == 0:
+                            return
+
+            return register_io_source(source, schema=convert(batches.schema.empty_table()).schema)
+        if count is None:
+            return convert(batches.read_all())
+        return map(convert, _rebatch(batches, count))
 
     def to_parquet(
         self,
@@ -980,11 +1131,13 @@ class DBNStore:
         map_symbols: bool = True,
         schema: Schema | str | None = None,
         mode: Literal["w", "x"] = "w",
-        parquet_schema: pa.Schema | None = None,
-        **kwargs: Any,
     ) -> None:
         """
         Write the data to a parquet file at the given path.
+
+        The file is Zstandard-compressed and carries the DBN metadata as JSON under the
+        `databento:metadata` key. `pandas.read_parquet` restores `ts_recv` (or `ts_event`)
+        as the index.
 
         Parameters
         ----------
@@ -995,9 +1148,10 @@ class DBNStore:
             If "fixed", prices will have a type of `int` in fixed decimal format; each unit representing 1e-9 or 0.000000001.
             If "float", prices will have a type of `float`.
             The "decimal" price type is not supported at this time.
+            Undefined prices are null.
         pretty_ts : bool, default True
-            If all timestamp columns should be converted from UNIX nanosecond
-            `int` to tz-aware UTC `pyarrow.TimestampType`.
+            Timestamp columns are always written as tz-aware UTC `pyarrow.TimestampType`.
+            `False` is not supported.
         map_symbols : bool, default True
             If symbology mappings from the metadata should be used to create
             a 'symbol' column, mapping the instrument ID to its requested symbol for
@@ -1007,17 +1161,12 @@ class DBNStore:
             This is only required when reading a DBN stream with mixed record types.
         mode : str, default "w"
             The file write mode to use, either "x" or "w".
-        parquet_schema : pyarrow.Schema, optional
-            The pyarrow parquet schema to use to write the parquet file.
-            This defaults to a detected schema based on the DataFrame representation.
-        **kwargs : Any
-            Keyword arguments to pass to the `pyarrow.parquet.ParquetWriter`.
-            These can be used to override the default behavior of the writer.
 
         Raises
         ------
         ValueError
             If an incorrect price type is specified.
+            If `pretty_ts` is `False`.
             If the DBN schema is unspecified and cannot be determined.
 
         """
@@ -1026,6 +1175,8 @@ class DBNStore:
 
         if price_type == PriceType.DECIMAL:
             raise ValueError("the 'decimal' price type is not currently supported")
+        if not pretty_ts:
+            raise ValueError("`pretty_ts=False` is not supported")
 
         schema = validate_maybe_enum(schema, Schema, "schema")
         if schema is None:
@@ -1033,35 +1184,36 @@ class DBNStore:
                 raise ValueError("a schema must be specified for mixed DBN data")
             schema = self.schema
 
-        dataframe_iter = self.to_df(
-            price_type=price_type,
-            pretty_ts=pretty_ts,
+        pretty_px = price_type == PriceType.FLOAT
+        reader = self.reader
+        header = reader.read(self._metadata_length)
+        # Encoding the metadata alone yields the Arrow schema without decoding any records.
+        arrow_schema = self._arrow_batches(
+            pretty_px=pretty_px,
             map_symbols=map_symbols,
             schema=schema,
-            count=PARQUET_CHUNK_SIZE,
-        )
+            reader=BytesIO(header),
+        ).schema
+        empty_df = arrow_schema.empty_table().to_pandas().set_index(arrow_schema.names[0])
+        pandas_metadata = pa.Schema.from_pandas(empty_df).metadata[b"pandas"].decode()
 
-        writer = None
-        try:
-            for frame in dataframe_iter:
-                if writer is None:
-                    # Initialize the writer using the first DataFrame
-                    if parquet_schema is None:
-                        parquet_schema = pa.Schema.from_pandas(frame)
-                    writer = pq.ParquetWriter(
-                        where=kwargs.pop("where", file_path),
-                        schema=parquet_schema,
-                        **kwargs,
-                    )
-                writer.write_table(
-                    pa.Table.from_pandas(
-                        frame,
-                        schema=parquet_schema,
-                    ),
-                )
-        finally:
-            if writer is not None:
-                writer.close()
+        with open(file_path, f"{mode}b") as output:
+            transcoder = Transcoder(
+                file=output,
+                encoding="parquet",
+                compression=Compression.ZSTD,
+                pretty_px=pretty_px,
+                map_symbols=map_symbols,
+                symbol_interval_map=self._symbol_interval_map(map_symbols),
+                schema=schema,
+                upgrade_policy=VersionUpgradePolicy.AS_IS,
+                extra_columnar_metadata={"pandas": pandas_metadata},
+            )
+            transcoder.write(header)
+            while chunk := reader.read(DBNStore.DBN_READ_SIZE):
+                transcoder.write(chunk)
+            _warn_if_truncated(transcoder)
+            transcoder.finish()
 
     def to_file(
         self,
@@ -1278,12 +1430,6 @@ class DBNStore:
         compression: Compression,
         schema: Schema,
     ) -> None:
-        if map_symbols:
-            self._instrument_map.insert_metadata(self.metadata)
-            symbol_map = self._instrument_map.build_symbol_map()
-        else:
-            symbol_map = None
-
         transcoder = Transcoder(
             file=output,
             encoding=encoding,
@@ -1292,7 +1438,7 @@ class DBNStore:
             pretty_ts=pretty_ts,
             has_metadata=True,
             map_symbols=map_symbols,
-            symbol_interval_map=symbol_map,
+            symbol_interval_map=self._symbol_interval_map(map_symbols),
             schema=schema,
         )
 
@@ -1301,14 +1447,33 @@ class DBNStore:
         while byte_chunk := reader.read(2**16):
             transcoder.write(byte_chunk)
 
-        if transcoder.buffer():
-            warnings.warn(
-                BentoWarning(
-                    "DBN file is truncated or contains an incomplete record",
-                ),
-            )
-
+        _warn_if_truncated(transcoder)
         transcoder.flush()
+
+    def _symbol_interval_map(
+        self,
+        map_symbols: bool,
+    ) -> dict[int, list[tuple[datetime.date, datetime.date, str]]] | None:
+        if not map_symbols:
+            return None
+        self._instrument_map.insert_metadata(self.metadata)
+        return self._instrument_map.build_symbol_map()
+
+    def _arrow_batches(
+        self,
+        pretty_px: bool,
+        map_symbols: bool,
+        schema: Schema,
+        reader: IO[bytes] | None = None,
+    ) -> pa.RecordBatchStreamReader:
+        source = _ArrowSource(
+            reader=self.reader if reader is None else reader,
+            pretty_px=pretty_px,
+            map_symbols=map_symbols,
+            symbol_interval_map=self._symbol_interval_map(map_symbols),
+            schema=schema,
+        )
+        return pa.ipc.open_stream(source)
 
     @property
     def _schema_struct_map(self) -> dict[Schema, type[DBNRecord]]:
@@ -1434,105 +1599,213 @@ class NDArrayBytesIterator(NDArrayIterator):
 
 class DataFrameIterator:
     """
-    Iterator for DataFrames that supports batching and column formatting for
-    DBN records.
+    Iterator for DataFrames of at most `count` DBN records.
     """
 
-    def __init__(
-        self,
-        records: Iterator[np.ndarray[Any, Any]],
-        count: int | None,
-        struct_type: type[DBNRecord],
-        instrument_map: InstrumentMap,
-        tz: datetime.tzinfo,
-        price_type: PriceType = PriceType.FLOAT,
-        pretty_ts: bool = True,
-        map_symbols: bool = True,
-    ):
-        self._records = records
-        self._count = count
-        self._struct_type = struct_type
-        self._price_type = price_type
-        self._pretty_ts = pretty_ts
-        self._map_symbols = map_symbols
-        self._instrument_map = instrument_map
-        self._tz = tz
+    def __init__(self, frames: Iterator[pd.DataFrame]) -> None:
+        self._frames = frames
 
     def __iter__(self) -> DataFrameIterator:
         return self
 
     def __next__(self) -> pd.DataFrame:
-        df = pd.DataFrame(
-            next(self._records),
-            columns=self._struct_type._ordered_fields,
-        )
+        return next(self._frames)
 
-        if self._struct_type in (InstrumentDefMsg, InstrumentDefMsgV1, InstrumentDefMsgV2):
-            self._format_definition_fields(df)
 
-        self._format_hidden_fields(df)
+class _ArrowSource(io.RawIOBase):
+    """
+    Arrow IPC stream bytes, transcoded from DBN as they're read.
+    """
 
-        if self._pretty_ts:
-            self._format_pretty_ts(df)
-
-        if self._map_symbols:
-            self._format_map_symbols(df)
-
-        if self._pretty_ts:
-            self._format_timezone(df)
-
-        self._format_px(df, self._price_type)
-
-        self._format_set_index(df)
-
-        return df
-
-    def _format_definition_fields(self, df: pd.DataFrame) -> None:
-        for column, type_max in DEFINITION_TYPE_MAX_MAP.items():
-            if column in df.columns:
-                df[column] = df[column].where(df[column] != type_max, np.nan)
-
-    def _format_hidden_fields(self, df: pd.DataFrame) -> None:
-        for column, dtype in self._struct_type._dtypes:
-            hidden_fields = self._struct_type._hidden_fields
-            if dtype.startswith("S") and column not in hidden_fields:
-                df[column] = df[column].str.decode("utf-8")
-
-    def _format_map_symbols(self, df: pd.DataFrame) -> None:
-        # the first ordered field will be ts_recv or ts_event when appropriate
-        ts_name = self._struct_type._ordered_fields[0]
-        dates = df[ts_name] if self._pretty_ts else pd.to_datetime(df[ts_name], utc=True).dt.date
-
-        df["symbol"] = self._instrument_map.resolve_many(
-            df["instrument_id"].to_numpy(),
-            np.asarray(dates, dtype="datetime64[D]"),
-        )
-
-    def _format_timezone(self, df: pd.DataFrame) -> None:
-        for field in self._struct_type._timestamp_fields:
-            df[field] = df[field].dt.tz_convert(self._tz)
-
-    def _format_px(
+    def __init__(
         self,
-        df: pd.DataFrame,
-        price_type: PriceType,
+        reader: IO[bytes],
+        pretty_px: bool,
+        map_symbols: bool,
+        symbol_interval_map: dict[int, list[tuple[datetime.date, datetime.date, str]]] | None,
+        schema: Schema,
     ) -> None:
-        px_fields = self._struct_type._price_fields
+        self._reader = reader
+        self._chunks: collections.deque[memoryview] = collections.deque()
+        self._size = 0
+        self._in_stream = False
+        self._finished = False
+        self._transcoder = Transcoder(
+            file=self,  # type: ignore [arg-type]
+            encoding="arrow",
+            compression=Compression.NONE,
+            pretty_px=pretty_px,
+            map_symbols=map_symbols,
+            symbol_interval_map=symbol_interval_map,
+            schema=schema,
+            upgrade_policy=VersionUpgradePolicy.AS_IS,
+        )
 
-        if price_type == PriceType.DECIMAL:
-            df[px_fields] = (
-                df[px_fields].replace(UNDEF_PRICE, np.nan).map(decimal.Decimal) / FIXED_PRICE_SCALE
-            )
-        elif price_type == PriceType.FLOAT:
-            df[px_fields] = df[px_fields].replace(UNDEF_PRICE, np.nan) / FIXED_PRICE_SCALE
-        else:
-            return  # do nothing
+    def readable(self) -> bool:
+        return True
 
-    def _format_pretty_ts(self, df: pd.DataFrame) -> None:
-        for field in self._struct_type._timestamp_fields:
-            df[field] = pd.to_datetime(df[field], utc=True, errors="coerce")
+    def write(self, data: bytes) -> int:  # type: ignore [override]
+        self._chunks.append(memoryview(data))
+        self._size += len(data)
+        return len(data)
 
-    def _format_set_index(self, df: pd.DataFrame) -> None:
-        # the first ordered field will be ts_recv or ts_event when appropriate
-        index_column = self._struct_type._ordered_fields[0]
-        df.set_index(index_column, inplace=True)
+    def read(self, size: int | None = -1) -> bytes:
+        if size is None or size < 0:
+            size = sys.maxsize
+        while self._size < size and not self._finished:
+            if chunk := self._reader.read(DBNStore.DBN_READ_SIZE):
+                self._transcoder.write(chunk)
+            else:
+                _warn_if_truncated(self._transcoder)
+                self._transcoder.finish()
+                self._finished = True
+            if not self._in_stream:
+                # The IPC file format wraps an IPC stream with a padded magic header and a
+                # footer. Start at the schema message's continuation marker; the stream's
+                # end-of-stream marker stops the reader before the footer.
+                pending = b"".join(self._chunks)
+                start = pending.find(b"\xff\xff\xff\xff")
+                if start >= 0:
+                    self._chunks = collections.deque([memoryview(pending)[start:]])
+                    self._size = len(pending) - start
+                    self._in_stream = True
+        parts = []
+        remaining = min(size, self._size)
+        self._size -= remaining
+        while remaining:
+            chunk = self._chunks.popleft()
+            if len(chunk) > remaining:
+                self._chunks.appendleft(chunk[remaining:])
+                chunk = chunk[:remaining]
+            parts.append(chunk)
+            remaining -= len(chunk)
+        return b"".join(parts)
+
+
+def _warn_if_truncated(transcoder: Transcoder) -> None:
+    if transcoder.buffer():
+        warnings.warn(
+            BentoWarning("DBN file is truncated or contains an incomplete record"),
+        )
+
+
+def _validate_tz(
+    tz: datetime.tzinfo | str | Default[datetime.tzinfo],
+    pretty_ts: bool,
+) -> datetime.tzinfo:
+    if isinstance(tz, Default):
+        tz = tz.value  # consume default
+    elif not pretty_ts:
+        raise ValueError(
+            "A timezone was specified when `pretty_ts` is `False`. Did you mean to set `pretty_ts=True`?",
+        )
+
+    if isinstance(tz, str):
+        return zoneinfo.ZoneInfo(tz)
+    if not isinstance(tz, datetime.tzinfo):
+        raise ValueError(
+            f"The value {tz!r} is not a valid datetime.tzinfo",
+        )
+    return tz
+
+
+def _rebatch(batches: pa.RecordBatchReader, count: int) -> Generator[pa.Table, None, None]:
+    count = max(count, 1)
+    pending: list[pa.RecordBatch] = []
+    pending_rows = 0
+    has_yielded = False
+    for batch in batches:
+        pending.append(batch)
+        pending_rows += batch.num_rows
+        while pending_rows >= count:
+            table = pa.Table.from_batches(pending, batches.schema)
+            yield table.slice(0, count)
+            has_yielded = True
+            rest = table.slice(count)
+            pending = rest.to_batches()
+            pending_rows = rest.num_rows
+    if pending_rows or not has_yielded:
+        yield pa.Table.from_batches(pending, batches.schema)
+
+
+def _price_columns(schema: pa.Schema) -> list[str]:
+    return [
+        field.name
+        for field in schema
+        if field.metadata and b"databento:fixed_price_scale" in field.metadata
+    ]
+
+
+def _timestamp_columns(schema: pa.Schema) -> list[str]:
+    return [field.name for field in schema if pa.types.is_timestamp(field.type)]
+
+
+def _replace_columns(
+    table: pa.Table,
+    columns: list[str],
+    transform: Callable[[pa.ChunkedArray], pa.ChunkedArray],
+) -> pa.Table:
+    for name in columns:
+        index = table.schema.get_field_index(name)
+        field = table.schema.field(index)
+        column = transform(table.column(index))
+        table = table.set_column(index, field.with_type(column.type), column)
+    return table
+
+
+def _timestamps_to_nanos(column: pa.ChunkedArray) -> pa.ChunkedArray:
+    return column.cast(pa.int64()).cast(pa.uint64())
+
+
+def _arrow_to_df(
+    table: pa.Table,
+    price_type: PriceType,
+    pretty_ts: bool,
+    tz: datetime.tzinfo,
+) -> pd.DataFrame:
+    price_columns = _price_columns(table.schema)
+    timestamp_columns = _timestamp_columns(table.schema)
+    if price_type == PriceType.FIXED:
+        table = _replace_columns(table, price_columns, lambda c: c.fill_null(UNDEF_PRICE))
+    if not pretty_ts:
+        table = _replace_columns(
+            table,
+            timestamp_columns,
+            lambda c: _timestamps_to_nanos(c).fill_null(UNDEF_TIMESTAMP),
+        )
+
+    df = table.to_pandas()
+    if pretty_ts:
+        for column in timestamp_columns:
+            df[column] = df[column].dt.tz_convert(tz)
+    if price_type == PriceType.DECIMAL:
+        # `DataFrame.map` requires pandas 2.1, so map each column instead
+        df[price_columns] = (
+            df[price_columns].apply(lambda column: column.map(decimal.Decimal)) / FIXED_PRICE_SCALE
+        )
+    return df.set_index(table.column_names[0])
+
+
+def _arrow_for_polars(
+    table: pa.Table,
+    price_type: PriceType,
+    pretty_ts: bool,
+    tz: datetime.tzinfo,
+) -> pa.Table:
+    if price_type == PriceType.DECIMAL:
+        # Multiplying exact integers by 1e-9 keeps every digit, and 19 digits hold any i64.
+        scale = pa.scalar(decimal.Decimal(1) / FIXED_PRICE_SCALE, pa.decimal128(9, 9))
+        table = _replace_columns(
+            table,
+            _price_columns(table.schema),
+            lambda c: pc.multiply(c.cast(pa.decimal128(19, 0)), scale).cast(pa.decimal128(19, 9)),
+        )
+    if pretty_ts:
+        table = _replace_columns(
+            table,
+            _timestamp_columns(table.schema),
+            lambda c: c.cast(pa.timestamp("ns", tz=tz)),
+        )
+    else:
+        table = _replace_columns(table, _timestamp_columns(table.schema), _timestamps_to_nanos)
+    return table

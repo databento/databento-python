@@ -1,6 +1,7 @@
 import collections
 import datetime as dt
 import decimal
+import sys
 import zoneinfo
 from collections.abc import Callable
 from io import BytesIO
@@ -12,7 +13,12 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
+import polars as pl
+import polars.testing
+import pyarrow.parquet as pq
 import pytest
+from databento_dbn import UNDEF_PRICE
+from databento_dbn import UNDEF_TIMESTAMP
 from databento_dbn import Compression
 from databento_dbn import DBNRecord
 from databento_dbn import MBOMsg
@@ -684,6 +690,187 @@ def test_to_df_with_price_type_invalid(
     ],
 )
 @pytest.mark.parametrize(
+    "map_symbols",
+    [
+        True,
+        False,
+    ],
+)
+def test_to_parquet(
+    tmp_path: Path,
+    test_data: Callable[[Dataset, Schema], bytes],
+    dataset: Dataset,
+    schema: Schema,
+    price_type: Literal["fixed", "float"],
+    map_symbols: bool,
+) -> None:
+    # Arrange
+    stub_data = test_data(dataset, schema)
+    data = DBNStore.from_bytes(data=stub_data)
+    parquet_file = tmp_path / "test.parquet"
+
+    # Act
+    expected = data.to_df(
+        price_type=price_type,
+        map_symbols=map_symbols,
+    )
+    data.to_parquet(
+        parquet_file,
+        price_type=price_type,
+        map_symbols=map_symbols,
+    )
+    actual = pd.read_parquet(parquet_file)
+
+    # Assert
+    # Undefined fixed prices are null in parquet and UNDEF_PRICE in `to_df`
+    price_fields = SCHEMA_STRUCT_MAP[schema]._price_fields
+    expected[price_fields] = expected[price_fields].replace(UNDEF_PRICE, np.nan)
+    pd.testing.assert_frame_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.EQUS_MINI,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
+    ],
+)
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "price_type",
+    [
+        "fixed",
+        "float",
+    ],
+)
+@pytest.mark.parametrize(
+    "map_symbols",
+    [
+        True,
+        False,
+    ],
+)
+def test_to_parquet_read_with_polars(
+    tmp_path: Path,
+    test_data: Callable[[Dataset, Schema], bytes],
+    dataset: Dataset,
+    schema: Schema,
+    price_type: Literal["fixed", "float"],
+    map_symbols: bool,
+) -> None:
+    # Arrange
+    stub_data = test_data(dataset, schema)
+    data = DBNStore.from_bytes(data=stub_data)
+    parquet_file = tmp_path / "test.parquet"
+
+    # Act
+    expected = data.to_pl(
+        price_type=price_type,
+        map_symbols=map_symbols,
+    )
+    data.to_parquet(
+        parquet_file,
+        price_type=price_type,
+        map_symbols=map_symbols,
+    )
+    actual = pl.read_parquet(parquet_file)
+
+    # Assert
+    polars.testing.assert_frame_equal(actual, expected)
+
+
+def test_to_parquet_writes_zstd_with_dbn_metadata(
+    tmp_path: Path,
+    test_data: Callable[[Dataset, Schema], bytes],
+) -> None:
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
+    parquet_file = tmp_path / "test.parquet"
+
+    # Act
+    data.to_parquet(parquet_file)
+
+    # Assert
+    parquet = pq.ParquetFile(parquet_file)
+    assert parquet.schema_arrow.names[0] == "ts_recv"
+    assert b"databento:metadata" in parquet.schema_arrow.metadata
+    assert parquet.metadata.row_group(0).column(0).compression == "ZSTD"
+
+
+def test_to_parquet_pretty_ts_false_raises(
+    tmp_path: Path,
+    test_data: Callable[[Dataset, Schema], bytes],
+) -> None:
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
+
+    # Act, Assert
+    with pytest.raises(ValueError, match="pretty_ts"):
+        data.to_parquet(tmp_path / "test.parquet", pretty_ts=False)
+
+
+def test_to_parquet_kwargs_raises(
+    tmp_path: Path,
+    test_data: Callable[[Dataset, Schema], bytes],
+) -> None:
+    # Arrange
+    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    data = DBNStore.from_bytes(data=stub_data)
+
+    # Act, Assert
+    with pytest.raises(TypeError):
+        data.to_parquet(  # type: ignore [call-arg]
+            tmp_path / "test.parquet",
+            compression="zstd",
+        )
+
+
+def _to_df_as_polars(df: pd.DataFrame, schema: Schema) -> pl.DataFrame:
+    # `to_df` marks undefined values with NaN or sentinels where `to_pl` uses null
+    struct = SCHEMA_STRUCT_MAP[schema]
+    frame = pl.from_pandas(df.reset_index(), nan_to_null=True)
+    prices = pl.col(struct._price_fields)
+    timestamps = pl.col(
+        [name for name in struct._timestamp_fields if frame.schema[name] == pl.UInt64],
+    )
+    return frame.with_columns(
+        pl.when(prices != UNDEF_PRICE).then(prices),
+        pl.when(timestamps != UNDEF_TIMESTAMP).then(timestamps),
+    )
+
+
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.EQUS_MINI,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
+    ],
+)
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "price_type",
+    [
+        "fixed",
+        "float",
+    ],
+)
+@pytest.mark.parametrize(
     "pretty_ts",
     [
         True,
@@ -697,9 +884,7 @@ def test_to_df_with_price_type_invalid(
         False,
     ],
 )
-def test_to_parquet(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+def test_to_pl_matches_to_df(
     test_data: Callable[[Dataset, Schema], bytes],
     dataset: Dataset,
     schema: Schema,
@@ -708,10 +893,8 @@ def test_to_parquet(
     map_symbols: bool,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(databento.common.dbnstore, "PARQUET_CHUNK_SIZE", 1)
     stub_data = test_data(dataset, schema)
     data = DBNStore.from_bytes(data=stub_data)
-    parquet_file = tmp_path / "test.parquet"
 
     # Act
     expected = data.to_df(
@@ -719,46 +902,209 @@ def test_to_parquet(
         pretty_ts=pretty_ts,
         map_symbols=map_symbols,
     )
-    data.to_parquet(
-        parquet_file,
+    actual = data.to_pl(
         price_type=price_type,
         pretty_ts=pretty_ts,
         map_symbols=map_symbols,
     )
-    actual = pd.read_parquet(parquet_file)
-
-    # Replace None values with np.nan
-    actual.fillna(value=np.nan)
 
     # Assert
-    pd.testing.assert_frame_equal(actual, expected)
+    polars.testing.assert_frame_equal(actual, _to_df_as_polars(expected, schema))
 
 
-def test_to_parquet_kwargs(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+@pytest.mark.parametrize(
+    "dataset",
+    [
+        Dataset.GLBX_MDP3,
+        Dataset.XNAS_ITCH,
+        Dataset.OPRA_PILLAR,
+        Dataset.EQUS_MINI,
+        Dataset.IFEU_IMPACT,
+        Dataset.NDEX_IMPACT,
+    ],
+)
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+def test_to_pl_decimal_matches_to_df(
     test_data: Callable[[Dataset, Schema], bytes],
+    dataset: Dataset,
+    schema: Schema,
 ) -> None:
     # Arrange
-    monkeypatch.setattr(databento.common.dbnstore, "PARQUET_CHUNK_SIZE", 1)
-    stub_data = test_data(Dataset.GLBX_MDP3, Schema.MBO)
+    stub_data = test_data(dataset, schema)
     data = DBNStore.from_bytes(data=stub_data)
-    parquet_file = tmp_path / "test.parquet"
 
     # Act
-    expected = data.to_df()
-    data.to_parquet(
-        parquet_file,
-        compression="zstd",
-        write_statistics="false",
-    )
-    actual = pd.read_parquet(parquet_file)
-
-    # Replace None values with np.nan
-    actual.fillna(value=np.nan)
+    expected = data.to_df(price_type="decimal").reset_index()
+    actual = data.to_pl(price_type="decimal")
 
     # Assert
-    pd.testing.assert_frame_equal(actual, expected)
+    assert actual.columns == list(expected.columns)
+    for column in actual.select(pl.col(pl.Decimal)).columns:
+        assert actual[column].to_list() == [
+            None if value.is_nan() else value for value in expected[column]
+        ]
+
+
+@pytest.mark.parametrize(
+    "timezone",
+    [
+        "US/Central",
+        ZoneInfo("Asia/Dubai"),
+        dt.UTC,
+    ],
+)
+def test_to_pl_with_timezone(
+    test_data_path: Callable[[Dataset, Schema], Path],
+    timezone: str | dt.tzinfo,
+) -> None:
+    # Arrange
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.DEFINITION))
+
+    # Act
+    df = dbnstore.to_pl(tz=timezone)
+
+    # Assert
+    expected = dbnstore.to_df(tz=timezone).reset_index()
+    for field in SCHEMA_STRUCT_MAP[Schema.DEFINITION]._timestamp_fields:
+        polars.testing.assert_series_equal(df[field], pl.from_pandas(expected[field]))
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "count",
+    [
+        1,
+        2,
+        3,
+    ],
+)
+def test_to_pl_with_count(
+    schema: Schema,
+    test_data_path: Callable[[Dataset, Schema], Path],
+    count: int,
+) -> None:
+    # Arrange
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, schema))
+
+    # Act
+    expected = dbnstore.to_pl()
+    frames = list(dbnstore.to_pl(count=count))
+
+    # Assert
+    assert [len(frame) for frame in frames[:-1]] == [count] * (len(frames) - 1)
+    assert 0 < len(frames[-1]) <= count
+    polars.testing.assert_frame_equal(pl.concat(frames), expected)
+
+
+def test_to_pl_with_schema_live(
+    live_test_data_path: Path,
+) -> None:
+    # Arrange
+    dbnstore = DBNStore.from_file(path=live_test_data_path)
+
+    # Act
+    df = dbnstore.to_pl(schema=Schema.STATISTICS)
+
+    # Assert
+    assert len(df) == len(dbnstore.to_df(schema=Schema.STATISTICS))
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [pytest.param(schema, id=str(schema)) for schema in Schema.variants()],
+)
+@pytest.mark.parametrize(
+    "from_bytes",
+    [
+        True,
+        False,
+    ],
+)
+def test_to_pl_lazy_matches_eager(
+    test_data_path: Callable[[Dataset, Schema], Path],
+    schema: Schema,
+    from_bytes: bool,
+) -> None:
+    # Arrange
+    path = test_data_path(Dataset.GLBX_MDP3, schema)
+    dbnstore = (
+        DBNStore.from_bytes(data=path.read_bytes()) if from_bytes else DBNStore.from_file(path=path)
+    )
+    expected = dbnstore.to_pl()
+
+    # Act
+    lf = dbnstore.to_pl(lazy=True)
+
+    # Assert
+    assert lf.collect_schema() == expected.schema
+    polars.testing.assert_frame_equal(lf.collect(), expected)
+    polars.testing.assert_frame_equal(lf.collect(), expected)
+
+
+def test_to_pl_lazy_applies_query(
+    test_data_path: Callable[[Dataset, Schema], Path],
+) -> None:
+    # Arrange
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
+    expected = dbnstore.to_pl()
+
+    def query(df: pl.LazyFrame) -> pl.LazyFrame:
+        return df.filter(pl.col("price") < 3675.5).select("side", "size").head(1)
+
+    # Act
+    actual = query(dbnstore.to_pl(lazy=True)).collect()
+
+    # Assert
+    assert len(actual) == 1
+    polars.testing.assert_frame_equal(actual, query(expected.lazy()).collect())
+
+
+def test_to_pl_lazy_concurrent_scans(
+    test_data_path: Callable[[Dataset, Schema], Path],
+) -> None:
+    # Arrange
+    compressed = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
+    dbnstore = DBNStore.from_bytes(data=compressed.reader.read())
+    expected = dbnstore.to_pl()
+    lf = dbnstore.to_pl(lazy=True)
+
+    # Act
+    # The scans race, so a single collect only catches shared-reader corruption some of the time
+    actuals = [pl.concat([lf.head(2), lf.tail(2)]).collect() for _ in range(20)]
+
+    # Assert
+    for actual in actuals:
+        polars.testing.assert_frame_equal(actual, pl.concat([expected.head(2), expected.tail(2)]))
+
+
+def test_to_pl_lazy_with_count_raises(
+    test_data_path: Callable[[Dataset, Schema], Path],
+) -> None:
+    # Arrange
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
+
+    # Act, Assert
+    with pytest.raises(ValueError, match="cannot be combined"):
+        dbnstore.to_pl(count=1, lazy=True)  # type: ignore[call-overload]
+
+
+def test_to_pl_without_polars_raises(
+    monkeypatch: pytest.MonkeyPatch,
+    test_data_path: Callable[[Dataset, Schema], Path],
+) -> None:
+    # Arrange
+    dbnstore = DBNStore.from_file(path=test_data_path(Dataset.GLBX_MDP3, Schema.MBO))
+    monkeypatch.setitem(sys.modules, "polars", None)
+
+    # Act, Assert
+    with pytest.raises(ImportError, match=r"pip install databento\[polars\]"):
+        dbnstore.to_pl()
 
 
 @pytest.mark.parametrize(
@@ -1557,7 +1903,7 @@ def test_dbnstore_to_df_with_timezone(
 
     # Act
     df = dbnstore.to_df(tz=timezone)
-    df.reset_index(inplace=True)
+    df = df.reset_index()
 
     # Assert
     expected_timezone = zoneinfo.ZoneInfo(timezone).utcoffset(None)
@@ -1598,7 +1944,7 @@ def test_dbnstore_to_df_with_zoneinfo(
 
     # Act
     df = dbnstore.to_df(tz=timezone)
-    df.reset_index(inplace=True)
+    df = df.reset_index()
 
     # Assert
     failures = []

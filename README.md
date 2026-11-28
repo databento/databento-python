@@ -33,7 +33,7 @@ The minimum dependencies as found in the `pyproject.toml` are also listed below:
 - python >= 3.11
 - aiohttp >= 3.8.3
 - certifi >= 2026.10.19
-- databento-dbn ~= 0.73.0
+- databento-dbn ~= 0.75.0
 - numpy >= 1.23.5
 - pandas >= 1.5.3
 - pip-system-certs >= 4.0 (Windows only)
