@@ -690,7 +690,14 @@ class InstrumentMap:
         if not (n == new_starts.size == new_ends.size == new_symbols.size):
             raise ValueError("All input arrays must have the same length")
 
-        if n == 0:
+        # An interval that ends on or before its start covers no dates
+        not_empty = new_starts < new_ends
+        new_ids = new_ids[not_empty]
+        new_starts = new_starts[not_empty]
+        new_ends = new_ends[not_empty]
+        new_symbols = new_symbols[not_empty]
+
+        if new_ids.size == 0:
             return  # nothing to insert
 
         with self._lock:
@@ -700,10 +707,76 @@ class InstrumentMap:
             symbols = np.concatenate([self._symbols, new_symbols])
 
             order = np.lexsort((starts, ids))
-            self._instrument_ids = ids[order]
-            self._starts = starts[order]
-            self._ends = ends[order]
-            self._symbols = symbols[order]
+            ids = ids[order]
+            starts = starts[order]
+            ends = ends[order]
+            symbols = symbols[order]
+
+            # The lookups in resolve() and resolve_many() only check the latest
+            # starting interval, so the intervals of an instrument cannot overlap
+            overlapping = (ids[1:] == ids[:-1]) & (starts[1:] < ends[:-1])
+            if overlapping.any():
+                overlapping_ids = np.unique(ids[1:][overlapping])
+                keep = ~np.isin(ids, overlapping_ids)
+
+                # A stable sort keeps the insertion order for each instrument
+                new_order = np.argsort(new_ids, kind="stable")
+                new_ids = new_ids[new_order]
+                new_starts = new_starts[new_order]
+                new_ends = new_ends[new_order]
+                new_symbols = new_symbols[new_order]
+
+                resolved_ids: list[int] = []
+                resolved: list[MappingInterval] = []
+                for inst_id in overlapping_ids:
+                    left = np.searchsorted(self._instrument_ids, inst_id, side="left")
+                    right = np.searchsorted(self._instrument_ids, inst_id, side="right")
+                    inst_intervals = [
+                        MappingInterval(*interval)
+                        for interval in zip(
+                            self._starts[left:right].tolist(),
+                            self._ends[left:right].tolist(),
+                            self._symbols[left:right].tolist(),
+                        )
+                    ]
+                    left = np.searchsorted(new_ids, inst_id, side="left")
+                    right = np.searchsorted(new_ids, inst_id, side="right")
+                    for interval in zip(
+                        new_starts[left:right].tolist(),
+                        new_ends[left:right].tolist(),
+                        new_symbols[left:right].tolist(),
+                    ):
+                        inst_intervals = _replace_interval(
+                            inst_intervals,
+                            MappingInterval(*interval),
+                        )
+                    resolved_ids.extend([inst_id] * len(inst_intervals))
+                    resolved.extend(inst_intervals)
+
+                ids = np.concatenate([ids[keep], np.array(resolved_ids, dtype=np.uint64)])
+                starts = np.concatenate(
+                    [
+                        starts[keep],
+                        np.array([i.start_date for i in resolved], dtype="datetime64[D]"),
+                    ],
+                )
+                ends = np.concatenate(
+                    [ends[keep], np.array([i.end_date for i in resolved], dtype="datetime64[D]")],
+                )
+                symbols = np.concatenate(
+                    [symbols[keep], np.array([i.symbol for i in resolved], dtype=object)],
+                )
+
+                order = np.lexsort((starts, ids))
+                ids = ids[order]
+                starts = starts[order]
+                ends = ends[order]
+                symbols = symbols[order]
+
+            self._instrument_ids = ids
+            self._starts = starts
+            self._ends = ends
+            self._symbols = symbols
 
     def _arrays(
         self,
@@ -716,6 +789,45 @@ class InstrumentMap:
         # The arrays are never mutated in place, so the returned set stays consistent
         with self._lock:
             return self._instrument_ids, self._starts, self._ends, self._symbols
+
+
+def _replace_interval(
+    intervals: list[MappingInterval],
+    new: MappingInterval,
+) -> list[MappingInterval]:
+    """
+    Insert a mapping interval into the sorted, non-overlapping intervals of an
+    instrument. Where an existing interval overlaps with the new one, the new
+    interval replaces it.
+
+    This is the same rule as `TsSymbolMap::insert` in DBN.
+
+    Parameters
+    ----------
+    intervals : list[MappingInterval]
+        The sorted, non-overlapping intervals of an instrument.
+    new : MappingInterval
+        The interval to insert.
+
+    Returns
+    -------
+    list[MappingInterval]
+
+    """
+    if not intervals or intervals[-1].end_date <= new.start_date:
+        return [*intervals, new]  # mappings usually arrive in date order
+
+    before = [
+        i._replace(end_date=min(i.end_date, new.start_date))
+        for i in intervals
+        if i.start_date < new.start_date
+    ]
+    after = [
+        i._replace(start_date=max(i.start_date, new.end_date))
+        for i in intervals
+        if i.end_date > new.end_date
+    ]
+    return [*before, new, *after]
 
 
 def _to_date(value: np.datetime64[dt.date]) -> dt.date:

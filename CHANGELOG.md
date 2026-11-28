@@ -53,6 +53,9 @@
   at the start of the stream in extreme cases (credit: @rundef)
 - Fixed an issue where subscription requests sent the gateway during a reconnection
   event always set `is_last` (credit: @ItsM0rty)
+- Fixed an issue where `DBNStore.to_df()` and `InstrumentMap.resolve()` could leave a symbol
+  unmapped when the mapping intervals for an instrument ID overlapped, such as when
+  requesting two continuous symbols that resolve to the same instrument (credit: @shanurwan)
 
 ## 0.90.0 - 2026-11-03
 
